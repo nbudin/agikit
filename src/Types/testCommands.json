@@ -1,0 +1,98 @@
+[
+  {
+    "name": "",
+    "argTypes": [],
+    "opcode": 0
+  },
+  {
+    "name": "equaln",
+    "argTypes": ["Variable", "Number"],
+    "opcode": 1
+  },
+  {
+    "name": "equalv",
+    "argTypes": ["Variable", "Variable"],
+    "opcode": 2
+  },
+  {
+    "name": "lessn",
+    "argTypes": ["Variable", "Number"],
+    "opcode": 3
+  },
+  {
+    "name": "lessv",
+    "argTypes": ["Variable", "Variable"],
+    "opcode": 4
+  },
+  {
+    "name": "greatern",
+    "argTypes": ["Variable", "Number"],
+    "opcode": 5
+  },
+  {
+    "name": "greaterv",
+    "argTypes": ["Variable", "Variable"],
+    "opcode": 6
+  },
+  {
+    "name": "isset",
+    "argTypes": ["Flag"],
+    "opcode": 7
+  },
+  {
+    "name": "issetv",
+    "argTypes": ["Variable"],
+    "opcode": 8
+  },
+  {
+    "name": "has",
+    "argTypes": ["Item"],
+    "opcode": 9
+  },
+  {
+    "name": "obj.in.room",
+    "argTypes": ["Item", "Variable"],
+    "opcode": 10
+  },
+  {
+    "name": "posn",
+    "argTypes": ["Object", "Number", "Number", "Number", "Number"],
+    "opcode": 11
+  },
+  {
+    "name": "controller",
+    "argTypes": ["CtrlCode"],
+    "opcode": 12
+  },
+  {
+    "name": "have.key",
+    "argTypes": [],
+    "opcode": 13
+  },
+  {
+    "name": "said",
+    "argTypes": [],
+    "opcode": 14,
+    "varArgs": true
+  },
+  {
+    "name": "compare.strings",
+    "argTypes": ["String", "String"],
+    "opcode": 15
+  },
+  {
+    "name": "obj.in.box",
+    "argTypes": ["Object", "Number", "Number", "Number", "Number"],
+    "opcode": 16
+  },
+  {
+    "name": "center.posn",
+    "argTypes": ["Object", "Number", "Number", "Number", "Number"],
+    "opcode": 17
+  },
+  {
+    "name": "right.posn",
+    "argTypes": ["Object", "Number", "Number", "Number", "Number"],
+    "opcode": 18
+  }
+]
