@@ -1,190 +1,27 @@
-import { notEqual } from 'assert';
-import assertNever from 'assert-never';
-import { isPresent } from 'ts-is-present';
-import {
-  LogicASTNode,
-  LogicCommandNode,
-  LogicConditionClause,
-  LogicGotoNode,
-  LogicIfNode,
-  LogicLabel,
-} from '../Types/Logic';
-
-/**
- * An intermediate data structure used during decompilation.  A basic block is a consecutive set
- * of simple commands (i.e. not conditionals or gotos) followed optionally by a conditional or
- * goto. It also has references to its entry and exit vertices in the control flow graph.
- *
- * See also: https://en.wikipedia.org/wiki/Basic_block
- */
-type BasicBlockCommon = {
-  label?: LogicLabel;
-  commands: LogicCommandNode[];
-  entryPoints: Set<BasicBlock>;
-};
-
-export type SimpleBasicBlock = BasicBlockCommon & {
-  type: 'simpleBasicBlock';
-  next?: BasicBlock;
-};
-
-export type GotoExitBasicBlock = BasicBlockCommon & {
-  type: 'gotoExitBasicBlock';
-  jumpTarget: BasicBlock;
-};
-
-export type IfExitBasicBlock = BasicBlockCommon & {
-  type: 'ifExitBasicBlock';
-  clauses: LogicConditionClause[];
-  then?: BasicBlock;
-  else?: BasicBlock;
-  next?: BasicBlock;
-};
-
-export type BasicBlock = SimpleBasicBlock | GotoExitBasicBlock | IfExitBasicBlock;
-
-export function buildBasicBlocks(
-  node: LogicASTNode,
-  blockIndex?: Map<LogicASTNode, BasicBlock>,
-): BasicBlock {
-  const workingIndex = blockIndex ?? new Map<LogicASTNode, BasicBlock>();
-
-  const findOrBuildBlocksForNode = (node: LogicASTNode) => {
-    const existing = workingIndex.get(node);
-    if (existing) {
-      return existing;
-    }
-
-    const block = buildBasicBlocks(node, workingIndex);
-    workingIndex.set(node, block);
-    return block;
-  };
-
-  if (node.type === 'command') {
-    if (node.next) {
-      const subsequentBlock = findOrBuildBlocksForNode(node.next);
-      if (subsequentBlock.label) {
-        const simpleBlock: SimpleBasicBlock = {
-          type: 'simpleBasicBlock',
-          label: node.label,
-          commands: [node],
-          entryPoints: new Set<BasicBlock>(),
-          next: subsequentBlock,
-        };
-
-        subsequentBlock.entryPoints.add(simpleBlock);
-        return simpleBlock;
-      }
-
-      return {
-        ...subsequentBlock,
-        label: node.label,
-        commands: [node, ...subsequentBlock.commands],
-      };
-    } else {
-      return {
-        type: 'simpleBasicBlock',
-        label: node.label,
-        commands: [node],
-        entryPoints: new Set<BasicBlock>(),
-      };
-    }
-  }
-
-  if (node.type === 'goto') {
-    const gotoExitBlock: GotoExitBasicBlock = {
-      type: 'gotoExitBasicBlock',
-      commands: [],
-      entryPoints: new Set<BasicBlock>(),
-      // just set it to _something_ so we can lazy-resolve this
-      jumpTarget: { type: 'simpleBasicBlock', commands: [], entryPoints: new Set<BasicBlock>() },
-    };
-
-    workingIndex.set(node, gotoExitBlock);
-
-    if (node.jumpTarget === node) {
-      gotoExitBlock.jumpTarget = gotoExitBlock;
-    } else {
-      gotoExitBlock.jumpTarget = findOrBuildBlocksForNode(node.jumpTarget);
-    }
-
-    gotoExitBlock.jumpTarget.entryPoints.add(gotoExitBlock);
-    return gotoExitBlock;
-  }
-
-  if (node.type === 'if') {
-    const ifExitBlock: IfExitBasicBlock = {
-      type: 'ifExitBasicBlock',
-      clauses: node.clauses,
-      commands: [],
-      entryPoints: new Set<BasicBlock>(),
-      label: node.label,
-      then: node.then ? findOrBuildBlocksForNode(node.then) : undefined,
-      else: node.else ? findOrBuildBlocksForNode(node.else) : undefined,
-      next: node.next ? findOrBuildBlocksForNode(node.next) : undefined,
-    };
-
-    [ifExitBlock.then, ifExitBlock.else, ifExitBlock.next].forEach((subsequentBlock) => {
-      if (subsequentBlock) {
-        subsequentBlock.entryPoints.add(ifExitBlock);
-      }
-    });
-
-    return ifExitBlock;
-  }
-
-  assertNever(node);
-}
-
-export function getBlockExits(block: BasicBlock): BasicBlock[] {
-  let exits: (BasicBlock | undefined)[] = [];
-
-  if (block.type === 'simpleBasicBlock') {
-    exits = [block.next];
-  } else if (block.type === 'gotoExitBasicBlock') {
-    exits = [block.jumpTarget];
-  } else if (block.type === 'ifExitBasicBlock') {
-    exits = [block.then, block.else, block.next];
-  }
-
-  return exits.filter(isPresent);
-}
-
-// function isBlockReachableFrom(start: BasicBlock, finish: BasicBlock, visited?: Set<BasicBlock>) {
-//   if (start === finish) {
-//     return true;
-//   }
-
-//   const visitedSet = visited ?? new Set<BasicBlock>();
-//   visitedSet.add(start);
-//   return getBlockExits(start).some((exitBlock) =>
-//     isBlockReachableFrom(exitBlock, finish, visitedSet),
-//   );
-// }
+import { LogicASTNode, LogicCommandNode, LogicGotoNode, LogicIfNode } from '../Types/Logic';
+import { BasicBlock, getBlockExits, buildBasicBlocks, replaceVertex } from './ControlFlowAnalysis';
 
 export type BlockVisitor = (block: BasicBlock) => void;
+
+export const removeEmptyBlock: BlockVisitor = (block) => {
+  if (block.type === 'singlePathBasicBlock' && block.next && block.commands.length === 0) {
+    const target = block.next.to;
+    block.entryPoints.forEach((entryVertex) => {
+      replaceVertex(entryVertex, target);
+    });
+  }
+};
 
 export const reorganizeUnlessGoto: BlockVisitor = (block) => {
   if (
     block.type === 'ifExitBasicBlock' &&
     !block.then &&
-    block.else?.type === 'gotoExitBasicBlock' &&
-    block.else.commands.length === 0
+    block.else?.to.type === 'singlePathBasicBlock' &&
+    block.else.to.commands.length === 0 &&
+    block.else.to.next
   ) {
-    const newNext = block.else.jumpTarget;
-    block.then = block.next;
-    block.next = newNext;
-    block.else = undefined;
-
-    [...newNext.entryPoints].forEach((entryPoint) => {
-      if (entryPoint.type === 'simpleBasicBlock') {
-        entryPoint.next = undefined;
-        newNext.entryPoints.delete(entryPoint);
-      } else if (entryPoint.type === 'ifExitBasicBlock' && entryPoint.next === newNext) {
-        entryPoint.next = undefined;
-        newNext.entryPoints.delete(entryPoint);
-      }
-    });
+    const newNext = block.else.to.next.to;
+    replaceVertex(block.else, newNext);
   }
 };
 
@@ -199,7 +36,7 @@ export function dfsBasicBlocks(
 
   visitor(block);
   visited.add(block);
-  getBlockExits(block).forEach((exitNode) => dfsBasicBlocks(exitNode, visitor, visited));
+  getBlockExits(block).forEach((exitVertex) => dfsBasicBlocks(exitVertex.to, visitor, visited));
 }
 
 export function buildASTFromBasicBlocks(
@@ -233,15 +70,11 @@ export function buildASTFromBasicBlocks(
     return commandNode;
   }
 
-  if (rootBlock.type === 'simpleBasicBlock') {
-    if (rootBlock.next) {
-      return findOrBuildNodeForBlock(rootBlock.next);
-    } else {
+  if (rootBlock.type === 'singlePathBasicBlock') {
+    if (!rootBlock.next) {
       return undefined;
     }
-  }
 
-  if (rootBlock.type === 'gotoExitBasicBlock') {
     const gotoNode: LogicGotoNode = {
       type: 'goto',
       label: rootBlock.label,
@@ -255,9 +88,11 @@ export function buildASTFromBasicBlocks(
     };
     workingIndex.set(rootBlock, gotoNode);
 
-    const jumpTarget = findOrBuildNodeForBlock(rootBlock.jumpTarget);
+    const jumpTarget = findOrBuildNodeForBlock(rootBlock.next.to);
     if (!jumpTarget) {
-      throw new Error('Invalid jump');
+      const fromAddress = rootBlock.metadata.gotoNode?.metadata?.instructionAddress;
+      const toAddress = rootBlock.metadata.gotoNode?.jumpTarget.metadata?.instructionAddress;
+      throw new Error(`Invalid jump from ${fromAddress} to ${toAddress}`);
     }
     gotoNode.jumpTarget = jumpTarget;
     return gotoNode;
@@ -271,9 +106,8 @@ export function buildASTFromBasicBlocks(
     };
     workingIndex.set(rootBlock, ifNode);
 
-    ifNode.then = rootBlock.then ? findOrBuildNodeForBlock(rootBlock.then) : undefined;
-    ifNode.else = rootBlock.else ? findOrBuildNodeForBlock(rootBlock.else) : undefined;
-    ifNode.next = rootBlock.next ? findOrBuildNodeForBlock(rootBlock.next) : undefined;
+    ifNode.then = rootBlock.then ? findOrBuildNodeForBlock(rootBlock.then.to) : undefined;
+    ifNode.else = rootBlock.else ? findOrBuildNodeForBlock(rootBlock.else.to) : undefined;
 
     return ifNode;
   }
@@ -281,9 +115,9 @@ export function buildASTFromBasicBlocks(
 
 export function optimizeAST(root: LogicASTNode): LogicASTNode {
   const rootBlock = buildBasicBlocks(root);
-  [reorganizeUnlessGoto].forEach((visitor) =>
-    dfsBasicBlocks(rootBlock, visitor, new Set<BasicBlock>()),
-  );
+  // [removeEmptyBlock].forEach((visitor) =>
+  //   dfsBasicBlocks(rootBlock, visitor, new Set<BasicBlock>()),
+  // );
 
   return buildASTFromBasicBlocks(rootBlock)!;
 }

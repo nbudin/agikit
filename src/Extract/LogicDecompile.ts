@@ -71,6 +71,9 @@ function resolveNodes(
     const commandNode: LogicCommandNode = {
       ...currentNode,
       label: labels.get(currentNode.address),
+      metadata: {
+        instructionAddress: currentNode.address,
+      },
     };
     workingIndex.set(currentNode.address, commandNode);
     if (currentNode.agiCommand.name !== 'return' && currentNodeIndex + 1 < unresolvedNodes.length) {
@@ -83,6 +86,7 @@ function resolveNodes(
     // we're going to transform an AGI assembly conditional into something like:
     //
     // if (conditions) {
+    //   stuffAfterTheIf
     // } else {
     //   goto(SkipTarget);
     // }
@@ -92,10 +96,13 @@ function resolveNodes(
       type: 'if',
       clauses: currentNode.clauses,
       label: labels.get(currentNode.address),
+      metadata: {
+        instructionAddress: currentNode.address,
+      },
     };
     workingIndex.set(currentNode.address, ifNode);
     if (currentNodeIndex + 1 < unresolvedNodes.length) {
-      ifNode.next = resolveNodes(unresolvedNodes, currentNodeIndex + 1, labels, workingIndex);
+      ifNode.then = resolveNodes(unresolvedNodes, currentNodeIndex + 1, labels, workingIndex);
     }
 
     // insert a virtual goto at the end of the code for the skip target
@@ -130,6 +137,9 @@ function resolveNodes(
       type: 'goto',
       jumpTarget: target,
       label: labels.get(currentNode.address),
+      metadata: {
+        instructionAddress: currentNode.address,
+      },
     };
     workingIndex.set(currentNode.address, gotoNode);
     return gotoNode;

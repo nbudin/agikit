@@ -55,7 +55,9 @@ function extractGame(srcDir: string, destDir: string) {
           extractResource(srcDir, entry, destDir, wordList);
         } catch (err) {
           warningResources.push(entry);
-          console.warn(`Couldn't extract ${resourceType} ${entry.resourceNumber}: ${err.message}`);
+          console.warn(
+            `Couldn't extract ${resourceType} ${entry.resourceNumber}: ${err.message}\n${err.stack}`,
+          );
         }
       }
     }

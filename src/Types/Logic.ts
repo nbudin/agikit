@@ -42,9 +42,14 @@ export type LogicLabel = {
   references: LogicInstruction[];
 };
 
+export type LogicASTNodeMetadata = {
+  instructionAddress?: number;
+};
+
 export type LogicCommandNode = LogicCommand & {
   label?: LogicLabel;
   next?: LogicASTNode;
+  metadata?: LogicASTNodeMetadata;
 };
 
 export type LogicIfNode = {
@@ -53,13 +58,14 @@ export type LogicIfNode = {
   then?: LogicASTNode;
   else?: LogicASTNode;
   label?: LogicLabel;
-  next?: LogicASTNode;
+  metadata?: LogicASTNodeMetadata;
 };
 
 export type LogicGotoNode = {
   type: 'goto';
   jumpTarget: LogicASTNode;
   label?: LogicLabel;
+  metadata?: LogicASTNodeMetadata;
 };
 
 export type LogicASTNode = LogicIfNode | LogicGotoNode | LogicCommandNode;
