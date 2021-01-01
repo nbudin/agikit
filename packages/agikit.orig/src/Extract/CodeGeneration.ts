@@ -1,4 +1,5 @@
 import assertNever from 'assert-never';
+import { find } from 'lodash';
 import { AGICommandArgType } from '../Types/AGICommands';
 import {
   LogicResource,
@@ -10,6 +11,7 @@ import {
 } from '../Types/Logic';
 import { WordList } from '../Types/WordList';
 import { optimizeAST } from './ASTOptimization';
+import { BasicBlock } from './ControlFlowAnalysis';
 import { decompileInstructions } from './LogicDecompile';
 import { generateLabels } from './LogicDisasm';
 
@@ -130,58 +132,109 @@ export function generateLogicAsm(logic: LogicResource, wordList: WordList): stri
   return `${asmCode.join('\n')}\n\n// messages\n${messages.join('\n')}\n`;
 }
 
-export function generateCodeForASTNode(
-  astNode: LogicASTNode,
-  context: CodeGenerationContext,
-  indent = 0,
-  visited?: Set<LogicASTNode>,
-): string {
-  const workingVisited = visited ?? new Set<LogicASTNode>();
+function findBasicBlockLabel(block: BasicBlock): LogicLabel | undefined {
+  if (block.commands.length > 0) {
+    return block.commands[0].label;
+  }
 
-  if (workingVisited.has(astNode)) {
+  if (block.type === 'singlePathBasicBlock') {
+    return block.metadata.gotoNode?.label;
+  }
+
+  if (block.type === 'ifExitBasicBlock') {
+    return block.metadata.ifNode.label;
+  }
+
+  assertNever(block);
+}
+
+function generateCodeForBasicBlock(
+  block: BasicBlock,
+  context: CodeGenerationContext,
+  indent: number,
+  visited: Set<BasicBlock>,
+  queue: BasicBlock[],
+): string {
+  const workingVisited = visited ?? new Set<BasicBlock>();
+
+  if (workingVisited.has(block)) {
     return '// WARNING: loop detected\n';
   }
 
-  workingVisited.add(astNode);
+  workingVisited.add(block);
 
   const indentSpaces = ' '.repeat(indent);
-  const labelIfPresent = astNode.label
-    ? `${' '.repeat(indent < 2 ? indent : indent - 2)}${astNode.label.label}:\n`
+  const blockLabel = findBasicBlockLabel(block);
+  const labelIfPresent = blockLabel
+    ? `${' '.repeat(indent < 2 ? indent : indent - 2)}${blockLabel.label}:\n`
     : '';
   const preamble = labelIfPresent + indentSpaces;
 
-  if (astNode.type === 'command') {
-    return `${preamble}${generateLogicCommandCode(astNode, context)}\n${
-      astNode.next ? generateCodeForASTNode(astNode.next, context, indent, workingVisited) : ''
-    }`;
+  const commandSection = block.commands
+    .map((command) => `${preamble}${generateLogicCommandCode(command, context)}`)
+    .join('\n');
+
+  if (block.type === 'singlePathBasicBlock') {
+    if (block.next) {
+      const nextBlockLabel = findBasicBlockLabel(block.next.to);
+      if (nextBlockLabel) {
+        queue.push(block.next.to);
+        return `${commandSection}\n${preamble}goto(${nextBlockLabel.label});`;
+      }
+    }
+
+    return commandSection;
   }
 
-  if (astNode.type === 'goto') {
-    return `${preamble}goto(${astNode.jumpTarget.label?.label});`;
-  }
-
-  if (astNode.type === 'if') {
-    const conditionalCode = astNode.clauses
+  if (block.type === 'ifExitBasicBlock') {
+    const conditionalCode = block.clauses
       .map((clause) => generateConditionClause(clause, context))
       .join(' && ');
 
     const lines = [
       `if (${conditionalCode}) {`,
-      ...(astNode.then ? [generateCodeForASTNode(astNode.then, context, 2, workingVisited)] : []),
-      ...(astNode.else
-        ? [`} else {`, generateCodeForASTNode(astNode.else, context, 2, workingVisited)]
+      ...(block.then
+        ? generateCodeForBasicBlock(block.then.to, context, 2, workingVisited, queue).split('\n')
+        : []),
+      ...(block.else
+        ? [
+            `} else {`,
+            ...generateCodeForBasicBlock(block.else.to, context, 2, workingVisited, queue).split(
+              '\n',
+            ),
+          ]
         : []),
       '}',
     ];
 
-    return `${labelIfPresent}${lines.map((line) => `${indentSpaces}${line}`).join('\n')}\n`;
+    const ifStatement = labelIfPresent + lines.map((line) => `${indentSpaces}${line}`).join('\n');
+    return ifStatement;
   }
 
-  return assertNever(astNode);
+  return assertNever(block);
+}
+
+export function generateCodeForBasicBlockTree(
+  root: BasicBlock,
+  context: CodeGenerationContext,
+): string {
+  const queue: BasicBlock[] = [root];
+  const visited = new Set<BasicBlock>();
+  let code = '';
+
+  while (queue.length > 0) {
+    const block = queue.shift();
+    if (!block || visited.has(block)) {
+      continue;
+    }
+    code += generateCodeForBasicBlock(block, context, 0, visited, queue);
+  }
+
+  return code;
 }
 
 export function generateCodeForLogicResource(logic: LogicResource, wordList: WordList): string {
   const root = decompileInstructions(logic.instructions);
   const optimizedRoot = optimizeAST(root);
-  return generateCodeForASTNode(optimizedRoot, { logic, wordList });
+  return generateCodeForBasicBlockTree(optimizedRoot, { logic, wordList });
 }

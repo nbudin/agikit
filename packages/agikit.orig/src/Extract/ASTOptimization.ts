@@ -1,5 +1,11 @@
 import { LogicASTNode, LogicCommandNode, LogicGotoNode, LogicIfNode } from '../Types/Logic';
-import { BasicBlock, getBlockExits, buildBasicBlocks, replaceVertex } from './ControlFlowAnalysis';
+import {
+  BasicBlock,
+  getBlockExits,
+  buildBasicBlocks,
+  replaceVertex,
+  removeVertex,
+} from './ControlFlowAnalysis';
 
 export type BlockVisitor = (block: BasicBlock) => void;
 
@@ -12,16 +18,18 @@ export const removeEmptyBlock: BlockVisitor = (block) => {
   }
 };
 
-export const reorganizeUnlessGoto: BlockVisitor = (block) => {
+export const restructureJumpIntoElse: BlockVisitor = (block) => {
   if (
     block.type === 'ifExitBasicBlock' &&
-    !block.then &&
-    block.else?.to.type === 'singlePathBasicBlock' &&
-    block.else.to.commands.length === 0 &&
-    block.else.to.next
+    block.then &&
+    block.then.to.type === 'singlePathBasicBlock' &&
+    block.then.to.next &&
+    block.else &&
+    block.then.to.next.to === block.else.to
   ) {
-    const newNext = block.else.to.next.to;
-    replaceVertex(block.else, newNext);
+    const nextBlock = block.else.to;
+    removeVertex(block.then.to.next);
+    removeVertex(block.else);
   }
 };
 
@@ -113,11 +121,11 @@ export function buildASTFromBasicBlocks(
   }
 }
 
-export function optimizeAST(root: LogicASTNode): LogicASTNode {
+export function optimizeAST(root: LogicASTNode): BasicBlock {
   const rootBlock = buildBasicBlocks(root);
-  // [removeEmptyBlock].forEach((visitor) =>
-  //   dfsBasicBlocks(rootBlock, visitor, new Set<BasicBlock>()),
-  // );
+  [removeEmptyBlock].forEach((visitor) =>
+    dfsBasicBlocks(rootBlock, visitor, new Set<BasicBlock>()),
+  );
 
-  return buildASTFromBasicBlocks(rootBlock)!;
+  return rootBlock;
 }
