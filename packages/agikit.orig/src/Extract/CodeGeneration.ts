@@ -174,9 +174,7 @@ export function generateCodeForASTNode(
       '}',
     ];
 
-    return `${labelIfPresent}${lines.map((line) => `${indentSpaces}${line}`).join('\n')}\n${
-      astNode.next ? generateCodeForASTNode(astNode.next, context, indent, workingVisited) : ''
-    }`;
+    return `${labelIfPresent}${lines.map((line) => `${indentSpaces}${line}`).join('\n')}\n`;
   }
 
   return assertNever(astNode);
