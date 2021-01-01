@@ -1,22 +1,13 @@
-import assertNever from 'assert-never';
 import {
-  LogicCommand,
   LogicCondition,
   LogicConditionClause,
   LogicInstruction,
+  LogicLabel,
   LogicOr,
-  LogicResource,
   LogicTest,
 } from '../Types/Logic';
-import { WordList } from '../Types/WordList';
-import { AGICommandArgType, getAGICommand, getTestCommand } from '../Types/AGICommands';
+import { getAGICommand, getTestCommand } from '../Types/AGICommands';
 import { AGIVersion } from '../Types/AGIVersion';
-
-export type LogicLabel = {
-  address: number;
-  label: string;
-  references: LogicInstruction[];
-};
 
 export function readInstructions(codeData: Buffer, agiVersion: AGIVersion): LogicInstruction[] {
   const instructions: LogicInstruction[] = [];

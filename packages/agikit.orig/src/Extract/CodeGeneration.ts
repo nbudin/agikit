@@ -1,15 +1,17 @@
 import assertNever from 'assert-never';
-import { max } from 'lodash';
 import { AGICommandArgType } from '../Types/AGICommands';
 import {
   LogicResource,
   LogicConditionClause,
   LogicCommand,
   LogicInstruction,
+  LogicASTNode,
+  LogicLabel,
 } from '../Types/Logic';
 import { WordList } from '../Types/WordList';
-import { decompileInstructions, LogicASTNode } from './LogicDecompile';
-import { LogicLabel, generateLabels } from './LogicDisasm';
+import { optimizeAST } from './ASTOptimization';
+import { decompileInstructions } from './LogicDecompile';
+import { generateLabels } from './LogicDisasm';
 
 export type CodeGenerationContext = {
   logic: LogicResource;
@@ -132,16 +134,25 @@ export function generateCodeForASTNode(
   astNode: LogicASTNode,
   context: CodeGenerationContext,
   indent = 0,
+  visited?: Set<LogicASTNode>,
 ): string {
+  const workingVisited = visited ?? new Set<LogicASTNode>();
+
+  if (workingVisited.has(astNode)) {
+    return '// WARNING: loop detected\n';
+  }
+
+  workingVisited.add(astNode);
+
   const indentSpaces = ' '.repeat(indent);
   const labelIfPresent = astNode.label
     ? `${' '.repeat(indent < 2 ? indent : indent - 2)}${astNode.label.label}:\n`
     : '';
-  const preamble = indentSpaces + labelIfPresent;
+  const preamble = labelIfPresent + indentSpaces;
 
   if (astNode.type === 'command') {
     return `${preamble}${generateLogicCommandCode(astNode, context)}\n${
-      astNode.next ? generateCodeForASTNode(astNode.next, context, indent) : ''
+      astNode.next ? generateCodeForASTNode(astNode.next, context, indent, workingVisited) : ''
     }`;
   }
 
@@ -156,18 +167,15 @@ export function generateCodeForASTNode(
 
     const lines = [
       `if (${conditionalCode}) {`,
-      ...astNode.then.map((thenNode) => generateCodeForASTNode(thenNode, context, 2)),
+      ...(astNode.then ? [generateCodeForASTNode(astNode.then, context, 2, workingVisited)] : []),
       ...(astNode.else
-        ? [
-            `} else {`,
-            ...astNode.else.map((elseNode) => generateCodeForASTNode(elseNode, context, 2)),
-          ]
+        ? [`} else {`, generateCodeForASTNode(astNode.else, context, 2, workingVisited)]
         : []),
       '}',
     ];
 
     return `${labelIfPresent}${lines.map((line) => `${indentSpaces}${line}`).join('\n')}\n${
-      astNode.next ? generateCodeForASTNode(astNode.next, context, indent) : ''
+      astNode.next ? generateCodeForASTNode(astNode.next, context, indent, workingVisited) : ''
     }`;
   }
 
@@ -176,5 +184,6 @@ export function generateCodeForASTNode(
 
 export function generateCodeForLogicResource(logic: LogicResource, wordList: WordList): string {
   const root = decompileInstructions(logic.instructions);
-  return generateCodeForASTNode(root, { logic, wordList });
+  const optimizedRoot = optimizeAST(root);
+  return generateCodeForASTNode(optimizedRoot, { logic, wordList });
 }
