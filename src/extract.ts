@@ -17,17 +17,14 @@ function extractResource(srcDir: string, entry: DirEntry, destDir: string, wordL
   );
 
   if (entry.resourceType === ResourceType.LOGIC) {
-    // TODO remove condition
-    if (entry.resourceNumber === 27) {
-      const logic = readLogicResource(resourceData, { major: 3, minor: 9999 });
-      writeFileSync(
-        path.join(destDir, entry.resourceType.toLowerCase(), `${entry.resourceNumber}.agiasm`),
-        generateLogicAsm(logic, wordList),
-      );
+    const logic = readLogicResource(resourceData, { major: 3, minor: 9999 });
+    writeFileSync(
+      path.join(destDir, entry.resourceType.toLowerCase(), `${entry.resourceNumber}.agiasm`),
+      generateLogicAsm(logic, wordList),
+    );
 
-      const code = generateCodeForLogicResource(logic, wordList);
-      writeFileSync(destPath, code);
-    }
+    const code = generateCodeForLogicResource(logic, wordList);
+    writeFileSync(destPath, code);
   } else {
     writeFileSync(destPath, resourceData);
   }

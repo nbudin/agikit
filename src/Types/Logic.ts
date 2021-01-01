@@ -36,6 +36,34 @@ export type LogicGoto = {
 
 export type LogicInstruction = LogicCommand | LogicCondition | LogicGoto;
 
+export type LogicLabel = {
+  address: number;
+  label: string;
+  references: LogicInstruction[];
+};
+
+export type LogicCommandNode = LogicCommand & {
+  label?: LogicLabel;
+  next?: LogicASTNode;
+};
+
+export type LogicIfNode = {
+  type: 'if';
+  clauses: LogicConditionClause[];
+  then?: LogicASTNode;
+  else?: LogicASTNode;
+  label?: LogicLabel;
+  next?: LogicASTNode;
+};
+
+export type LogicGotoNode = {
+  type: 'goto';
+  jumpTarget: LogicASTNode;
+  label?: LogicLabel;
+};
+
+export type LogicASTNode = LogicIfNode | LogicGotoNode | LogicCommandNode;
+
 export type LogicResource = {
   instructions: LogicInstruction[];
   messages: (string | undefined)[];
