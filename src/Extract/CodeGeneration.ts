@@ -1,17 +1,16 @@
 import assertNever from 'assert-never';
-import { find } from 'lodash';
 import { AGICommandArgType } from '../Types/AGICommands';
 import {
   LogicResource,
   LogicConditionClause,
   LogicCommand,
   LogicInstruction,
-  LogicASTNode,
   LogicLabel,
 } from '../Types/Logic';
 import { WordList } from '../Types/WordList';
 import { optimizeAST } from './ASTOptimization';
-import { BasicBlock } from './ControlFlowAnalysis';
+import { BasicBlock, BasicBlockGraph } from './ControlFlowAnalysis';
+import { DominatorTree } from './DominatorTree';
 import { decompileInstructions } from './LogicDecompile';
 import { generateLabels } from './LogicDisasm';
 
@@ -151,6 +150,7 @@ function findBasicBlockLabel(block: BasicBlock): LogicLabel | undefined {
 function generateCodeForBasicBlock(
   block: BasicBlock,
   context: CodeGenerationContext,
+  dominatorTree: DominatorTree<BasicBlock>,
   indent: number,
   visited: Set<BasicBlock>,
   queue: BasicBlock[],
@@ -194,14 +194,26 @@ function generateCodeForBasicBlock(
     const lines = [
       `if (${conditionalCode}) {`,
       ...(block.then
-        ? generateCodeForBasicBlock(block.then.to, context, 2, workingVisited, queue).split('\n')
+        ? generateCodeForBasicBlock(
+            block.then.to,
+            context,
+            dominatorTree,
+            2,
+            workingVisited,
+            queue,
+          ).split('\n')
         : []),
       ...(block.else
         ? [
             `} else {`,
-            ...generateCodeForBasicBlock(block.else.to, context, 2, workingVisited, queue).split(
-              '\n',
-            ),
+            ...generateCodeForBasicBlock(
+              block.else.to,
+              context,
+              dominatorTree,
+              2,
+              workingVisited,
+              queue,
+            ).split('\n'),
           ]
         : []),
       '}',
@@ -214,11 +226,12 @@ function generateCodeForBasicBlock(
   return assertNever(block);
 }
 
-export function generateCodeForBasicBlockTree(
-  root: BasicBlock,
+export function generateCodeForBasicBlockGraph(
+  graph: BasicBlockGraph,
+  dominatorTree: DominatorTree<BasicBlock>,
   context: CodeGenerationContext,
 ): string {
-  const queue: BasicBlock[] = [root];
+  const queue: BasicBlock[] = [graph.root];
   const visited = new Set<BasicBlock>();
   let code = '';
 
@@ -227,7 +240,7 @@ export function generateCodeForBasicBlockTree(
     if (!block || visited.has(block)) {
       continue;
     }
-    code += generateCodeForBasicBlock(block, context, 0, visited, queue);
+    code += generateCodeForBasicBlock(block, context, dominatorTree, 0, visited, queue);
   }
 
   return code;
@@ -236,5 +249,6 @@ export function generateCodeForBasicBlockTree(
 export function generateCodeForLogicResource(logic: LogicResource, wordList: WordList): string {
   const root = decompileInstructions(logic.instructions);
   const optimizedRoot = optimizeAST(root);
-  return generateCodeForBasicBlockTree(optimizedRoot, { logic, wordList });
+  const dominatorTree = DominatorTree.fromCFG(optimizedRoot);
+  return generateCodeForBasicBlockGraph(optimizedRoot, dominatorTree, { logic, wordList });
 }
