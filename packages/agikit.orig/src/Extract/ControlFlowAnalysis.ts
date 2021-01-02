@@ -8,7 +8,7 @@ import {
   LogicASTNode,
 } from '../Types/Logic';
 import { isPresent } from 'ts-is-present';
-import { remove } from 'lodash';
+import { Graph, GraphEdge } from './Graphs';
 
 /**
  * An intermediate data structure used during decompilation.  A basic block is a consecutive set
@@ -20,12 +20,12 @@ import { remove } from 'lodash';
 type BasicBlockCommon = {
   label?: LogicLabel;
   commands: LogicCommandNode[];
-  entryPoints: Set<BasicBlockVertex>;
+  entryPoints: Set<BasicBlockEdge>;
 };
 
 export type SinglePathBasicBlock = BasicBlockCommon & {
   type: 'singlePathBasicBlock';
-  next?: NextBasicBlockVertex;
+  next?: NextBasicBlockEdge;
   metadata: {
     gotoNode?: LogicGotoNode;
   };
@@ -34,8 +34,8 @@ export type SinglePathBasicBlock = BasicBlockCommon & {
 export type IfExitBasicBlock = BasicBlockCommon & {
   type: 'ifExitBasicBlock';
   clauses: LogicConditionClause[];
-  then?: ThenBasicBlockVertex;
-  else?: ElseBasicBlockVertex;
+  then?: ThenBasicBlockEdge;
+  else?: ElseBasicBlockEdge;
   metadata: {
     ifNode: LogicIfNode;
   };
@@ -43,27 +43,51 @@ export type IfExitBasicBlock = BasicBlockCommon & {
 
 export type BasicBlock = SinglePathBasicBlock | IfExitBasicBlock;
 
-type BasicBlockVertexCommon = {
-  from: BasicBlock;
-  to: BasicBlock;
-};
+type BasicBlockEdgeCommon = GraphEdge<BasicBlock>;
 
-export type NextBasicBlockVertex = Omit<BasicBlockVertexCommon, 'from'> & {
+export type NextBasicBlockEdge = Omit<BasicBlockEdgeCommon, 'from'> & {
   type: 'next';
   from: SinglePathBasicBlock;
 };
 
-export type ThenBasicBlockVertex = Omit<BasicBlockVertexCommon, 'from'> & {
+export type ThenBasicBlockEdge = Omit<BasicBlockEdgeCommon, 'from'> & {
   type: 'then';
   from: IfExitBasicBlock;
 };
 
-export type ElseBasicBlockVertex = Omit<BasicBlockVertexCommon, 'from'> & {
+export type ElseBasicBlockEdge = Omit<BasicBlockEdgeCommon, 'from'> & {
   type: 'else';
   from: IfExitBasicBlock;
 };
 
-export type BasicBlockVertex = NextBasicBlockVertex | ThenBasicBlockVertex | ElseBasicBlockVertex;
+export type BasicBlockEdge = NextBasicBlockEdge | ThenBasicBlockEdge | ElseBasicBlockEdge;
+
+function getBlockExits(block: BasicBlock): BasicBlockEdge[] {
+  let exits: (BasicBlockEdge | undefined)[] = [];
+
+  if (block.type === 'singlePathBasicBlock') {
+    exits = [block.next];
+  } else if (block.type === 'ifExitBasicBlock') {
+    exits = [block.then, block.else];
+  }
+
+  return exits.filter(isPresent);
+}
+
+export class BasicBlockGraph extends Graph<BasicBlock> {
+  static fromAST(rootNode: LogicASTNode): BasicBlockGraph {
+    const rootBlock = buildBasicBlocks(rootNode);
+    return new BasicBlockGraph(rootBlock);
+  }
+
+  getInwardEdges(block: BasicBlock): BasicBlockEdge[] {
+    return [...block.entryPoints];
+  }
+
+  getOutwardEdges(block: BasicBlock): BasicBlockEdge[] {
+    return getBlockExits(block);
+  }
+}
 
 export function formatKeyValuePairs<T>(obj: T | undefined, keys: (keyof T)[]): string {
   if (obj == null) {
@@ -101,7 +125,7 @@ export function basicBlockDebugName(block: BasicBlock): string {
   assertNever(block);
 }
 
-export function buildBasicBlocks(
+function buildBasicBlocks(
   node: LogicASTNode,
   blockIndex?: Map<LogicASTNode, BasicBlock>,
 ): BasicBlock {
@@ -126,31 +150,38 @@ export function buildBasicBlocks(
           type: 'singlePathBasicBlock',
           label: node.label,
           commands: [node],
-          entryPoints: new Set<BasicBlockVertex>(),
+          entryPoints: new Set<BasicBlockEdge>(),
           metadata: {},
         };
-        const nextVertex: NextBasicBlockVertex = {
+        const nextEdge: NextBasicBlockEdge = {
           type: 'next',
           from: singlePathBlock,
           to: subsequentBlock,
         };
-        singlePathBlock.next = nextVertex;
 
-        subsequentBlock.entryPoints.add(nextVertex);
+        singlePathBlock.next = nextEdge;
+
+        subsequentBlock.entryPoints.add(nextEdge);
         return singlePathBlock;
       }
 
-      return {
+      const concatenatedBlock = {
         ...subsequentBlock,
         label: node.label,
         commands: [node, ...subsequentBlock.commands],
       };
+
+      getBlockExits(subsequentBlock).forEach((edge) => {
+        edge.from = concatenatedBlock;
+      });
+
+      return concatenatedBlock;
     } else {
       return {
         type: 'singlePathBasicBlock',
         label: node.label,
         commands: [node],
-        entryPoints: new Set<BasicBlockVertex>(),
+        entryPoints: new Set<BasicBlockEdge>(),
         metadata: {},
       };
     }
@@ -164,7 +195,7 @@ export function buildBasicBlocks(
     const fakeJumpTargetPartial: Partial<SinglePathBasicBlock> = {
       type: 'singlePathBasicBlock',
       commands: [],
-      entryPoints: new Set<BasicBlockVertex>(),
+      entryPoints: new Set<BasicBlockEdge>(),
       metadata: {},
     };
     fakeJumpTargetPartial.next = {
@@ -177,7 +208,7 @@ export function buildBasicBlocks(
     const gotoBlock: SinglePathBasicBlock = {
       type: 'singlePathBasicBlock',
       commands: [],
-      entryPoints: new Set<BasicBlockVertex>(),
+      entryPoints: new Set<BasicBlockEdge>(),
       next: fakeJumpTarget.next,
       metadata: {
         gotoNode: node,
@@ -209,7 +240,7 @@ export function buildBasicBlocks(
       type: 'ifExitBasicBlock',
       clauses: node.clauses,
       commands: [],
-      entryPoints: new Set<BasicBlockVertex>(),
+      entryPoints: new Set<BasicBlockEdge>(),
       label: node.label,
       metadata: {
         ifNode: node,
@@ -242,21 +273,21 @@ export function buildBasicBlocks(
   assertNever(node);
 }
 
-export function removeVertex(vertex: BasicBlockVertex): void {
-  vertex.to.entryPoints.delete(vertex);
+export function removeEdge(edge: BasicBlockEdge): void {
+  edge.to.entryPoints.delete(edge);
 
-  switch (vertex.type) {
+  switch (edge.type) {
     case 'next':
-      vertex.from.next = undefined;
+      edge.from.next = undefined;
       return;
     case 'then':
-      vertex.from.then = undefined;
+      edge.from.then = undefined;
       return;
     case 'else':
-      vertex.from.else = undefined;
+      edge.from.else = undefined;
       return;
     default:
-      assertNever(vertex);
+      assertNever(edge);
   }
 }
 
@@ -311,34 +342,22 @@ export function attachElse(block: IfExitBasicBlock, nextBlock: BasicBlock): void
   block.else.to.entryPoints.add(block.else);
 }
 
-export function replaceVertex(vertex: BasicBlockVertex, newTarget: BasicBlock): void {
-  if (vertex.type === 'next') {
-    const from = vertex.from;
-    removeVertex(vertex);
+export function replaceEdge(edge: BasicBlockEdge, newTarget: BasicBlock): void {
+  if (edge.type === 'next') {
+    const from = edge.from;
+    removeEdge(edge);
     attachNext(from, newTarget);
-  } else if (vertex.type === 'then') {
-    const from = vertex.from;
-    removeVertex(vertex);
+  } else if (edge.type === 'then') {
+    const from = edge.from;
+    removeEdge(edge);
     attachThen(from, newTarget);
-  } else if (vertex.type === 'else') {
-    const from = vertex.from;
-    removeVertex(vertex);
+  } else if (edge.type === 'else') {
+    const from = edge.from;
+    removeEdge(edge);
     attachElse(from, newTarget);
   } else {
-    assertNever(vertex);
+    assertNever(edge);
   }
-}
-
-export function getBlockExits(block: BasicBlock): BasicBlockVertex[] {
-  let exits: (BasicBlockVertex | undefined)[] = [];
-
-  if (block.type === 'singlePathBasicBlock') {
-    exits = [block.next];
-  } else if (block.type === 'ifExitBasicBlock') {
-    exits = [block.then, block.else];
-  }
-
-  return exits.filter(isPresent);
 }
 
 // function isBlockReachableFrom(start: BasicBlock, finish: BasicBlock, visited?: Set<BasicBlock>) {

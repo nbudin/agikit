@@ -1,20 +1,16 @@
 import { LogicASTNode, LogicCommandNode, LogicGotoNode, LogicIfNode } from '../Types/Logic';
-import {
-  BasicBlock,
-  getBlockExits,
-  buildBasicBlocks,
-  replaceVertex,
-  removeVertex,
-} from './ControlFlowAnalysis';
+import { BasicBlock, replaceEdge, removeEdge, BasicBlockGraph } from './ControlFlowAnalysis';
+import { NodeVisitor } from './Graphs';
 
-export type BlockVisitor = (block: BasicBlock) => void;
+export type BlockVisitor = NodeVisitor<BasicBlock>;
 
 export const removeEmptyBlock: BlockVisitor = (block) => {
   if (block.type === 'singlePathBasicBlock' && block.next && block.commands.length === 0) {
     const target = block.next.to;
-    block.entryPoints.forEach((entryVertex) => {
-      replaceVertex(entryVertex, target);
+    block.entryPoints.forEach((entryEdge) => {
+      replaceEdge(entryEdge, target);
     });
+    removeEdge(block.next);
   }
 };
 
@@ -28,24 +24,10 @@ export const restructureJumpIntoElse: BlockVisitor = (block) => {
     block.then.to.next.to === block.else.to
   ) {
     const nextBlock = block.else.to;
-    removeVertex(block.then.to.next);
-    removeVertex(block.else);
+    removeEdge(block.then.to.next);
+    removeEdge(block.else);
   }
 };
-
-export function dfsBasicBlocks(
-  block: BasicBlock,
-  visitor: BlockVisitor,
-  visited: Set<BasicBlock>,
-): void {
-  if (visited.has(block)) {
-    return;
-  }
-
-  visitor(block);
-  visited.add(block);
-  getBlockExits(block).forEach((exitVertex) => dfsBasicBlocks(exitVertex.to, visitor, visited));
-}
 
 export function buildASTFromBasicBlocks(
   rootBlock: BasicBlock,
@@ -121,11 +103,11 @@ export function buildASTFromBasicBlocks(
   }
 }
 
-export function optimizeAST(root: LogicASTNode): BasicBlock {
-  const rootBlock = buildBasicBlocks(root);
-  [removeEmptyBlock].forEach((visitor) =>
-    dfsBasicBlocks(rootBlock, visitor, new Set<BasicBlock>()),
-  );
+export function optimizeAST(root: LogicASTNode): BasicBlockGraph {
+  const basicBlockGraph = BasicBlockGraph.fromAST(root);
+  // [removeEmptyBlock].forEach((visitor) =>
+  //   dfsBasicBlocks(rootBlock, visitor, new Set<BasicBlock>()),
+  // );
 
-  return rootBlock;
+  return basicBlockGraph;
 }
