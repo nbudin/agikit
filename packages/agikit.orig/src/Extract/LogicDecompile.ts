@@ -70,6 +70,7 @@ function resolveNodes(
   if (currentNode.type === 'command') {
     const commandNode: LogicCommandNode = {
       ...currentNode,
+      id: currentNode.address.toString(),
       label: labels.get(currentNode.address),
       metadata: {
         instructionAddress: currentNode.address,
@@ -94,6 +95,7 @@ function resolveNodes(
     // which we can then optimize in later passes using control flow analysis
     const ifNode: LogicIfNode = {
       type: 'if',
+      id: currentNode.address.toString(),
       clauses: currentNode.clauses,
       label: labels.get(currentNode.address),
       metadata: {
@@ -113,7 +115,7 @@ function resolveNodes(
       address: gotoNodeAddress,
       jumpTargetAddress: currentNode.elseGotoAddress,
     });
-    ifNode.else = resolveNodes(unresolvedNodes, gotoNodeIndex, labels, nodeIndex);
+    ifNode.else = resolveNodes(unresolvedNodes, gotoNodeIndex, labels, workingIndex);
 
     return ifNode;
   }
@@ -135,6 +137,7 @@ function resolveNodes(
 
     const gotoNode: LogicGotoNode = {
       type: 'goto',
+      id: currentNode.address.toString(),
       jumpTarget: target,
       label: labels.get(currentNode.address),
       metadata: {

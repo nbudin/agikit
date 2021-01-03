@@ -8,7 +8,8 @@ import {
   LogicASTNode,
 } from '../Types/Logic';
 import { isPresent } from 'ts-is-present';
-import { Graph, GraphEdge } from './Graphs';
+import { Graph, GraphEdge, GraphNode } from './Graphs';
+import { DominatorTree } from './DominatorTree';
 
 /**
  * An intermediate data structure used during decompilation.  A basic block is a consecutive set
@@ -18,6 +19,7 @@ import { Graph, GraphEdge } from './Graphs';
  * See also: https://en.wikipedia.org/wiki/Basic_block
  */
 type BasicBlockCommon = {
+  id: string;
   label?: LogicLabel;
   commands: LogicCommandNode[];
   entryPoints: Set<BasicBlockEdge>;
@@ -74,6 +76,22 @@ function getBlockExits(block: BasicBlock): BasicBlockEdge[] {
   return exits.filter(isPresent);
 }
 
+export type ReverseCFGNode = GraphNode & {
+  entries: ReverseCFGEdge[];
+  exits: ReverseCFGEdge[];
+};
+export type ReverseCFGEdge = GraphEdge<ReverseCFGNode>;
+
+export class ReverseCFG extends Graph<ReverseCFGNode> {
+  getInwardEdges(node: ReverseCFGNode): ReverseCFGEdge[] {
+    return node.entries;
+  }
+
+  getOutwardEdges(node: ReverseCFGNode): ReverseCFGEdge[] {
+    return node.exits;
+  }
+}
+
 export class BasicBlockGraph extends Graph<BasicBlock> {
   static fromAST(rootNode: LogicASTNode): BasicBlockGraph {
     const rootBlock = buildBasicBlocks(rootNode);
@@ -86,6 +104,72 @@ export class BasicBlockGraph extends Graph<BasicBlock> {
 
   getOutwardEdges(block: BasicBlock): BasicBlockEdge[] {
     return getBlockExits(block);
+  }
+
+  buildDominatorTree(): DominatorTree<BasicBlock> {
+    return DominatorTree.fromCFG(this);
+  }
+
+  buildPostDominatorTree(): DominatorTree<ReverseCFGNode> {
+    return DominatorTree.fromCFG(this.buildReverseCFG());
+  }
+
+  buildReverseCFG(): ReverseCFG {
+    const reverseNodes = new Map<BasicBlock, ReverseCFGNode>();
+    const roots = new Set<ReverseCFGNode>();
+    this.depthFirstSearch((block) => {
+      const reverseNode: ReverseCFGNode = {
+        id: block.id,
+        entries: [],
+        exits: [],
+      };
+      reverseNodes.set(block, reverseNode);
+
+      this.getInwardEdges(block).forEach((edge) => {
+        const blockEntry = reverseNodes.get(edge.from);
+        if (blockEntry && !reverseNode.exits.some((exit) => exit.to === blockEntry)) {
+          const reverseEdge: ReverseCFGEdge = {
+            from: reverseNode,
+            to: blockEntry,
+          };
+          reverseNode.exits.push(reverseEdge);
+          blockEntry.entries.push(reverseEdge);
+        }
+      });
+
+      this.getOutwardEdges(block).forEach((edge) => {
+        const blockExit = reverseNodes.get(edge.to);
+
+        if (blockExit && !reverseNode.entries.some((entry) => entry.from === blockExit)) {
+          const reverseEdge: ReverseCFGEdge = {
+            from: blockExit,
+            to: reverseNode,
+          };
+          blockExit.exits.push(reverseEdge);
+          reverseNode.entries.push(reverseEdge);
+        }
+      });
+
+      if (this.getOutwardEdges(block).length === 0) {
+        roots.add(reverseNode);
+      }
+    });
+
+    const virtualRoot: ReverseCFGNode = {
+      id: 'virtualRoot',
+      entries: [],
+      exits: [],
+    };
+    roots.forEach((root) => {
+      const edge: ReverseCFGEdge = {
+        from: virtualRoot,
+        to: root,
+      };
+      virtualRoot.exits.push(edge);
+      root.entries.push(edge);
+    });
+
+    return new ReverseCFG(virtualRoot);
   }
 }
 
@@ -148,6 +232,7 @@ function buildBasicBlocks(
       if (subsequentBlock.label) {
         const singlePathBlock: SinglePathBasicBlock = {
           type: 'singlePathBasicBlock',
+          id: node.id,
           label: node.label,
           commands: [node],
           entryPoints: new Set<BasicBlockEdge>(),
@@ -167,6 +252,7 @@ function buildBasicBlocks(
 
       const concatenatedBlock = {
         ...subsequentBlock,
+        id: node.id,
         label: node.label,
         commands: [node, ...subsequentBlock.commands],
       };
@@ -179,6 +265,7 @@ function buildBasicBlocks(
     } else {
       return {
         type: 'singlePathBasicBlock',
+        id: node.id,
         label: node.label,
         commands: [node],
         entryPoints: new Set<BasicBlockEdge>(),
@@ -207,6 +294,7 @@ function buildBasicBlocks(
 
     const gotoBlock: SinglePathBasicBlock = {
       type: 'singlePathBasicBlock',
+      id: node.id,
       commands: [],
       entryPoints: new Set<BasicBlockEdge>(),
       next: fakeJumpTarget.next,
@@ -238,6 +326,7 @@ function buildBasicBlocks(
   if (node.type === 'if') {
     const ifExitBlock: IfExitBasicBlock = {
       type: 'ifExitBasicBlock',
+      id: node.id,
       clauses: node.clauses,
       commands: [],
       entryPoints: new Set<BasicBlockEdge>(),
