@@ -9,7 +9,12 @@ import {
 } from '../Types/Logic';
 import { WordList } from '../Types/WordList';
 import { optimizeAST } from './ASTOptimization';
-import { BasicBlock, BasicBlockGraph } from './ControlFlowAnalysis';
+import {
+  BasicBlock,
+  basicBlockDebugName,
+  BasicBlockGraph,
+  ReverseCFGNode,
+} from './ControlFlowAnalysis';
 import { DominatorTree } from './DominatorTree';
 import { decompileInstructions } from './LogicDecompile';
 import { generateLabels } from './LogicDisasm';
@@ -151,6 +156,7 @@ function generateCodeForBasicBlock(
   block: BasicBlock,
   context: CodeGenerationContext,
   dominatorTree: DominatorTree<BasicBlock>,
+  postDominatorTree: DominatorTree<ReverseCFGNode>,
   indent: number,
   visited: Set<BasicBlock>,
   queue: BasicBlock[],
@@ -179,7 +185,9 @@ function generateCodeForBasicBlock(
       const nextBlockLabel = findBasicBlockLabel(block.next.to);
       if (nextBlockLabel) {
         queue.push(block.next.to);
-        return `${commandSection}\n${preamble}goto(${nextBlockLabel.label});`;
+        if (!postDominatorTree.immediatelyDominates(block.next.to.id, block.id)) {
+          return `${commandSection}\n${preamble}goto(${nextBlockLabel.label});`;
+        }
       }
     }
 
@@ -187,40 +195,63 @@ function generateCodeForBasicBlock(
   }
 
   if (block.type === 'ifExitBasicBlock') {
+    const innerQueue: BasicBlock[] = [];
     const conditionalCode = block.clauses
       .map((clause) => generateConditionClause(clause, context))
       .join(' && ');
 
+    const thenCode = block.then
+      ? generateCodeForBasicBlock(
+          block.then.to,
+          context,
+          dominatorTree,
+          postDominatorTree,
+          2,
+          workingVisited,
+          innerQueue,
+        )
+      : '';
+    const elseCode = block.else
+      ? generateCodeForBasicBlock(
+          block.else.to,
+          context,
+          dominatorTree,
+          postDominatorTree,
+          2,
+          workingVisited,
+          innerQueue,
+        )
+      : undefined;
+
     const lines = [
       `if (${conditionalCode}) {`,
-      ...(block.then
-        ? generateCodeForBasicBlock(
-            block.then.to,
-            context,
-            dominatorTree,
-            2,
-            workingVisited,
-            queue,
-          ).split('\n')
-        : []),
-      ...(block.else
-        ? [
-            `} else {`,
-            ...generateCodeForBasicBlock(
-              block.else.to,
-              context,
-              dominatorTree,
-              2,
-              workingVisited,
-              queue,
-            ).split('\n'),
-          ]
-        : []),
+      ...thenCode.split('\n'),
+      ...(elseCode ? [`} else {`, elseCode.split('\n')] : []),
       '}',
     ];
 
     const ifStatement = labelIfPresent + lines.map((line) => `${indentSpaces}${line}`).join('\n');
-    return ifStatement;
+    let subsequentCode = '';
+    while (innerQueue.length > 0) {
+      const innerBlock = innerQueue.shift();
+      if (!innerBlock || workingVisited.has(innerBlock)) {
+        continue;
+      }
+      if (!dominatorTree.dominates(block.id, innerBlock.id)) {
+        queue.push(innerBlock);
+        continue;
+      }
+      subsequentCode += generateCodeForBasicBlock(
+        innerBlock,
+        context,
+        dominatorTree,
+        postDominatorTree,
+        indent,
+        workingVisited,
+        innerQueue,
+      );
+    }
+    return ifStatement + '\n' + subsequentCode;
   }
 
   return assertNever(block);
@@ -228,11 +259,12 @@ function generateCodeForBasicBlock(
 
 export function generateCodeForBasicBlockGraph(
   graph: BasicBlockGraph,
-  dominatorTree: DominatorTree<BasicBlock>,
   context: CodeGenerationContext,
 ): string {
   const queue: BasicBlock[] = [graph.root];
   const visited = new Set<BasicBlock>();
+  const dominatorTree = graph.buildDominatorTree();
+  const postDominatorTree = graph.buildPostDominatorTree();
   let code = '';
 
   while (queue.length > 0) {
@@ -240,7 +272,15 @@ export function generateCodeForBasicBlockGraph(
     if (!block || visited.has(block)) {
       continue;
     }
-    code += generateCodeForBasicBlock(block, context, dominatorTree, 0, visited, queue);
+    code += generateCodeForBasicBlock(
+      block,
+      context,
+      dominatorTree,
+      postDominatorTree,
+      0,
+      visited,
+      queue,
+    );
   }
 
   return code;
@@ -249,6 +289,5 @@ export function generateCodeForBasicBlockGraph(
 export function generateCodeForLogicResource(logic: LogicResource, wordList: WordList): string {
   const root = decompileInstructions(logic.instructions);
   const optimizedRoot = optimizeAST(root);
-  const dominatorTree = DominatorTree.fromCFG(optimizedRoot);
-  return generateCodeForBasicBlockGraph(optimizedRoot, dominatorTree, { logic, wordList });
+  return generateCodeForBasicBlockGraph(optimizedRoot, { logic, wordList });
 }

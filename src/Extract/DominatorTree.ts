@@ -1,4 +1,4 @@
-import { Graph } from './Graphs';
+import { Graph, GraphNode } from './Graphs';
 
 type SpanningTreeNodeInfo<NodeType> = {
   dfsNum: number;
@@ -16,30 +16,24 @@ export type ImmediateDominatorEdge<CFGNodeType> = {
 };
 
 export type DominatorTreeNode<CFGNodeType> = {
+  id: string;
   cfgNode: CFGNodeType;
   immediateDominator?: ImmediateDominatorEdge<CFGNodeType>;
   dominates: ImmediateDominatorEdge<CFGNodeType>[];
 };
 
-export class DominatorTree<CFGNodeType> extends Graph<DominatorTreeNode<CFGNodeType>> {
-  static fromCFG<CFGNodeType>(graph: Graph<CFGNodeType>): DominatorTree<CFGNodeType> {
+export class DominatorTree<CFGNodeType extends GraphNode> extends Graph<
+  DominatorTreeNode<CFGNodeType>
+> {
+  static fromCFG<CFGNodeType extends GraphNode>(
+    graph: Graph<CFGNodeType>,
+  ): DominatorTree<CFGNodeType> {
     const spanningTree = new SemiNCASpanningTree(graph);
     const root = spanningTree.buildDominatorTree();
     return new DominatorTree(root);
   }
 
-  private nodeIndex: Map<CFGNodeType, DominatorTreeNode<CFGNodeType>>;
-
-  constructor(root: DominatorTreeNode<CFGNodeType>) {
-    super(root);
-
-    this.nodeIndex = new Map<CFGNodeType, DominatorTreeNode<CFGNodeType>>();
-    this.depthFirstSearch((node) => {
-      this.nodeIndex.set(node.cfgNode, node);
-    });
-  }
-
-  dominates(a: CFGNodeType, b: CFGNodeType): boolean {
+  dominates(a: string, b: string): boolean {
     const aNode = this.nodeIndex.get(a);
     let bNode = this.nodeIndex.get(b);
 
@@ -61,6 +55,17 @@ export class DominatorTree<CFGNodeType> extends Graph<DominatorTreeNode<CFGNodeT
     return false;
   }
 
+  immediatelyDominates(a: string, b: string): boolean {
+    const aNode = this.nodeIndex.get(a);
+    const bNode = this.nodeIndex.get(b);
+
+    if (!aNode || !bNode) {
+      throw new Error('Node not in graph');
+    }
+
+    return bNode.immediateDominator?.from === aNode;
+  }
+
   getInwardEdges(node: DominatorTreeNode<CFGNodeType>): ImmediateDominatorEdge<CFGNodeType>[] {
     if (node.immediateDominator) {
       return [node.immediateDominator];
@@ -74,7 +79,7 @@ export class DominatorTree<CFGNodeType> extends Graph<DominatorTreeNode<CFGNodeT
   }
 }
 
-class SemiNCASpanningTree<NodeType> {
+class SemiNCASpanningTree<NodeType extends GraphNode> {
   graph: Graph<NodeType>;
   private nodesInDFSOrder: NodeType[];
   private nodeInfos: Map<NodeType, SpanningTreeNodeInfo<NodeType>>;
@@ -95,7 +100,7 @@ class SemiNCASpanningTree<NodeType> {
 
   buildDominatorTree(): DominatorTreeNode<NodeType> {
     const dtNodes = new Map<NodeType, DominatorTreeNode<NodeType>>(
-      this.nodesInDFSOrder.map((node) => [node, { cfgNode: node, dominates: [] }]),
+      this.nodesInDFSOrder.map((node) => [node, { id: node.id, cfgNode: node, dominates: [] }]),
     );
 
     this.nodesInDFSOrder.forEach((node) => {

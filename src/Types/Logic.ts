@@ -47,6 +47,7 @@ export type LogicASTNodeMetadata = {
 };
 
 export type LogicCommandNode = LogicCommand & {
+  id: string;
   label?: LogicLabel;
   next?: LogicASTNode;
   metadata?: LogicASTNodeMetadata;
@@ -54,6 +55,7 @@ export type LogicCommandNode = LogicCommand & {
 
 export type LogicIfNode = {
   type: 'if';
+  id: string;
   clauses: LogicConditionClause[];
   then?: LogicASTNode;
   else?: LogicASTNode;
@@ -63,6 +65,7 @@ export type LogicIfNode = {
 
 export type LogicGotoNode = {
   type: 'goto';
+  id: string;
   jumpTarget: LogicASTNode;
   label?: LogicLabel;
   metadata?: LogicASTNodeMetadata;

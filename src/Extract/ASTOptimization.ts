@@ -67,9 +67,11 @@ export function buildASTFromBasicBlocks(
 
     const gotoNode: LogicGotoNode = {
       type: 'goto',
+      id: rootBlock.id,
       label: rootBlock.label,
       // fake jump target to get this in the index earlier
       jumpTarget: {
+        id: 'fake',
         address: 0,
         agiCommand: { name: 'fake', argTypes: [], opcode: -1 },
         type: 'command',
@@ -91,6 +93,7 @@ export function buildASTFromBasicBlocks(
   if (rootBlock.type === 'ifExitBasicBlock') {
     const ifNode: LogicIfNode = {
       type: 'if',
+      id: rootBlock.id,
       clauses: rootBlock.clauses,
       label: rootBlock.label,
     };
