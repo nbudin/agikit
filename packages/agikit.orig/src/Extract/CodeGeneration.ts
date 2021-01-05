@@ -9,12 +9,7 @@ import {
 } from '../Types/Logic';
 import { WordList } from '../Types/WordList';
 import { optimizeAST } from './ASTOptimization';
-import {
-  BasicBlock,
-  basicBlockDebugName,
-  BasicBlockGraph,
-  ReverseCFGNode,
-} from './ControlFlowAnalysis';
+import { BasicBlock, BasicBlockGraph, ReverseCFGNode } from './ControlFlowAnalysis';
 import { DominatorTree } from './DominatorTree';
 import { decompileInstructions } from './LogicDecompile';
 import { generateLabels } from './LogicDisasm';
@@ -23,6 +18,16 @@ export type CodeGenerationContext = {
   logic: LogicResource;
   wordList: WordList;
 };
+
+function generateWordArg(value: number, context: CodeGenerationContext) {
+  const word = context.wordList.get(value);
+  if (!word) {
+    throw new Error(`Word ${value} not found`);
+  }
+  const canonicalWord = [...word.values()][0];
+  return `"${canonicalWord}"`;
+  2;
+}
 
 function generateArg(
   value: number,
@@ -45,7 +50,7 @@ function generateArg(
     case AGICommandArgType.Variable:
       return `v${value}`;
     case AGICommandArgType.Word:
-      return [...(context.wordList.get(value)?.values() ?? [])][0] ?? `w${value}`;
+      return generateWordArg(value, context);
     case AGICommandArgType.Message:
       return `"${context.logic.messages[value - 1]}"`;
     default:
@@ -185,7 +190,7 @@ function generateCodeForBasicBlock(
       const nextBlockLabel = findBasicBlockLabel(block.next.to);
       if (nextBlockLabel) {
         queue.push(block.next.to);
-        if (!postDominatorTree.immediatelyDominates(block.next.to.id, block.id)) {
+        if (workingVisited.has(block.next.to)) {
           return `${commandSection}\n${preamble}goto(${nextBlockLabel.label});`;
         }
       }
@@ -195,12 +200,13 @@ function generateCodeForBasicBlock(
   }
 
   if (block.type === 'ifExitBasicBlock') {
-    const innerQueue: BasicBlock[] = [];
+    const thenQueue: BasicBlock[] = [];
+    const elseQueue: BasicBlock[] = [];
     const conditionalCode = block.clauses
       .map((clause) => generateConditionClause(clause, context))
       .join(' && ');
 
-    const thenCode = block.then
+    let thenCode = block.then
       ? generateCodeForBasicBlock(
           block.then.to,
           context,
@@ -208,10 +214,18 @@ function generateCodeForBasicBlock(
           postDominatorTree,
           2,
           workingVisited,
-          innerQueue,
+          thenQueue,
         )
       : '';
-    const elseCode = block.else
+    if (
+      block.then &&
+      thenQueue.length > 0 &&
+      !postDominatorTree.dominates(thenQueue[0].id, block.then.to.id)
+    ) {
+      thenCode += `\n  goto(${findBasicBlockLabel(thenQueue[0])});`;
+    }
+
+    let elseCode = block.else
       ? generateCodeForBasicBlock(
           block.else.to,
           context,
@@ -219,19 +233,27 @@ function generateCodeForBasicBlock(
           postDominatorTree,
           2,
           workingVisited,
-          innerQueue,
+          elseQueue,
         )
       : undefined;
+    if (
+      block.else &&
+      elseQueue.length > 0 &&
+      !postDominatorTree.dominates(elseQueue[0].id, block.else.to.id)
+    ) {
+      elseCode += `\n  goto(${findBasicBlockLabel(elseQueue[0])});`;
+    }
 
     const lines = [
       `if (${conditionalCode}) {`,
       ...thenCode.split('\n'),
-      ...(elseCode ? [`} else {`, elseCode.split('\n')] : []),
+      ...(elseCode ? [`} else {`, ...elseCode.split('\n')] : []),
       '}',
-    ];
+    ].filter((line) => line.trim().length > 0);
 
     const ifStatement = labelIfPresent + lines.map((line) => `${indentSpaces}${line}`).join('\n');
     let subsequentCode = '';
+    const innerQueue = [...thenQueue, ...elseQueue];
     while (innerQueue.length > 0) {
       const innerBlock = innerQueue.shift();
       if (!innerBlock || workingVisited.has(innerBlock)) {
@@ -283,7 +305,13 @@ export function generateCodeForBasicBlockGraph(
     );
   }
 
-  return code;
+  const jumpLabels = [...code.matchAll(/\bgoto\((\w+)\);\n/g)].map((match) => match[1]);
+  return code.replace(/\b(\w+):\n/g, (labelLine, label) => {
+    if (jumpLabels.includes(label)) {
+      return labelLine;
+    }
+    return '';
+  });
 }
 
 export function generateCodeForLogicResource(logic: LogicResource, wordList: WordList): string {
