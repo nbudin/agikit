@@ -257,6 +257,10 @@ function buildBasicBlocks(
         commands: [node, ...subsequentBlock.commands],
       };
 
+      subsequentBlock.entryPoints.forEach((edge) => {
+        edge.to = concatenatedBlock;
+      });
+
       getBlockExits(subsequentBlock).forEach((edge) => {
         edge.from = concatenatedBlock;
       });
