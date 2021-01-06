@@ -131,14 +131,18 @@ function generateLogicAsmInstructionWithPossibleLabel(
   return lineInstruction;
 }
 
+export function generateLogicMessages(logic: LogicResource): string {
+  const messages = logic.messages.map((message, index) => `#message ${index + 1} "${message}"`);
+  return `// messages\n${messages.join('\n')}\n`;
+}
+
 export function generateLogicAsm(logic: LogicResource, wordList: WordList): string {
   const labels = generateLabels(logic.instructions);
   const asmCode = logic.instructions.map((instruction) =>
     generateLogicAsmInstructionWithPossibleLabel(instruction, labels, { logic, wordList }),
   );
-  const messages = logic.messages.map((message, index) => `#message ${index + 1} "${message}"`);
 
-  return `${asmCode.join('\n')}\n\n// messages\n${messages.join('\n')}\n`;
+  return `${asmCode.join('\n')}\n\n${generateLogicMessages(logic)}`;
 }
 
 function findBasicBlockLabel(block: BasicBlock): LogicLabel | undefined {
@@ -179,11 +183,11 @@ function generateCodeForBasicBlock(
   const labelIfPresent = blockLabel
     ? `${' '.repeat(indent < 2 ? indent : indent - 2)}${blockLabel.label}:\n`
     : '';
-  const preamble = labelIfPresent + indentSpaces;
 
   const commandSection = block.commands
-    .map((command) => `${preamble}${generateLogicCommandCode(command, context)}`)
+    .map((command) => `${indentSpaces}${generateLogicCommandCode(command, context)}`)
     .join('\n');
+  const preamble = labelIfPresent + commandSection + (block.commands.length > 0 ? '\n' : '');
 
   if (block.type === 'singlePathBasicBlock') {
     if (block.next) {
@@ -191,7 +195,7 @@ function generateCodeForBasicBlock(
       if (nextBlockLabel) {
         queue.push(block.next.to);
         if (workingVisited.has(block.next.to)) {
-          return `${commandSection}\n${preamble}goto(${nextBlockLabel.label});`;
+          return `${preamble}${indentSpaces}goto(${nextBlockLabel.label});\n`;
         }
       }
     }
@@ -251,7 +255,7 @@ function generateCodeForBasicBlock(
       '}',
     ].filter((line) => line.trim().length > 0);
 
-    const ifStatement = labelIfPresent + lines.map((line) => `${indentSpaces}${line}`).join('\n');
+    const ifStatement = lines.map((line) => `${indentSpaces}${line}`).join('\n');
     let subsequentCode = '';
     const innerQueue = [...thenQueue, ...elseQueue];
     while (innerQueue.length > 0) {
@@ -273,7 +277,7 @@ function generateCodeForBasicBlock(
         innerQueue,
       );
     }
-    return ifStatement + '\n' + subsequentCode;
+    return preamble + ifStatement + '\n' + subsequentCode;
   }
 
   return assertNever(block);
@@ -317,5 +321,9 @@ export function generateCodeForBasicBlockGraph(
 export function generateCodeForLogicResource(logic: LogicResource, wordList: WordList): string {
   const root = decompileInstructions(logic.instructions);
   const optimizedRoot = optimizeAST(root);
-  return generateCodeForBasicBlockGraph(optimizedRoot, { logic, wordList });
+  return (
+    generateCodeForBasicBlockGraph(optimizedRoot, { logic, wordList }) +
+    '\n\n' +
+    generateLogicMessages(logic)
+  );
 }
