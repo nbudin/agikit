@@ -1,8 +1,13 @@
+import { result } from 'lodash';
 import { LogicASTNode, LogicCommandNode, LogicGotoNode, LogicIfNode } from '../Types/Logic';
 import { BasicBlock, replaceEdge, removeEdge, BasicBlockGraph } from './ControlFlowAnalysis';
 import { NodeVisitor } from './Graphs';
 
-export type BlockVisitor = NodeVisitor<BasicBlock>;
+export type BlockVisitor = (
+  ...params: Parameters<NodeVisitor<BasicBlock>>
+) => {
+  changed: boolean;
+};
 
 export const removeEmptyBlock: BlockVisitor = (block) => {
   if (block.type === 'singlePathBasicBlock' && block.next && block.commands.length === 0) {
@@ -11,23 +16,25 @@ export const removeEmptyBlock: BlockVisitor = (block) => {
       replaceEdge(entryEdge, target);
     });
     removeEdge(block.next);
+    return { changed: true };
   }
+  return { changed: false };
 };
 
-export const restructureJumpIntoElse: BlockVisitor = (block) => {
-  if (
-    block.type === 'ifExitBasicBlock' &&
-    block.then &&
-    block.then.to.type === 'singlePathBasicBlock' &&
-    block.then.to.next &&
-    block.else &&
-    block.then.to.next.to === block.else.to
-  ) {
-    const nextBlock = block.else.to;
-    removeEdge(block.then.to.next);
-    removeEdge(block.else);
-  }
-};
+// export const restructureJumpIntoElse: BlockVisitor = (block) => {
+//   if (
+//     block.type === 'ifExitBasicBlock' &&
+//     block.then &&
+//     block.then.to.type === 'singlePathBasicBlock' &&
+//     block.then.to.next &&
+//     block.else &&
+//     block.then.to.next.to === block.else.to
+//   ) {
+//     const nextBlock = block.else.to;
+//     removeEdge(block.then.to.next);
+//     removeEdge(block.else);
+//   }
+// };
 
 export function buildASTFromBasicBlocks(
   rootBlock: BasicBlock,
@@ -108,7 +115,14 @@ export function buildASTFromBasicBlocks(
 
 export function optimizeAST(root: LogicASTNode): BasicBlockGraph {
   const basicBlockGraph = BasicBlockGraph.fromAST(root);
-  [removeEmptyBlock].forEach((visitor) => basicBlockGraph.depthFirstSearch(visitor));
+  [removeEmptyBlock].forEach((visitor) => {
+    basicBlockGraph.depthFirstSearch((block, parent) => {
+      let result: ReturnType<BlockVisitor>;
+      do {
+        result = visitor(block, parent);
+      } while (result.changed);
+    });
+  });
 
   return basicBlockGraph;
 }
