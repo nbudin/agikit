@@ -9,7 +9,14 @@ import {
 } from '../Types/Logic';
 import { WordList } from '../Types/WordList';
 import { optimizeAST } from './ASTOptimization';
-import { BasicBlock, BasicBlockGraph, ReverseCFGNode } from './ControlFlowAnalysis';
+import {
+  BasicBlock,
+  BasicBlockEdge,
+  BasicBlockGraph,
+  IfExitBasicBlock,
+  ReverseCFGNode,
+  SinglePathBasicBlock,
+} from './ControlFlowAnalysis';
 import { DominatorTree } from './DominatorTree';
 import { decompileInstructions } from './LogicDecompile';
 import { generateLabels } from './LogicDisasm';
@@ -145,108 +152,123 @@ export function generateLogicAsm(logic: LogicResource, wordList: WordList): stri
   return `${asmCode.join('\n')}\n\n${generateLogicMessages(logic)}`;
 }
 
-function findBasicBlockLabel(block: BasicBlock): LogicLabel | undefined {
-  if (block.commands.length > 0) {
-    return block.commands[0].label;
+export class LogicScriptGenerator {
+  private graph: BasicBlockGraph;
+  private context: CodeGenerationContext;
+  private dominatorTree: DominatorTree<BasicBlock>;
+  private postDominatorTree: DominatorTree<ReverseCFGNode>;
+  private visited: Set<BasicBlock>;
+
+  constructor(graph: BasicBlockGraph, context: CodeGenerationContext) {
+    this.graph = graph;
+    this.context = context;
+    this.visited = new Set<BasicBlock>();
+    this.dominatorTree = graph.buildDominatorTree();
+    this.postDominatorTree = graph.buildPostDominatorTree();
   }
 
-  if (block.type === 'singlePathBasicBlock') {
-    return block.metadata.gotoNode?.label;
+  generateCode(): string {
+    const queue: BasicBlock[] = [this.graph.root];
+    let code = '';
+
+    while (queue.length > 0) {
+      const block = queue.shift();
+      if (!block || this.visited.has(block)) {
+        continue;
+      }
+      code += this.generateCodeForBasicBlock(block, 0, queue);
+    }
+
+    const jumpLabels = [...code.matchAll(/\bgoto\((\w+)\);\n/g)].map((match) => match[1]);
+    return code.replace(/ *(\w+):\n/g, (labelLine, label) => {
+      if (jumpLabels.includes(label)) {
+        return labelLine;
+      }
+      return '';
+    });
   }
 
-  if (block.type === 'ifExitBasicBlock') {
-    return block.metadata.ifNode.label;
+  private dominates(a: BasicBlock, b: BasicBlock): boolean {
+    return this.dominatorTree.dominates(a.id, b.id);
   }
 
-  assertNever(block);
-}
-
-function generateCodeForBasicBlock(
-  block: BasicBlock,
-  context: CodeGenerationContext,
-  dominatorTree: DominatorTree<BasicBlock>,
-  postDominatorTree: DominatorTree<ReverseCFGNode>,
-  indent: number,
-  visited: Set<BasicBlock>,
-  queue: BasicBlock[],
-): string {
-  const workingVisited = visited ?? new Set<BasicBlock>();
-
-  if (workingVisited.has(block)) {
-    return '// WARNING: loop detected\n';
+  private immediatelyDominates(a: BasicBlock, b: BasicBlock): boolean {
+    return this.dominatorTree.immediatelyDominates(a.id, b.id);
   }
 
-  workingVisited.add(block);
+  private postDominates(a: BasicBlock, b: BasicBlock): boolean {
+    return this.postDominatorTree.dominates(a.id, b.id);
+  }
 
-  const indentSpaces = ' '.repeat(indent);
-  const blockLabel = findBasicBlockLabel(block);
-  const labelIfPresent = blockLabel
-    ? `${' '.repeat(indent < 2 ? indent : indent - 2)}${blockLabel.label}:\n`
-    : '';
+  private immediatelyPostDominates(a: BasicBlock, b: BasicBlock): boolean {
+    return this.postDominatorTree.immediatelyDominates(a.id, b.id);
+  }
 
-  const commandSection = block.commands
-    .map((command) => `${indentSpaces}${generateLogicCommandCode(command, context)}`)
-    .join('\n');
-  const preamble = labelIfPresent + commandSection + (block.commands.length > 0 ? '\n' : '');
+  private generateCodeForBasicBlock(
+    block: BasicBlock,
+    indent: number,
+    queue: BasicBlock[],
+  ): string {
+    if (this.visited.has(block)) {
+      return '// WARNING: loop detected\n';
+    }
 
-  if (block.type === 'singlePathBasicBlock') {
+    this.visited.add(block);
+
+    if (block.type === 'singlePathBasicBlock') {
+      console.log(`Single path ${block.id}`);
+      return this.generateSinglePathCode(block, indent, queue);
+    }
+
+    if (block.type === 'ifExitBasicBlock') {
+      console.log(`If block ${block.id}`);
+      return this.generateIfCode(block, indent, queue);
+    }
+
+    return assertNever(block);
+  }
+
+  private generatePreamble(block: BasicBlock, indent: number) {
+    const indentSpaces = ' '.repeat(indent);
+    const blockLabel = this.findBasicBlockLabel(block);
+    const labelIfPresent = blockLabel
+      ? `${' '.repeat(indent < 2 ? indent : indent - 2)}${blockLabel.label}:\n`
+      : '';
+
+    const commandSection = block.commands
+      .map((command) => `${indentSpaces}${generateLogicCommandCode(command, this.context)}`)
+      .join('\n');
+    const preamble = labelIfPresent + commandSection + (block.commands.length > 0 ? '\n' : '');
+    return preamble;
+  }
+
+  private generateSinglePathCode(block: SinglePathBasicBlock, indent: number, queue: BasicBlock[]) {
+    const preamble = this.generatePreamble(block, indent);
     if (block.next) {
-      const nextBlockLabel = findBasicBlockLabel(block.next.to);
+      if (this.dominates(block, block.next.to)) {
+        const nextBlockCode = this.generateCodeForBasicBlock(block.next.to, indent, queue);
+        return `${preamble}${nextBlockCode}`;
+      }
+
+      const nextBlockLabel = this.findBasicBlockLabel(block.next.to);
       if (nextBlockLabel) {
         queue.push(block.next.to);
-        if (workingVisited.has(block.next.to)) {
-          return `${preamble}${indentSpaces}goto(${nextBlockLabel.label});\n`;
+        if (this.visited.has(block.next.to)) {
+          return `${preamble}${' '.repeat(indent)}goto(${nextBlockLabel.label});\n`;
         }
       }
     }
 
-    return commandSection;
+    return preamble;
   }
 
-  if (block.type === 'ifExitBasicBlock') {
-    const thenQueue: BasicBlock[] = [];
-    const elseQueue: BasicBlock[] = [];
+  private generateIfCode(block: IfExitBasicBlock, indent: number, queue: BasicBlock[]) {
     const conditionalCode = block.clauses
-      .map((clause) => generateConditionClause(clause, context))
+      .map((clause) => generateConditionClause(clause, this.context))
       .join(' && ');
 
-    let thenCode = block.then
-      ? generateCodeForBasicBlock(
-          block.then.to,
-          context,
-          dominatorTree,
-          postDominatorTree,
-          2,
-          workingVisited,
-          thenQueue,
-        )
-      : '';
-    if (
-      block.then &&
-      thenQueue.length > 0 &&
-      !postDominatorTree.dominates(thenQueue[0].id, block.then.to.id)
-    ) {
-      thenCode += `\n  goto(${findBasicBlockLabel(thenQueue[0])});`;
-    }
-
-    let elseCode = block.else
-      ? generateCodeForBasicBlock(
-          block.else.to,
-          context,
-          dominatorTree,
-          postDominatorTree,
-          2,
-          workingVisited,
-          elseQueue,
-        )
-      : undefined;
-    if (
-      block.else &&
-      elseQueue.length > 0 &&
-      !postDominatorTree.dominates(elseQueue[0].id, block.else.to.id)
-    ) {
-      elseCode += `\n  goto(${findBasicBlockLabel(elseQueue[0])});`;
-    }
+    const [thenCode, thenQueue] = this.generateBranchCode(block, block.then);
+    const [elseCode, elseQueue] = this.generateBranchCode(block, block.else);
 
     const lines = [
       `if (${conditionalCode}) {`,
@@ -255,75 +277,55 @@ function generateCodeForBasicBlock(
       '}',
     ].filter((line) => line.trim().length > 0);
 
-    const ifStatement = lines.map((line) => `${indentSpaces}${line}`).join('\n');
+    const ifStatement = lines.map((line) => `${' '.repeat(indent)}${line}`).join('\n');
     let subsequentCode = '';
     const innerQueue = [...thenQueue, ...elseQueue];
     while (innerQueue.length > 0) {
       const innerBlock = innerQueue.shift();
-      if (!innerBlock || workingVisited.has(innerBlock)) {
+      if (!innerBlock || this.visited.has(innerBlock)) {
         continue;
       }
-      if (!dominatorTree.dominates(block.id, innerBlock.id)) {
+      if (!this.dominates(block, innerBlock)) {
         queue.push(innerBlock);
         continue;
       }
-      subsequentCode += generateCodeForBasicBlock(
-        innerBlock,
-        context,
-        dominatorTree,
-        postDominatorTree,
-        indent,
-        workingVisited,
-        innerQueue,
-      );
+      subsequentCode += this.generateCodeForBasicBlock(innerBlock, indent, innerQueue);
     }
-    return preamble + ifStatement + '\n' + subsequentCode;
+    return this.generatePreamble(block, indent) + ifStatement + '\n' + subsequentCode;
   }
 
-  return assertNever(block);
-}
-
-export function generateCodeForBasicBlockGraph(
-  graph: BasicBlockGraph,
-  context: CodeGenerationContext,
-): string {
-  const queue: BasicBlock[] = [graph.root];
-  const visited = new Set<BasicBlock>();
-  const dominatorTree = graph.buildDominatorTree();
-  const postDominatorTree = graph.buildPostDominatorTree();
-  let code = '';
-
-  while (queue.length > 0) {
-    const block = queue.shift();
-    if (!block || visited.has(block)) {
-      continue;
+  private generateBranchCode(block: IfExitBasicBlock, branch?: BasicBlockEdge) {
+    if (branch && this.immediatelyPostDominates(branch.to, block)) {
+      return ['', [branch.to]] as const;
     }
-    code += generateCodeForBasicBlock(
-      block,
-      context,
-      dominatorTree,
-      postDominatorTree,
-      0,
-      visited,
-      queue,
-    );
+    const branchQueue: BasicBlock[] = [];
+    let branchCode = branch ? this.generateCodeForBasicBlock(branch.to, 2, branchQueue) : '';
+    if (branch && branchQueue.length > 0 && !this.postDominates(branchQueue[0], branch.to)) {
+      branchCode += `\n  goto(${this.findBasicBlockLabel(branchQueue[0])?.label});`;
+    }
+    return [branchCode, branchQueue] as const;
   }
 
-  const jumpLabels = [...code.matchAll(/\bgoto\((\w+)\);\n/g)].map((match) => match[1]);
-  return code.replace(/\b(\w+):\n/g, (labelLine, label) => {
-    if (jumpLabels.includes(label)) {
-      return labelLine;
+  private findBasicBlockLabel(block: BasicBlock): LogicLabel | undefined {
+    if (block.commands.length > 0) {
+      return block.commands[0].label;
     }
-    return '';
-  });
+
+    if (block.type === 'singlePathBasicBlock') {
+      return block.metadata.gotoNode?.label;
+    }
+
+    if (block.type === 'ifExitBasicBlock') {
+      return block.metadata.ifNode.label;
+    }
+
+    assertNever(block);
+  }
 }
 
 export function generateCodeForLogicResource(logic: LogicResource, wordList: WordList): string {
   const root = decompileInstructions(logic.instructions);
   const optimizedRoot = optimizeAST(root);
-  return (
-    generateCodeForBasicBlockGraph(optimizedRoot, { logic, wordList }) +
-    '\n\n' +
-    generateLogicMessages(logic)
-  );
+  const scriptGenerator = new LogicScriptGenerator(optimizedRoot, { logic, wordList });
+  return scriptGenerator.generateCode() + '\n\n' + generateLogicMessages(logic);
 }
