@@ -23,8 +23,10 @@ function extractResource(srcDir: string, entry: DirEntry, destDir: string, wordL
       generateLogicAsm(logic, wordList),
     );
 
-    const code = generateCodeForLogicResource(logic, wordList);
-    writeFileSync(destPath, code);
+    if (entry.resourceNumber === 103) {
+      const code = generateCodeForLogicResource(logic, wordList);
+      writeFileSync(destPath, code);
+    }
   } else {
     writeFileSync(destPath, resourceData);
   }

@@ -108,9 +108,7 @@ export function buildASTFromBasicBlocks(
 
 export function optimizeAST(root: LogicASTNode): BasicBlockGraph {
   const basicBlockGraph = BasicBlockGraph.fromAST(root);
-  // [removeEmptyBlock].forEach((visitor) =>
-  //   dfsBasicBlocks(rootBlock, visitor, new Set<BasicBlock>()),
-  // );
+  [removeEmptyBlock].forEach((visitor) => basicBlockGraph.depthFirstSearch(visitor));
 
   return basicBlockGraph;
 }
