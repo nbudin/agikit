@@ -9,7 +9,10 @@ export type GraphEdge<NodeType extends GraphNode> = {
 
 export type NodeVisitor<NodeType> = (block: NodeType, parent?: NodeType) => void;
 
-export abstract class Graph<NodeType extends GraphNode> {
+export abstract class Graph<
+  NodeType extends GraphNode,
+  EdgeType extends GraphEdge<NodeType> = GraphEdge<NodeType>
+> {
   root: NodeType;
   protected nodeIndex: Map<string, NodeType>;
 
@@ -22,8 +25,8 @@ export abstract class Graph<NodeType extends GraphNode> {
     });
   }
 
-  abstract getOutwardEdges(node: NodeType): GraphEdge<NodeType>[];
-  abstract getInwardEdges(node: NodeType): GraphEdge<NodeType>[];
+  abstract getOutwardEdges(node: NodeType): EdgeType[];
+  abstract getInwardEdges(node: NodeType): EdgeType[];
 
   depthFirstSearch(visitor: NodeVisitor<NodeType>): void {
     this.depthFirstSearchInner(this.root, visitor, new Set<string>());
@@ -33,11 +36,21 @@ export abstract class Graph<NodeType extends GraphNode> {
     let code = 'digraph {\n';
     this.depthFirstSearch((node) => {
       this.getOutwardEdges(node).forEach((edge) => {
-        code += `  ${node.id} -> ${edge.to.id}\n`;
+        code += `  ${this.getNodeName(node)} -> ${this.getNodeName(
+          edge.to,
+        )} [label="${this.getEdgeLabel(edge)}"]\n`;
       });
     });
     code += '}\n';
     return code;
+  }
+
+  getNodeName(node: NodeType): string {
+    return node.id;
+  }
+
+  getEdgeLabel(edge: EdgeType): string {
+    return '';
   }
 
   private depthFirstSearchInner(

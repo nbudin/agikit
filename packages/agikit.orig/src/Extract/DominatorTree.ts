@@ -23,7 +23,8 @@ export type DominatorTreeNode<CFGNodeType> = {
 };
 
 export class DominatorTree<CFGNodeType extends GraphNode> extends Graph<
-  DominatorTreeNode<CFGNodeType>
+  DominatorTreeNode<CFGNodeType>,
+  ImmediateDominatorEdge<CFGNodeType>
 > {
   static fromCFG<CFGNodeType extends GraphNode>(
     graph: Graph<CFGNodeType>,

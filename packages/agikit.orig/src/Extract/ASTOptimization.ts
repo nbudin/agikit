@@ -1,4 +1,3 @@
-import { result } from 'lodash';
 import { LogicASTNode, LogicCommandNode, LogicGotoNode, LogicIfNode } from '../Types/Logic';
 import { BasicBlock, replaceEdge, removeEdge, BasicBlockGraph } from './ControlFlowAnalysis';
 import { NodeVisitor } from './Graphs';
@@ -116,12 +115,16 @@ export function buildASTFromBasicBlocks(
 export function optimizeAST(root: LogicASTNode): BasicBlockGraph {
   const basicBlockGraph = BasicBlockGraph.fromAST(root);
   [removeEmptyBlock].forEach((visitor) => {
-    basicBlockGraph.depthFirstSearch((block, parent) => {
-      let result: ReturnType<BlockVisitor>;
-      do {
-        result = visitor(block, parent);
-      } while (result.changed);
-    });
+    let changed: boolean;
+    do {
+      changed = false;
+      basicBlockGraph.depthFirstSearch((block, parent) => {
+        const result = visitor(block, parent);
+        if (result.changed) {
+          changed = true;
+        }
+      });
+    } while (changed);
   });
 
   return basicBlockGraph;

@@ -23,10 +23,32 @@ function extractResource(srcDir: string, entry: DirEntry, destDir: string, wordL
       generateLogicAsm(logic, wordList),
     );
 
-    if (entry.resourceNumber === 103) {
-      const code = generateCodeForLogicResource(logic, wordList);
-      writeFileSync(destPath, code);
-    }
+    const [code, basicBlockGraph] = generateCodeForLogicResource(logic, wordList);
+    writeFileSync(destPath, code);
+    writeFileSync(
+      path.join(
+        destDir,
+        entry.resourceType.toLowerCase(),
+        `${entry.resourceNumber}.controlFlowGraph.dot`,
+      ),
+      basicBlockGraph.generateGraphviz(),
+    );
+    writeFileSync(
+      path.join(
+        destDir,
+        entry.resourceType.toLowerCase(),
+        `${entry.resourceNumber}.dominatorTree.dot`,
+      ),
+      basicBlockGraph.buildDominatorTree().generateGraphviz(),
+    );
+    writeFileSync(
+      path.join(
+        destDir,
+        entry.resourceType.toLowerCase(),
+        `${entry.resourceNumber}.postDominatorTree.dot`,
+      ),
+      basicBlockGraph.buildPostDominatorTree().generateGraphviz(),
+    );
   } else {
     writeFileSync(destPath, resourceData);
   }
@@ -52,6 +74,11 @@ function extractGame(srcDir: string, destDir: string) {
     });
     for (const entry of resourceDir[resourceType]) {
       if (entry != null) {
+        // Debugging, remove before shipping
+        if (entry.resourceNumber !== 103) {
+          continue;
+        }
+
         console.log(`Extracting ${resourceType} ${entry.resourceNumber}`);
         try {
           extractResource(srcDir, entry, destDir, wordList);
