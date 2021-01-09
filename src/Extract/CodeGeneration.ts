@@ -180,12 +180,26 @@ export class LogicScriptGenerator {
     }
 
     const jumpLabels = [...code.matchAll(/\bgoto\((\w+)\);\n/g)].map((match) => match[1]);
-    return code.replace(/ *(\w+):\n/g, (labelLine, label) => {
+    const codeWithUnusedJumpsRemoved = code.replace(/ *(\w+):\n/g, (labelLine, label) => {
       if (jumpLabels.includes(label)) {
         return labelLine;
       }
       return '';
     });
+
+    let codeWithRedundantJumpsRemoved = codeWithUnusedJumpsRemoved;
+    let removedRedundantJumps = false;
+    do {
+      removedRedundantJumps = false;
+      codeWithRedundantJumpsRemoved = codeWithRedundantJumpsRemoved.replace(
+        /\bgoto\((\w+)\);([\s}]*\1:)/gm,
+        (match, label, afterLabel) => {
+          removedRedundantJumps = true;
+          return afterLabel;
+        },
+      );
+    } while (removedRedundantJumps);
+    return codeWithRedundantJumpsRemoved;
   }
 
   private dominates(a: BasicBlock, b: BasicBlock): boolean {
@@ -243,7 +257,7 @@ export class LogicScriptGenerator {
   private generateSinglePathCode(block: SinglePathBasicBlock, indent: number, queue: BasicBlock[]) {
     const preamble = this.generatePreamble(block, indent);
     if (block.next) {
-      if (this.dominates(block, block.next.to)) {
+      if (this.dominates(block, block.next.to) && this.postDominates(block.next.to, block)) {
         const nextBlockCode = this.generateCodeForBasicBlock(block.next.to, indent, queue);
         return `${preamble}${nextBlockCode}`;
       }
@@ -292,16 +306,23 @@ export class LogicScriptGenerator {
     return this.generatePreamble(block, indent) + ifStatement + '\n' + subsequentCode;
   }
 
-  private generateBranchCode(block: IfExitBasicBlock, branch?: BasicBlockEdge) {
-    if (branch && this.immediatelyPostDominates(branch.to, block)) {
-      return ['', [branch.to]] as const;
+  private generateBranchCode(
+    block: IfExitBasicBlock,
+    branch?: BasicBlockEdge,
+  ): [string, BasicBlock[]] {
+    // if (branch && this.immediatelyPostDominates(branch.to, block)) {
+    //   return ['', [branch.to]];
+    // }
+
+    if (branch && !this.dominates(block, branch.to)) {
+      return [`  goto(${this.findBasicBlockLabel(branch.to)?.label});`, [branch.to]];
     }
     const branchQueue: BasicBlock[] = [];
     let branchCode = branch ? this.generateCodeForBasicBlock(branch.to, 2, branchQueue) : '';
     if (branch && branchQueue.length > 0 && !this.postDominates(branchQueue[0], branch.to)) {
       branchCode += `\n  goto(${this.findBasicBlockLabel(branchQueue[0])?.label});`;
     }
-    return [branchCode, branchQueue] as const;
+    return [branchCode, branchQueue];
   }
 
   private findBasicBlockLabel(block: BasicBlock): LogicLabel | undefined {
