@@ -92,7 +92,7 @@ export class ReverseCFG extends Graph<ReverseCFGNode> {
   }
 }
 
-export class BasicBlockGraph extends Graph<BasicBlock> {
+export class BasicBlockGraph extends Graph<BasicBlock, BasicBlockEdge> {
   static fromAST(rootNode: LogicASTNode): BasicBlockGraph {
     const rootBlock = buildBasicBlocks(rootNode);
     return new BasicBlockGraph(rootBlock);
@@ -104,6 +104,14 @@ export class BasicBlockGraph extends Graph<BasicBlock> {
 
   getOutwardEdges(block: BasicBlock): BasicBlockEdge[] {
     return getBlockExits(block);
+  }
+
+  getNodeName(block: BasicBlock): string {
+    return `${block.type.replace('BasicBlock', '')}${block.id}`;
+  }
+
+  getEdgeLabel(edge: BasicBlockEdge): string {
+    return edge.type;
   }
 
   buildDominatorTree(): DominatorTree<BasicBlock> {

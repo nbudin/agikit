@@ -120,8 +120,8 @@ export function generateLabels(instructions: LogicInstruction[]): LogicLabel[] {
 
   return [...targetAddressesWithRefs.keys()]
     .sort((a, b) => a - b)
-    .map((targetAddress, index) => ({
-      label: `Label${index + 1}`,
+    .map((targetAddress) => ({
+      label: `Address${targetAddress}`,
       address: targetAddress,
       references: [...(targetAddressesWithRefs.get(targetAddress) ?? [])],
     }));

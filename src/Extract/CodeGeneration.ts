@@ -216,12 +216,10 @@ export class LogicScriptGenerator {
     this.visited.add(block);
 
     if (block.type === 'singlePathBasicBlock') {
-      console.log(`Single path ${block.id}`);
       return this.generateSinglePathCode(block, indent, queue);
     }
 
     if (block.type === 'ifExitBasicBlock') {
-      console.log(`If block ${block.id}`);
       return this.generateIfCode(block, indent, queue);
     }
 
@@ -323,9 +321,12 @@ export class LogicScriptGenerator {
   }
 }
 
-export function generateCodeForLogicResource(logic: LogicResource, wordList: WordList): string {
+export function generateCodeForLogicResource(
+  logic: LogicResource,
+  wordList: WordList,
+): [string, BasicBlockGraph] {
   const root = decompileInstructions(logic.instructions);
   const optimizedRoot = optimizeAST(root);
   const scriptGenerator = new LogicScriptGenerator(optimizedRoot, { logic, wordList });
-  return scriptGenerator.generateCode() + '\n\n' + generateLogicMessages(logic);
+  return [scriptGenerator.generateCode() + '\n\n' + generateLogicMessages(logic), optimizedRoot];
 }
