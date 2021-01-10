@@ -1,6 +1,6 @@
-import { LogicASTNode, LogicCommandNode, LogicGotoNode, LogicIfNode } from '../Types/Logic';
+import { LogicASTNode, LogicCommandNode, LogicGotoNode, LogicIfNode } from './LogicDecompile';
 import { BasicBlock, replaceEdge, removeEdge, BasicBlockGraph } from './ControlFlowAnalysis';
-import { NodeVisitor } from './Graphs';
+import { NodeVisitor } from '../Graphs';
 
 export type BlockVisitor = (
   ...params: Parameters<NodeVisitor<BasicBlock>>

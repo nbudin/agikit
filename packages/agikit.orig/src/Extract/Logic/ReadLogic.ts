@@ -1,5 +1,5 @@
-import { AGIVersion } from '../Types/AGIVersion';
-import { LogicResource } from '../Types/Logic';
+import { AGIVersion } from '../../Types/AGIVersion';
+import { LogicResource } from '../../Types/Logic';
 import { readInstructions } from './LogicDisasm';
 
 const textEncryptionKey = Buffer.from('Avis Durgan', 'ascii');

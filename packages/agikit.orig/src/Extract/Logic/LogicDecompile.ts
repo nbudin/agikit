@@ -1,16 +1,44 @@
 import assertNever from 'assert-never';
 import { max } from 'lodash';
-import {
-  LogicConditionClause,
-  LogicCommand,
-  LogicInstruction,
-  LogicASTNode,
-  LogicCommandNode,
-  LogicGotoNode,
-  LogicIfNode,
-  LogicLabel,
-} from '../Types/Logic';
+import { LogicConditionClause, LogicCommand, LogicInstruction } from '../../Types/Logic';
 import { generateLabels } from './LogicDisasm';
+
+export type LogicLabel = {
+  address: number;
+  label: string;
+  references: LogicInstruction[];
+};
+
+export type LogicASTNodeMetadata = {
+  instructionAddress?: number;
+};
+
+export type LogicCommandNode = LogicCommand & {
+  id: string;
+  label?: LogicLabel;
+  next?: LogicASTNode;
+  metadata?: LogicASTNodeMetadata;
+};
+
+export type LogicIfNode = {
+  type: 'if';
+  id: string;
+  clauses: LogicConditionClause[];
+  then?: LogicASTNode;
+  else?: LogicASTNode;
+  label?: LogicLabel;
+  metadata?: LogicASTNodeMetadata;
+};
+
+export type LogicGotoNode = {
+  type: 'goto';
+  id: string;
+  jumpTarget: LogicASTNode;
+  label?: LogicLabel;
+  metadata?: LogicASTNodeMetadata;
+};
+
+export type LogicASTNode = LogicIfNode | LogicGotoNode | LogicCommandNode;
 
 type UnresolvedIfNode = {
   type: 'unresolvedIf';

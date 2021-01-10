@@ -7,7 +7,7 @@
     {
       "type": "pwa-node",
       "request": "launch",
-      "name": "Launch Program",
+      "name": "Launch Extract",
       "skipFiles": [
         "<node_internals>/**"
       ],
@@ -15,6 +15,21 @@
       "runtimeExecutable": "/Users/nbudin/.nodenv/versions/14.15.1/bin/node",
       "program": "${workspaceFolder}/src/extract.ts",
       "args": ["/Users/nbudin/Downloads/King's Quest 1 (AGI, DOS)", "extracted/kq1"],
+      "preLaunchTask": "tsc: build - tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js"
+      ]
+    },
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "Launch Parser Test",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "/Users/nbudin/.nodenv/versions/14.15.1/bin/node",
+      "program": "${workspaceFolder}/src/Scripting/testParser.ts",
       "preLaunchTask": "tsc: build - tsconfig.json",
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js"

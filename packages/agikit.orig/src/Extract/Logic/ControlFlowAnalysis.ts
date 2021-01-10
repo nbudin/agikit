@@ -1,15 +1,15 @@
 import assertNever from 'assert-never';
+import { LogicConditionClause } from '../../Types/Logic';
+import { isPresent } from 'ts-is-present';
+import { Graph, GraphEdge, GraphNode } from '../Graphs';
+import { DominatorTree } from './DominatorTree';
 import {
   LogicLabel,
   LogicCommandNode,
   LogicGotoNode,
-  LogicConditionClause,
   LogicIfNode,
   LogicASTNode,
-} from '../Types/Logic';
-import { isPresent } from 'ts-is-present';
-import { Graph, GraphEdge, GraphNode } from './Graphs';
-import { DominatorTree } from './DominatorTree';
+} from './LogicDecompile';
 
 /**
  * An intermediate data structure used during decompilation.  A basic block is a consecutive set

@@ -2,12 +2,12 @@ import {
   LogicCondition,
   LogicConditionClause,
   LogicInstruction,
-  LogicLabel,
   LogicOr,
   LogicTest,
-} from '../Types/Logic';
-import { getAGICommand, getTestCommand } from '../Types/AGICommands';
-import { AGIVersion } from '../Types/AGIVersion';
+} from '../../Types/Logic';
+import { getAGICommand, getTestCommand } from '../../Types/AGICommands';
+import { AGIVersion } from '../../Types/AGIVersion';
+import { LogicLabel } from './LogicDecompile';
 
 export function readInstructions(codeData: Buffer, agiVersion: AGIVersion): LogicInstruction[] {
   const instructions: LogicInstruction[] = [];

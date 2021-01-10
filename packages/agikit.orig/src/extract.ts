@@ -1,12 +1,12 @@
 import parseArgs from 'minimist';
 import { readV2Resource, readV2ResourceDirs } from './Extract/ReadResources';
-import { readLogicResource } from './Extract/ReadLogic';
+import { readLogicResource } from './Extract/Logic/ReadLogic';
 import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import { WordList } from './Types/WordList';
 import { readWordsTok, exportWords } from './Extract/ReadWordsTok';
 import { DirEntry, ResourceType } from './Types/Resources';
-import { generateLogicAsm, generateCodeForLogicResource } from './Extract/CodeGeneration';
+import { generateLogicAsm, generateCodeForLogicResource } from './Extract/Logic/CodeGeneration';
 
 function extractResource(srcDir: string, entry: DirEntry, destDir: string, wordList: WordList) {
   const resourceData = readV2Resource(srcDir, entry);
