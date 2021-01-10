@@ -1,4 +1,4 @@
-import { Graph, GraphNode } from './Graphs';
+import { Graph, GraphNode } from '../Graphs';
 
 type SpanningTreeNodeInfo<NodeType> = {
   dfsNum: number;
