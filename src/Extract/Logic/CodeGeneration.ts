@@ -223,28 +223,7 @@ export class LogicScriptGenerator {
     }
 
     this.removeUnusedLabels(statements);
-
-    // const jumpLabels = [...code.matchAll(/\bgoto\((\w+)\);\n/g)].map((match) => match[1]);
-    // const codeWithUnusedJumpsRemoved = code.replace(/ *(\w+):\n/g, (labelLine, label) => {
-    //   if (jumpLabels.includes(label)) {
-    //     return labelLine;
-    //   }
-    //   return '';
-    // });
-
-    // let codeWithRedundantJumpsRemoved = codeWithUnusedJumpsRemoved;
-    // let removedRedundantJumps = false;
-    // do {
-    //   removedRedundantJumps = false;
-    //   codeWithRedundantJumpsRemoved = codeWithRedundantJumpsRemoved.replace(
-    //     /\bgoto\((\w+)\);([\s}]*\1:)/gm,
-    //     (match, label, afterLabel) => {
-    //       removedRedundantJumps = true;
-    //       return afterLabel;
-    //     },
-    //   );
-    // } while (removedRedundantJumps);
-    // return codeWithRedundantJumpsRemoved;
+    this.removeRedundantJumps(statements);
 
     return generateLogicScript(statements);
   }
@@ -253,15 +232,16 @@ export class LogicScriptGenerator {
     const usedLabels = new Set<string>();
 
     this.dfsStatements(program, (statement) => {
-      if (statement.type === 'CommandCall' && statement.commandName === 'goto') {
-        const labelIdentifier = statement.argumentList[0] as LogicScriptIdentifier;
-        usedLabels.add(labelIdentifier.name);
+      const targetLabel = this.getGotoTargetLabel(statement);
+      if (targetLabel) {
+        usedLabels.add(targetLabel);
       }
       return false;
     });
 
-    this.dfsStatements(program, (statement, statementList) => {
+    this.dfsStatements(program, (statement, stack) => {
       if (statement.type === 'Label' && !usedLabels.has(statement.label)) {
+        const statementList = stack[0];
         statementList.splice(statementList.indexOf(statement), 1);
         return true;
       }
@@ -269,25 +249,79 @@ export class LogicScriptGenerator {
     });
   }
 
+  private removeRedundantJumps(program: LogicScriptProgram) {
+    this.dfsStatements(program, (statement, stack) => {
+      const targetLabel = this.getGotoTargetLabel(statement);
+      if (targetLabel) {
+        const nextStatement = this.findNextStatement(statement, stack);
+        if (
+          (nextStatement?.type === 'Label' && nextStatement.label === targetLabel) ||
+          (nextStatement && this.getGotoTargetLabel(nextStatement) === targetLabel)
+        ) {
+          const statementList = stack[0];
+          statementList.splice(statementList.indexOf(statement), 1);
+          return true;
+        }
+      }
+
+      return false;
+    });
+  }
+
+  private getGotoTargetLabel(statement: LogicScriptStatement): string | undefined {
+    if (statement.type === 'CommandCall' && statement.commandName === 'goto') {
+      const labelIdentifier = statement.argumentList[0] as LogicScriptIdentifier;
+      return labelIdentifier.name;
+    }
+    return undefined;
+  }
+
   private dfsStatements(
     statements: LogicScriptStatement[],
-    visitor: (statement: LogicScriptStatement, statementList: LogicScriptStatement[]) => boolean,
+    visitor: (statement: LogicScriptStatement, stack: LogicScriptStatement[][]) => boolean,
+    previousStack: LogicScriptStatement[][] = [],
   ): boolean {
     let changed = false;
+    const stackWithStatements = [statements, ...previousStack];
+
     [...statements].forEach((statement) => {
-      if (visitor(statement, statements)) {
+      if (visitor(statement, stackWithStatements)) {
         changed = true;
       }
       if (statement.type === 'IfStatement') {
-        if (this.dfsStatements(statement.thenStatements, visitor)) {
+        if (this.dfsStatements(statement.thenStatements, visitor, stackWithStatements)) {
           changed = true;
         }
-        if (this.dfsStatements(statement.elseStatements, visitor)) {
+        if (this.dfsStatements(statement.elseStatements, visitor, stackWithStatements)) {
           changed = true;
         }
       }
     });
     return changed;
+  }
+
+  private findNextStatement(
+    statement: LogicScriptStatement,
+    stack: LogicScriptStatement[][],
+  ): LogicScriptStatement | undefined {
+    const statementIndex = stack[0].indexOf(statement);
+    if (statementIndex < stack[0].length - 1) {
+      return stack[0][statementIndex + 1];
+    }
+
+    if (stack.length > 1) {
+      const enclosingStatement = stack[1].find(
+        (s) =>
+          s.type === 'IfStatement' &&
+          (s.thenStatements === stack[0] || s.elseStatements === stack[0]),
+      );
+      if (!enclosingStatement) {
+        throw new Error(`Can't find enclosing statement`);
+      }
+      return this.findNextStatement(enclosingStatement, stack.slice(1));
+    }
+
+    return undefined;
   }
 
   private dominates(a: BasicBlock, b: BasicBlock): boolean {

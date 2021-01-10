@@ -20,19 +20,20 @@ export const removeEmptyBlock: BlockVisitor = (block) => {
   return { changed: false };
 };
 
-// export const restructureJumpIntoElse: BlockVisitor = (block) => {
-//   if (
-//     block.type === 'ifExitBasicBlock' &&
-//     block.then &&
-//     block.then.to.type === 'singlePathBasicBlock' &&
-//     block.then.to.next &&
-//     block.else &&
-//     block.then.to.next.to === block.else.to
-//   ) {
-//     const nextBlock = block.else.to;
-//     removeEdge(block.then.to.next);
-//     removeEdge(block.else);
+// export const removeJumpIntoReturn: BlockVisitor = (block) => {
+//   if (block.type === 'singlePathBasicBlock' && block.next) {
+//     const target = block.next.to;
+//     const nextCommand = target.commands[0];
+//     if (nextCommand?.agiCommand.name === 'return') {
+//       block.commands.push({
+//         ...nextCommand,
+//         id: `removedJumpIntoReturnFrom${block.id}`,
+//       });
+//       removeEdge(block.next);
+//       return { changed: true };
+//     }
 //   }
+//   return { changed: false };
 // };
 
 export function buildASTFromBasicBlocks(
