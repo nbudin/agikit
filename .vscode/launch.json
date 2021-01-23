@@ -23,13 +23,13 @@
     {
       "type": "pwa-node",
       "request": "launch",
-      "name": "Launch Parser Test",
+      "name": "Launch Compiler",
       "skipFiles": [
         "<node_internals>/**"
       ],
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "/Users/nbudin/.nodenv/versions/14.15.1/bin/node",
-      "program": "${workspaceFolder}/src/Scripting/testParser.ts",
+      "program": "${workspaceFolder}/src/compileLogic.ts",
       "preLaunchTask": "tsc: build - tsconfig.json",
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js"
