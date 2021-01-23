@@ -1,4 +1,5 @@
 import { readFileSync } from 'fs';
+import { optimizeAST } from './Extract/Logic/ASTOptimization';
 import { readWordsTok } from './Extract/ReadWordsTok';
 import { LogicScriptASTGenerator } from './Scripting/LogicScriptASTGenerator';
 import { parseLogicScript, SyntaxError } from './Scripting/LogicScriptParser';
@@ -10,9 +11,19 @@ const wordList = readWordsTok(
 );
 
 try {
-  const program = parseLogicScript(input);
-  const astGenerator = new LogicScriptASTGenerator(program, wordList);
-  console.log(JSON.stringify(astGenerator.generateASTForLogicScript(program), null, 2));
+  const parseTree = parseLogicScript(input);
+  const lastStatement = parseTree.program[parseTree.program.length - 1];
+  if (lastStatement.type !== 'CommandCall' || lastStatement.commandName !== 'return') {
+    parseTree.program.push({
+      type: 'CommandCall',
+      commandName: 'return',
+      argumentList: [],
+    });
+  }
+  const astGenerator = new LogicScriptASTGenerator(parseTree, wordList);
+  const root = astGenerator.generateASTForLogicScript(parseTree);
+  const graph = optimizeAST(root);
+  console.log(graph.generateGraphviz());
 } catch (error) {
   if (error instanceof SyntaxError) {
     console.error(error.message);
