@@ -55,13 +55,13 @@ export class LogicScriptParseTree {
     return changed;
   }
 
-  findNextStatement(
+  findNextStatementPosition(
     statement: LogicScriptStatement,
     stack: LogicScriptStatementStack,
-  ): LogicScriptStatement | undefined {
+  ): { index: number; stack: LogicScriptStatementStack } | undefined {
     const statementIndex = stack[0].indexOf(statement);
     if (statementIndex < stack[0].length - 1) {
-      return stack[0][statementIndex + 1];
+      return { index: statementIndex + 1, stack };
     }
 
     if (stack.length > 1) {
@@ -73,10 +73,22 @@ export class LogicScriptParseTree {
       if (!enclosingStatement) {
         throw new Error(`Can't find enclosing statement`);
       }
-      return this.findNextStatement(enclosingStatement, stack.slice(1));
+      return this.findNextStatementPosition(enclosingStatement, stack.slice(1));
     }
 
     return undefined;
+  }
+
+  findNextStatement(
+    statement: LogicScriptStatement,
+    stack: LogicScriptStatementStack,
+  ): LogicScriptStatement | undefined {
+    const position = this.findNextStatementPosition(statement, stack);
+    if (!position) {
+      return undefined;
+    }
+
+    return position.stack[0][position.index];
   }
 }
 

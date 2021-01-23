@@ -6,7 +6,7 @@ import {
   LogicIfNode,
   LogicLabel,
 } from '../Extract/Logic/LogicDecompile';
-import { LogicScriptParseTree } from './LogicScriptParser';
+import { LogicScriptParseTree, LogicScriptStatementStack } from './LogicScriptParser';
 import {
   LogicScriptIdentifier,
   LogicScriptLabel,
@@ -68,10 +68,16 @@ export class LogicScriptASTGenerator {
 
     this.statementAddresses = new Map<LogicScriptStatement, number>();
     this.nodesByAddress = new Map<number, LogicASTNode>();
+    this.messages = new Map<string, number>();
     let address = 1;
     parseTree.dfsStatements((statement) => {
       this.statementAddresses.set(statement, address);
       address += 1;
+
+      if (statement.type === 'MessageDirective') {
+        this.messages.set(statement.message, statement.number);
+      }
+
       return false;
     });
   }
@@ -188,6 +194,7 @@ export class LogicScriptASTGenerator {
   generateASTForLogicScriptStatements(
     statements: LogicScriptStatement[],
     previousLabel: LogicScriptLabel | undefined,
+    stack: LogicScriptStatementStack,
   ): LogicASTNode | undefined {
     const statement = statements[0];
     const address = this.statementAddresses.get(statement);
@@ -195,27 +202,19 @@ export class LogicScriptASTGenerator {
       throw new Error('Address not found');
     }
 
-    const label: LogicLabel | undefined =
-      previousLabel?.type === 'Label'
-        ? {
-            label: previousLabel.label,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            address: this.statementAddresses.get(previousLabel)!,
-            references: [],
-          }
-        : undefined;
+    const label: LogicLabel | undefined = previousLabel
+      ? {
+          label: previousLabel.label,
+          address,
+          references: [],
+        }
+      : undefined;
     if (label) {
       this.labels.set(label.label, label);
     }
 
     if (statement.type === 'CommandCall') {
-      const agiCommand = agiCommandsByName[statement.commandName];
-
-      if (!agiCommand) {
-        throw new Error(`Unknown command ${statement.commandName}`);
-      }
-
-      if (agiCommand.name === 'goto') {
+      if (statement.commandName === 'goto') {
         const targetArgument = statement.argumentList[0];
         if (targetArgument.type !== 'Identifier') {
           throw new Error(`Invalid argument for goto: ${JSON.stringify(targetArgument)}`);
@@ -231,6 +230,14 @@ export class LogicScriptASTGenerator {
         return node;
       }
 
+      const agiCommand = agiCommandsByName[statement.commandName];
+
+      if (!agiCommand) {
+        throw new Error(`Unknown command ${statement.commandName}`);
+      }
+
+      const nextStatementPosition = this.parseTree.findNextStatementPosition(statement, stack);
+
       const node: LogicCommandNode = {
         type: 'command',
         address,
@@ -240,10 +247,13 @@ export class LogicScriptASTGenerator {
         args: statement.argumentList.map((argument, index) =>
           this.argumentToNumber(argument, agiCommand.argTypes[index]),
         ),
-        next:
-          statements.length > 1
-            ? this.generateASTForLogicScriptStatements(statements.slice(1), undefined)
-            : undefined,
+        next: nextStatementPosition
+          ? this.generateASTForLogicScriptStatements(
+              nextStatementPosition.stack[0].slice(nextStatementPosition.index),
+              undefined,
+              nextStatementPosition.stack,
+            )
+          : undefined,
       };
       this.nodesByAddress.set(address, node);
       return node;
@@ -258,8 +268,17 @@ export class LogicScriptASTGenerator {
         id: address.toString(10),
         label,
         clauses,
-        then: this.generateASTForLogicScriptStatements(statement.thenStatements, undefined),
-        else: this.generateASTForLogicScriptStatements(statement.elseStatements, undefined),
+        then: this.generateASTForLogicScriptStatements(statement.thenStatements, undefined, [
+          statement.thenStatements,
+          ...stack,
+        ]),
+        else:
+          statement.elseStatements.length > 0
+            ? this.generateASTForLogicScriptStatements(statement.elseStatements, undefined, [
+                statement.elseStatements,
+                ...stack,
+              ])
+            : undefined,
       };
       this.nodesByAddress.set(address, node);
       return node;
@@ -276,6 +295,7 @@ export class LogicScriptASTGenerator {
       return this.generateASTForLogicScriptStatements(
         statements.slice(1),
         statement.type === 'Label' ? statement : previousLabel,
+        stack,
       );
     }
 
@@ -283,7 +303,9 @@ export class LogicScriptASTGenerator {
   }
 
   generateASTForLogicScript(parseTree: LogicScriptParseTree): LogicASTNode {
-    const root = this.generateASTForLogicScriptStatements(parseTree.program, undefined);
+    const root = this.generateASTForLogicScriptStatements(parseTree.program, undefined, [
+      parseTree.program,
+    ]);
     if (root == null) {
       throw new Error('Empty script');
     }
