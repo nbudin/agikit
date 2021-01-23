@@ -78,6 +78,26 @@ export class DominatorTree<CFGNodeType extends GraphNode> extends Graph<
   getOutwardEdges(node: DominatorTreeNode<CFGNodeType>): ImmediateDominatorEdge<CFGNodeType>[] {
     return node.dominates;
   }
+
+  getImmediateDominator(id: string): CFGNodeType | undefined {
+    const node = this.nodeIndex.get(id);
+
+    if (!node) {
+      throw new Error('Node not in graph');
+    }
+
+    return node.immediateDominator?.from.cfgNode;
+  }
+
+  getImmediateDominees(id: string): CFGNodeType[] {
+    const node = this.nodeIndex.get(id);
+
+    if (!node) {
+      throw new Error('Node not in graph');
+    }
+
+    return node.dominates.map((edge) => edge.to.cfgNode);
+  }
 }
 
 class SemiNCASpanningTree<NodeType extends GraphNode> {

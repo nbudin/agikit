@@ -53,6 +53,10 @@ export abstract class Graph<
     return '';
   }
 
+  getNode(id: string): NodeType | undefined {
+    return this.nodeIndex.get(id);
+  }
+
   private depthFirstSearchInner(
     node: NodeType,
     visitor: NodeVisitor<NodeType>,
