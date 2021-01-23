@@ -1,4 +1,5 @@
 import assertNever from 'assert-never';
+import { getGotoTargetLabel, LogicScriptParseTree } from '../../Scripting/LogicScriptParser';
 import {
   generateLogicScript,
   generateLogicScriptForArgumentList,
@@ -9,7 +10,6 @@ import {
   LogicScriptIdentifier,
   LogicScriptIfStatement,
   LogicScriptLiteral,
-  LogicScriptProgram,
   LogicScriptStatement,
 } from '../../Scripting/LogicScriptParserTypes';
 import { AGICommandArgType } from '../../Types/AGICommands';
@@ -222,24 +222,27 @@ export class LogicScriptGenerator {
       statements.push(...this.generateCodeForBasicBlock(block, queue));
     }
 
-    this.removeUnusedLabels(statements);
-    this.removeRedundantJumps(statements);
+    const parseTree = new LogicScriptParseTree(statements);
 
-    return generateLogicScript(statements);
+    this.removeUnusedLabels(parseTree);
+    this.removeRedundantJumps(parseTree);
+    this.removeEmptyThenWithElse(parseTree);
+
+    return generateLogicScript(parseTree.program);
   }
 
-  private removeUnusedLabels(program: LogicScriptProgram) {
+  private removeUnusedLabels(parseTree: LogicScriptParseTree) {
     const usedLabels = new Set<string>();
 
-    this.dfsStatements(program, (statement) => {
-      const targetLabel = this.getGotoTargetLabel(statement);
+    parseTree.dfsStatements((statement) => {
+      const targetLabel = getGotoTargetLabel(statement);
       if (targetLabel) {
         usedLabels.add(targetLabel);
       }
       return false;
     });
 
-    this.dfsStatements(program, (statement, stack) => {
+    parseTree.dfsStatements((statement, stack) => {
       if (statement.type === 'Label' && !usedLabels.has(statement.label)) {
         const statementList = stack[0];
         statementList.splice(statementList.indexOf(statement), 1);
@@ -249,14 +252,14 @@ export class LogicScriptGenerator {
     });
   }
 
-  private removeRedundantJumps(program: LogicScriptProgram) {
-    this.dfsStatements(program, (statement, stack) => {
-      const targetLabel = this.getGotoTargetLabel(statement);
+  private removeRedundantJumps(parseTree: LogicScriptParseTree) {
+    parseTree.dfsStatements((statement, stack) => {
+      const targetLabel = getGotoTargetLabel(statement);
       if (targetLabel) {
-        const nextStatement = this.findNextStatement(statement, stack);
+        const nextStatement = parseTree.findNextStatement(statement, stack);
         if (
           (nextStatement?.type === 'Label' && nextStatement.label === targetLabel) ||
-          (nextStatement && this.getGotoTargetLabel(nextStatement) === targetLabel)
+          (nextStatement && getGotoTargetLabel(nextStatement) === targetLabel)
         ) {
           const statementList = stack[0];
           statementList.splice(statementList.indexOf(statement), 1);
@@ -268,60 +271,23 @@ export class LogicScriptGenerator {
     });
   }
 
-  private getGotoTargetLabel(statement: LogicScriptStatement): string | undefined {
-    if (statement.type === 'CommandCall' && statement.commandName === 'goto') {
-      const labelIdentifier = statement.argumentList[0] as LogicScriptIdentifier;
-      return labelIdentifier.name;
-    }
-    return undefined;
-  }
-
-  private dfsStatements(
-    statements: LogicScriptStatement[],
-    visitor: (statement: LogicScriptStatement, stack: LogicScriptStatement[][]) => boolean,
-    previousStack: LogicScriptStatement[][] = [],
-  ): boolean {
-    let changed = false;
-    const stackWithStatements = [statements, ...previousStack];
-
-    [...statements].forEach((statement) => {
-      if (visitor(statement, stackWithStatements)) {
-        changed = true;
+  private removeEmptyThenWithElse(parseTree: LogicScriptParseTree) {
+    parseTree.dfsStatements((statement) => {
+      if (
+        statement.type === 'IfStatement' &&
+        statement.thenStatements.length === 0 &&
+        statement.elseStatements.length > 0
+      ) {
+        statement.conditions = {
+          type: 'NotExpression',
+          expression: statement.conditions,
+        };
+        statement.thenStatements = statement.elseStatements;
+        statement.elseStatements = [];
+        return true;
       }
-      if (statement.type === 'IfStatement') {
-        if (this.dfsStatements(statement.thenStatements, visitor, stackWithStatements)) {
-          changed = true;
-        }
-        if (this.dfsStatements(statement.elseStatements, visitor, stackWithStatements)) {
-          changed = true;
-        }
-      }
+      return false;
     });
-    return changed;
-  }
-
-  private findNextStatement(
-    statement: LogicScriptStatement,
-    stack: LogicScriptStatement[][],
-  ): LogicScriptStatement | undefined {
-    const statementIndex = stack[0].indexOf(statement);
-    if (statementIndex < stack[0].length - 1) {
-      return stack[0][statementIndex + 1];
-    }
-
-    if (stack.length > 1) {
-      const enclosingStatement = stack[1].find(
-        (s) =>
-          s.type === 'IfStatement' &&
-          (s.thenStatements === stack[0] || s.elseStatements === stack[0]),
-      );
-      if (!enclosingStatement) {
-        throw new Error(`Can't find enclosing statement`);
-      }
-      return this.findNextStatement(enclosingStatement, stack.slice(1));
-    }
-
-    return undefined;
   }
 
   private dominates(a: BasicBlock, b: BasicBlock): boolean {

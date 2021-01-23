@@ -1,6 +1,7 @@
 import assertNever from 'assert-never';
 import { max } from 'lodash';
 import { LogicConditionClause, LogicCommand, LogicInstruction } from '../../Types/Logic';
+import { Graph } from '../Graphs';
 import { generateLabels } from './LogicDisasm';
 
 export type LogicLabel = {
