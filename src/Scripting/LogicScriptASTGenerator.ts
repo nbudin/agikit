@@ -191,6 +191,21 @@ export class LogicScriptASTGenerator {
     };
   }
 
+  private generateASTForNextStatement(
+    statement: LogicScriptStatement,
+    stack: LogicScriptStatementStack,
+  ) {
+    const nextStatementPosition = this.parseTree.findNextStatementPosition(statement, stack);
+    if (!nextStatementPosition) {
+      return undefined;
+    }
+    return this.generateASTForLogicScriptStatements(
+      nextStatementPosition.stack[0].slice(nextStatementPosition.index),
+      undefined,
+      nextStatementPosition.stack,
+    );
+  }
+
   generateASTForLogicScriptStatements(
     statements: LogicScriptStatement[],
     previousLabel: LogicScriptLabel | undefined,
@@ -200,6 +215,11 @@ export class LogicScriptASTGenerator {
     const address = this.statementAddresses.get(statement);
     if (!address) {
       throw new Error('Address not found');
+    }
+
+    const existingNode = this.nodesByAddress.get(address);
+    if (existingNode) {
+      return existingNode;
     }
 
     const label: LogicLabel | undefined = previousLabel
@@ -236,8 +256,6 @@ export class LogicScriptASTGenerator {
         throw new Error(`Unknown command ${statement.commandName}`);
       }
 
-      const nextStatementPosition = this.parseTree.findNextStatementPosition(statement, stack);
-
       const node: LogicCommandNode = {
         type: 'command',
         address,
@@ -247,13 +265,7 @@ export class LogicScriptASTGenerator {
         args: statement.argumentList.map((argument, index) =>
           this.argumentToNumber(argument, agiCommand.argTypes[index]),
         ),
-        next: nextStatementPosition
-          ? this.generateASTForLogicScriptStatements(
-              nextStatementPosition.stack[0].slice(nextStatementPosition.index),
-              undefined,
-              nextStatementPosition.stack,
-            )
-          : undefined,
+        next: this.generateASTForNextStatement(statement, stack),
       };
       this.nodesByAddress.set(address, node);
       return node;
@@ -268,17 +280,20 @@ export class LogicScriptASTGenerator {
         id: address.toString(10),
         label,
         clauses,
-        then: this.generateASTForLogicScriptStatements(statement.thenStatements, undefined, [
-          statement.thenStatements,
-          ...stack,
-        ]),
+        then:
+          statement.thenStatements.length > 0
+            ? this.generateASTForLogicScriptStatements(statement.thenStatements, undefined, [
+                statement.thenStatements,
+                ...stack,
+              ])
+            : this.generateASTForNextStatement(statement, stack),
         else:
           statement.elseStatements.length > 0
             ? this.generateASTForLogicScriptStatements(statement.elseStatements, undefined, [
                 statement.elseStatements,
                 ...stack,
               ])
-            : undefined,
+            : this.generateASTForNextStatement(statement, stack),
       };
       this.nodesByAddress.set(address, node);
       return node;
