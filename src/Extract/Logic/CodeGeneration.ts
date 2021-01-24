@@ -186,10 +186,14 @@ export function generateLogicMessages(logic: LogicResource): string {
   return `// messages\n${messages.join('\n')}\n`;
 }
 
-export function generateLogicAsm(logic: LogicResource, wordList: WordList): string {
-  const labels = generateLabels(logic.instructions);
+export function generateLogicAsm(
+  logic: LogicResource,
+  wordList: WordList,
+  labels?: LogicLabel[],
+): string {
+  const labelsToUse = generateLabels(logic.instructions, labels);
   const asmCode = logic.instructions.map((instruction) =>
-    generateLogicAsmInstructionWithPossibleLabel(instruction, labels, { logic, wordList }),
+    generateLogicAsmInstructionWithPossibleLabel(instruction, labelsToUse, { logic, wordList }),
   );
 
   return `${asmCode.join('\n')}\n\n${generateLogicMessages(logic)}`;

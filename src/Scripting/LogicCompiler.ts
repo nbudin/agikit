@@ -17,10 +17,10 @@ export class LogicCompiler {
   private postDominatorTree: DominatorTree<ReverseCFGNode>;
   private compiledBlocks: Map<BasicBlock, CompiledBlock>;
 
-  constructor(basicBlockGraph: BasicBlockGraph) {
+  constructor(basicBlockGraph: BasicBlockGraph, labels: LogicLabel[]) {
     this.basicBlockGraph = basicBlockGraph;
     this.compiledBlocks = new Map<BasicBlock, CompiledBlock>();
-    this.labels = new Map<number, LogicLabel>();
+    this.labels = new Map<number, LogicLabel>(labels.map((label) => [label.address, label]));
     this.postDominatorTree = basicBlockGraph.buildPostDominatorTree();
   }
 
@@ -41,6 +41,20 @@ export class LogicCompiler {
     };
   }
 
+  findOrBuildLabelForAddress(address: number): LogicLabel {
+    const existingLabel = this.labels.get(address);
+    if (existingLabel) {
+      return existingLabel;
+    }
+    const newLabel = {
+      address: address,
+      label: `GeneratedLabel${address}`,
+      references: [],
+    };
+    this.labels.set(address, newLabel);
+    return newLabel;
+  }
+
   traverseTo(block: BasicBlock | undefined, edgeAddress: number): CompiledBlock {
     if (!block) {
       return [];
@@ -52,6 +66,7 @@ export class LogicCompiler {
     const existingCompiledBlock = this.compiledBlocks.get(block);
 
     if (existingCompiledBlock) {
+      this.findOrBuildLabelForAddress(existingCompiledBlock[0].address);
       return [
         {
           type: 'goto',
@@ -61,12 +76,7 @@ export class LogicCompiler {
       ];
     } else {
       const targetBlock = this.compileBlock(block, edgeAddress);
-      const targetBlockLabel: LogicLabel = {
-        address: targetBlock[0].address,
-        label: `Label${targetBlock[0].address}`,
-        references: [],
-      };
-      this.labels.set(targetBlockLabel.address, targetBlockLabel);
+      this.findOrBuildLabelForAddress(targetBlock[0].address);
       return targetBlock;
     }
   }
@@ -95,23 +105,30 @@ export class LogicCompiler {
       }
 
       const nextBlock = this.basicBlockGraph.getNode(nextBlockId);
-      const compiledNextBlock = this.traverseTo(
-        nextBlock,
-        (nextBlock?.commands ?? [])[0].address - 1,
-      );
+
+      const nextBlockIsNew = nextBlock && !this.compiledBlocks.has(nextBlock);
+      const nextBlockAddress =
+        nextBlock && (nextBlock?.commands ?? []).length > 0
+          ? nextBlock.commands[0].address - 1
+          : lastCommandAddress + 3;
+
+      const compiledNextBlock = this.traverseTo(nextBlock, nextBlockAddress);
+
       const compiledElseBlock = block.else
         ? this.traverseTo(block.else.to, lastCommandAddress + 2)
         : undefined;
       const compiledThenBlock = block.then
         ? this.traverseTo(block.then.to, lastCommandAddress + 2)
         : [];
+      const skipAddress = compiledElseBlock
+        ? compiledElseBlock[0].address
+        : compiledNextBlock[0].address;
+      this.findOrBuildLabelForAddress(skipAddress);
       commands.push({
         type: 'condition',
         address: lastCommandAddress + 1,
         clauses: block.clauses,
-        skipAddress: compiledElseBlock
-          ? compiledElseBlock[0].address
-          : compiledNextBlock[0].address,
+        skipAddress,
       });
       this.compiledBlocks.set(block, commands);
 
@@ -119,7 +136,9 @@ export class LogicCompiler {
         ...commands,
         ...compiledThenBlock,
         ...(compiledElseBlock ?? []),
-        ...compiledNextBlock,
+        // If we've already seen the next block before getting here, it will result in a redundant
+        // goto statement. In that case we just leave it out.
+        ...(nextBlockIsNew ? compiledNextBlock : []),
       ];
     }
 

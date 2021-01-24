@@ -340,14 +340,18 @@ export class LogicScriptASTGenerator {
     return root;
   }
 
-  generateMessageArray(): string[] {
+  getLabels(): LogicLabel[] {
+    return [...this.labels.values()];
+  }
+
+  generateMessageArray(): (string | undefined)[] {
     const messagesById = new Map<number, string>(
       [...this.messages.entries()].map(([message, id]) => [id, message]),
     );
     const maxMessageId = max([...this.messages.values()]) ?? 0;
-    const messageArray: string[] = [];
+    const messageArray: (string | undefined)[] = [];
     for (let i = 1; i <= maxMessageId; i++) {
-      messageArray.push(messagesById.get(i) ?? '');
+      messageArray.push(messagesById.get(i));
     }
     return messageArray;
   }

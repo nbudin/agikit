@@ -20,6 +20,24 @@ export const removeEmptyBlock: BlockVisitor = (block) => {
   return { changed: false };
 };
 
+export const concatenateLinearBlocks: BlockVisitor = (block) => {
+  if (block.type === 'singlePathBasicBlock' && block.entryPoints.size === 1) {
+    const inwardEdge = [...block.entryPoints.values()][0];
+    const previousBlock = inwardEdge.from;
+    if (previousBlock.type === 'singlePathBasicBlock') {
+      previousBlock.commands.push(...block.commands);
+      if (block.next) {
+        replaceEdge(inwardEdge, block.next.to);
+        removeEdge(block.next);
+      } else {
+        removeEdge(inwardEdge);
+      }
+      return { changed: true };
+    }
+  }
+  return { changed: false };
+};
+
 // export const removeJumpIntoReturn: BlockVisitor = (block) => {
 //   if (block.type === 'singlePathBasicBlock' && block.next) {
 //     const target = block.next.to;
@@ -115,7 +133,7 @@ export function buildASTFromBasicBlocks(
 
 export function optimizeAST(root: LogicASTNode): BasicBlockGraph {
   const basicBlockGraph = BasicBlockGraph.fromAST(root);
-  [removeEmptyBlock].forEach((visitor) => {
+  [removeEmptyBlock, concatenateLinearBlocks].forEach((visitor) => {
     let changed: boolean;
     do {
       changed = false;

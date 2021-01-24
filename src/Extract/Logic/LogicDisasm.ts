@@ -102,7 +102,10 @@ export function readInstructions(codeData: Buffer, agiVersion: AGIVersion): Logi
   return instructions;
 }
 
-export function generateLabels(instructions: LogicInstruction[]): LogicLabel[] {
+export function generateLabels(
+  instructions: LogicInstruction[],
+  existingLabels: LogicLabel[] = [],
+): LogicLabel[] {
   const targetAddressesWithRefs = new Map<number, Set<LogicInstruction>>();
   instructions.forEach((instruction) => {
     if (instruction.type === 'goto') {
@@ -118,11 +121,17 @@ export function generateLabels(instructions: LogicInstruction[]): LogicLabel[] {
     }
   });
 
-  return [...targetAddressesWithRefs.keys()]
+  existingLabels.forEach((label) => {
+    targetAddressesWithRefs.delete(label.address);
+  });
+
+  const generatedLabels = [...targetAddressesWithRefs.keys()]
     .sort((a, b) => a - b)
     .map((targetAddress) => ({
       label: `Address${targetAddress}`,
       address: targetAddress,
       references: [...(targetAddressesWithRefs.get(targetAddress) ?? [])],
     }));
+
+  return [...existingLabels, ...generatedLabels];
 }

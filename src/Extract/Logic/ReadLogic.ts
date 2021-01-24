@@ -2,7 +2,7 @@ import { AGIVersion } from '../../Types/AGIVersion';
 import { LogicResource } from '../../Types/Logic';
 import { readInstructions } from './LogicDisasm';
 
-const textEncryptionKey = Buffer.from('Avis Durgan', 'ascii');
+export const textEncryptionKey = Buffer.from('Avis Durgan', 'ascii');
 
 function readMessages(textData: Buffer): (string | undefined)[] {
   const messageCount = textData.readUInt8(0);
