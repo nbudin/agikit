@@ -237,43 +237,25 @@ function buildBasicBlocks(
   if (node.type === 'command') {
     if (node.next) {
       const subsequentBlock = findOrBuildBlocksForNode(node.next);
-      if (subsequentBlock.label) {
-        const singlePathBlock: SinglePathBasicBlock = {
-          type: 'singlePathBasicBlock',
-          id: node.id,
-          label: node.label,
-          commands: [node],
-          entryPoints: new Set<BasicBlockEdge>(),
-          metadata: {},
-        };
-        const nextEdge: NextBasicBlockEdge = {
-          type: 'next',
-          from: singlePathBlock,
-          to: subsequentBlock,
-        };
 
-        singlePathBlock.next = nextEdge;
-
-        subsequentBlock.entryPoints.add(nextEdge);
-        return singlePathBlock;
-      }
-
-      const concatenatedBlock = {
-        ...subsequentBlock,
+      const singlePathBlock: SinglePathBasicBlock = {
+        type: 'singlePathBasicBlock',
         id: node.id,
         label: node.label,
-        commands: [node, ...subsequentBlock.commands],
+        commands: [node],
+        entryPoints: new Set<BasicBlockEdge>(),
+        metadata: {},
+      };
+      const nextEdge: NextBasicBlockEdge = {
+        type: 'next',
+        from: singlePathBlock,
+        to: subsequentBlock,
       };
 
-      subsequentBlock.entryPoints.forEach((edge) => {
-        edge.to = concatenatedBlock;
-      });
+      singlePathBlock.next = nextEdge;
 
-      getBlockExits(subsequentBlock).forEach((edge) => {
-        edge.from = concatenatedBlock;
-      });
-
-      return concatenatedBlock;
+      subsequentBlock.entryPoints.add(nextEdge);
+      return singlePathBlock;
     } else {
       return {
         type: 'singlePathBasicBlock',
