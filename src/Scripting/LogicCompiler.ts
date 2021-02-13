@@ -4,7 +4,10 @@ import { BasicBlock, BasicBlockGraph, ReverseCFGNode } from '../Extract/Logic/Co
 import { DominatorTree } from '../Extract/Logic/DominatorTree';
 import assertNever from 'assert-never';
 
-type CompiledBlock = LogicInstruction[];
+type CompiledBlock = {
+  instructions: LogicInstruction[];
+  address: number;
+};
 
 export type LogicCompilerResult = {
   instructions: LogicInstruction[];
@@ -25,7 +28,7 @@ export class LogicCompiler {
   }
 
   compile(): LogicCompilerResult {
-    const instructions = this.compileBlock(this.basicBlockGraph.root, 0);
+    const { instructions } = this.compileBlock(this.basicBlockGraph.root, 0);
     return {
       instructions,
       labels: [...this.labels.values()],
@@ -57,26 +60,34 @@ export class LogicCompiler {
 
   traverseTo(block: BasicBlock | undefined, edgeAddress: number): CompiledBlock {
     if (!block) {
-      return [];
-    }
-    if (block.entryPoints.size === 1) {
-      return this.compileBlock(block, edgeAddress);
+      return { instructions: [], address: -1 };
     }
 
     const existingCompiledBlock = this.compiledBlocks.get(block);
 
     if (existingCompiledBlock) {
-      this.findOrBuildLabelForAddress(existingCompiledBlock[0].address);
-      return [
-        {
-          type: 'goto',
-          address: edgeAddress,
-          jumpAddress: existingCompiledBlock[0].address,
-        },
-      ];
+      if (block.entryPoints.size === 1) {
+        return existingCompiledBlock;
+      }
+
+      this.findOrBuildLabelForAddress(existingCompiledBlock.address);
+      return {
+        instructions: [
+          {
+            type: 'goto',
+            address: edgeAddress,
+            jumpAddress: existingCompiledBlock.address,
+          },
+        ],
+        address: edgeAddress,
+      };
     } else {
+      if (block.entryPoints.size === 1) {
+        return this.compileBlock(block, edgeAddress);
+      }
+
       const targetBlock = this.compileBlock(block, edgeAddress);
-      this.findOrBuildLabelForAddress(targetBlock[0].address);
+      this.findOrBuildLabelForAddress(targetBlock.address);
       return targetBlock;
     }
   }
@@ -93,9 +104,16 @@ export class LogicCompiler {
     const lastCommandAddress =
       commands.length > 0 ? commands[commands.length - 1].address : address;
 
+    this.compiledBlocks.set(block, { instructions: commands, address });
+
     if (block.type === 'singlePathBasicBlock') {
-      this.compiledBlocks.set(block, commands);
-      return [...commands, ...this.traverseTo(block.next?.to, lastCommandAddress + 1)];
+      return {
+        instructions: [
+          ...commands,
+          ...this.traverseTo(block.next?.to, lastCommandAddress + 1).instructions,
+        ],
+        address,
+      };
     }
 
     if (block.type === 'ifExitBasicBlock') {
@@ -119,10 +137,8 @@ export class LogicCompiler {
         : undefined;
       const compiledThenBlock = block.then
         ? this.traverseTo(block.then.to, lastCommandAddress + 2)
-        : [];
-      const skipAddress = compiledElseBlock
-        ? compiledElseBlock[0].address
-        : compiledNextBlock[0].address;
+        : undefined;
+      const skipAddress = compiledElseBlock ? compiledElseBlock.address : compiledNextBlock.address;
       this.findOrBuildLabelForAddress(skipAddress);
       commands.push({
         type: 'condition',
@@ -130,16 +146,20 @@ export class LogicCompiler {
         clauses: block.clauses,
         skipAddress,
       });
-      this.compiledBlocks.set(block, commands);
+      // I think this is unnecessary but I'm not positive
+      this.compiledBlocks.set(block, { instructions: commands, address });
 
-      return [
-        ...commands,
-        ...compiledThenBlock,
-        ...(compiledElseBlock ?? []),
-        // If we've already seen the next block before getting here, it will result in a redundant
-        // goto statement. In that case we just leave it out.
-        ...(nextBlockIsNew ? compiledNextBlock : []),
-      ];
+      return {
+        instructions: [
+          ...commands,
+          ...(compiledThenBlock?.instructions ?? []),
+          ...(compiledElseBlock?.instructions ?? []),
+          // If we've already seen the next block before getting here, it will result in a redundant
+          // goto statement. In that case we just leave it out.
+          ...(nextBlockIsNew ? compiledNextBlock.instructions : []),
+        ],
+        address,
+      };
     }
 
     assertNever(block);
