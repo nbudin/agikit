@@ -93,7 +93,22 @@ export class LogicScriptParseTree {
 }
 
 export function parseLogicScript(source: string): LogicScriptParseTree {
-  return new LogicScriptParseTree(parse(source));
+  const parseTree = new LogicScriptParseTree(parse(source));
+  const lastStatement = [...parseTree.program]
+    .reverse()
+    .find((statement) => statement.type === 'CommandCall' || statement.type === 'IfStatement');
+  if (
+    lastStatement &&
+    (lastStatement.type !== 'CommandCall' || lastStatement.commandName !== 'return')
+  ) {
+    parseTree.program.push({
+      type: 'CommandCall',
+      commandName: 'return',
+      argumentList: [],
+    });
+  }
+
+  return parseTree;
 }
 
 export { SyntaxError };

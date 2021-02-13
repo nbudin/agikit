@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { ResourceType, DirEntry, ResourceDir } from '../Types/Resources';
+import { ResourceType, DirEntry, ResourceDir, Resource } from '../Types/Resources';
 
 function readDirEntry(dirData: Buffer, index: number) {
   const volPlusHighOrderNybble = dirData.readUInt8(index);
@@ -61,7 +61,7 @@ export function readV2ResourceDirs(gamePath: string): ResourceDir {
   return resourceDir as ResourceDir;
 }
 
-export function readV2Resource(gamePath: string, dirEntry: DirEntry): Buffer {
+export function readV2Resource(gamePath: string, dirEntry: DirEntry): Resource {
   const volPath = path.join(gamePath, `VOL.${dirEntry.volumeNumber}`);
   const volData = fs.readFileSync(volPath);
 
@@ -77,5 +77,5 @@ export function readV2Resource(gamePath: string, dirEntry: DirEntry): Buffer {
 
   const length = volData.readUInt16LE(dirEntry.offset + 3);
   const data = volData.slice(dirEntry.offset + 5, dirEntry.offset + 5 + length);
-  return data;
+  return { type: dirEntry.resourceType, number: dirEntry.resourceNumber, data };
 }

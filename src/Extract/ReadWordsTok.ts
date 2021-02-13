@@ -36,12 +36,20 @@ export function readWordsTok(wordsTokData: Buffer): WordList {
   return words;
 }
 
+function formatWord(word: string) {
+  if (word.match(/[^A-Za-z0-9\-_]/)) {
+    return `"${word.replace(/"/g, '\\"')}"`;
+  }
+
+  return word;
+}
+
 export function exportWords(wordList: WordList): string {
-  const wordNumbers = [...wordList.keys()].sort();
+  const wordNumbers = [...wordList.keys()].sort((a, b) => a - b);
   return wordNumbers
     .map((wordNumber) => {
       const words = [...(wordList.get(wordNumber)?.values() ?? [])].sort();
-      return `${wordNumber}: ${words.join(' ')}`;
+      return `${wordNumber}: ${words.map(formatWord).join(' ')}`;
     })
     .join('\n');
 }

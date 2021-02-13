@@ -147,8 +147,12 @@ CommandCall
   }
 
 ArgumentList
-  = first:Argument rest:SubsequentArgument* {
-    return [first, ...rest];
+  = first:Argument? rest:SubsequentArgument* {
+    if (first) {
+      return [first, ...rest];
+    }
+
+    return [];
   }
 
 Argument
