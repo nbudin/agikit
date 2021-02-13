@@ -321,7 +321,11 @@ export class LogicScriptGenerator {
     queue: BasicBlock[],
   ): LogicScriptStatement[] {
     if (this.visited.has(block)) {
-      return [{ type: 'Comment', comment: ' WARNING: loop detected' }];
+      const label = block.label;
+      if (!label) {
+        throw new Error('Jump to unlabeled statement');
+      }
+      return [this.generateGoto(label)];
     }
 
     this.visited.add(block);

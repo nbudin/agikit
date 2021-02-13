@@ -235,17 +235,19 @@ function buildBasicBlocks(
   };
 
   if (node.type === 'command') {
+    const singlePathBlock: SinglePathBasicBlock = {
+      type: 'singlePathBasicBlock',
+      id: node.id,
+      label: node.label,
+      commands: [node],
+      entryPoints: new Set<BasicBlockEdge>(),
+      metadata: {},
+    };
+    workingIndex.set(node, singlePathBlock);
+
     if (node.next) {
       const subsequentBlock = findOrBuildBlocksForNode(node.next);
 
-      const singlePathBlock: SinglePathBasicBlock = {
-        type: 'singlePathBasicBlock',
-        id: node.id,
-        label: node.label,
-        commands: [node],
-        entryPoints: new Set<BasicBlockEdge>(),
-        metadata: {},
-      };
       const nextEdge: NextBasicBlockEdge = {
         type: 'next',
         from: singlePathBlock,
@@ -255,17 +257,9 @@ function buildBasicBlocks(
       singlePathBlock.next = nextEdge;
 
       subsequentBlock.entryPoints.add(nextEdge);
-      return singlePathBlock;
-    } else {
-      return {
-        type: 'singlePathBasicBlock',
-        id: node.id,
-        label: node.label,
-        commands: [node],
-        entryPoints: new Set<BasicBlockEdge>(),
-        metadata: {},
-      };
     }
+
+    return singlePathBlock;
   }
 
   if (node.type === 'goto') {
