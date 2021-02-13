@@ -9,7 +9,7 @@ import { DirEntry, ResourceType } from './Types/Resources';
 import { generateLogicAsm, generateCodeForLogicResource } from './Extract/Logic/CodeGeneration';
 
 function extractResource(srcDir: string, entry: DirEntry, destDir: string, wordList: WordList) {
-  const resourceData = readV2Resource(srcDir, entry);
+  const resource = readV2Resource(srcDir, entry);
   const destPath = path.join(
     destDir,
     entry.resourceType.toLowerCase(),
@@ -17,7 +17,7 @@ function extractResource(srcDir: string, entry: DirEntry, destDir: string, wordL
   );
 
   if (entry.resourceType === ResourceType.LOGIC) {
-    const logic = readLogicResource(resourceData, { major: 3, minor: 9999 });
+    const logic = readLogicResource(resource.data, { major: 3, minor: 9999 });
     writeFileSync(
       path.join(destDir, entry.resourceType.toLowerCase(), `${entry.resourceNumber}.agiasm`),
       generateLogicAsm(logic, wordList),
@@ -50,7 +50,7 @@ function extractResource(srcDir: string, entry: DirEntry, destDir: string, wordL
       basicBlockGraph.buildPostDominatorTree().generateGraphviz(),
     );
   } else {
-    writeFileSync(destPath, resourceData);
+    writeFileSync(destPath, resource.data);
   }
 }
 
@@ -74,12 +74,9 @@ function extractGame(srcDir: string, destDir: string) {
     });
     for (const entry of resourceDir[resourceType]) {
       if (entry != null) {
-        // Debugging, remove before shipping
-        if (entry.resourceNumber !== 103) {
-          continue;
-        }
-
-        console.log(`Extracting ${resourceType} ${entry.resourceNumber}`);
+        console.log(
+          `Extracting ${resourceType} ${entry.resourceNumber} from volume ${entry.volumeNumber}`,
+        );
         try {
           extractResource(srcDir, entry, destDir, wordList);
         } catch (err) {

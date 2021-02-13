@@ -276,7 +276,11 @@ function peg$parse(input: string, options?: IParseOptions) {
       }
     };
   const peg$c83 = function(first: any, rest: any): any {
-      return [first, ...rest];
+      if (first) {
+        return [first, ...rest];
+      }
+
+      return [];
     };
   const peg$c84 = ",";
   const peg$c85 = peg$literalExpectation(",", false);
@@ -1900,6 +1904,9 @@ function peg$parse(input: string, options?: IParseOptions) {
 
     s0 = peg$currPos;
     s1 = peg$parseArgument();
+    if (s1 === peg$FAILED) {
+      s1 = null;
+    }
     if (s1 !== peg$FAILED) {
       s2 = [];
       s3 = peg$parseSubsequentArgument();

@@ -184,9 +184,11 @@ export class LogicScriptASTGenerator {
     return {
       type: 'test',
       testCommand,
-      args: expression.argumentList.map((argument, index) =>
-        this.argumentToNumber(argument, testCommand.argTypes[index]),
-      ),
+      args: expression.argumentList.map((argument, index) => {
+        const argumentType =
+          testCommand.name === 'said' ? AGICommandArgType.Word : testCommand.argTypes[index];
+        return this.argumentToNumber(argument, argumentType);
+      }),
       negate: false,
     };
   }

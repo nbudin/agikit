@@ -23,6 +23,25 @@
     {
       "type": "pwa-node",
       "request": "launch",
+      "name": "Launch Build",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "/Users/nbudin/.nodenv/versions/14.15.1/bin/node",
+      "program": "${workspaceFolder}/src/build.ts",
+      "args": [
+        "extracted/kq1",
+        "build/kq1"
+      ],
+      "preLaunchTask": "tsc: build - tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js"
+      ]
+    },
+    {
+      "type": "pwa-node",
+      "request": "launch",
       "name": "Launch Compiler",
       "skipFiles": [
         "<node_internals>/**"
