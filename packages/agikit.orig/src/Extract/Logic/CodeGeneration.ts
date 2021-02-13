@@ -406,6 +406,20 @@ export class LogicScriptGenerator {
     };
 
     const subsequentCode = [];
+    const elseBlock = block.else;
+
+    if (
+      elseQueue.length === 0 &&
+      elseBlock &&
+      this.postDominates(elseBlock.to, block) &&
+      thenQueue.every((thenBlock) => this.dominates(elseBlock.to, thenBlock))
+    ) {
+      // else clause can be unrolled
+      ifStatement.elseStatements = [];
+      subsequentCode.push(...elseStatements);
+      thenQueue.splice(0, thenQueue.length);
+    }
+
     const innerQueue = [...thenQueue, ...elseQueue];
     while (innerQueue.length > 0) {
       const innerBlock = innerQueue.shift();
