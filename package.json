@@ -29,6 +29,7 @@
     "agikit": "dist/cli.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ]
 }
