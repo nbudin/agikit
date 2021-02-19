@@ -28,7 +28,6 @@ export function readV2Dir(path: string, resourceType: ResourceType): (DirEntry |
     index += 3;
 
     if (entryData == null) {
-      // 0xFFFFFF means the resource does not exist
       entries.push(undefined);
     } else {
       entries.push({
