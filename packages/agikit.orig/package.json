@@ -1,10 +1,10 @@
 {
   "name": "agikit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && add-shebang",
     "generate-parsers": "ts-node src/Scripting/generateParsers.ts",
-    "prepare": "tsc"
+    "prepare": "tsc && add-shebang"
   },
   "dependencies": {
     "assert-never": "^1.2.1",
@@ -19,6 +19,7 @@
     "@types/pegjs": "^0.10.2",
     "@typescript-eslint/eslint-plugin": "^4.11.1",
     "@typescript-eslint/parser": "^4.11.1",
+    "add-shebang": "^0.1.0",
     "eslint": "^7.16.0",
     "pegjs": "^0.10.0",
     "ts-node": "^9.1.1",
