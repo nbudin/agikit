@@ -34,6 +34,11 @@ export function writeV2Volume(
       resourceType: encodedResource.type,
       volumeNumber,
     });
+    console.log(
+      `${encodedResource.type} ${
+        encodedResource.number
+      }: VOL.${volumeNumber} offset ${offset.toString(16)}`,
+    );
     offset += encodedResource.encodedData.byteLength;
 
     if (offset > MAX_VOLUME_SIZE) {
@@ -96,7 +101,7 @@ export function writeV2Dir(entries: (DirEntry | undefined)[]): Buffer {
     if (entry == null) {
       data.write('\xff\xff\xff', offset, 'binary');
     } else {
-      data.writeUInt8((entry.volumeNumber << (4 + (entry.offset & 0xf0000))) >> 16, offset);
+      data.writeUInt8((entry.volumeNumber << 4) + ((entry.offset & 0xf0000) >> 16), offset);
       data.writeUInt8((entry.offset & 0xff00) >> 8, offset + 1);
       data.writeUInt8(entry.offset & 0xff, offset + 2);
     }

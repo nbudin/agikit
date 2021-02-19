@@ -50,6 +50,7 @@ export class LogicAssembler {
       }
 
       const offset = targetAddress - (instructionAddress + byteCode.length);
+
       const offsetBuffer = Buffer.alloc(2);
       offsetBuffer.writeInt16LE(offset);
       const offsetBytes = [...offsetBuffer];
@@ -131,7 +132,7 @@ export class LogicAssembler {
     }
 
     if (clause.type === 'or') {
-      return [0xfc, ...flatMap(clause.orTests, (test) => this.assembleClause(test))];
+      return [0xfc, ...flatMap(clause.orTests, (test) => this.assembleClause(test)), 0xfc];
     }
 
     assertNever(clause);
