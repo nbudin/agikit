@@ -182,14 +182,15 @@ function generateLogicAsmInstructionWithPossibleLabel(
 }
 
 export function generateLogicMessages(logic: LogicResource): string {
-  const messages = logic.messages.map(
-    (message, index) =>
-      `#message ${index + 1} "${message
-        ?.replace(/"/g, '\\"')
-        .replace(/\n/g, '\\n')
-        .replace(/\r/g, '\\r')}"`,
+  const messages = logic.messages.map((message, index) =>
+    message == null
+      ? undefined
+      : `#message ${index + 1} "${message
+          ?.replace(/"/g, '\\"')
+          .replace(/\n/g, '\\n')
+          .replace(/\r/g, '\\r')}"`,
   );
-  return `// messages\n${messages.join('\n')}\n`;
+  return `// messages\n${messages.filter((message) => message != null).join('\n')}\n`;
 }
 
 export function generateLogicAsm(
