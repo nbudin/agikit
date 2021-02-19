@@ -1,12 +1,11 @@
-import parseArgs from 'minimist';
-import { readV2Resource, readV2ResourceDirs } from './Extract/ReadResources';
-import { readLogicResource } from './Extract/Logic/ReadLogic';
+import { readV2Resource, readV2ResourceDirs } from '../Extract/ReadResources';
+import { readLogicResource } from '../Extract/Logic/ReadLogic';
 import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
-import { WordList } from './Types/WordList';
-import { readWordsTok, exportWords } from './Extract/ReadWordsTok';
-import { DirEntry, ResourceType } from './Types/Resources';
-import { generateLogicAsm, generateCodeForLogicResource } from './Extract/Logic/CodeGeneration';
+import { WordList } from '../Types/WordList';
+import { readWordsTok, exportWords } from '../Extract/ReadWordsTok';
+import { DirEntry, ResourceType } from '../Types/Resources';
+import { generateLogicAsm, generateCodeForLogicResource } from '../Extract/Logic/CodeGeneration';
 
 function extractResource(srcDir: string, entry: DirEntry, destDir: string, wordList: WordList) {
   const resource = readV2Resource(srcDir, entry);
@@ -54,7 +53,7 @@ function extractResource(srcDir: string, entry: DirEntry, destDir: string, wordL
   }
 }
 
-function extractGame(srcDir: string, destDir: string) {
+export function extractGame(srcDir: string, destDir: string): void {
   const resourceDir = readV2ResourceDirs(srcDir);
   mkdirSync(destDir, { recursive: true });
   const warningResources: DirEntry[] = [];
@@ -88,11 +87,4 @@ function extractGame(srcDir: string, destDir: string) {
       }
     }
   }
-}
-
-const args = parseArgs(process.argv.slice(2));
-if (args._.length !== 2) {
-  console.error(`Usage: ${process.argv[1]} srcdir destdir`);
-} else {
-  extractGame(args._[0], args._[1]);
 }

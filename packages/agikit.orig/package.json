@@ -1,24 +1,34 @@
 {
+  "name": "agikit",
+  "version": "0.1.0",
   "scripts": {
-    "generate-parsers": "ts-node src/Scripting/generateParsers.ts"
+    "build": "tsc",
+    "generate-parsers": "ts-node src/Scripting/generateParsers.ts",
+    "prepare": "tsc"
   },
   "dependencies": {
+    "assert-never": "^1.2.1",
+    "lodash": "^4.17.20",
+    "minimist": "^1.2.5",
+    "ts-is-present": "^1.2.1"
+  },
+  "devDependencies": {
     "@types/lodash": "^4.14.166",
     "@types/minimist": "^1.2.1",
     "@types/node": "^14.14.16",
     "@types/pegjs": "^0.10.2",
-    "assert-never": "^1.2.1",
-    "lodash": "^4.17.20",
-    "minimist": "^1.2.5",
+    "@typescript-eslint/eslint-plugin": "^4.11.1",
+    "@typescript-eslint/parser": "^4.11.1",
+    "eslint": "^7.16.0",
     "pegjs": "^0.10.0",
-    "ts-is-present": "^1.2.1",
     "ts-node": "^9.1.1",
     "ts-pegjs": "^0.3.0",
     "typescript": "^4.1.3"
   },
-  "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.11.1",
-    "@typescript-eslint/parser": "^4.11.1",
-    "eslint": "^7.16.0"
-  }
+  "bin": {
+    "agikit": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ]
 }
