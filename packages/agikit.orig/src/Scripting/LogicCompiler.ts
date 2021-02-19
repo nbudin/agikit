@@ -16,6 +16,7 @@ import {
 import { DominatorTree } from '../Extract/Logic/DominatorTree';
 import assertNever from 'assert-never';
 import { max } from 'lodash';
+import { generateLabels } from '../Extract/Logic/LogicDisasm';
 
 type SinglePathCompiledBlock = {
   type: 'singlePath';
@@ -36,6 +37,80 @@ type ConditionalCompiledBlock = {
 type CompiledBlock = SinglePathCompiledBlock | ConditionalCompiledBlock;
 
 type StitchedBlock = LogicInstruction[];
+
+type PostCompilationPass = (
+  instructions: LogicInstruction[],
+) => { instructions: LogicInstruction[]; changed: boolean };
+
+const removeUnreachableInstructions: PostCompilationPass = (instructions) => {
+  let changed = false;
+  let reachable = true;
+  const labels = generateLabels(instructions);
+  const labelAddresses = new Set(labels.map((label) => label.address));
+
+  const result = instructions.filter((instruction) => {
+    if (labelAddresses.has(instruction.address)) {
+      reachable = true;
+    }
+
+    const instructionWasReachable = reachable;
+
+    if (instruction.type === 'goto') {
+      reachable = false;
+    }
+
+    if (!instructionWasReachable) {
+      changed = true;
+    }
+
+    return instructionWasReachable;
+  });
+
+  return { instructions: result, changed };
+};
+
+const removeGotoNextInstruction: PostCompilationPass = (instructions) => {
+  let changed = false;
+  const result = instructions.filter((instruction, index) => {
+    if (instruction.type === 'goto') {
+      const nextInstruction = instructions[index + 1];
+      if (nextInstruction && instruction.jumpAddress === nextInstruction.address) {
+        changed = true;
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  return { instructions: result, changed };
+};
+
+function runPostCompilationPass(
+  pass: PostCompilationPass,
+  instructions: LogicInstruction[],
+): LogicInstruction[] {
+  let workingInstructions = instructions;
+  let changed = false;
+
+  do {
+    const result = pass(workingInstructions);
+    changed = result.changed;
+    workingInstructions = result.instructions;
+  } while (changed);
+
+  return workingInstructions;
+}
+
+function runPostCompilationPasses(
+  passes: PostCompilationPass[],
+  instructions: LogicInstruction[],
+): LogicInstruction[] {
+  return passes.reduce(
+    (workingInstructions, pass) => runPostCompilationPass(pass, workingInstructions),
+    instructions,
+  );
+}
 
 export type LogicCompilerResult = {
   instructions: LogicInstruction[];
@@ -65,44 +140,15 @@ export class LogicCompiler {
     });
 
     const stitchedInstructions = this.stitchBlocks(this.basicBlockGraph.root);
-    const instructions = this.removeUnnecessaryGotos(stitchedInstructions);
+    const instructions = runPostCompilationPasses(
+      [removeUnreachableInstructions, removeGotoNextInstruction],
+      stitchedInstructions,
+    );
 
     return {
       instructions,
       labels: [...this.labels.values()],
     };
-  }
-
-  removeUnnecessaryGotos(instructions: LogicInstruction[]): LogicInstruction[] {
-    let workingInstructions = instructions;
-    let changed = false;
-
-    do {
-      const result = this.removeUnnecessaryGotosPass(workingInstructions);
-      changed = result.changed;
-      workingInstructions = result.instructions;
-    } while (changed);
-
-    return workingInstructions;
-  }
-
-  removeUnnecessaryGotosPass(
-    instructions: LogicInstruction[],
-  ): { instructions: LogicInstruction[]; changed: boolean } {
-    let changed = false;
-    const result = instructions.filter((instruction, index) => {
-      if (instruction.type === 'goto') {
-        const nextInstruction = instructions[index + 1];
-        if (nextInstruction && instruction.jumpAddress === nextInstruction.address) {
-          changed = true;
-          return false;
-        }
-      }
-
-      return true;
-    });
-
-    return { instructions: result, changed };
   }
 
   storeInstruction(instruction: LogicInstruction): void {

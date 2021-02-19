@@ -409,7 +409,7 @@ export class LogicScriptGenerator {
     const elseBlock = block.else;
 
     if (
-      elseQueue.length === 0 &&
+      // elseQueue.length === 0 &&
       elseBlock &&
       this.postDominates(elseBlock.to, block) &&
       thenQueue.every((thenBlock) => this.dominates(elseBlock.to, thenBlock))

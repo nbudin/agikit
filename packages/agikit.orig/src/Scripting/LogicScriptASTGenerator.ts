@@ -45,7 +45,8 @@ export class LogicScriptASTGenerator {
   parseTree: LogicScriptParseTree;
   wordList: WordList;
   invertedWordList: Map<string, number>;
-  messages: Map<string, number>;
+  messages: (string | undefined)[];
+  messagesByContent: Map<string, number>;
   identifiers: Map<string, IdentifierMapping>;
   unresolvedGotos: { node: LogicGotoNode; label: string }[];
   labels: Map<string, LogicLabel>;
@@ -68,14 +69,18 @@ export class LogicScriptASTGenerator {
 
     this.statementAddresses = new Map<LogicScriptStatement, number>();
     this.nodesByAddress = new Map<number, LogicASTNode>();
-    this.messages = new Map<string, number>();
+    this.messages = [];
+    this.messagesByContent = new Map<string, number>();
     let address = 1;
     parseTree.dfsStatements((statement) => {
       this.statementAddresses.set(statement, address);
       address += 10;
 
       if (statement.type === 'MessageDirective') {
-        this.messages.set(statement.message, statement.number);
+        this.messages[statement.number - 1] = statement.message;
+        if (!this.messagesByContent.has(statement.message)) {
+          this.messagesByContent.set(statement.message, statement.number);
+        }
       }
 
       return false;
@@ -83,12 +88,12 @@ export class LogicScriptASTGenerator {
   }
 
   private getMessageNumber(message: string): number {
-    const messageNumber = this.messages.get(message);
+    const messageNumber = this.messagesByContent.get(message);
     if (messageNumber != null) {
       return messageNumber;
     }
-    const newMessageNumber = (max([...this.messages.values()]) ?? 0) + 1;
-    this.messages.set(message, newMessageNumber);
+    const newMessageNumber = (max([...this.messagesByContent.values()]) ?? 0) + 1;
+    this.messagesByContent.set(message, newMessageNumber);
     return newMessageNumber;
   }
 
@@ -347,14 +352,6 @@ export class LogicScriptASTGenerator {
   }
 
   generateMessageArray(): (string | undefined)[] {
-    const messagesById = new Map<number, string>(
-      [...this.messages.entries()].map(([message, id]) => [id, message]),
-    );
-    const maxMessageId = max([...this.messages.values()]) ?? 0;
-    const messageArray: (string | undefined)[] = [];
-    for (let i = 1; i <= maxMessageId; i++) {
-      messageArray.push(messagesById.get(i));
-    }
-    return messageArray;
+    return this.messages;
   }
 }
