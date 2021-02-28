@@ -1,32 +1,20 @@
 import { flatMap } from 'lodash';
-import { textEncryptionKey } from '../Extract/Logic/ReadLogic';
-
-function xorEncrypt(cleartext: Buffer, key: Buffer): Buffer {
-  const encrypted = Buffer.alloc(cleartext.byteLength);
-  for (let offset = 0; offset < cleartext.byteLength; offset++) {
-    const cleartextByte = cleartext.readUInt8(offset);
-    const keyByte = key.readUInt8(offset % key.byteLength);
-    encrypted.writeUInt8(cleartextByte ^ keyByte, offset);
-  }
-  return encrypted;
-}
-
-function encodeUInt16LE(number: number): number[] {
-  const buffer = Buffer.alloc(2);
-  buffer.writeUInt16LE(number);
-  return [...buffer];
-}
+import { encodeUInt16LE } from '../DataEncoding';
+import { avisDurgan, xorBuffer } from '../XorEncryption';
 
 export function encodeMessages(messageArray: (string | undefined)[]): Buffer {
-  const messageBuffers = messageArray.map((message) => {
+  const messageBuffers: Buffer[] = [];
+
+  for (let index = 0; index < messageArray.length; index++) {
+    const message = messageArray[index];
     if (message == null) {
       return Buffer.alloc(0);
     }
 
-    return Buffer.from(`${message}\0`, 'ascii');
-  });
+    messageBuffers.push(Buffer.from(`${message}\0`, 'ascii'));
+  }
 
-  const textSection = xorEncrypt(Buffer.concat(messageBuffers), textEncryptionKey);
+  const textSection = xorBuffer(Buffer.concat(messageBuffers), avisDurgan);
   const messageHeaderLength = 3 + messageArray.length * 2;
 
   const messageOffsets: number[] = [];

@@ -34,11 +34,11 @@ export function writeV2Volume(
       resourceType: encodedResource.type,
       volumeNumber,
     });
-    console.log(
-      `${encodedResource.type} ${
-        encodedResource.number
-      }: VOL.${volumeNumber} offset ${offset.toString(16)}`,
-    );
+    // console.log(
+    //   `${encodedResource.type} ${
+    //     encodedResource.number
+    //   }: VOL.${volumeNumber} offset ${offset.toString(16)}`,
+    // );
     offset += encodedResource.encodedData.byteLength;
 
     if (offset > MAX_VOLUME_SIZE) {

@@ -11,6 +11,8 @@ import {
 } from '../Build/WriteResources';
 import { parseWordList, SyntaxError as WordListSyntaxError } from '../Scripting/WordListParser';
 import { WordList } from '../Types/WordList';
+import { ObjectList } from '../Types/ObjectList';
+import { buildObjectList } from '../Build/BuildObjectList';
 
 function processFile<T>(processor: (input: string) => T, filePath: string) {
   const input = fs.readFileSync(filePath, 'utf-8');
@@ -68,6 +70,10 @@ function buildResource(
 export function buildGame(sourceDir: string, destinationDir: string): void {
   fs.mkdirSync(destinationDir, { recursive: true });
   const wordList = processFile(parseWordList, path.join(sourceDir, 'words.txt'));
+  const objectList = processFile(
+    (input) => JSON.parse(input) as ObjectList,
+    path.join(sourceDir, 'object.json'),
+  );
 
   const resources: Resource[] = [];
   for (const resourceType of [
@@ -115,4 +121,7 @@ export function buildGame(sourceDir: string, destinationDir: string): void {
     destinationDir,
     encodeResourceVolumes(resources, encodeV2Resource, explicitVolumes),
   );
+
+  console.log(`Writing OBJECT`);
+  fs.writeFileSync(path.join(destinationDir, 'OBJECT'), buildObjectList(objectList));
 }
