@@ -6,6 +6,7 @@ import { WordList } from '../Types/WordList';
 import { readWordsTok, exportWords } from '../Extract/ReadWordsTok';
 import { DirEntry, ResourceType } from '../Types/Resources';
 import { generateLogicAsm, generateCodeForLogicResource } from '../Extract/Logic/CodeGeneration';
+import { readObjectList } from '../Extract/ReadObject';
 
 function extractResource(srcDir: string, entry: DirEntry, destDir: string, wordList: WordList) {
   const resource = readV2Resource(srcDir, entry);
@@ -61,6 +62,10 @@ export function extractGame(srcDir: string, destDir: string): void {
   console.log('Extracting WORDS.TOK');
   const wordList = readWordsTok(readFileSync(path.join(srcDir, 'WORDS.TOK')));
   writeFileSync(path.join(destDir, 'words.txt'), exportWords(wordList));
+
+  console.log('Extracting OBJECT');
+  const objectList = readObjectList(readFileSync(path.join(srcDir, 'OBJECT')));
+  writeFileSync(path.join(destDir, 'object.json'), JSON.stringify(objectList, null, 2));
 
   for (const resourceType of [
     ResourceType.PIC,

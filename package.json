@@ -1,6 +1,12 @@
 {
   "name": "agikit",
   "version": "0.1.1",
+  "homepage": "https://github.com/nbudin/agikit",
+  "author": {
+    "name": "Nat Budin",
+    "email": "natbudin@gmail.com",
+    "url": "https://github.com/nbudin"
+  },
   "scripts": {
     "build": "tsc && add-shebang",
     "generate-parsers": "ts-node src/Scripting/generateParsers.ts",

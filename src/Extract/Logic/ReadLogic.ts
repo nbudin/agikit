@@ -1,8 +1,7 @@
+import { avisDurgan, xorBuffer } from '../../XorEncryption';
 import { AGIVersion } from '../../Types/AGIVersion';
 import { LogicResource } from '../../Types/Logic';
 import { readInstructions } from './LogicDisasm';
-
-export const textEncryptionKey = Buffer.from('Avis Durgan', 'ascii');
 
 function readMessages(textData: Buffer): (string | undefined)[] {
   const messageCount = textData.readUInt8(0);
@@ -10,8 +9,13 @@ function readMessages(textData: Buffer): (string | undefined)[] {
   // const endOfMessages = textData.readUInt16LE(1);
   const messageHeaderLength = 3 + messageCount * 2;
   const messages: (string | undefined)[] = [];
+  const decryptedMessageSection = xorBuffer(textData.slice(messageHeaderLength), avisDurgan);
+  const decryptedTextData = Buffer.concat([
+    textData.slice(0, messageHeaderLength),
+    decryptedMessageSection,
+  ]);
   for (let messageIndex = 0; messageIndex < messageCount; messageIndex++) {
-    const messageOffset = textData.readUInt16LE(3 + messageIndex * 2) + 1;
+    const messageOffset = decryptedTextData.readUInt16LE(3 + messageIndex * 2) + 1;
     const messageBytes: number[] = [];
     let byteOffset = 0;
 
@@ -21,12 +25,8 @@ function readMessages(textData: Buffer): (string | undefined)[] {
       continue;
     }
 
-    while (messageOffset + byteOffset < textData.byteLength) {
-      const keyIndex =
-        (messageOffset - messageHeaderLength + byteOffset) % textEncryptionKey.byteLength;
-      const keyByte = textEncryptionKey.readUInt8(keyIndex);
-      const encryptedByte = textData.readUInt8(messageOffset + byteOffset);
-      const messageByte = encryptedByte ^ keyByte;
+    while (messageOffset + byteOffset < decryptedTextData.byteLength) {
+      const messageByte = decryptedTextData.readUInt8(messageOffset + byteOffset);
       if (messageByte === 0) {
         const message = Buffer.from(messageBytes).toString('ascii');
         messages.push(message);

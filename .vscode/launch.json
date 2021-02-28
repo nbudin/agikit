@@ -13,8 +13,8 @@
       ],
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "/Users/nbudin/.nodenv/versions/14.15.1/bin/node",
-      "program": "${workspaceFolder}/src/extract.ts",
-      "args": ["/Users/nbudin/Downloads/King's Quest 1 (AGI, DOS)", "extracted/kq1"],
+      "program": "${workspaceFolder}/src/cli.ts",
+      "args": ["extract", "/Users/nbudin/Downloads/King's Quest 1 (AGI, DOS)", "extracted/kq1"],
       "preLaunchTask": "tsc: build - tsconfig.json",
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js"
@@ -29,8 +29,9 @@
       ],
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "/Users/nbudin/.nodenv/versions/14.15.1/bin/node",
-      "program": "${workspaceFolder}/src/extract.ts",
+      "program": "${workspaceFolder}/src/cli.ts",
       "args": [
+        "extract",
         "build/kq1",
         "reextracted/kq1"
       ],
@@ -48,26 +49,12 @@
       ],
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "/Users/nbudin/.nodenv/versions/14.15.1/bin/node",
-      "program": "${workspaceFolder}/src/build.ts",
+      "program": "${workspaceFolder}/src/cli.ts",
       "args": [
+        "build",
         "extracted/kq1",
         "build/kq1"
       ],
-      "preLaunchTask": "tsc: build - tsconfig.json",
-      "outFiles": [
-        "${workspaceFolder}/dist/**/*.js"
-      ]
-    },
-    {
-      "type": "pwa-node",
-      "request": "launch",
-      "name": "Launch Compiler",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "/Users/nbudin/.nodenv/versions/14.15.1/bin/node",
-      "program": "${workspaceFolder}/src/compileLogic.ts",
       "preLaunchTask": "tsc: build - tsconfig.json",
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js"
