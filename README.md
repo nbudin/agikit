@@ -50,5 +50,3 @@ Known limitations:
   * Doesn't yet understand operators such as ==, <, >, +=, etc
   * #define (and therefore named variables) isn't yet supported
   * Probably other stuff
-* Doesn't decode or compile OBJECT files yet
-* Doesn't compile WORDS.TOK yet
