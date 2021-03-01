@@ -8,10 +8,10 @@ export function encodeMessages(messageArray: (string | undefined)[]): Buffer {
   for (let index = 0; index < messageArray.length; index++) {
     const message = messageArray[index];
     if (message == null) {
-      return Buffer.alloc(0);
+      messageBuffers.push(Buffer.alloc(0));
+    } else {
+      messageBuffers.push(Buffer.from(`${message}\0`, 'ascii'));
     }
-
-    messageBuffers.push(Buffer.from(`${message}\0`, 'ascii'));
   }
 
   const textSection = xorBuffer(Buffer.concat(messageBuffers), avisDurgan);
@@ -20,7 +20,7 @@ export function encodeMessages(messageArray: (string | undefined)[]): Buffer {
   const messageOffsets: number[] = [];
   let offset = messageHeaderLength - 1;
   messageBuffers.forEach((buffer) => {
-    messageOffsets.push(offset);
+    messageOffsets.push(buffer.byteLength > 0 ? offset : 0);
     offset += buffer.byteLength;
   });
 

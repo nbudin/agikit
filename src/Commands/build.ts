@@ -13,6 +13,7 @@ import { parseWordList, SyntaxError as WordListSyntaxError } from '../Scripting/
 import { WordList } from '../Types/WordList';
 import { ObjectList } from '../Types/ObjectList';
 import { buildObjectList } from '../Build/BuildObjectList';
+import { buildWordsTok } from '../Build/BuildWordsTok';
 
 function processFile<T>(processor: (input: string) => T, filePath: string) {
   const input = fs.readFileSync(filePath, 'utf-8');
@@ -121,6 +122,9 @@ export function buildGame(sourceDir: string, destinationDir: string): void {
     destinationDir,
     encodeResourceVolumes(resources, encodeV2Resource, explicitVolumes),
   );
+
+  console.log(`Writing WORDS.TOK`);
+  fs.writeFileSync(path.join(destinationDir, 'WORDS.TOK'), buildWordsTok(wordList));
 
   console.log(`Writing OBJECT`);
   fs.writeFileSync(path.join(destinationDir, 'OBJECT'), buildObjectList(objectList));
