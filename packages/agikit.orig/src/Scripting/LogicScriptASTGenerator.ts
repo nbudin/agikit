@@ -280,7 +280,7 @@ export class LogicScriptASTGenerator {
 
     if (statement.type === 'IfStatement') {
       const clauses: LogicConditionClause[] = this.booleanExpressionToClauses(
-        simplifyLogicScriptExpression(statement.conditions),
+        simplifyLogicScriptExpression(statement.conditions, this.identifiers),
       );
       const node: LogicIfNode = {
         type: 'if',

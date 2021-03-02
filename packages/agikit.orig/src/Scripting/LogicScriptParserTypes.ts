@@ -24,12 +24,21 @@ export type LogicScriptLiteral = {
   value: number | string;
 };
 
-export type LogicScriptArgumentList = (LogicScriptLiteral | LogicScriptIdentifier)[];
+export type LogicScriptArgument = LogicScriptLiteral | LogicScriptIdentifier;
+
+export type LogicScriptArgumentList = LogicScriptArgument[];
 
 export type LogicScriptCommandCall = {
   type: 'CommandCall';
   commandName: string;
   argumentList: LogicScriptArgumentList;
+};
+
+export type LogicScriptBooleanBinaryOperation = {
+  type: 'BooleanBinaryOperation';
+  operator: '<' | '>' | '<=' | '>=' | '==' | '!=';
+  left: LogicScriptArgument;
+  right: LogicScriptArgument;
 };
 
 export type LogicScriptTestCall = {
@@ -57,6 +66,7 @@ export type LogicScriptBooleanExpression =
   | LogicScriptAndExpression
   | LogicScriptOrExpression
   | LogicScriptNotExpression
+  | LogicScriptBooleanBinaryOperation
   | LogicScriptTestCall;
 
 export type LogicScriptIfStatement = {

@@ -6,6 +6,8 @@ import {
   generateLogicScriptForBooleanExpression,
 } from '../../Scripting/LogicScriptGenerator';
 import {
+  LogicScriptArgument,
+  LogicScriptBooleanBinaryOperation,
   LogicScriptBooleanExpression,
   LogicScriptIdentifier,
   LogicScriptIfStatement,
@@ -84,6 +86,39 @@ function generateArg(
   }
 }
 
+function areArgumentsEqual(a: LogicScriptArgument, b: LogicScriptArgument): boolean {
+  if (a.type === 'Identifier') {
+    if (b.type !== 'Identifier') {
+      return false;
+    }
+
+    return a.name === b.name;
+  }
+
+  if (b.type !== 'Literal') {
+    return false;
+  }
+
+  return a.value === b.value;
+}
+
+function doOperationArgumentsMatch(
+  a: LogicScriptBooleanBinaryOperation,
+  b: LogicScriptBooleanBinaryOperation,
+): boolean {
+  if (areArgumentsEqual(a.left, b.left) && areArgumentsEqual(a.right, b.right)) {
+    return true;
+  }
+
+  if (a.operator === '==' || a.operator === '!=' || b.operator === '==' || b.operator === '!=') {
+    if (areArgumentsEqual(a.right, b.left) && areArgumentsEqual(a.left, b.right)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function generateBooleanExpression(
   clauses: LogicConditionClause[],
   context: CodeGenerationContext,
@@ -96,9 +131,86 @@ export function generateBooleanExpression(
   }
   const clause = clauses[0];
   if (clause.type === 'or') {
+    const clauses = clause.orTests.map((orTest) => generateBooleanExpression([orTest], context));
+
+    // TODO: only do this if not in standards mode
+    if (
+      clauses.length === 2 &&
+      clauses[0].type === 'BooleanBinaryOperation' &&
+      clauses[1].type === 'BooleanBinaryOperation'
+    ) {
+      const [left, right] = clauses;
+
+      if (
+        left.operator === '<' &&
+        right.operator === '==' &&
+        doOperationArgumentsMatch(left, right)
+      ) {
+        return {
+          type: 'BooleanBinaryOperation',
+          operator: '<=',
+          left: left.left,
+          right: left.right,
+        };
+      }
+
+      if (
+        left.operator === '==' &&
+        right.operator === '<' &&
+        doOperationArgumentsMatch(left, right)
+      ) {
+        return {
+          type: 'BooleanBinaryOperation',
+          operator: '<=',
+          left: right.left,
+          right: right.right,
+        };
+      }
+
+      if (
+        left.operator === '>' &&
+        right.operator === '==' &&
+        doOperationArgumentsMatch(left, right)
+      ) {
+        return {
+          type: 'BooleanBinaryOperation',
+          operator: '>=',
+          left: left.left,
+          right: left.right,
+        };
+      }
+
+      if (
+        left.operator === '==' &&
+        right.operator === '>' &&
+        doOperationArgumentsMatch(left, right)
+      ) {
+        return {
+          type: 'BooleanBinaryOperation',
+          operator: '>=',
+          left: right.left,
+          right: right.right,
+        };
+      }
+    }
+
+    return { type: 'OrExpression', clauses };
+  }
+
+  const argumentList = clause.args.map((value, index) =>
+    generateArg(
+      value,
+      clause.testCommand.varArgs ? AGICommandArgType.Word : clause.testCommand.argTypes[index],
+      context,
+    ),
+  );
+
+  if (clause.testCommand.name === 'equaln' || clause.testCommand.name === 'equalv') {
     return {
-      type: 'OrExpression',
-      clauses: clause.orTests.map((orTest) => generateBooleanExpression([orTest], context)),
+      type: 'BooleanBinaryOperation',
+      operator: clause.negate ? '!=' : '==',
+      left: argumentList[0],
+      right: argumentList[1],
     };
   }
 
@@ -109,13 +221,23 @@ export function generateBooleanExpression(
     };
   }
 
-  const argumentList = clause.args.map((value, index) =>
-    generateArg(
-      value,
-      clause.testCommand.varArgs ? AGICommandArgType.Word : clause.testCommand.argTypes[index],
-      context,
-    ),
-  );
+  if (clause.testCommand.name === 'lessn' || clause.testCommand.name === 'lessv') {
+    return {
+      type: 'BooleanBinaryOperation',
+      operator: '<',
+      left: argumentList[0],
+      right: argumentList[1],
+    };
+  }
+
+  if (clause.testCommand.name === 'greatern' || clause.testCommand.name === 'greaterv') {
+    return {
+      type: 'BooleanBinaryOperation',
+      operator: '>',
+      left: argumentList[0],
+      right: argumentList[1],
+    };
+  }
 
   return {
     type: 'TestCall',
