@@ -40,6 +40,10 @@ export function generateLogicScriptForBooleanExpression(
     return expression.clauses.map(generateSubExpression).join(' || ');
   } else if (expression.type === 'NotExpression') {
     return `!${generateSubExpression(expression.expression)}`;
+  } else if (expression.type === 'BooleanBinaryOperation') {
+    return `${generateLogicScriptForArgumentList([expression.left])} ${
+      expression.operator
+    } ${generateLogicScriptForArgumentList([expression.right])}`;
   }
 
   assertNever(expression);

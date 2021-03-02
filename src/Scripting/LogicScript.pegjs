@@ -171,7 +171,19 @@ TestCall
     };
   }
 
-SingleBooleanClause = TestCall / ParenthesizedBooleanExpression / NotExpression
+BooleanBinaryOperator = '<' / '>' / '<=' / '>=' / '==' / '!='
+
+BooleanBinaryOperation
+  = left:Argument WhiteSpace* operator:BooleanBinaryOperator WhiteSpace* right:Argument {
+    return {
+      type: 'BooleanBinaryOperation',
+      operator,
+      left,
+      right,
+    };
+  }
+
+SingleBooleanClause = TestCall / BooleanBinaryOperation / ParenthesizedBooleanExpression / NotExpression
 
 AndExpression
   = first:SingleBooleanClause WhiteSpace* remaining:('&&' WhiteSpace* SingleBooleanClause WhiteSpace*)+ {
@@ -201,6 +213,7 @@ BooleanExpression
   = AndExpression
   / OrExpression
   / NotExpression
+  / BooleanBinaryOperation
   / TestCall
 
 ParenthesizedBooleanExpression = '(' WhiteSpace* expression:BooleanExpression WhiteSpace* ')' {
