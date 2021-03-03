@@ -88,6 +88,13 @@ export type LogicScriptValueAssignmentStatement = {
   value: LogicScriptIdentifier | LogicScriptLiteral;
 };
 
+export type LogicScriptArithmeticAssignmentStatement = {
+  type: 'ArithmeticAssignmentStatement';
+  operator: '+' | '-' | '*' | '/';
+  assignee: LogicScriptIdentifier;
+  value: LogicScriptIdentifier | LogicScriptLiteral;
+};
+
 export type LogicScriptStatement =
   | LogicScriptLabel
   | LogicScriptCommandCall
@@ -95,6 +102,7 @@ export type LogicScriptStatement =
   | LogicScriptComment
   | LogicScriptUnaryOperationStatement
   | LogicScriptMessageDirective
-  | LogicScriptValueAssignmentStatement;
+  | LogicScriptValueAssignmentStatement
+  | LogicScriptArithmeticAssignmentStatement;
 
 export type LogicScriptProgram<StatementType> = StatementType[];

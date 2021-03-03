@@ -7,6 +7,7 @@ import {
 } from '../../Scripting/LogicScriptGenerator';
 import {
   LogicScriptArgument,
+  LogicScriptArithmeticAssignmentStatement,
   LogicScriptBooleanBinaryOperation,
   LogicScriptBooleanExpression,
   LogicScriptIdentifier,
@@ -479,18 +480,19 @@ export class LogicScriptGenerator {
         return generateArg(value, argumentType, this.context);
       });
 
+      const commandName = command.agiCommand.name;
       if (
-        (command.agiCommand.name === 'increment' || command.agiCommand.name === 'decrement') &&
+        (commandName === 'increment' || commandName === 'decrement') &&
         argumentList.length === 1 &&
         argumentList[0].type === 'Identifier'
       ) {
         statements.push({
           type: 'UnaryOperationStatement',
           identifier: argumentList[0],
-          operation: command.agiCommand.name === 'increment' ? '++' : '--',
+          operation: commandName === 'increment' ? '++' : '--',
         });
       } else if (
-        (command.agiCommand.name === 'assignn' || command.agiCommand.name === 'assignv') &&
+        (commandName === 'assignn' || commandName === 'assignv') &&
         argumentList.length === 2 &&
         argumentList[0].type === 'Identifier'
       ) {
@@ -499,11 +501,49 @@ export class LogicScriptGenerator {
           assignee: argumentList[0],
           value: argumentList[1],
         });
+      } else if (
+        (commandName === 'addn' ||
+          commandName === 'addv' ||
+          commandName === 'subn' ||
+          commandName === 'subv' ||
+          commandName === 'mul.n' ||
+          commandName === 'mul.v' ||
+          commandName === 'div.n' ||
+          commandName === 'div.v') &&
+        argumentList.length === 2 &&
+        argumentList[0].type === 'Identifier'
+      ) {
+        let operator: LogicScriptArithmeticAssignmentStatement['operator'];
+        switch (commandName) {
+          case 'addn':
+          case 'addv':
+            operator = '+';
+            break;
+          case 'subn':
+          case 'subv':
+            operator = '-';
+            break;
+          case 'mul.n':
+          case 'mul.v':
+            operator = '*';
+            break;
+          case 'div.n':
+          case 'div.v':
+            operator = '/';
+            break;
+        }
+
+        statements.push({
+          type: 'ArithmeticAssignmentStatement',
+          operator,
+          assignee: argumentList[0],
+          value: argumentList[1],
+        });
       } else {
         statements.push({
           type: 'CommandCall',
           argumentList: argumentList,
-          commandName: command.agiCommand.name,
+          commandName: commandName,
         });
       }
     });

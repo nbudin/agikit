@@ -265,6 +265,47 @@ ValueAssignmentStatement
     };
   }
 
+ArithmeticOperator = '+' / '-' / '*' / '/'
+
+LongArithmeticAssignmentStatementLeft
+  = assignee:Identifier WhiteSpace* '=' WhiteSpace*
+    assignee2:Identifier WhiteSpace* operator:ArithmeticOperator WhiteSpace* value:(Identifier / NumericLiteral) WhiteSpace* ';'
+  & { assignee.name === assignee2.name }
+  {
+    return {
+      type: 'ArithmeticAssignmentStatement',
+      operator,
+      assignee,
+      value,
+    };
+  }
+
+LongArithmeticAssignmentStatementRight
+  = assignee:Identifier WhiteSpace* '=' WhiteSpace*
+    value:(Identifier / NumericLiteral) WhiteSpace* operator:ArithmeticOperator WhiteSpace* assignee2:Identifier WhiteSpace* ';'
+  & { assignee.name === assignee2.name }
+  {
+    return {
+      type: 'ArithmeticAssignmentStatement',
+      operator,
+      assignee,
+      value,
+    };
+  }
+
+ShortArithmeticAssignmentStatement
+  = assignee:Identifier WhiteSpace* operator:ArithmeticOperator '=' WhiteSpace* value:(Identifier / NumericLiteral) WhiteSpace* ';'
+  {
+    return {
+      type: 'ArithmeticAssignmentStatement',
+      operator,
+      assignee,
+      value,
+    };
+  }
+
+ArithmeticAssignmentStatement = LongArithmeticAssignmentStatementLeft / LongArithmeticAssignmentStatementRight / ShortArithmeticAssignmentStatement
+
 Statement
   = Label
   / CommandCall
@@ -273,6 +314,7 @@ Statement
   / MessageDirective
   / UnaryOperationStatement
   / ValueAssignmentStatement
+  / ArithmeticAssignmentStatement
 
 StatementList
   = statements:(WhiteSpace* Statement WhiteSpace*)* {
