@@ -1,3 +1,4 @@
+import { stat } from 'fs';
 import {
   LogicScriptCommandCall,
   LogicScriptComment,
@@ -31,6 +32,33 @@ function simplifyLogicScriptStatement(
     const replacementStatement: LogicScriptCommandCall = {
       type: 'CommandCall',
       commandName: statement.value.type === 'Literal' ? 'assignn' : 'assignv',
+      argumentList: [statement.assignee, statement.value],
+    };
+    return replacementStatement;
+  }
+
+  if (statement.type === 'ArithmeticAssignmentStatement') {
+    let commandFamily: string;
+    switch (statement.operator) {
+      case '+':
+        commandFamily = 'add';
+        break;
+      case '-':
+        commandFamily = 'sub';
+        break;
+      case '*':
+        commandFamily = 'mul.';
+        break;
+      case '/':
+        commandFamily = 'div.';
+        break;
+    }
+
+    const commandSuffix = statement.value.type === 'Literal' ? 'n' : 'v';
+
+    const replacementStatement: LogicScriptCommandCall = {
+      type: 'CommandCall',
+      commandName: commandFamily + commandSuffix,
       argumentList: [statement.assignee, statement.value],
     };
     return replacementStatement;

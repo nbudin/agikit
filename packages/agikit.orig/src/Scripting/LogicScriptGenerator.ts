@@ -97,6 +97,10 @@ export function generateLogicScriptForStatement(
     return `${indentSpaces}${statement.assignee.name} = ${generateLogicScriptForArgument(
       statement.value,
     )};\n`;
+  } else if (statement.type === 'ArithmeticAssignmentStatement') {
+    return `${indentSpaces}${statement.assignee.name} ${
+      statement.operator
+    }= ${generateLogicScriptForArgument(statement.value)};`;
   }
 
   assertNever(statement);
