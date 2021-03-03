@@ -82,12 +82,19 @@ export type LogicScriptUnaryOperationStatement = {
   identifier: LogicScriptIdentifier;
 };
 
+export type LogicScriptValueAssignmentStatement = {
+  type: 'ValueAssignmentStatement';
+  assignee: LogicScriptIdentifier;
+  value: LogicScriptIdentifier | LogicScriptLiteral;
+};
+
 export type LogicScriptStatement =
   | LogicScriptLabel
   | LogicScriptCommandCall
   | LogicScriptIfStatement<LogicScriptStatement>
   | LogicScriptComment
   | LogicScriptUnaryOperationStatement
-  | LogicScriptMessageDirective;
+  | LogicScriptMessageDirective
+  | LogicScriptValueAssignmentStatement;
 
 export type LogicScriptProgram<StatementType> = StatementType[];
