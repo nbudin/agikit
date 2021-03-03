@@ -27,6 +27,15 @@ function simplifyLogicScriptStatement(
     return replacementStatement;
   }
 
+  if (statement.type === 'ValueAssignmentStatement') {
+    const replacementStatement: LogicScriptCommandCall = {
+      type: 'CommandCall',
+      commandName: statement.value.type === 'Literal' ? 'assignn' : 'assignv',
+      argumentList: [statement.assignee, statement.value],
+    };
+    return replacementStatement;
+  }
+
   if (statement.type === 'IfStatement') {
     return {
       ...statement,

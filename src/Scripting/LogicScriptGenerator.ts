@@ -1,22 +1,25 @@
 import assertNever from 'assert-never';
 import { flatMap, max } from 'lodash';
 import {
+  LogicScriptArgument,
   LogicScriptArgumentList,
   LogicScriptBooleanExpression,
   LogicScriptProgram,
   LogicScriptStatement,
 } from './LogicScriptParserTypes';
 
-export function generateLogicScriptForArgumentList(argumentList: LogicScriptArgumentList): string {
-  const args = argumentList.map((argument) => {
-    if (argument.type === 'Identifier') {
-      return argument.name;
-    } else if (argument.type === 'Literal') {
-      return JSON.stringify(argument.value);
-    }
+export function generateLogicScriptForArgument(argument: LogicScriptArgument): string {
+  if (argument.type === 'Identifier') {
+    return argument.name;
+  } else if (argument.type === 'Literal') {
+    return JSON.stringify(argument.value);
+  }
 
-    assertNever(argument);
-  });
+  assertNever(argument);
+}
+
+export function generateLogicScriptForArgumentList(argumentList: LogicScriptArgumentList): string {
+  const args = argumentList.map((argument) => generateLogicScriptForArgument(argument));
 
   return args.join(', ');
 }
@@ -90,6 +93,10 @@ export function generateLogicScriptForStatement(
     return '\n' + lines.map((line) => `${indentSpaces}${line}`).join('');
   } else if (statement.type === 'UnaryOperationStatement') {
     return `${indentSpaces}${statement.identifier.name}${statement.operation};\n`;
+  } else if (statement.type === 'ValueAssignmentStatement') {
+    return `${indentSpaces}${statement.assignee.name} = ${generateLogicScriptForArgument(
+      statement.value,
+    )};\n`;
   }
 
   assertNever(statement);

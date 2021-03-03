@@ -489,6 +489,16 @@ export class LogicScriptGenerator {
           identifier: argumentList[0],
           operation: command.agiCommand.name === 'increment' ? '++' : '--',
         });
+      } else if (
+        (command.agiCommand.name === 'assignn' || command.agiCommand.name === 'assignv') &&
+        argumentList.length === 2 &&
+        argumentList[0].type === 'Identifier'
+      ) {
+        statements.push({
+          type: 'ValueAssignmentStatement',
+          assignee: argumentList[0],
+          value: argumentList[1],
+        });
       } else {
         statements.push({
           type: 'CommandCall',

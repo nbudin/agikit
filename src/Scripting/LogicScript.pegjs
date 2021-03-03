@@ -256,6 +256,15 @@ UnaryOperationStatement
     };
   }
 
+ValueAssignmentStatement
+  = assignee:Identifier WhiteSpace* '=' WhiteSpace* value:(Identifier / NumericLiteral) ';' {
+    return {
+      type: 'ValueAssignmentStatement',
+      assignee,
+      value,
+    };
+  }
+
 Statement
   = Label
   / CommandCall
@@ -263,6 +272,7 @@ Statement
   / Comment
   / MessageDirective
   / UnaryOperationStatement
+  / ValueAssignmentStatement
 
 StatementList
   = statements:(WhiteSpace* Statement WhiteSpace*)* {
