@@ -1,16 +1,19 @@
 import {
   LogicScriptIdentifier,
+  LogicScriptIfStatement,
   LogicScriptProgram,
   LogicScriptStatement,
 } from './LogicScriptParserTypes';
 import { parse, SyntaxError } from './LogicScriptParser.generated';
 
-export type LogicScriptStatementVisitor = (
-  statement: LogicScriptStatement,
-  stack: LogicScriptStatement[][],
+export type LogicScriptStatementVisitor<StatementType extends LogicScriptStatement> = (
+  statement: StatementType,
+  stack: LogicScriptStatementStack<StatementType>,
 ) => boolean;
 
-export type LogicScriptStatementStack = LogicScriptStatement[][];
+export type LogicScriptStatementStack<
+  StatementType extends LogicScriptStatement
+> = StatementType[][];
 
 export function getGotoTargetLabel(statement: LogicScriptStatement): string | undefined {
   if (statement.type === 'CommandCall' && statement.commandName === 'goto') {
@@ -20,21 +23,21 @@ export function getGotoTargetLabel(statement: LogicScriptStatement): string | un
   return undefined;
 }
 
-export class LogicScriptParseTree {
-  program: LogicScriptProgram;
+export class LogicScriptParseTree<StatementType extends LogicScriptStatement> {
+  program: LogicScriptProgram<StatementType>;
 
-  constructor(program: LogicScriptProgram) {
+  constructor(program: LogicScriptProgram<StatementType>) {
     this.program = program;
   }
 
-  dfsStatements(visitor: LogicScriptStatementVisitor): boolean {
+  dfsStatements(visitor: LogicScriptStatementVisitor<StatementType>): boolean {
     return this.dfsStatementsInner(this.program, visitor, []);
   }
 
   private dfsStatementsInner(
-    statements: LogicScriptStatement[],
-    visitor: LogicScriptStatementVisitor,
-    previousStack: LogicScriptStatementStack,
+    statements: StatementType[],
+    visitor: LogicScriptStatementVisitor<StatementType>,
+    previousStack: LogicScriptStatementStack<StatementType>,
   ): boolean {
     let changed = false;
     const stackWithStatements = [statements, ...previousStack];
@@ -44,10 +47,23 @@ export class LogicScriptParseTree {
         changed = true;
       }
       if (statement.type === 'IfStatement') {
-        if (this.dfsStatementsInner(statement.thenStatements, visitor, stackWithStatements)) {
+        const ifStatement = statement as LogicScriptIfStatement;
+        if (
+          this.dfsStatementsInner(
+            ifStatement.thenStatements as StatementType[],
+            visitor,
+            stackWithStatements,
+          )
+        ) {
           changed = true;
         }
-        if (this.dfsStatementsInner(statement.elseStatements, visitor, stackWithStatements)) {
+        if (
+          this.dfsStatementsInner(
+            ifStatement.elseStatements as StatementType[],
+            visitor,
+            stackWithStatements,
+          )
+        ) {
           changed = true;
         }
       }
@@ -56,9 +72,9 @@ export class LogicScriptParseTree {
   }
 
   findNextStatementPosition(
-    statement: LogicScriptStatement,
-    stack: LogicScriptStatementStack,
-  ): { index: number; stack: LogicScriptStatementStack } | undefined {
+    statement: StatementType,
+    stack: LogicScriptStatementStack<StatementType>,
+  ): { index: number; stack: LogicScriptStatementStack<StatementType> } | undefined {
     const statementIndex = stack[0].indexOf(statement);
     if (statementIndex < stack[0].length - 1) {
       return { index: statementIndex + 1, stack };
@@ -68,7 +84,8 @@ export class LogicScriptParseTree {
       const enclosingStatement = stack[1].find(
         (s) =>
           s.type === 'IfStatement' &&
-          (s.thenStatements === stack[0] || s.elseStatements === stack[0]),
+          ((s as LogicScriptIfStatement).thenStatements === stack[0] ||
+            (s as LogicScriptIfStatement).elseStatements === stack[0]),
       );
       if (!enclosingStatement) {
         throw new Error(`Can't find enclosing statement`);
@@ -80,8 +97,8 @@ export class LogicScriptParseTree {
   }
 
   findNextStatement(
-    statement: LogicScriptStatement,
-    stack: LogicScriptStatementStack,
+    statement: StatementType,
+    stack: LogicScriptStatementStack<StatementType>,
   ): LogicScriptStatement | undefined {
     const position = this.findNextStatementPosition(statement, stack);
     if (!position) {
@@ -92,7 +109,7 @@ export class LogicScriptParseTree {
   }
 }
 
-export function parseLogicScript(source: string): LogicScriptParseTree {
+export function parseLogicScript(source: string): LogicScriptParseTree<LogicScriptStatement> {
   const parseTree = new LogicScriptParseTree(parse(source));
   const lastStatement = [...parseTree.program]
     .reverse()

@@ -253,6 +253,7 @@ export function generateLogicCommandCode(
   const argumentList = generateLogicScriptForArgumentList(
     instruction.args.map((arg, i) => generateArg(arg, instruction.agiCommand.argTypes[i], context)),
   );
+
   return `${instruction.agiCommand.name}(${argumentList});`;
 }
 
@@ -364,7 +365,7 @@ export class LogicScriptGenerator {
     return generateLogicScript(parseTree.program);
   }
 
-  private removeUnusedLabels(parseTree: LogicScriptParseTree) {
+  private removeUnusedLabels(parseTree: LogicScriptParseTree<LogicScriptStatement>) {
     const usedLabels = new Set<string>();
 
     parseTree.dfsStatements((statement) => {
@@ -385,7 +386,7 @@ export class LogicScriptGenerator {
     });
   }
 
-  private removeRedundantJumps(parseTree: LogicScriptParseTree) {
+  private removeRedundantJumps(parseTree: LogicScriptParseTree<LogicScriptStatement>) {
     parseTree.dfsStatements((statement, stack) => {
       const targetLabel = getGotoTargetLabel(statement);
       if (targetLabel) {
@@ -404,7 +405,7 @@ export class LogicScriptGenerator {
     });
   }
 
-  private removeEmptyThenWithElse(parseTree: LogicScriptParseTree) {
+  private removeEmptyThenWithElse(parseTree: LogicScriptParseTree<LogicScriptStatement>) {
     parseTree.dfsStatements((statement) => {
       if (
         statement.type === 'IfStatement' &&
@@ -473,14 +474,28 @@ export class LogicScriptGenerator {
     }
 
     block.commands.forEach((command) => {
-      statements.push({
-        type: 'CommandCall',
-        argumentList: command.args.map((value, index) => {
-          const argumentType = command.agiCommand.argTypes[index];
-          return generateArg(value, argumentType, this.context);
-        }),
-        commandName: command.agiCommand.name,
+      const argumentList = command.args.map((value, index) => {
+        const argumentType = command.agiCommand.argTypes[index];
+        return generateArg(value, argumentType, this.context);
       });
+
+      if (
+        (command.agiCommand.name === 'increment' || command.agiCommand.name === 'decrement') &&
+        argumentList.length === 1 &&
+        argumentList[0].type === 'Identifier'
+      ) {
+        statements.push({
+          type: 'UnaryOperationStatement',
+          identifier: argumentList[0],
+          operation: command.agiCommand.name === 'increment' ? '++' : '--',
+        });
+      } else {
+        statements.push({
+          type: 'CommandCall',
+          argumentList: argumentList,
+          commandName: command.agiCommand.name,
+        });
+      }
     });
 
     return statements;

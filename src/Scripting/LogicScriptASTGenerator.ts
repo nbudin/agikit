@@ -8,17 +8,25 @@ import {
 } from '../Extract/Logic/LogicDecompile';
 import { LogicScriptParseTree, LogicScriptStatementStack } from './LogicScriptParser';
 import {
+  LogicScriptCommandCall,
+  LogicScriptComment,
   LogicScriptIdentifier,
+  LogicScriptIfStatement,
   LogicScriptLabel,
   LogicScriptLiteral,
+  LogicScriptMessageDirective,
   LogicScriptStatement,
   LogicScriptTestCall,
 } from './LogicScriptParserTypes';
 import { WordList } from '../Types/WordList';
-import { flatMap, max } from 'lodash';
+import { add, flatMap, max } from 'lodash';
 import assertNever from 'assert-never';
 import { LogicConditionClause, LogicTest } from '../Types/Logic';
 import { simplifyLogicScriptExpression, StrictBooleanExpression } from './PropositionalLogic';
+import {
+  LogicScriptPrimitiveStatement,
+  simplifyLogicScriptProgram,
+} from './LogicScriptPrimitiveTree';
 
 export type IdentifierMapping = { name: string; number: number; type: AGICommandArgType };
 
@@ -42,7 +50,7 @@ const fakeJumpTarget: LogicCommandNode = {
 };
 
 export class LogicScriptASTGenerator {
-  parseTree: LogicScriptParseTree;
+  parseTree: LogicScriptParseTree<LogicScriptPrimitiveStatement>;
   wordList: WordList;
   invertedWordList: Map<string, number>;
   messages: (string | undefined)[];
@@ -50,11 +58,11 @@ export class LogicScriptASTGenerator {
   identifiers: Map<string, IdentifierMapping>;
   unresolvedGotos: { node: LogicGotoNode; label: string }[];
   labels: Map<string, LogicLabel>;
-  private statementAddresses: Map<LogicScriptStatement, number>;
+  private statementAddresses: Map<LogicScriptPrimitiveStatement, number>;
   private nodesByAddress: Map<number, LogicASTNode>;
 
-  constructor(parseTree: LogicScriptParseTree, wordList: WordList) {
-    this.parseTree = parseTree;
+  constructor(parseTree: LogicScriptParseTree<LogicScriptStatement>, wordList: WordList) {
+    this.parseTree = new LogicScriptParseTree(simplifyLogicScriptProgram(parseTree.program));
     this.wordList = wordList;
 
     this.invertedWordList = new Map<string, number>(
@@ -67,12 +75,12 @@ export class LogicScriptASTGenerator {
     this.labels = new Map<string, LogicLabel>();
     this.identifiers = new Map<string, IdentifierMapping>(BUILT_IN_IDENTIFIERS);
 
-    this.statementAddresses = new Map<LogicScriptStatement, number>();
+    this.statementAddresses = new Map<LogicScriptPrimitiveStatement, number>();
     this.nodesByAddress = new Map<number, LogicASTNode>();
     this.messages = [];
     this.messagesByContent = new Map<string, number>();
     let address = 1;
-    parseTree.dfsStatements((statement) => {
+    this.parseTree.dfsStatements((statement) => {
       this.statementAddresses.set(statement, address);
       address += 10;
 
@@ -199,8 +207,8 @@ export class LogicScriptASTGenerator {
   }
 
   private generateASTForNextStatement(
-    statement: LogicScriptStatement,
-    stack: LogicScriptStatementStack,
+    statement: LogicScriptPrimitiveStatement,
+    stack: LogicScriptStatementStack<LogicScriptPrimitiveStatement>,
   ) {
     const nextStatementPosition = this.parseTree.findNextStatementPosition(statement, stack);
     if (!nextStatementPosition) {
@@ -214,9 +222,9 @@ export class LogicScriptASTGenerator {
   }
 
   generateASTForLogicScriptStatements(
-    statements: LogicScriptStatement[],
+    statements: LogicScriptPrimitiveStatement[],
     previousLabel: LogicScriptLabel | undefined,
-    stack: LogicScriptStatementStack,
+    stack: LogicScriptStatementStack<LogicScriptPrimitiveStatement>,
   ): LogicASTNode | undefined {
     const statement = statements[0];
     const address = this.statementAddresses.get(statement);
@@ -324,9 +332,9 @@ export class LogicScriptASTGenerator {
     assertNever(statement);
   }
 
-  generateASTForLogicScript(parseTree: LogicScriptParseTree): LogicASTNode {
-    const root = this.generateASTForLogicScriptStatements(parseTree.program, undefined, [
-      parseTree.program,
+  generateASTForLogicScript(): LogicASTNode {
+    const root = this.generateASTForLogicScriptStatements(this.parseTree.program, undefined, [
+      this.parseTree.program,
     ]);
     if (root == null) {
       throw new Error('Empty script');
