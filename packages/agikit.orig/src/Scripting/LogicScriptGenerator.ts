@@ -88,12 +88,14 @@ export function generateLogicScriptForStatement(
       '}\n',
     ];
     return '\n' + lines.map((line) => `${indentSpaces}${line}`).join('');
+  } else if (statement.type === 'UnaryOperationStatement') {
+    return `${indentSpaces}${statement.identifier.name}${statement.operation};\n`;
   }
 
   assertNever(statement);
 }
 
-export function generateLogicScript(program: LogicScriptProgram): string {
+export function generateLogicScript(program: LogicScriptProgram<LogicScriptStatement>): string {
   return program
     .map((statement) => generateLogicScriptForStatement(statement, 0))
     .join('')

@@ -19,7 +19,7 @@ export function assembleLogic(
 export function compileLogicScript(sourceCode: string, wordList: WordList): Buffer {
   const parseTree = parseLogicScript(sourceCode);
   const astGenerator = new LogicScriptASTGenerator(parseTree, wordList);
-  const root = astGenerator.generateASTForLogicScript(parseTree);
+  const root = astGenerator.generateASTForLogicScript();
   const graph = optimizeAST(root);
   const compiler = new LogicCompiler(graph, astGenerator.getLabels());
   const { instructions } = compiler.compile();

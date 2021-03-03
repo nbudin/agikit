@@ -138,7 +138,7 @@ HexEscapeSequence
     }
 
 CommandCall
-  = commandName:Identifier '(' WhiteSpace* argumentList:ArgumentList? WhiteSpace* ');' {
+  = commandName:Identifier '(' WhiteSpace* argumentList:ArgumentList? WhiteSpace* ')' WhiteSpace* ';' {
     return {
       type: 'CommandCall',
       commandName: commandName.name,
@@ -247,12 +247,22 @@ MessageDirective
     };
   }
 
+UnaryOperationStatement
+  = identifier:Identifier WhiteSpace* operation:('++' / '--') WhiteSpace* ';' {
+    return {
+      type: 'UnaryOperationStatement',
+      identifier,
+      operation,
+    };
+  }
+
 Statement
   = Label
   / CommandCall
   / IfStatement
   / Comment
   / MessageDirective
+  / UnaryOperationStatement
 
 StatementList
   = statements:(WhiteSpace* Statement WhiteSpace*)* {

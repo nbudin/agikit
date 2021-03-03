@@ -69,18 +69,25 @@ export type LogicScriptBooleanExpression =
   | LogicScriptBooleanBinaryOperation
   | LogicScriptTestCall;
 
-export type LogicScriptIfStatement = {
+export interface LogicScriptIfStatement<StatementType = LogicScriptStatement> {
   type: 'IfStatement';
   conditions: LogicScriptBooleanExpression;
-  thenStatements: LogicScriptStatement[];
-  elseStatements: LogicScriptStatement[];
+  thenStatements: StatementType[];
+  elseStatements: StatementType[];
+}
+
+export type LogicScriptUnaryOperationStatement = {
+  type: 'UnaryOperationStatement';
+  operation: '++' | '--';
+  identifier: LogicScriptIdentifier;
 };
 
 export type LogicScriptStatement =
   | LogicScriptLabel
   | LogicScriptCommandCall
-  | LogicScriptIfStatement
+  | LogicScriptIfStatement<LogicScriptStatement>
   | LogicScriptComment
+  | LogicScriptUnaryOperationStatement
   | LogicScriptMessageDirective;
 
-export type LogicScriptProgram = LogicScriptStatement[];
+export type LogicScriptProgram<StatementType> = StatementType[];
