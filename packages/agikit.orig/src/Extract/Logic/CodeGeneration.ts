@@ -539,6 +539,27 @@ export class LogicScriptGenerator {
           assignee: argumentList[0],
           value: argumentList[1],
         });
+      } else if (
+        (commandName === 'lindirectn' || commandName === 'lindirectv') &&
+        argumentList.length === 2 &&
+        argumentList[0].type === 'Identifier'
+      ) {
+        statements.push({
+          type: 'LeftIndirectAssignmentStatement',
+          assigneePointer: argumentList[0],
+          value: argumentList[1],
+        });
+      } else if (
+        commandName === 'rindirect' &&
+        argumentList.length === 2 &&
+        argumentList[0].type === 'Identifier' &&
+        argumentList[1].type === 'Identifier'
+      ) {
+        statements.push({
+          type: 'RightIndirectAssignmentStatement',
+          assignee: argumentList[0],
+          valuePointer: argumentList[1],
+        });
       } else {
         statements.push({
           type: 'CommandCall',

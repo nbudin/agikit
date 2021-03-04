@@ -95,6 +95,18 @@ export type LogicScriptArithmeticAssignmentStatement = {
   value: LogicScriptIdentifier | LogicScriptLiteral;
 };
 
+export type LogicScriptLeftIndirectAssignmentStatement = {
+  type: 'LeftIndirectAssignmentStatement';
+  assigneePointer: LogicScriptIdentifier;
+  value: LogicScriptIdentifier | LogicScriptLiteral;
+};
+
+export type LogicScriptRightIndirectAssignmentStatement = {
+  type: 'RightIndirectAssignmentStatement';
+  assignee: LogicScriptIdentifier;
+  valuePointer: LogicScriptIdentifier;
+};
+
 export type LogicScriptStatement =
   | LogicScriptLabel
   | LogicScriptCommandCall
@@ -103,6 +115,8 @@ export type LogicScriptStatement =
   | LogicScriptUnaryOperationStatement
   | LogicScriptMessageDirective
   | LogicScriptValueAssignmentStatement
-  | LogicScriptArithmeticAssignmentStatement;
+  | LogicScriptArithmeticAssignmentStatement
+  | LogicScriptLeftIndirectAssignmentStatement
+  | LogicScriptRightIndirectAssignmentStatement;
 
 export type LogicScriptProgram<StatementType> = StatementType[];
