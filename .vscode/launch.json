@@ -14,7 +14,13 @@
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "/Users/nbudin/.nodenv/versions/14.15.1/bin/node",
       "program": "${workspaceFolder}/src/cli.ts",
-      "args": ["extract", "/Users/nbudin/Downloads/King's Quest 1 (AGI, DOS)", "extracted/kq1"],
+      "args": [
+        "extract",
+        "/Users/nbudin/Downloads/King's Quest 1 (AGI, DOS)",
+        "extracted/kq1"
+        // "/Users/nbudin/Downloads/AGI Contest 2 Template",
+        // "extracted/contest2"
+      ],
       "preLaunchTask": "tsc: build - tsconfig.json",
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js"
@@ -52,8 +58,10 @@
       "program": "${workspaceFolder}/src/cli.ts",
       "args": [
         "build",
-        "extracted/kq1",
-        "build/kq1"
+        "/Users/nbudin/Downloads/AGI Contest 2 Template/src",
+        "build/contest2"
+        // "extracted/kq1",
+        // "build/kq1"
       ],
       "preLaunchTask": "tsc: build - tsconfig.json",
       "outFiles": [

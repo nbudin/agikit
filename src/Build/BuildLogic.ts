@@ -6,6 +6,7 @@ import { LogicScriptASTGenerator } from '../Scripting/LogicScriptASTGenerator';
 import { parseLogicScript } from '../Scripting/LogicScriptParser';
 import { encodeLogic, encodeMessages } from '../Scripting/WriteLogic';
 import { WordList } from '../Types/WordList';
+import { ObjectList } from '../Types/ObjectList';
 
 export function assembleLogic(
   instructions: LogicInstruction[],
@@ -16,9 +17,14 @@ export function assembleLogic(
   return logic;
 }
 
-export function compileLogicScript(sourceCode: string, wordList: WordList): Buffer {
-  const parseTree = parseLogicScript(sourceCode);
-  const astGenerator = new LogicScriptASTGenerator(parseTree, wordList);
+export function compileLogicScript(
+  sourceCode: string,
+  scriptPath: string,
+  wordList: WordList,
+  objectList: ObjectList,
+): Buffer {
+  const parseTree = parseLogicScript(sourceCode, scriptPath);
+  const astGenerator = new LogicScriptASTGenerator(parseTree, wordList, objectList);
   const root = astGenerator.generateASTForLogicScript();
   const graph = optimizeAST(root);
   const compiler = new LogicCompiler(graph, astGenerator.getLabels());

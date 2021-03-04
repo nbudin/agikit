@@ -15,6 +15,8 @@ Comment "comment"
   = MultiLineComment
   / SingleLineComment
 
+WSC = WhiteSpace / Comment
+
 MultiLineComment
   = "/*" comment:(!"*/" SourceCharacter)* "*/" {
     return { type: 'Comment', comment: comment.map((parts: any[]) => parts[1]).join('') };
@@ -82,13 +84,17 @@ HexIntegerLiteral
 HexDigit
   = [0-9a-f]i
 
-StringLiteral "string"
+SingleStringLiteral "string"
   = '"' chars:DoubleStringCharacter* '"' {
       return { type: "Literal", value: chars.join("") };
     }
   / "'" chars:SingleStringCharacter* "'" {
       return { type: "Literal", value: chars.join("") };
     }
+
+StringLiteral = strings:(SingleStringLiteral WSC*)+ {
+  return { type: "Literal", value: strings.map((parts: [{ value: string }, ...string[]]) => parts[0].value).join('') };
+}
 
 DoubleStringCharacter
   = !('"' / "\\" / LineTerminator) SourceCharacter { return text(); }
@@ -138,7 +144,7 @@ HexEscapeSequence
     }
 
 CommandCall
-  = commandName:Identifier '(' WhiteSpace* argumentList:ArgumentList? WhiteSpace* ')' WhiteSpace* ';' {
+  = commandName:Identifier '(' WSC* argumentList:ArgumentList? WSC* ')' WSC* ';' {
     return {
       type: 'CommandCall',
       commandName: commandName.name,
@@ -158,12 +164,12 @@ ArgumentList
 Argument
   = Identifier / Literal
 
-SubsequentArgument = WhiteSpace* ',' WhiteSpace* argument:Argument {
+SubsequentArgument = WSC* ',' WSC* argument:Argument {
   return argument;
 }
 
 TestCall
-  = testName:Identifier '(' WhiteSpace* argumentList:ArgumentList WhiteSpace* ')' {
+  = testName:Identifier '(' WSC* argumentList:ArgumentList WSC* ')' {
     return {
       type: 'TestCall',
       testName: testName.name,
@@ -174,7 +180,7 @@ TestCall
 BooleanBinaryOperator = '<' / '>' / '<=' / '>=' / '==' / '!='
 
 BooleanBinaryOperation
-  = left:Argument WhiteSpace* operator:BooleanBinaryOperator WhiteSpace* right:Argument {
+  = left:Argument WSC* operator:BooleanBinaryOperator WSC* right:Argument {
     return {
       type: 'BooleanBinaryOperation',
       operator,
@@ -186,7 +192,7 @@ BooleanBinaryOperation
 SingleBooleanClause = TestCall / BooleanBinaryOperation / ParenthesizedBooleanExpression / NotExpression / Identifier
 
 AndExpression
-  = first:SingleBooleanClause WhiteSpace* remaining:('&&' WhiteSpace* SingleBooleanClause WhiteSpace*)+ {
+  = first:SingleBooleanClause WSC* remaining:('&&' WSC* SingleBooleanClause WSC*)+ {
     return {
       type: 'AndExpression',
       clauses: [first, ...remaining.map((parts: any) => parts[2])]
@@ -194,7 +200,7 @@ AndExpression
   }
 
 OrExpression
-  = first:SingleBooleanClause WhiteSpace* remaining:('||' WhiteSpace* SingleBooleanClause WhiteSpace*)+ {
+  = first:SingleBooleanClause WSC* remaining:('||' WSC* SingleBooleanClause WSC*)+ {
     return {
       type: 'OrExpression',
       clauses: [first, ...remaining.map((parts: any) => parts[2])]
@@ -216,13 +222,14 @@ BooleanExpression
   / BooleanBinaryOperation
   / TestCall
   / Identifier
+  / ParenthesizedBooleanExpression
 
-ParenthesizedBooleanExpression = '(' WhiteSpace* expression:BooleanExpression WhiteSpace* ')' {
+ParenthesizedBooleanExpression = '(' WSC* expression:BooleanExpression WSC* ')' {
   return expression;
 }
 
 IfStatement
-  = 'if' WhiteSpace* conditions:ParenthesizedBooleanExpression WhiteSpace* '{'
+  = 'if' WSC* conditions:ParenthesizedBooleanExpression WSC* '{'
     thenStatements:StatementList
     '}'
     elseStatements:ElseClause? {
@@ -235,7 +242,7 @@ IfStatement
     }
 
 ElseClause
-  = WhiteSpace* 'else' WhiteSpace* '{' WhiteSpace* contents:StatementList? WhiteSpace* '}' {
+  = WSC* 'else' WSC* '{' WSC* contents:StatementList? WSC* '}' {
     return contents;
   }
 
@@ -248,8 +255,25 @@ MessageDirective
     };
   }
 
+IncludeDirective
+  = '#include' ' '+ filename:StringLiteral {
+    return {
+      type: 'IncludeDirective',
+      filename: filename.value,
+    };
+  }
+
+DefineDirective
+  = '#define' ' '+ identifier:Identifier ' '+ value:(Identifier / Literal) {
+    return {
+      type: 'DefineDirective',
+      identifier,
+      value,
+    };
+  }
+
 UnaryOperationStatement
-  = identifier:Identifier WhiteSpace* operation:('++' / '--') WhiteSpace* ';' {
+  = identifier:Identifier WSC* operation:('++' / '--') WSC* ';' {
     return {
       type: 'UnaryOperationStatement',
       identifier,
@@ -258,7 +282,7 @@ UnaryOperationStatement
   }
 
 ValueAssignmentStatement
-  = assignee:Identifier WhiteSpace* '=' WhiteSpace* value:(Identifier / NumericLiteral) ';' {
+  = assignee:Identifier WSC* '=' WSC* value:(Identifier / NumericLiteral) ';' {
     return {
       type: 'ValueAssignmentStatement',
       assignee,
@@ -269,8 +293,8 @@ ValueAssignmentStatement
 ArithmeticOperator = '+' / '-' / '*' / '/'
 
 LongArithmeticAssignmentStatementLeft
-  = assignee:Identifier WhiteSpace* '=' WhiteSpace*
-    assignee2:Identifier WhiteSpace* operator:ArithmeticOperator WhiteSpace* value:(Identifier / NumericLiteral) WhiteSpace* ';'
+  = assignee:Identifier WSC* '=' WSC*
+    assignee2:Identifier WSC* operator:ArithmeticOperator WSC* value:(Identifier / NumericLiteral) WSC* ';'
   & { assignee.name === assignee2.name }
   {
     return {
@@ -282,8 +306,8 @@ LongArithmeticAssignmentStatementLeft
   }
 
 LongArithmeticAssignmentStatementRight
-  = assignee:Identifier WhiteSpace* '=' WhiteSpace*
-    value:(Identifier / NumericLiteral) WhiteSpace* operator:ArithmeticOperator WhiteSpace* assignee2:Identifier WhiteSpace* ';'
+  = assignee:Identifier WSC* '=' WSC*
+    value:(Identifier / NumericLiteral) WSC* operator:ArithmeticOperator WSC* assignee2:Identifier WSC* ';'
   & { assignee.name === assignee2.name }
   {
     return {
@@ -295,7 +319,7 @@ LongArithmeticAssignmentStatementRight
   }
 
 ShortArithmeticAssignmentStatement
-  = assignee:Identifier WhiteSpace* operator:ArithmeticOperator '=' WhiteSpace* value:(Identifier / NumericLiteral) WhiteSpace* ';'
+  = assignee:Identifier WSC* operator:ArithmeticOperator '=' WSC* value:(Identifier / NumericLiteral) WSC* ';'
   {
     return {
       type: 'ArithmeticAssignmentStatement',
@@ -308,7 +332,7 @@ ShortArithmeticAssignmentStatement
 ArithmeticAssignmentStatement = LongArithmeticAssignmentStatementLeft / LongArithmeticAssignmentStatementRight / ShortArithmeticAssignmentStatement
 
 LeftIndirectAssignmentStatement
-  = '*' WhiteSpace* assigneePointer:Identifier WhiteSpace* '=' WhiteSpace* value:(Identifier / NumericLiteral) WhiteSpace* ';'
+  = '*' WSC* assigneePointer:Identifier WSC* '=' WSC* value:(Identifier / NumericLiteral) WSC* ';'
   {
     return {
       type: 'LeftIndirectAssignmentStatement',
@@ -318,7 +342,7 @@ LeftIndirectAssignmentStatement
   }
 
 RightIndirectAssignmentStatement
-  = assignee:Identifier WhiteSpace* '=' WhiteSpace* '*' WhiteSpace* valuePointer:Identifier WhiteSpace* ';'
+  = assignee:Identifier WSC* '=' WSC* '*' WSC* valuePointer:Identifier WSC* ';'
   {
     return {
       type: 'RightIndirectAssignmentStatement',
@@ -333,6 +357,8 @@ Statement
   / IfStatement
   / Comment
   / MessageDirective
+  / IncludeDirective
+  / DefineDirective
   / UnaryOperationStatement
   / ValueAssignmentStatement
   / ArithmeticAssignmentStatement

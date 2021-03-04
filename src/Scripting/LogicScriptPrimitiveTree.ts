@@ -1,4 +1,4 @@
-import { stat } from 'fs';
+import { LogicScriptPreprocessedStatement } from './LogicScriptParser';
 import {
   LogicScriptCommandCall,
   LogicScriptComment,
@@ -6,7 +6,6 @@ import {
   LogicScriptLabel,
   LogicScriptMessageDirective,
   LogicScriptProgram,
-  LogicScriptStatement,
 } from './LogicScriptParserTypes';
 
 export type LogicScriptPrimitiveStatement =
@@ -17,7 +16,7 @@ export type LogicScriptPrimitiveStatement =
   | LogicScriptMessageDirective;
 
 function simplifyLogicScriptStatement(
-  statement: LogicScriptStatement,
+  statement: LogicScriptPreprocessedStatement,
 ): LogicScriptPrimitiveStatement {
   if (statement.type === 'UnaryOperationStatement') {
     const replacementStatement: LogicScriptCommandCall = {
@@ -94,7 +93,7 @@ function simplifyLogicScriptStatement(
 }
 
 export function simplifyLogicScriptProgram(
-  program: LogicScriptProgram<LogicScriptStatement>,
+  program: LogicScriptProgram<LogicScriptPreprocessedStatement>,
 ): LogicScriptProgram<LogicScriptPrimitiveStatement> {
   return program.map((statement) => simplifyLogicScriptStatement(statement));
 }
