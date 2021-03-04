@@ -6,20 +6,19 @@ import {
   LogicIfNode,
   LogicLabel,
 } from '../Extract/Logic/LogicDecompile';
-import { LogicScriptParseTree, LogicScriptStatementStack } from './LogicScriptParser';
 import {
-  LogicScriptCommandCall,
-  LogicScriptComment,
+  LogicScriptParseTree,
+  LogicScriptPreprocessedStatement,
+  LogicScriptStatementStack,
+} from './LogicScriptParser';
+import {
   LogicScriptIdentifier,
-  LogicScriptIfStatement,
   LogicScriptLabel,
   LogicScriptLiteral,
-  LogicScriptMessageDirective,
-  LogicScriptStatement,
   LogicScriptTestCall,
 } from './LogicScriptParserTypes';
 import { WordList } from '../Types/WordList';
-import { add, flatMap, max } from 'lodash';
+import { flatMap, max } from 'lodash';
 import assertNever from 'assert-never';
 import { LogicConditionClause, LogicTest } from '../Types/Logic';
 import { simplifyLogicScriptExpression, StrictBooleanExpression } from './PropositionalLogic';
@@ -27,19 +26,8 @@ import {
   LogicScriptPrimitiveStatement,
   simplifyLogicScriptProgram,
 } from './LogicScriptPrimitiveTree';
-
-export type IdentifierMapping = { name: string; number: number; type: AGICommandArgType };
-
-const BUILT_IN_IDENTIFIERS = new Map<string, IdentifierMapping>(
-  flatMap([...Array(256).keys()], (index) => [
-    { name: `v${index}`, number: index, type: AGICommandArgType.Variable },
-    { name: `f${index}`, number: index, type: AGICommandArgType.Flag },
-    { name: `o${index}`, number: index, type: AGICommandArgType.Object },
-    { name: `c${index}`, number: index, type: AGICommandArgType.CtrlCode },
-    { name: `i${index}`, number: index, type: AGICommandArgType.Item },
-    { name: `s${index}`, number: index, type: AGICommandArgType.String },
-  ]).map((identifierMapping) => [identifierMapping.name, identifierMapping]),
-);
+import { IdentifierMapping } from './LogicScriptIdentifierMapping';
+import { ObjectList, ObjectListEntry } from '../Types/ObjectList';
 
 const fakeJumpTarget: LogicCommandNode = {
   type: 'command',
@@ -53,6 +41,8 @@ export class LogicScriptASTGenerator {
   parseTree: LogicScriptParseTree<LogicScriptPrimitiveStatement>;
   wordList: WordList;
   invertedWordList: Map<string, number>;
+  objectList: ObjectList;
+  objectNumbersByName: Map<string, number>;
   messages: (string | undefined)[];
   messagesByContent: Map<string, number>;
   identifiers: Map<string, IdentifierMapping>;
@@ -61,19 +51,30 @@ export class LogicScriptASTGenerator {
   private statementAddresses: Map<LogicScriptPrimitiveStatement, number>;
   private nodesByAddress: Map<number, LogicASTNode>;
 
-  constructor(parseTree: LogicScriptParseTree<LogicScriptStatement>, wordList: WordList) {
-    this.parseTree = new LogicScriptParseTree(simplifyLogicScriptProgram(parseTree.program));
+  constructor(
+    parseTree: LogicScriptParseTree<LogicScriptPreprocessedStatement>,
+    wordList: WordList,
+    objectList: ObjectList,
+  ) {
+    this.parseTree = new LogicScriptParseTree(
+      simplifyLogicScriptProgram(parseTree.program),
+      parseTree.identifiers,
+    );
     this.wordList = wordList;
+    this.objectList = objectList;
 
     this.invertedWordList = new Map<string, number>(
       flatMap([...this.wordList.entries()], ([wordNumber, words]) =>
         [...words].map((word) => [word, wordNumber]),
       ),
     );
+    this.objectNumbersByName = new Map(
+      this.objectList.objects.map((object, index) => [object.name, index]),
+    );
 
     this.unresolvedGotos = [];
     this.labels = new Map<string, LogicLabel>();
-    this.identifiers = new Map<string, IdentifierMapping>(BUILT_IN_IDENTIFIERS);
+    this.identifiers = this.parseTree.identifiers;
 
     this.statementAddresses = new Map<LogicScriptPrimitiveStatement, number>();
     this.nodesByAddress = new Map<number, LogicASTNode>();
@@ -114,16 +115,24 @@ export class LogicScriptASTGenerator {
         return argument.value;
       }
 
-      if (argumentType === 'Message') {
+      if (argumentType === AGICommandArgType.Message) {
         return this.getMessageNumber(argument.value);
       }
 
-      if (argumentType === 'Word') {
+      if (argumentType === AGICommandArgType.Word) {
         const wordNumber = this.invertedWordList.get(argument.value);
         if (wordNumber == null) {
           throw new Error(`Word ${argument.value} not found in word list`);
         }
         return wordNumber;
+      }
+
+      if (argumentType === AGICommandArgType.Item) {
+        const objectNumber = this.objectNumbersByName.get(argument.value);
+        if (objectNumber == null) {
+          throw new Error(`Item "${argument.value}" not found in object list`);
+        }
+        return objectNumber;
       }
 
       throw new Error(
@@ -135,6 +144,14 @@ export class LogicScriptASTGenerator {
       const identifierMapping = this.identifiers.get(argument.name);
       if (!identifierMapping) {
         throw new Error(`Unknown identifier ${argument.name}`);
+      }
+
+      if (identifierMapping.identifierType === 'constant') {
+        if (typeof identifierMapping.value === 'number') {
+          return identifierMapping.value;
+        } else {
+          return this.getMessageNumber(identifierMapping.value);
+        }
       }
 
       if (identifierMapping.type !== argumentType) {

@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { Resource, ResourceType } from '../Types/Resources';
 import { compileLogicScript } from '../Build/BuildLogic';
-import { SyntaxError as LogicSyntaxError } from '../Scripting/LogicScriptParser';
+import { SyntaxErrorWithFilePath as LogicSyntaxError } from '../Scripting/LogicScriptParser';
 import {
   encodeResourceVolumes,
   encodeV2Resource,
@@ -22,7 +22,11 @@ function processFile<T>(processor: (input: string) => T, filePath: string) {
   } catch (error) {
     if (error instanceof LogicSyntaxError || error instanceof WordListSyntaxError) {
       console.error(error.message);
-      console.log(`${filePath}:${error.location.start.line}:${error.location.start.column}`);
+      console.log(
+        `${error instanceof LogicSyntaxError ? error.filePath : filePath}:${
+          error.location.start.line
+        }:${error.location.start.column}`,
+      );
       process.exit(1);
     } else {
       throw error;
@@ -35,12 +39,16 @@ function buildResource(
   resourceType: ResourceType,
   resourceNumber: number,
   wordList: WordList,
+  objectList: ObjectList,
 ): Resource | undefined {
   if (resourceType === ResourceType.LOGIC) {
     const scriptPath = path.join(sourceDir, 'logic', `${resourceNumber}.agilogic`);
     if (fs.existsSync(scriptPath)) {
       console.log(`Compiling ${scriptPath}`);
-      const data = processFile((input) => compileLogicScript(input, wordList), scriptPath);
+      const data = processFile(
+        (input) => compileLogicScript(input, scriptPath, wordList, objectList),
+        scriptPath,
+      );
 
       return {
         data,
@@ -84,7 +92,7 @@ export function buildGame(sourceDir: string, destinationDir: string): void {
     ResourceType.LOGIC,
   ]) {
     for (let resourceNumber = 0; resourceNumber < 256; resourceNumber++) {
-      const resource = buildResource(sourceDir, resourceType, resourceNumber, wordList);
+      const resource = buildResource(sourceDir, resourceType, resourceNumber, wordList, objectList);
       if (resource) {
         resources.push(resource);
       }

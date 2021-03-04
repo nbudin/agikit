@@ -112,6 +112,12 @@ export function generateLogicScriptForStatement(
     )};\n`;
   } else if (statement.type === 'RightIndirectAssignmentStatement') {
     return `${indentSpaces}${statement.assignee.name} = *${statement.valuePointer.name};\n`;
+  } else if (statement.type === 'IncludeDirective') {
+    return `${indentSpaces}#include ${JSON.stringify(statement.filename)}\n`;
+  } else if (statement.type === 'DefineDirective') {
+    return `${indentSpaces}#define ${generateLogicScriptForArgument(
+      statement.identifier,
+    )} ${generateLogicScriptForArgument(statement.value)}`;
   }
 
   assertNever(statement);

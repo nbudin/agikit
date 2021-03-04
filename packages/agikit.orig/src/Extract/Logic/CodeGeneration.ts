@@ -35,6 +35,7 @@ import {
 import { DominatorTree } from './DominatorTree';
 import { decompileInstructions, LogicLabel } from './LogicDecompile';
 import { generateLabels } from './LogicDisasm';
+import { BUILT_IN_IDENTIFIERS } from '../../Scripting/LogicScriptIdentifierMapping';
 
 export type CodeGenerationContext = {
   logic: LogicResource;
@@ -357,7 +358,7 @@ export class LogicScriptGenerator {
       statements.push(...this.generateCodeForBasicBlock(block, queue));
     }
 
-    const parseTree = new LogicScriptParseTree(statements);
+    const parseTree = new LogicScriptParseTree(statements, BUILT_IN_IDENTIFIERS);
 
     this.removeUnusedLabels(parseTree);
     this.removeRedundantJumps(parseTree);

@@ -14,6 +14,17 @@ export type LogicScriptMessageDirective = {
   message: string;
 };
 
+export type LogicScriptIncludeDirective = {
+  type: 'IncludeDirective';
+  filename: string;
+};
+
+export type LogicScriptDefineDirective = {
+  type: 'DefineDirective';
+  identifier: LogicScriptIdentifier;
+  value: LogicScriptIdentifier | LogicScriptLiteral;
+};
+
 export type LogicScriptLabel = {
   type: 'Label';
   label: string;
@@ -115,6 +126,8 @@ export type LogicScriptStatement =
   | LogicScriptComment
   | LogicScriptUnaryOperationStatement
   | LogicScriptMessageDirective
+  | LogicScriptIncludeDirective
+  | LogicScriptDefineDirective
   | LogicScriptValueAssignmentStatement
   | LogicScriptArithmeticAssignmentStatement
   | LogicScriptLeftIndirectAssignmentStatement

@@ -1,10 +1,16 @@
 import assertNever from 'assert-never';
 import { flatMap } from 'lodash';
 import { AGICommandArgType } from '../Types/AGICommands';
-import { IdentifierMapping } from './LogicScriptASTGenerator';
 import {
+  IdentifierMapping,
+  resolveIdentifierMapping,
+  VariableIdentifierMapping,
+} from './LogicScriptIdentifierMapping';
+import {
+  LogicScriptArgument,
   LogicScriptBooleanBinaryOperation,
   LogicScriptBooleanExpression,
+  LogicScriptLiteral,
   LogicScriptNotExpression,
   LogicScriptOrExpression,
   LogicScriptTestCall,
@@ -121,29 +127,32 @@ function flipBinaryOperator(
   assertNever(operator);
 }
 
+type ResolvedBinaryOperation = {
+  operator: LogicScriptBooleanBinaryOperation['operator'];
+  left: VariableIdentifierMapping | LogicScriptLiteral;
+  right: VariableIdentifierMapping | LogicScriptLiteral;
+};
+
 function logicScriptBooleanOperationToTestCallForm(
-  operation: LogicScriptBooleanBinaryOperation,
-  identifiers: Map<string, IdentifierMapping>,
+  operation: ResolvedBinaryOperation,
 ): LogicScriptTestCall | LogicScriptOrExpression | LogicScriptNotExpression {
   const { operator, left, right } = operation;
-  if (left.type !== 'Identifier') {
-    if (right.type !== 'Identifier') {
+  if (left.type === 'Literal') {
+    if (right.type === 'Literal') {
       throw new Error('At least one side of a boolean operation must be an identifier');
     }
 
-    return logicScriptBooleanOperationToTestCallForm(
-      { ...operation, operator: flipBinaryOperator(operator), left: right, right: left },
-      identifiers,
-    );
+    return logicScriptBooleanOperationToTestCallForm({
+      ...operation,
+      operator: flipBinaryOperator(operator),
+      left: right,
+      right: left,
+    });
   }
 
-  const leftMapping = identifiers.get(left.name);
-  if (!leftMapping) {
-    throw new Error(`Unknown identifier: ${left.name}`);
-  }
-  if (leftMapping.type !== AGICommandArgType.Variable) {
+  if (left.type !== AGICommandArgType.Variable) {
     throw new Error(
-      `${operator} operations can only use numbers or variables, but ${left.name} is a ${leftMapping.type}`,
+      `${operator} operations can only use numbers or variables, but ${left.name} is a ${left.type}`,
     );
   }
 
@@ -158,58 +167,103 @@ function logicScriptBooleanOperationToTestCallForm(
     }
     typeSuffix = 'n';
   } else {
-    const rightMapping = identifiers.get(right.name);
-    if (!rightMapping) {
-      throw new Error(`Unknown identifier: ${right.name}`);
-    }
-    if (rightMapping.type !== AGICommandArgType.Variable) {
+    if (right.type !== AGICommandArgType.Variable) {
       throw new Error(
-        `${operator} operations can only use numbers or variables, but ${right.name} is a ${rightMapping.type}`,
+        `${operator} operations can only use numbers or variables, but ${right.name} is a ${right.type}`,
       );
     }
     typeSuffix = 'v';
   }
 
+  const leftArg: LogicScriptArgument = {
+    type: 'Identifier',
+    name: left.name,
+  };
+
+  const rightArg: LogicScriptArgument =
+    right.type === 'Literal'
+      ? right
+      : {
+          type: 'Identifier',
+          name: right.name,
+        };
+
   if (operator === '==') {
-    return { type: 'TestCall', argumentList: [left, right], testName: `equal${typeSuffix}` };
+    return { type: 'TestCall', argumentList: [leftArg, rightArg], testName: `equal${typeSuffix}` };
   }
 
   if (operator === '!=') {
     return {
       type: 'NotExpression',
-      expression: { type: 'TestCall', argumentList: [left, right], testName: `equal${typeSuffix}` },
+      expression: {
+        type: 'TestCall',
+        argumentList: [leftArg, rightArg],
+        testName: `equal${typeSuffix}`,
+      },
     };
   }
 
   if (operator === '<') {
-    return { type: 'TestCall', argumentList: [left, right], testName: `less${typeSuffix}` };
+    return { type: 'TestCall', argumentList: [leftArg, rightArg], testName: `less${typeSuffix}` };
   }
 
   if (operator === '<=') {
     return {
       type: 'OrExpression',
       clauses: [
-        { type: 'TestCall', argumentList: [left, right], testName: `less${typeSuffix}` },
-        { type: 'TestCall', argumentList: [left, right], testName: `equal${typeSuffix}` },
+        { type: 'TestCall', argumentList: [leftArg, rightArg], testName: `less${typeSuffix}` },
+        { type: 'TestCall', argumentList: [leftArg, rightArg], testName: `equal${typeSuffix}` },
       ],
     };
   }
 
   if (operator === '>') {
-    return { type: 'TestCall', argumentList: [left, right], testName: `greater${typeSuffix}` };
+    return {
+      type: 'TestCall',
+      argumentList: [leftArg, rightArg],
+      testName: `greater${typeSuffix}`,
+    };
   }
 
   if (operator === '>=') {
     return {
       type: 'OrExpression',
       clauses: [
-        { type: 'TestCall', argumentList: [left, right], testName: `less${typeSuffix}` },
-        { type: 'TestCall', argumentList: [left, right], testName: `equal${typeSuffix}` },
+        { type: 'TestCall', argumentList: [leftArg, rightArg], testName: `less${typeSuffix}` },
+        { type: 'TestCall', argumentList: [leftArg, rightArg], testName: `equal${typeSuffix}` },
       ],
     };
   }
 
   assertNever(operator);
+}
+
+function resolveBooleanBinaryOperation(
+  operation: LogicScriptBooleanBinaryOperation,
+  identifiers: Map<string, IdentifierMapping>,
+): ResolvedBinaryOperation {
+  const resolveArgument = (argument: LogicScriptArgument) => {
+    if (argument.type === 'Literal') {
+      return argument;
+    }
+
+    const identifierMapping = resolveIdentifierMapping(argument.name, identifiers);
+    if (identifierMapping.identifierType === 'constant') {
+      const resolvedLiteral: LogicScriptLiteral = {
+        type: 'Literal',
+        value: identifierMapping.value,
+      };
+      return resolvedLiteral;
+    }
+
+    return identifierMapping;
+  };
+
+  return {
+    operator: operation.operator,
+    left: resolveArgument(operation.left),
+    right: resolveArgument(operation.right),
+  };
 }
 
 function logicScriptBooleanToBinaryExpression(
@@ -222,7 +276,9 @@ function logicScriptBooleanToBinaryExpression(
 
   if (boolean.type === 'BooleanBinaryOperation') {
     return logicScriptBooleanToBinaryExpression(
-      logicScriptBooleanOperationToTestCallForm(boolean, identifiers),
+      logicScriptBooleanOperationToTestCallForm(
+        resolveBooleanBinaryOperation(boolean, identifiers),
+      ),
       identifiers,
     );
   }
