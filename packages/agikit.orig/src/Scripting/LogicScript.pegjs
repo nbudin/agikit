@@ -183,7 +183,7 @@ BooleanBinaryOperation
     };
   }
 
-SingleBooleanClause = TestCall / BooleanBinaryOperation / ParenthesizedBooleanExpression / NotExpression
+SingleBooleanClause = TestCall / BooleanBinaryOperation / ParenthesizedBooleanExpression / NotExpression / Identifier
 
 AndExpression
   = first:SingleBooleanClause WhiteSpace* remaining:('&&' WhiteSpace* SingleBooleanClause WhiteSpace*)+ {
@@ -215,6 +215,7 @@ BooleanExpression
   / NotExpression
   / BooleanBinaryOperation
   / TestCall
+  / Identifier
 
 ParenthesizedBooleanExpression = '(' WhiteSpace* expression:BooleanExpression WhiteSpace* ')' {
   return expression;

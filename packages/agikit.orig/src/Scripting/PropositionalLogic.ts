@@ -234,6 +234,17 @@ function logicScriptBooleanToBinaryExpression(
     };
   }
 
+  if (boolean.type === 'Identifier') {
+    return logicScriptBooleanToBinaryExpression(
+      {
+        type: 'TestCall',
+        testName: 'isset',
+        argumentList: [boolean],
+      },
+      identifiers,
+    );
+  }
+
   if (boolean.clauses.length === 1) {
     return logicScriptBooleanToBinaryExpression(boolean.clauses[0], identifiers);
   }

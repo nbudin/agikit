@@ -36,6 +36,9 @@ export function generateLogicScriptForBooleanExpression(
   };
 
   if (expression.type === 'TestCall') {
+    if (expression.testName === 'isset' && expression.argumentList.length === 1) {
+      return generateLogicScriptForArgument(expression.argumentList[0]);
+    }
     return `${expression.testName}(${generateLogicScriptForArgumentList(expression.argumentList)})`;
   } else if (expression.type === 'AndExpression') {
     return expression.clauses.map(generateSubExpression).join(' && ');
@@ -47,6 +50,8 @@ export function generateLogicScriptForBooleanExpression(
     return `${generateLogicScriptForArgumentList([expression.left])} ${
       expression.operator
     } ${generateLogicScriptForArgumentList([expression.right])}`;
+  } else if (expression.type === 'Identifier') {
+    return expression.name;
   }
 
   assertNever(expression);
