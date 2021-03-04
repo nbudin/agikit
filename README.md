@@ -46,7 +46,3 @@ Known limitations:
 * Only supports AGI version 2 for now
 * Compiled LOGIC code can't necessarily be decoded by AGI Studio, because the compiler doesn't (yet) guarantee that all blocks fully contain their child blocks
   * This might be more of a limitation of AGI Studio's decompiler
-* Doesn't fully support the LOGIC syntax in the standard:
-  * Doesn't yet understand operators such as ==, <, >, +=, etc
-  * #define (and therefore named variables) isn't yet supported
-  * Probably other stuff
