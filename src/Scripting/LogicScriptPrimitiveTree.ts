@@ -64,6 +64,24 @@ function simplifyLogicScriptStatement(
     return replacementStatement;
   }
 
+  if (statement.type === 'LeftIndirectAssignmentStatement') {
+    const replacementStatement: LogicScriptCommandCall = {
+      type: 'CommandCall',
+      commandName: statement.value.type === 'Literal' ? 'lindirectn' : 'lindirectv',
+      argumentList: [statement.assigneePointer, statement.value],
+    };
+    return replacementStatement;
+  }
+
+  if (statement.type === 'RightIndirectAssignmentStatement') {
+    const replacementStatement: LogicScriptCommandCall = {
+      type: 'CommandCall',
+      commandName: 'rindirect',
+      argumentList: [statement.assignee, statement.valuePointer],
+    };
+    return replacementStatement;
+  }
+
   if (statement.type === 'IfStatement') {
     return {
       ...statement,

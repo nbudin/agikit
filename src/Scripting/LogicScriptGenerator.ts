@@ -101,6 +101,12 @@ export function generateLogicScriptForStatement(
     return `${indentSpaces}${statement.assignee.name} ${
       statement.operator
     }= ${generateLogicScriptForArgument(statement.value)};`;
+  } else if (statement.type === 'LeftIndirectAssignmentStatement') {
+    return `${indentSpaces}*${statement.assigneePointer.name} = ${generateLogicScriptForArgument(
+      statement.value,
+    )};\n`;
+  } else if (statement.type === 'RightIndirectAssignmentStatement') {
+    return `${indentSpaces}${statement.assignee.name} = *${statement.valuePointer.name};\n`;
   }
 
   assertNever(statement);

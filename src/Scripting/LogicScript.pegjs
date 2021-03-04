@@ -306,6 +306,26 @@ ShortArithmeticAssignmentStatement
 
 ArithmeticAssignmentStatement = LongArithmeticAssignmentStatementLeft / LongArithmeticAssignmentStatementRight / ShortArithmeticAssignmentStatement
 
+LeftIndirectAssignmentStatement
+  = '*' WhiteSpace* assigneePointer:Identifier WhiteSpace* '=' WhiteSpace* value:(Identifier / NumericLiteral) WhiteSpace* ';'
+  {
+    return {
+      type: 'LeftIndirectAssignmentStatement',
+      assigneePointer,
+      value,
+    };
+  }
+
+RightIndirectAssignmentStatement
+  = assignee:Identifier WhiteSpace* '=' WhiteSpace* '*' WhiteSpace* valuePointer:Identifier WhiteSpace* ';'
+  {
+    return {
+      type: 'RightIndirectAssignmentStatement',
+      assignee,
+      valuePointer,
+    };
+  }
+
 Statement
   = Label
   / CommandCall
@@ -315,6 +335,8 @@ Statement
   / UnaryOperationStatement
   / ValueAssignmentStatement
   / ArithmeticAssignmentStatement
+  / LeftIndirectAssignmentStatement
+  / RightIndirectAssignmentStatement
 
 StatementList
   = statements:(WhiteSpace* Statement WhiteSpace*)* {
