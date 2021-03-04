@@ -67,7 +67,8 @@ export type LogicScriptBooleanExpression =
   | LogicScriptOrExpression
   | LogicScriptNotExpression
   | LogicScriptBooleanBinaryOperation
-  | LogicScriptTestCall;
+  | LogicScriptTestCall
+  | LogicScriptIdentifier;
 
 export interface LogicScriptIfStatement<StatementType = LogicScriptStatement> {
   type: 'IfStatement';

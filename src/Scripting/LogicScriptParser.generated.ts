@@ -2292,6 +2292,9 @@ function peg$parse(input: string, options?: IParseOptions) {
         s0 = peg$parseParenthesizedBooleanExpression();
         if (s0 === peg$FAILED) {
           s0 = peg$parseNotExpression();
+          if (s0 === peg$FAILED) {
+            s0 = peg$parseIdentifier();
+          }
         }
       }
     }
@@ -2594,6 +2597,9 @@ function peg$parse(input: string, options?: IParseOptions) {
           s0 = peg$parseBooleanBinaryOperation();
           if (s0 === peg$FAILED) {
             s0 = peg$parseTestCall();
+            if (s0 === peg$FAILED) {
+              s0 = peg$parseIdentifier();
+            }
           }
         }
       }
