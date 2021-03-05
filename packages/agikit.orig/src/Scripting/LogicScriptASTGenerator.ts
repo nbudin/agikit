@@ -27,7 +27,7 @@ import {
   simplifyLogicScriptProgram,
 } from './LogicScriptPrimitiveTree';
 import { IdentifierMapping } from './LogicScriptIdentifierMapping';
-import { ObjectList, ObjectListEntry } from '../Types/ObjectList';
+import { ObjectList } from '../Types/ObjectList';
 
 const fakeJumpTarget: LogicCommandNode = {
   type: 'command',
@@ -103,6 +103,7 @@ export class LogicScriptASTGenerator {
     }
     const newMessageNumber = (max([...this.messagesByContent.values()]) ?? 0) + 1;
     this.messagesByContent.set(message, newMessageNumber);
+    this.messages[newMessageNumber - 1] = message;
     return newMessageNumber;
   }
 
