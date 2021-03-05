@@ -38,8 +38,10 @@
       "program": "${workspaceFolder}/src/cli.ts",
       "args": [
         "extract",
-        "build/kq1",
-        "reextracted/kq1"
+        "build/contest2",
+        "reextracted/contest2"
+        // "build/kq1",
+        // "reextracted/kq1"
       ],
       "preLaunchTask": "tsc: build - tsconfig.json",
       "outFiles": [
