@@ -11,9 +11,9 @@
     "url": "https://github.com/nbudin"
   },
   "scripts": {
-    "build": "tsc && add-shebang",
-    "generate-parsers": "ts-node src/Scripting/generateParsers.ts",
-    "prepare": "tsc && add-shebang"
+    "build": "tsc",
+    "prepare": "tsc",
+    "generate-parsers": "ts-node src/Scripting/generateParsers.ts"
   },
   "dependencies": {
     "assert-never": "^1.2.1",
@@ -31,9 +31,6 @@
     "ts-node": "^9.1.1",
     "ts-pegjs": "^0.3.0",
     "typescript": "^4.1.3"
-  },
-  "bin": {
-    "agikit": "dist/cli.js"
   },
   "files": [
     "dist",

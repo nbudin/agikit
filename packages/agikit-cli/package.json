@@ -20,6 +20,8 @@
     "url": "git+https://github.com/nbudin/agikit.git"
   },
   "scripts": {
+    "build": "tsc && add-shebang",
+    "prepare": "tsc && add-shebang",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "bugs": {
