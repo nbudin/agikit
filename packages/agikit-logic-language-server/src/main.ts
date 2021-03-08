@@ -8,8 +8,11 @@ import {
   DiagnosticSeverity,
   DidChangeConfigurationNotification,
   DocumentLink,
+  FileChangeType,
   InitializeParams,
   InitializeResult,
+  MarkupKind,
+  Position,
   ProposedFeatures,
   Range,
   TextDocumentPositionParams,
@@ -19,6 +22,7 @@ import {
 import {
   LogicScriptParseTree,
   parseLogicScriptRaw,
+  buildIdentifierMappingForDefineDirective,
 } from "agikit-core/dist/Scripting/LogicScriptParser";
 import { URI, Utils } from "vscode-uri";
 import fs from "fs";
@@ -36,6 +40,10 @@ import {
   LogicScriptStatement,
   PegJSLocationRange,
 } from "agikit-core/dist/Scripting/LogicScriptParserTypes";
+import {
+  BUILT_IN_IDENTIFIERS,
+  IdentifierMapping,
+} from "agikit-core/dist/Scripting/LogicScriptIdentifierMapping";
 
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 const parseTrees = new Map<
@@ -46,6 +54,7 @@ const parseTrees = new Map<
 type LogicScriptDefine = {
   directive: LogicScriptDefineDirective;
   fileUri: string;
+  identifierMapping: IdentifierMapping;
 };
 const definesByName = new Map<string, LogicScriptDefine[]>();
 const definesByDocument = new Map<string, LogicScriptDefine[]>();
@@ -117,6 +126,7 @@ connection.onInitialize((params: InitializeParams) => {
         resolveProvider: true,
       },
       definitionProvider: {},
+      hoverProvider: {},
     },
   };
   if (hasWorkspaceFolderCapability) {
@@ -256,13 +266,12 @@ async function refreshTextDocument(uri: URI, contents: string): Promise<void> {
     }
   }
 
-  connection.sendDiagnostics({ uri: uri.toString(), diagnostics });
-
   if (statements) {
     clearDocumentData(uri);
     const documentDefines: LogicScriptDefine[] = [];
     const documentIncludes: LogicScriptIncludeDirective[] = [];
     const documentIdentifiers: LogicScriptIdentifier[] = [];
+    const identifierMappings = new Map(BUILT_IN_IDENTIFIERS);
     const includeURIs: URI[] = [];
 
     const processArgument = (argument: LogicScriptArgument) => {
@@ -296,7 +305,26 @@ async function refreshTextDocument(uri: URI, contents: string): Promise<void> {
         const define: LogicScriptDefine = {
           directive: statement,
           fileUri: uri.toString(),
+          identifierMapping: buildIdentifierMappingForDefineDirective(
+            statement,
+            identifierMappings
+          ),
         };
+        if (identifierMappings.has(statement.identifier.name)) {
+          if (statement.identifier.location) {
+            diagnostics.push({
+              message: `Duplicate definition for ${statement.identifier.name}`,
+              range: pegJSLocationRangeToVSCodeRange(
+                statement.identifier.location
+              ),
+            });
+          }
+        } else {
+          identifierMappings.set(
+            statement.identifier.name,
+            define.identifierMapping
+          );
+        }
         documentDefines.push(define);
 
         if (!definesByName.has(statement.identifier.name)) {
@@ -361,11 +389,23 @@ async function refreshTextDocument(uri: URI, contents: string): Promise<void> {
       })
     );
   }
+
+  // we might have diagnostics even if we don't have statements (e.g. syntax errors)
+  connection.sendDiagnostics({ uri: uri.toString(), diagnostics });
 }
 
-connection.onDidChangeWatchedFiles((_change) => {
-  // Monitored files have change in VS Code
-  connection.console.log("We received a file change event");
+connection.onDidChangeWatchedFiles((change) => {
+  change.changes.forEach((changedFile) => {
+    const uri = URI.parse(changedFile.uri);
+    if (
+      changedFile.type === FileChangeType.Changed ||
+      changedFile.type === FileChangeType.Created
+    ) {
+      refreshTextDocument(uri, fs.readFileSync(uri.fsPath, "utf-8"));
+    } else if (changedFile.type === FileChangeType.Deleted) {
+      clearDocumentData(uri);
+    }
+  });
 });
 
 function visibleDefinesForDocument(uri: string): LogicScriptDefine[] {
@@ -415,8 +455,8 @@ connection.onCompletionResolve(
   }
 );
 
-connection.onDefinition((params) => {
-  const identifiers = identifiersByDocument.get(params.textDocument.uri) ?? [];
+function findIdentifierAtLocation(documentUri: string, position: Position) {
+  const identifiers = identifiersByDocument.get(documentUri) ?? [];
   const identifier = identifiers.find((identifier) => {
     const { location } = identifier;
     if (!location) {
@@ -424,22 +464,28 @@ connection.onDefinition((params) => {
     }
 
     const range = pegJSLocationRangeToVSCodeRange(location);
-    if (
-      range.start.line > params.position.line ||
-      range.end.line < params.position.line
-    ) {
+    if (range.start.line > position.line || range.end.line < position.line) {
       return false;
     }
 
     if (
-      range.start.character > params.position.character ||
-      range.end.character < params.position.character
+      range.start.character > position.character ||
+      range.end.character < position.character
     ) {
       return false;
     }
 
     return true;
   });
+
+  return identifier;
+}
+
+connection.onDefinition((params) => {
+  const identifier = findIdentifierAtLocation(
+    params.textDocument.uri,
+    params.position
+  );
 
   if (!identifier) {
     return;
@@ -464,6 +510,44 @@ connection.onDefinition((params) => {
     });
   });
   return definitionLinks;
+});
+
+connection.onHover((params) => {
+  const identifier = findIdentifierAtLocation(
+    params.textDocument.uri,
+    params.position
+  );
+
+  if (!identifier) {
+    return;
+  }
+
+  const defines = definesByName.get(identifier.name);
+  if (!defines) {
+    return;
+  }
+
+  const firstDefine = defines[0];
+  if (!firstDefine) {
+    return;
+  }
+
+  let description: string;
+  if (firstDefine.identifierMapping.identifierType === "constant") {
+    description = JSON.stringify(firstDefine.identifierMapping.value);
+  } else {
+    description = `${firstDefine.identifierMapping.type} #${firstDefine.identifierMapping.number}`;
+  }
+
+  return {
+    range: identifier.location
+      ? pegJSLocationRangeToVSCodeRange(identifier.location)
+      : undefined,
+    contents: {
+      kind: MarkupKind.Markdown,
+      value: `\`${identifier.name}\` - ${description}`,
+    },
+  };
 });
 
 connection.onDocumentLinks((params) => {

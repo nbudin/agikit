@@ -7,7 +7,7 @@ import {
   LogicScriptStatement,
 } from './LogicScriptParserTypes';
 import { parse, SyntaxError } from './LogicScriptParser.generated';
-import { flatMap } from 'lodash';
+import { flatMap, map } from 'lodash';
 import path from 'path';
 import fs from 'fs';
 import {
@@ -151,6 +151,24 @@ export class LogicScriptParseTree<StatementType extends LogicScriptStatement> {
 
 type PreprocessorOutput = LogicScriptProgram<LogicScriptPreprocessedStatement>;
 
+export function buildIdentifierMappingForDefineDirective(
+  directive: LogicScriptDefineDirective,
+  identifierMappings: Map<string, IdentifierMapping>,
+): IdentifierMapping {
+  if (directive.value.type === 'Identifier') {
+    return {
+      ...resolveIdentifierMapping(directive.value.name, identifierMappings),
+      name: directive.identifier.name,
+    };
+  } else {
+    return {
+      identifierType: 'constant',
+      name: directive.identifier.name,
+      value: directive.value.value,
+    };
+  }
+}
+
 function preprocessStatement(
   statement: LogicScriptStatement,
   scriptPath: string,
@@ -167,18 +185,8 @@ function preprocessStatement(
       throw new Error(`Identifier ${statement.identifier.name} is #defined multiple times`);
     }
 
-    if (statement.value.type === 'Identifier') {
-      identifierMappings.set(statement.identifier.name, {
-        ...resolveIdentifierMapping(statement.value.name, identifierMappings),
-        name: statement.identifier.name,
-      });
-    } else {
-      identifierMappings.set(statement.identifier.name, {
-        identifierType: 'constant',
-        name: statement.identifier.name,
-        value: statement.value.value,
-      });
-    }
+    const mapping = buildIdentifierMappingForDefineDirective(statement, identifierMappings);
+    identifierMappings.set(statement.identifier.name, mapping);
 
     return [];
   }
