@@ -1,8 +1,0 @@
-.DS_Store
-/dist
-/extracted
-/build
-/reextracted
-/node_modules
-/yarn-error.log
-/qtagistudio-*

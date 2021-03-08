@@ -613,6 +613,10 @@ export class LogicScriptGenerator {
       conditions: generateBooleanExpression(block.clauses, this.context),
       thenStatements,
       elseStatements,
+      ifKeyword: {
+        type: 'Keyword',
+        keyword: 'if',
+      },
     };
 
     const subsequentCode = [];

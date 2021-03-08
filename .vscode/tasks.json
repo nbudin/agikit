@@ -1,0 +1,13 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "typescript",
+			"tsconfig": "packages/agikit-vscode/tsconfig.json",
+			"problemMatcher": [
+				"$tsc"
+			],
+			"label": "Build agikit-vscode",
+		}
+	]
+}

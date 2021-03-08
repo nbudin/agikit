@@ -1,0 +1,249 @@
+{
+  "scopeName": "source.agilogic",
+  "patterns": [{ "include": "#top-level-construct" }],
+  "repository": {
+    "top-level-construct": {
+      "patterns": [
+        { "include": "#directive-statement" },
+        { "include": "#comment" },
+        { "include": "#command-call" },
+        { "include": "#if-statement" },
+        { "include": "#assignment-statement" },
+        { "include": "#unary-assignment-statement" }
+      ]
+    },
+    "comment": {
+      "patterns": [
+        {
+					"name": "comment.block.agilogic",
+					"begin": "/\\*",
+					"beginCaptures": {
+						"0": {
+							"name": "punctuation.definition.comment.agilogic"
+						}
+					},
+					"end": "\\*/",
+					"endCaptures": {
+						"0": {
+							"name": "punctuation.definition.comment.agilogic"
+						}
+					}
+				},
+        {
+          "name": "comment.line.agilogic",
+          "begin": "//",
+          "end": "(?=$)",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.agilogic"
+            }
+          }
+        }
+      ]
+    },
+    "directive-statement": {
+      "begin": "^\\s*(#include|#message|#define)",
+      "end": "(?=$)",
+      "name": "meta.directive.agilogic",
+      "beginCaptures": {
+        "0": {
+          "name": "keyword.directive.agilogic"
+        }
+      },
+      "patterns": [
+        { "include": "#number" },
+        { "include": "#string" }
+      ]
+    },
+    "command-call": {
+      "begin": "(?!if|else)([a-z\\.]+)\\s*\\(",
+      "end": "\\)\\s*;",
+      "name": "meta.function-call.command.agilogic",
+      "beginCaptures": {
+        "0": {
+          "name": "entity.name.function.agilogic"
+        }
+      },
+      "patterns": [
+        { "include": "#number" },
+        { "include": "#string" },
+        { "include": "#identifier" },
+        {
+          "match": ",",
+          "name": "punctuation.comma.agilogic"
+        }
+      ]
+    },
+    "if-statement": {
+      "begin": "(?<![_$[:alnum:]])(if)(?![_$[:alnum:]])",
+      "end": "(?<=\\})",
+      "name": "meta.control.conditional.agilogic",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.conditional.agilogic"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.block.agilogic"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(?<=if\\s*)(?=\\()",
+          "end": "(?<=\\))",
+          "patterns": [
+            { "include": "#paren-expression" }
+          ]
+        },
+        { "include": "#block" },
+        { "include": "#conditional-keyword" }
+      ]
+    },
+    "block": {
+      "name": "meta.block.agilogic",
+      "begin": "(\\{)",
+      "end": "(\\})",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.block.agilogic"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.block.agilogic"
+        }
+      },
+      "patterns": [
+        { "include": "#top-level-construct" }
+      ]
+    },
+    "boolean-operator": {
+      "match": "(==|\\!=|\\<=|\\>=|\\<|\\>|\\!|&&|\\|\\|)",
+      "name": "keyword.operator.boolean.agilogic"
+    },
+    "assignment-operator": {
+      "match": "(\\+-\\*\\/)?=",
+      "name": "keyword.operator.assignment.agilogic"
+    },
+    "unary-operator": {
+      "match": "(\\+\\+|--)",
+      "name": "keyword.operator.unary.agilogic"
+    },
+    "assignment-statement": {
+      "begin": "(?=(\\*?)\\s*\\w+\\s*(\\+-\\*\\/)?=)",
+      "end": ";",
+      "name": "meta.statement.assignment.agilogic",
+      "patterns": [
+        { "include": "#assignment-operator" },
+        { "include": "#identifier" },
+        { "include": "#pointer" },
+        { "include": "#number" },
+        { "include": "#string" }
+      ]
+    },
+    "unary-assignment-statement": {
+      "begin": "(?=(\\*?)\\s*\\w+\\s*(\\+\\+|--))",
+      "end": ";",
+      "name": "meta.statement.assignment.unary.agilogic",
+      "patterns": [
+        { "include": "#unary-operator" },
+        { "include": "#identifier" }
+      ]
+    },
+    "paren-expression": {
+			"begin": "\\(",
+			"beginCaptures": {
+				"0": {
+					"name": "meta.brace.round.agilogic"
+				}
+			},
+			"end": "\\)",
+			"endCaptures": {
+				"0": {
+					"name": "meta.brace.round.agilogic"
+				}
+			},
+      "name": "meta.expression.paren.agilogic",
+			"patterns": [
+				{	"include": "#number" },
+				{	"include": "#string" },
+        { "include": "#identifier" },
+        { "include": "#boolean-operator" },
+        { "include": "#paren-expression" }
+			]
+		},
+    "identifier": {
+      "match": "(?<![_$[:alnum:]\\*])[A-Za-z_]\\w*",
+      "name": "variable.agilogic"
+    },
+    "pointer": {
+      "match": "\\*[A-Za-z_]\\w*",
+      "name": "variable.other.property.pointer.agilogic"
+    },
+    "conditional-keyword": {
+      "match": "(?<![_$[:alnum:]])if|else(?![_$[:alnum:]])",
+      "name": "keyword.control.conditional.agilogic"
+    },
+    "number": {
+      "match": "(0x)?[0-9]+",
+      "name": "constant.numeric.agilogic"
+    },
+    "string": {
+			"patterns": [
+				{ "include": "#qstring-single" },
+				{	"include": "#qstring-double" }
+			]
+		},
+		"qstring-double": {
+			"name": "string.quoted.double.agilogic",
+			"begin": "\"",
+			"beginCaptures": {
+				"0": {
+					"name": "punctuation.definition.string.begin.agilogic"
+				}
+			},
+			"end": "(\")|((?:[^\\\\\\n])$)",
+			"endCaptures": {
+				"1": {
+					"name": "punctuation.definition.string.end.agilogic"
+				},
+				"2": {
+					"name": "invalid.illegal.newline.agilogic"
+				}
+			},
+			"patterns": [
+				{
+					"include": "#string-character-escape"
+				}
+			]
+		},
+		"qstring-single": {
+			"name": "string.quoted.single.agilogic",
+			"begin": "'",
+			"beginCaptures": {
+				"0": {
+					"name": "punctuation.definition.string.begin.agilogic"
+				}
+			},
+			"end": "(\\')|((?:[^\\\\\\n])$)",
+			"endCaptures": {
+				"1": {
+					"name": "punctuation.definition.string.end.agilogic"
+				},
+				"2": {
+					"name": "invalid.illegal.newline.agilogic"
+				}
+			},
+			"patterns": [
+				{
+					"include": "#string-character-escape"
+				}
+			]
+		},
+		"string-character-escape": {
+			"name": "constant.character.escape.agilogic",
+			"match": "\\\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|u\\{[0-9A-Fa-f]+\\}|[0-2][0-7]{0,2}|3[0-6][0-7]?|37[0-7]?|[4-7][0-7]?|.|$)"
+		}
+  }
+}

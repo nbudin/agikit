@@ -2,6 +2,9 @@
   "name": "agikit-core",
   "version": "0.3.1",
   "homepage": "https://github.com/nbudin/agikit",
+  "exports": {
+    "./dist/": "./dist/"
+  },
   "author": {
     "name": "Nat Budin",
     "email": "natbudin@gmail.com",

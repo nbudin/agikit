@@ -1,38 +1,68 @@
+export type PegJSLocation = {
+  offset: number;
+  line: number;
+  column: number;
+};
+
+export type PegJSLocationRange = { start: PegJSLocation; end: PegJSLocation };
+
+export type LogicScriptKeyword = {
+  type: 'Keyword';
+  keyword: 'if' | 'else';
+  location?: PegJSLocationRange;
+};
+
+export type LogicScriptDirectiveKeyword<KW extends 'message' | 'include' | 'define'> = {
+  type: 'DirectiveKeyword';
+  keyword: KW;
+  location?: PegJSLocationRange;
+};
+
 export type LogicScriptComment = {
   type: 'Comment';
   comment: string;
+  location?: PegJSLocationRange;
 };
 
 export type LogicScriptIdentifier = {
   type: 'Identifier';
   name: string;
+  location?: PegJSLocationRange;
 };
 
 export type LogicScriptMessageDirective = {
   type: 'MessageDirective';
-  number: number;
-  message: string;
+  number: LogicScriptLiteral<number>;
+  message: LogicScriptLiteral<string>;
+  keyword: LogicScriptDirectiveKeyword<'message'>;
+  location?: PegJSLocationRange;
 };
 
 export type LogicScriptIncludeDirective = {
   type: 'IncludeDirective';
-  filename: string;
+  filename: LogicScriptLiteral<string>;
+  keyword: LogicScriptDirectiveKeyword<'include'>;
+  location?: PegJSLocationRange;
 };
 
 export type LogicScriptDefineDirective = {
   type: 'DefineDirective';
   identifier: LogicScriptIdentifier;
   value: LogicScriptIdentifier | LogicScriptLiteral;
+  keyword: LogicScriptDirectiveKeyword<'define'>;
+  location?: PegJSLocationRange;
 };
 
 export type LogicScriptLabel = {
   type: 'Label';
   label: string;
+  location?: PegJSLocationRange;
 };
 
-export type LogicScriptLiteral = {
+export type LogicScriptLiteral<V extends number | string = number | string> = {
   type: 'Literal';
-  value: number | string;
+  value: V;
+  location?: PegJSLocationRange;
 };
 
 export type LogicScriptArgument = LogicScriptLiteral | LogicScriptIdentifier;
@@ -43,6 +73,8 @@ export type LogicScriptCommandCall = {
   type: 'CommandCall';
   commandName: string;
   argumentList: LogicScriptArgumentList;
+  location?: PegJSLocationRange;
+  commandNameLocation?: PegJSLocationRange;
 };
 
 export type LogicScriptBooleanBinaryOperation = {
@@ -50,27 +82,33 @@ export type LogicScriptBooleanBinaryOperation = {
   operator: '<' | '>' | '<=' | '>=' | '==' | '!=';
   left: LogicScriptArgument;
   right: LogicScriptArgument;
+  location?: PegJSLocationRange;
 };
 
 export type LogicScriptTestCall = {
   type: 'TestCall';
   testName: string;
   argumentList: LogicScriptArgumentList;
+  location?: PegJSLocationRange;
+  testNameLocation?: PegJSLocationRange;
 };
 
 export type LogicScriptAndExpression = {
   type: 'AndExpression';
   clauses: LogicScriptBooleanExpression[];
+  location?: PegJSLocationRange;
 };
 
 export type LogicScriptOrExpression = {
   type: 'OrExpression';
   clauses: LogicScriptBooleanExpression[];
+  location?: PegJSLocationRange;
 };
 
 export type LogicScriptNotExpression = {
   type: 'NotExpression';
   expression: LogicScriptBooleanExpression;
+  location?: PegJSLocationRange;
 };
 
 export type LogicScriptBooleanExpression =
@@ -86,18 +124,23 @@ export interface LogicScriptIfStatement<StatementType = LogicScriptStatement> {
   conditions: LogicScriptBooleanExpression;
   thenStatements: StatementType[];
   elseStatements: StatementType[];
+  ifKeyword: LogicScriptKeyword;
+  elseKeyword?: LogicScriptKeyword;
+  location?: PegJSLocationRange;
 }
 
 export type LogicScriptUnaryOperationStatement = {
   type: 'UnaryOperationStatement';
   operation: '++' | '--';
   identifier: LogicScriptIdentifier;
+  location?: PegJSLocationRange;
 };
 
 export type LogicScriptValueAssignmentStatement = {
   type: 'ValueAssignmentStatement';
   assignee: LogicScriptIdentifier;
   value: LogicScriptIdentifier | LogicScriptLiteral;
+  location?: PegJSLocationRange;
 };
 
 export type LogicScriptArithmeticAssignmentStatement = {
@@ -105,18 +148,21 @@ export type LogicScriptArithmeticAssignmentStatement = {
   operator: '+' | '-' | '*' | '/';
   assignee: LogicScriptIdentifier;
   value: LogicScriptIdentifier | LogicScriptLiteral;
+  location?: PegJSLocationRange;
 };
 
 export type LogicScriptLeftIndirectAssignmentStatement = {
   type: 'LeftIndirectAssignmentStatement';
   assigneePointer: LogicScriptIdentifier;
   value: LogicScriptIdentifier | LogicScriptLiteral;
+  location?: PegJSLocationRange;
 };
 
 export type LogicScriptRightIndirectAssignmentStatement = {
   type: 'RightIndirectAssignmentStatement';
   assignee: LogicScriptIdentifier;
   valuePointer: LogicScriptIdentifier;
+  location?: PegJSLocationRange;
 };
 
 export type LogicScriptStatement =

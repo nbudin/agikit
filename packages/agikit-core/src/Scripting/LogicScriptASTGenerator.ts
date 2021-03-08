@@ -86,9 +86,9 @@ export class LogicScriptASTGenerator {
       address += 10;
 
       if (statement.type === 'MessageDirective') {
-        this.messages[statement.number - 1] = statement.message;
-        if (!this.messagesByContent.has(statement.message)) {
-          this.messagesByContent.set(statement.message, statement.number);
+        this.messages[statement.number.value - 1] = statement.message.value;
+        if (!this.messagesByContent.has(statement.message.value)) {
+          this.messagesByContent.set(statement.message.value, statement.number.value);
         }
       }
 

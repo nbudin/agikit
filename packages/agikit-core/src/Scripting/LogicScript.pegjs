@@ -19,24 +19,25 @@ WSC = WhiteSpace / Comment
 
 MultiLineComment
   = "/*" comment:(!"*/" SourceCharacter)* "*/" {
-    return { type: 'Comment', comment: comment.map((parts: any[]) => parts[1]).join('') };
+    return { type: 'Comment', comment: comment.map((parts: any[]) => parts[1]).join(''), location: location() };
   }
 
 MultiLineCommentNoLineTerminator
   = "/*" comment:(!("*/" / LineTerminator) SourceCharacter)* "*/" {
-    return { type: 'Comment', comment: comment.map((parts: any[]) => parts[1]).join('') };
+    return { type: 'Comment', comment: comment.map((parts: any[]) => parts[1]).join(''), location: location() };
   }
 
 SingleLineComment
   = "//" comment:(!LineTerminator SourceCharacter)* {
-    return { type: 'Comment', comment: comment.map((parts: any[]) => parts[1]).join('') };
+    return { type: 'Comment', comment: comment.map((parts: any[]) => parts[1]).join(''), location: location() };
   }
 
 Identifier
   = !Keyword head:IdentifierStart tail:IdentifierPart* {
     return {
       type: 'Identifier',
-      name: head + tail.join("")
+      name: head + tail.join(""),
+      location: location()
     };
   }
 
@@ -48,16 +49,29 @@ Keyword
   / ElseToken
 
 IfToken
-  = 'if' !IdentifierPart
+  = 'if' !IdentifierPart {
+    return {
+      type: 'Keyword',
+      keyword: 'if',
+      location: location(),
+    };
+  }
 
 ElseToken
-  = 'else' !IdentifierPart
+  = 'else' !IdentifierPart {
+    return {
+      type: 'Keyword',
+      keyword: 'else',
+      location: location(),
+    };
+  }
 
 Label
   = label:Identifier ':' {
     return {
       type: 'Label',
-      label: label.name
+      label: label.name,
+      location: location()
     };
   }
 
@@ -74,11 +88,11 @@ NumericLiteral "number"
 DecimalDigit = [0-9]
 
 DecimalLiteral
-  = sign:[+-]? digits:DecimalDigit+ { return { type: "Literal", value: parseInt(text(), 10) }; }
+  = sign:[+-]? digits:DecimalDigit+ { return { type: "Literal", value: parseInt(text(), 10), location: location() }; }
 
 HexIntegerLiteral
   = "0x"i digits:$HexDigit+ {
-      return { type: "Literal", value: parseInt(digits, 16) };
+      return { type: "Literal", value: parseInt(digits, 16), location: location() };
      }
 
 HexDigit
@@ -86,14 +100,19 @@ HexDigit
 
 SingleStringLiteral "string"
   = '"' chars:DoubleStringCharacter* '"' {
-      return { type: "Literal", value: chars.join("") };
+      return { type: "Literal", value: chars.join(""), location: location() };
     }
   / "'" chars:SingleStringCharacter* "'" {
-      return { type: "Literal", value: chars.join("") };
+      return { type: "Literal", value: chars.join(""), location: location() };
     }
 
-StringLiteral = strings:(SingleStringLiteral WSC*)+ {
-  return { type: "Literal", value: strings.map((parts: [{ value: string }, ...string[]]) => parts[0].value).join('') };
+StringLiteral = head:SingleStringLiteral tail:(WSC* SingleStringLiteral)* {
+  return {
+    type: "Literal",
+    value: [head.value, ...tail.map((parts: [{ value: string }, ...string[]]) => parts[0].value)].join(''),
+    location: location(),
+    stringLocations: [head.location, ...tail.map((parts: [{ location: any }, ...string[]]) => parts[0].location)],
+  };
 }
 
 DoubleStringCharacter
@@ -148,8 +167,10 @@ CommandCall
     return {
       type: 'CommandCall',
       commandName: commandName.name,
-      argumentList: argumentList ?? []
-    }
+      argumentList: argumentList ?? [],
+      location: location(),
+      commandNameLocation: commandName.location,
+    };
   }
 
 ArgumentList
@@ -173,7 +194,9 @@ TestCall
     return {
       type: 'TestCall',
       testName: testName.name,
-      argumentList: argumentList ?? []
+      argumentList: argumentList ?? [],
+      location: location(),
+      testNameLocation: testName.location,
     };
   }
 
@@ -186,6 +209,7 @@ BooleanBinaryOperation
       operator,
       left,
       right,
+      location: location(),
     };
   }
 
@@ -195,7 +219,8 @@ AndExpression
   = first:SingleBooleanClause WSC* remaining:('&&' WSC* SingleBooleanClause WSC*)+ {
     return {
       type: 'AndExpression',
-      clauses: [first, ...remaining.map((parts: any) => parts[2])]
+      clauses: [first, ...remaining.map((parts: any) => parts[2])],
+      location: location(),
     };
   }
 
@@ -203,7 +228,8 @@ OrExpression
   = first:SingleBooleanClause WSC* remaining:('||' WSC* SingleBooleanClause WSC*)+ {
     return {
       type: 'OrExpression',
-      clauses: [first, ...remaining.map((parts: any) => parts[2])]
+      clauses: [first, ...remaining.map((parts: any) => parts[2])],
+      location: location(),
     };
   }
 
@@ -211,7 +237,8 @@ NotExpression
   = '!' expression:SingleBooleanClause {
     return {
       type: 'NotExpression',
-      expression
+      expression,
+      location: location(),
     };
   }
 
@@ -229,46 +256,79 @@ ParenthesizedBooleanExpression = '(' WSC* expression:BooleanExpression WSC* ')' 
 }
 
 IfStatement
-  = 'if' WSC* conditions:ParenthesizedBooleanExpression WSC* '{'
+  = ifKeyword:IfToken WSC* conditions:ParenthesizedBooleanExpression WSC* '{'
     thenStatements:StatementList
     '}'
-    elseStatements:ElseClause? {
+    elseClause:ElseClause? {
       return {
         type: 'IfStatement',
         conditions,
         thenStatements,
-        elseStatements: elseStatements || []
+        elseStatements: elseClause?.statements ?? [],
+        location: location(),
+        ifKeyword,
+        elseKeyword: elseClause?.elseKeyword,
       };
     }
 
 ElseClause
-  = WSC* 'else' WSC* '{' WSC* contents:StatementList? WSC* '}' {
-    return contents;
+  = WSC* elseKeyword:ElseToken WSC* '{' WSC* statements:StatementList? WSC* '}' {
+    return { elseKeyword, statements };
   }
+
+MessageDirectiveKeyword = '#message' {
+  return {
+    type: 'DirectiveKeyword',
+    keyword: 'message',
+    location: location(),
+  };
+}
 
 MessageDirective
-  = '#message' ' '+ number:DecimalLiteral ' '+ message:StringLiteral {
+  = keyword:MessageDirectiveKeyword ' '+ number:DecimalLiteral ' '+ message:StringLiteral {
     return {
       type: 'MessageDirective',
-      number: number.value,
-      message: message.value
+      number,
+      message,
+      location: location(),
+      keyword,
     };
   }
+
+IncludeDirectiveKeyword = '#include' {
+  return {
+    type: 'DirectiveKeyword',
+    keyword: 'include',
+    location: location(),
+  };
+}
 
 IncludeDirective
-  = '#include' ' '+ filename:StringLiteral {
+  = keyword:IncludeDirectiveKeyword ' '+ filename:StringLiteral {
     return {
       type: 'IncludeDirective',
-      filename: filename.value,
+      filename,
+      location: location(),
+      keyword,
     };
   }
 
+DefineDirectiveKeyword = '#define' {
+  return {
+    type: 'DirectiveKeyword',
+    keyword: 'define',
+    location: location(),
+  };
+}
+
 DefineDirective
-  = '#define' ' '+ identifier:Identifier ' '+ value:(Identifier / Literal) {
+  = keyword:DefineDirectiveKeyword ' '+ identifier:Identifier ' '+ value:(Identifier / Literal) {
     return {
       type: 'DefineDirective',
       identifier,
       value,
+      location: location(),
+      keyword,
     };
   }
 
@@ -278,6 +338,7 @@ UnaryOperationStatement
       type: 'UnaryOperationStatement',
       identifier,
       operation,
+      location: location(),
     };
   }
 
@@ -287,6 +348,7 @@ ValueAssignmentStatement
       type: 'ValueAssignmentStatement',
       assignee,
       value,
+      location: location(),
     };
   }
 
@@ -302,6 +364,7 @@ LongArithmeticAssignmentStatementLeft
       operator,
       assignee,
       value,
+      location: location(),
     };
   }
 
@@ -315,6 +378,7 @@ LongArithmeticAssignmentStatementRight
       operator,
       assignee,
       value,
+      location: location(),
     };
   }
 
@@ -326,6 +390,7 @@ ShortArithmeticAssignmentStatement
       operator,
       assignee,
       value,
+      location: location(),
     };
   }
 
@@ -338,6 +403,7 @@ LeftIndirectAssignmentStatement
       type: 'LeftIndirectAssignmentStatement',
       assigneePointer,
       value,
+      location: location(),
     };
   }
 
@@ -348,6 +414,7 @@ RightIndirectAssignmentStatement
       type: 'RightIndirectAssignmentStatement',
       assignee,
       valuePointer,
+      location: location(),
     };
   }
 

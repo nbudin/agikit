@@ -157,7 +157,7 @@ function preprocessStatement(
   identifierMappings: Map<string, IdentifierMapping>,
 ): PreprocessorOutput {
   if (statement.type === 'IncludeDirective') {
-    const includePath = path.resolve(path.dirname(scriptPath), statement.filename);
+    const includePath = path.resolve(path.dirname(scriptPath), statement.filename.value);
     const includeSource = fs.readFileSync(includePath, 'utf-8');
     return preParseLogicScript(includeSource, includePath, identifierMappings);
   }
@@ -193,6 +193,9 @@ function preprocessStatement(
         conditions: statement.conditions,
         thenStatements: preprocessClause(statement.thenStatements),
         elseStatements: preprocessClause(statement.elseStatements),
+        location: statement.location,
+        ifKeyword: statement.ifKeyword,
+        elseKeyword: statement.elseKeyword,
       },
     ];
   }
@@ -200,11 +203,10 @@ function preprocessStatement(
   return [statement];
 }
 
-function preParseLogicScript(
+export function parseLogicScriptRaw(
   source: string,
   scriptPath: string,
-  identifierMappings: Map<string, IdentifierMapping>,
-): PreprocessorOutput {
+): LogicScriptProgram<LogicScriptStatement> {
   let rawProgram: LogicScriptProgram<LogicScriptStatement>;
   try {
     rawProgram = parse(source);
@@ -222,6 +224,18 @@ function preParseLogicScript(
 
     throw error;
   }
+  return rawProgram;
+}
+
+function preParseLogicScript(
+  source: string,
+  scriptPath: string,
+  identifierMappings: Map<string, IdentifierMapping>,
+): PreprocessorOutput {
+  const rawProgram: LogicScriptProgram<LogicScriptStatement> = parseLogicScriptRaw(
+    source,
+    scriptPath,
+  );
 
   const preprocessedProgram: LogicScriptProgram<LogicScriptPreprocessedStatement> = flatMap(
     rawProgram,

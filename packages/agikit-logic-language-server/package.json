@@ -1,0 +1,29 @@
+{
+  "name": "agikit-logic-language-server",
+  "version": "0.3.1",
+  "description": "Language server for AGI LOGIC scripts",
+  "author": "Nat Budin <natbudin@gmail.com>",
+  "homepage": "",
+  "license": "MIT",
+  "main": "dist/main.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "dependencies": {
+    "agikit-core": "^0.3.1",
+    "vscode-languageserver": "^7.0.0",
+    "vscode-languageserver-textdocument": "^1.0.1",
+    "vscode-uri": "^3.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.31",
+    "typescript": "^4.2.3"
+  }
+}
