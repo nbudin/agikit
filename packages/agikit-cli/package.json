@@ -1,0 +1,38 @@
+{
+  "name": "agikit-cli",
+  "version": "0.3.1",
+  "description": "Command line tools for using agikit",
+  "author": "Nat Budin <natbudin@gmail.com>",
+  "homepage": "https://github.com/nbudin/agikit#readme",
+  "license": "MIT",
+  "main": "dist/cli.js",
+  "directories": {
+    "src": "src"
+  },
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "agikit": "dist/cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nbudin/agikit.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/nbudin/agikit/issues"
+  },
+  "dependencies": {
+    "agikit-core": "^0.3.1",
+    "minimist": "^1.2.5"
+  },
+  "devDependencies": {
+    "@types/minimist": "^1.2.1",
+    "@types/node": "^14.14.32",
+    "add-shebang": "^0.1.0",
+    "typescript": "^4.2.3"
+  }
+}
