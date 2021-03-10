@@ -566,6 +566,7 @@ connection.onDocumentLinks((params) => {
       range: pegJSLocationRangeToVSCodeRange(location),
       target: Utils.resolvePath(
         URI.parse(params.textDocument.uri),
+        "..",
         directive.filename.value
       ).toString(),
     });

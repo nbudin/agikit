@@ -11,22 +11,33 @@
   ],
   "activationEvents": [
     "onLanguage:agilogic",
-    "onCommand:agikit-vscode.helloWorld"
+    "onCommand:workbench.action.tasks.runTask",
+    "onCommand:agikit.runWithScummVM"
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "taskDefinitions": [
+      {
+        "type": "agikit-build"
+      }
+    ],
     "configuration": {
       "type": "object",
-      "title": "Example configuration",
+      "title": "agikit",
       "properties": {
-        "agikit.maxNumberOfProblems": {
-          "scope": "resource",
-          "type": "number",
-          "default": 100,
-          "description": "Controls the maximum number of problems produced by the server."
+        "agikit.scummvmPath": {
+          "scope": "machine-overrideable",
+          "type": "string",
+          "description": "The path to the ScummVM executable."
         }
       }
     },
+    "commands": [
+      {
+        "command": "agikit.runWithScummVM",
+        "title": "Run AGI game with ScummVM"
+      }
+    ],
     "languages": [
       {
         "id": "agilogic",
@@ -71,6 +82,7 @@
     "test": "node ./out/test/runTest.js"
   },
   "dependencies": {
+    "agikit-cli": "^0.3.1",
     "agikit-core": "^0.3.1",
     "agikit-logic-language-server": "^0.3.1",
     "vscode-languageclient": "^7.0.0"
