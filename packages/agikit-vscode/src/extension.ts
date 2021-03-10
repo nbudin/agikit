@@ -11,6 +11,7 @@ import {
   TransportKind,
 } from "vscode-languageclient/node";
 import LogicSemanticTokensProvider from "./Logic/logicSemanticTokensProvider";
+import { ChildProcess } from "node:child_process";
 
 let client: LanguageClient;
 
@@ -97,18 +98,46 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.TaskScope.Workspace,
             "Build AGI game",
             "agikit",
-            new vscode.ProcessExecution(
-              path.resolve(
-                context.extensionPath,
-                "node_modules",
-                ".bin",
-                "agikit"
-              ),
-              ["build", "src/", "build/"],
-              {
-                cwd: workspaceFolder.uri.fsPath,
-              }
-            )
+            new vscode.CustomExecution(async (_resolvedDefinition) => {
+              let cp: ChildProcess;
+              const writeEmitter = new vscode.EventEmitter<string>();
+              const closeEmitter = new vscode.EventEmitter<void | number>();
+              const pty: vscode.Pseudoterminal = {
+                open: () => {
+                  const cliPath = context.asAbsolutePath(
+                    path.join("dist", "startCli.js")
+                  );
+                  cp = child_process.fork(
+                    cliPath,
+                    ["build", "src/", "build/"],
+                    {
+                      cwd: workspaceFolder.uri.fsPath,
+                      stdio: "pipe",
+                      detached: true,
+                    }
+                  );
+                  cp.on("close", (code) => {
+                    closeEmitter.fire(code ?? void 0);
+                  });
+                  cp.stdout?.on("data", (chunk) => {
+                    writeEmitter.fire(
+                      chunk.toString().replace(/(?<!\r)\n/gm, "\r\n")
+                    );
+                  });
+                  cp.stderr?.on("data", (chunk) => {
+                    writeEmitter.fire(
+                      chunk.toString().replace(/(?<!\r)\n/gm, "\r\n")
+                    );
+                  });
+                },
+                close: () => {
+                  cp.kill();
+                },
+                onDidWrite: writeEmitter.event,
+                onDidClose: closeEmitter.event,
+              };
+              return pty;
+            })
           );
           buildTask.group = vscode.TaskGroup.Build;
           tasks.push(buildTask);
@@ -123,7 +152,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   let serverModule = context.asAbsolutePath(
-    path.join("node_modules", "agikit-logic-language-server", "dist", "main.js")
+    path.join("dist", "startServer.js")
   );
   // The debug options for the server
   // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
@@ -132,7 +161,10 @@ export function activate(context: vscode.ExtensionContext) {
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used
   let serverOptions: ServerOptions = {
-    run: { module: serverModule, transport: TransportKind.ipc },
+    run: {
+      module: serverModule,
+      transport: TransportKind.ipc,
+    },
     debug: {
       module: serverModule,
       transport: TransportKind.ipc,

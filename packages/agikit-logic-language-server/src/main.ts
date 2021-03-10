@@ -336,7 +336,11 @@ async function refreshTextDocument(uri: URI, contents: string): Promise<void> {
           documentIdentifiers.push(statement.value);
         }
       } else if (statement.type === "IncludeDirective") {
-        const includeURI = Utils.resolvePath(uri, statement.filename.value);
+        const includeURI = Utils.resolvePath(
+          uri,
+          "..",
+          statement.filename.value
+        );
         documentIncludes.push(statement);
         includeURIs.push(includeURI);
       } else if (statement.type === "CommandCall") {
