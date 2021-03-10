@@ -109,5 +109,6 @@
     "mocha": "^8.2.1",
     "typescript": "^4.1.3",
     "vscode-test": "^1.5.0"
-  }
+  },
+  "gitHead": "6342fb26accc4132afda7ecdd919d15b6eafe161"
 }
