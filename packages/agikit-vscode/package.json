@@ -2,7 +2,7 @@
   "name": "agikit-vscode",
   "displayName": "agikit-vscode",
   "description": "Develop games for Sierra's AGI adventure game engine",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "engines": {
     "vscode": "^1.54.0"
   },
@@ -88,9 +88,9 @@
     "test": "node ./out/test/runTest.js"
   },
   "dependencies": {
-    "agikit-cli": "^0.4.0",
+    "agikit-cli": "^0.4.2",
     "agikit-core": "^0.4.0",
-    "agikit-logic-language-server": "^0.4.0",
+    "agikit-logic-language-server": "^0.4.2",
     "vscode-languageclient": "^7.0.0",
     "vscode-languageserver": "^7.0.0",
     "vscode-languageserver-textdocument": "^1.0.1",
