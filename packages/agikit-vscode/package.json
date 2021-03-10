@@ -6,9 +6,14 @@
   "engines": {
     "vscode": "^1.54.0"
   },
+  "publisher": "nbudin",
   "categories": [
     "Programming Languages"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nbudin/agikit.git"
+  },
   "activationEvents": [
     "onLanguage:agilogic",
     "onCommand:workbench.action.tasks.runTask",

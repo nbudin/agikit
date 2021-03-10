@@ -1,4 +1,5 @@
 .DS_Store
+*.vsix
 /packages/*/dist
 /packages/*/extracted
 /packages/*/build
