@@ -75,6 +75,7 @@
   },
   "scripts": {
     "vscode:prepublish": "yarn run compile",
+    "prepare": "yarn run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "yarn run compile && yarn run lint",
