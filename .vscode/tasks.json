@@ -23,6 +23,25 @@
 			"options": {
 				"cwd": "packages/agikit-vscode"
 			}
+		},
+		{
+			"type": "npm",
+			"script": "build",
+			"path": "packages/agikit-cli/",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "npm: build - packages/agikit-cli",
+			"detail": "tsc && add-shebang",
+			"dependsOn": ["npm: build - packages/agikit-core"]
+		},
+		{
+			"type": "npm",
+			"script": "build",
+			"path": "packages/agikit-core/",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "npm: build - packages/agikit-core",
+			"detail": "tsc"
 		}
 	]
 }

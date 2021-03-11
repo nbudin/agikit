@@ -13,7 +13,7 @@
       ],
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "/Users/nbudin/.nodenv/versions/14.15.1/bin/node",
-      "program": "${workspaceFolder}/src/cli.ts",
+      "program": "${workspaceFolder}/packages/agikit-cli/dist/cli.js",
       "args": [
         "extract",
         "/Users/nbudin/Downloads/King's Quest 1 (AGI, DOS)",
@@ -21,9 +21,10 @@
         // "/Users/nbudin/Downloads/AGI Contest 2 Template",
         // "extracted/contest2"
       ],
-      "preLaunchTask": "tsc: build - tsconfig.json",
+      "preLaunchTask": "npm: build - packages/agikit-cli",
       "outFiles": [
-        "${workspaceFolder}/dist/**/*.js"
+        "${workspaceFolder}/packages/agikit-cli/dist/**/*.js",
+        "${workspaceFolder}/packages/agikit-core/dist/**/*.js"
       ]
     },
     {
@@ -35,17 +36,18 @@
       ],
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "/Users/nbudin/.nodenv/versions/14.15.1/bin/node",
-      "program": "${workspaceFolder}/src/cli.ts",
+      "program": "${workspaceFolder}/packages/agikit-cli/dist/cli.js",
       "args": [
         "extract",
-        "build/contest2",
-        "reextracted/contest2"
-        // "build/kq1",
-        // "reextracted/kq1"
+        // "build/contest2",
+        // "reextracted/contest2"
+        "build/kq1",
+        "reextracted/kq1"
       ],
-      "preLaunchTask": "tsc: build - tsconfig.json",
+      "preLaunchTask": "npm: build - packages/agikit-cli",
       "outFiles": [
-        "${workspaceFolder}/dist/**/*.js"
+        "${workspaceFolder}/packages/agikit-cli/dist/**/*.js",
+        "${workspaceFolder}/packages/agikit-core/dist/**/*.js"
       ]
     },
     {
@@ -57,17 +59,18 @@
       ],
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "/Users/nbudin/.nodenv/versions/14.15.1/bin/node",
-      "program": "${workspaceFolder}/src/cli.ts",
+      "program": "${workspaceFolder}/packages/agikit-cli/dist/cli.js",
       "args": [
         "build",
-        "/Users/nbudin/Downloads/AGI Contest 2 Template/src",
-        "build/contest2"
-        // "extracted/kq1",
-        // "build/kq1"
+        // "/Users/nbudin/Downloads/AGI Contest 2 Template/src",
+        // "build/contest2"
+        "extracted/kq1",
+        "build/kq1"
       ],
-      "preLaunchTask": "tsc: build - tsconfig.json",
+      "preLaunchTask": "npm: build - packages/agikit-cli",
       "outFiles": [
-        "${workspaceFolder}/dist/**/*.js"
+        "${workspaceFolder}/packages/agikit-cli/dist/**/*.js",
+        "${workspaceFolder}/packages/agikit-core/dist/**/*.js"
       ]
     },
     {
