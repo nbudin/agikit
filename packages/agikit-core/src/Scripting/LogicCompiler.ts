@@ -15,8 +15,9 @@ import {
 } from '../Extract/Logic/ControlFlowAnalysis';
 import { DominatorTree } from '../Extract/Logic/DominatorTree';
 import assertNever from 'assert-never';
-import { max } from 'lodash';
+import { add, find, flatMap, max } from 'lodash';
 import { generateLabels } from '../Extract/Logic/LogicDisasm';
+import { isPresent } from 'ts-is-present';
 
 type SinglePathCompiledBlock = {
   type: 'singlePath';
@@ -69,18 +70,122 @@ const removeUnreachableInstructions: PostCompilationPass = (instructions) => {
   return { instructions: result, changed };
 };
 
-const removeGotoNextInstruction: PostCompilationPass = (instructions) => {
-  let changed = false;
-  const result = instructions.filter((instruction, index) => {
+const removeRedundantGotoInstruction: PostCompilationPass = (instructions) => {
+  const addressRemappings = new Map<number, number>();
+  const findRemappedAddress = (address: number): number => {
+    const remappedAddress = addressRemappings.get(address);
+
+    if (remappedAddress == null) {
+      return address;
+    } else {
+      return findRemappedAddress(remappedAddress);
+    }
+  };
+
+  instructions.forEach((instruction, index) => {
     if (instruction.type === 'goto') {
       const nextInstruction = instructions[index + 1];
-      if (nextInstruction && instruction.jumpAddress === nextInstruction.address) {
-        changed = true;
-        return false;
+      const goToNextInstruction =
+        nextInstruction && instruction.jumpAddress === nextInstruction.address;
+      const goToSameAddressAsNextInstruction =
+        nextInstruction &&
+        nextInstruction.type === 'goto' &&
+        nextInstruction.jumpAddress === instruction.jumpAddress;
+
+      if (goToNextInstruction || goToSameAddressAsNextInstruction) {
+        addressRemappings.set(instruction.address, nextInstruction.address);
       }
     }
 
     return true;
+  });
+
+  const result = flatMap(instructions, (instruction) => {
+    if (addressRemappings.has(instruction.address)) {
+      return [];
+    }
+
+    if (instruction.type === 'condition') {
+      return {
+        ...instruction,
+        skipAddress: findRemappedAddress(instruction.skipAddress),
+      };
+    }
+
+    if (instruction.type === 'goto') {
+      return {
+        ...instruction,
+        jumpAddress: findRemappedAddress(instruction.jumpAddress),
+      };
+    }
+
+    return instruction;
+  });
+
+  return { instructions: result, changed: addressRemappings.size > 0 };
+};
+
+// AGI Studio compatibility: AGI Studio can't decompile conditionals that make criss crossing jumps
+// This ends up generating _slightly_ larger resources (because of the extra GOTO statements that it
+// inserts) but the resulting game can be decompiled in all the AGI IDEs
+const makeConditionalsSelfContained: PostCompilationPass = (instructions) => {
+  let changed = false;
+  const instructionIndexes = new Map(
+    instructions.map((instruction, index) => [instruction.address, index]),
+  );
+  let maxAddress = max([...instructionIndexes.keys()]) ?? -1;
+  const blockEndIndexes = [instructions.length];
+  const blockEndGotos: (LogicGoto | undefined)[] = [];
+
+  const result = flatMap(instructions, (instruction, index) => {
+    let blockEnded = false;
+    let outputInstruction = instruction;
+    const thisBlockEndGotos: LogicGoto[] = [];
+    while (index >= blockEndIndexes[0]) {
+      blockEndIndexes.shift();
+      blockEnded = true;
+      const blockEndGoto = blockEndGotos.shift();
+      if (blockEndGoto != null) {
+        thisBlockEndGotos.push(blockEndGoto);
+      }
+    }
+
+    if (instruction.type === 'condition') {
+      const skipIndex = instructionIndexes.get(instruction.skipAddress);
+      if (skipIndex == null) {
+        throw new Error(
+          `Conditional at ${instruction.address} skips to unknown address ${instruction.skipAddress}`,
+        );
+      }
+      const containingBlockEnd = blockEndIndexes[0];
+
+      if (skipIndex > containingBlockEnd) {
+        const gotoAddress = maxAddress + 1;
+        maxAddress = gotoAddress;
+        const gotoInstruction: LogicGoto = {
+          address: gotoAddress,
+          jumpAddress: instruction.skipAddress,
+          type: 'goto',
+        };
+        outputInstruction = {
+          ...instruction,
+          skipAddress: gotoAddress,
+        };
+        changed = true;
+        blockEndIndexes.unshift(containingBlockEnd);
+        blockEndGotos.unshift(gotoInstruction);
+      } else {
+        blockEndIndexes.unshift(skipIndex);
+        blockEndGotos.unshift(undefined);
+      }
+    }
+
+    if (blockEnded && thisBlockEndGotos.length > 0) {
+      changed = true;
+      return [...thisBlockEndGotos, outputInstruction];
+    }
+
+    return outputInstruction;
   });
 
   return { instructions: result, changed };
@@ -141,7 +246,11 @@ export class LogicCompiler {
 
     const stitchedInstructions = this.stitchBlocks(this.basicBlockGraph.root);
     const instructions = runPostCompilationPasses(
-      [removeUnreachableInstructions, removeGotoNextInstruction],
+      [
+        removeUnreachableInstructions,
+        makeConditionalsSelfContained,
+        removeRedundantGotoInstruction,
+      ],
       stitchedInstructions,
     );
 
