@@ -15,9 +15,8 @@ import {
 } from '../Extract/Logic/ControlFlowAnalysis';
 import { DominatorTree } from '../Extract/Logic/DominatorTree';
 import assertNever from 'assert-never';
-import { add, find, flatMap, max } from 'lodash';
+import { flatMap, max } from 'lodash';
 import { generateLabels } from '../Extract/Logic/LogicDisasm';
-import { isPresent } from 'ts-is-present';
 
 type SinglePathCompiledBlock = {
   type: 'singlePath';
