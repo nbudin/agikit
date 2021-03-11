@@ -15,11 +15,17 @@ agikit aims to provide:
 * A platform to build other tooling, such as text editor extensions, language servers, etc.
 * A modern compiler architecture that allows for language extensions and optimization
 
-## Usage
+## Visual Studio Code usage
+
+Install the extension from: https://marketplace.visualstudio.com/items?itemName=nbudin.agikit-vscode
+
+For some template code to start with, clone: https://github.com/nbudin/agikit-project-template
+
+## Command line usage
 
 To install it:
 
-`npm install -g agikit`
+`npm install -g agikit-cli`
 
 To extract an AGI game to source files:
 
@@ -28,9 +34,6 @@ To extract an AGI game to source files:
 To build AGI game volume files from extracted source files:
 
 `agikit build path/to/source/files output/path`
-
-> (Note that as of version 0.1.0, agikit doesn't yet build OBJECT or WORDS.TOK files; if you want to
-> run a game built this way, you'll need to copy those from the original game.)
 
 To auto-format a LOGIC script:
 
