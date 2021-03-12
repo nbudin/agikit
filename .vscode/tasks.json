@@ -12,7 +12,8 @@
 			},
 			"options": {
 				"cwd": "packages/agikit-vscode"
-			}
+			},
+			"dependsOn": ["npm: build - packages/agikit-logic-language-server"]
 		},
 		{
 			"label": "Watch agikit-vscode",
@@ -32,7 +33,9 @@
 			"problemMatcher": [],
 			"label": "npm: build - packages/agikit-cli",
 			"detail": "tsc && add-shebang",
-			"dependsOn": ["npm: build - packages/agikit-core"]
+			"dependsOn": [
+				"npm: build - packages/agikit-core"
+			]
 		},
 		{
 			"type": "npm",
@@ -42,6 +45,18 @@
 			"problemMatcher": [],
 			"label": "npm: build - packages/agikit-core",
 			"detail": "tsc"
+		},
+		{
+			"type": "npm",
+			"script": "build",
+			"path": "packages/agikit-logic-language-server/",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "npm: build - packages/agikit-logic-language-server",
+			"detail": "tsc",
+			"dependsOn": [
+				"npm: build - packages/agikit-core"
+			]
 		}
 	]
 }
