@@ -11,6 +11,7 @@ import {
   FileChangeType,
   InitializeParams,
   InitializeResult,
+  Location,
   MarkupKind,
   Position,
   ProposedFeatures,
@@ -56,9 +57,14 @@ type LogicScriptDefine = {
   fileUri: string;
   identifierMapping: IdentifierMapping;
 };
+type LogicScriptIdentifierWithFileUri = {
+  identifier: LogicScriptIdentifier;
+  fileUri: string;
+};
 const definesByName = new Map<string, LogicScriptDefine[]>();
 const definesByDocument = new Map<string, LogicScriptDefine[]>();
 const identifiersByDocument = new Map<string, LogicScriptIdentifier[]>();
+const identifiersByName = new Map<string, LogicScriptIdentifierWithFileUri[]>();
 const includeDirectivesByDocument = new Map<
   string,
   LogicScriptIncludeDirective[]
@@ -127,6 +133,7 @@ connection.onInitialize((params: InitializeParams) => {
       },
       definitionProvider: {},
       hoverProvider: {},
+      referencesProvider: {},
     },
   };
   if (hasWorkspaceFolderCapability) {
@@ -239,6 +246,20 @@ function clearDocumentData(uri: URI) {
       }
     });
   }
+  const identifiers = identifiersByDocument.get(uriString);
+  if (identifiers) {
+    identifiers.forEach((identifier) => {
+      const identifierList = identifiersByName.get(identifier.name);
+      if (identifierList) {
+        identifiersByName.set(
+          identifier.name,
+          identifierList.filter(
+            (identifier) => identifier.fileUri !== uriString
+          )
+        );
+      }
+    });
+  }
   definesByDocument.delete(uriString);
   includeDirectivesByDocument.delete(uriString);
   includedDocumentsByDocument.delete(uriString);
@@ -274,9 +295,51 @@ async function refreshTextDocument(uri: URI, contents: string): Promise<void> {
     const identifierMappings = new Map(BUILT_IN_IDENTIFIERS);
     const includeURIs: URI[] = [];
 
+    const addIdentifier = (identifier: LogicScriptIdentifier) => {
+      documentIdentifiers.push(identifier);
+      if (!identifiersByName.has(identifier.name)) {
+        identifiersByName.set(identifier.name, []);
+      }
+      identifiersByName
+        .get(identifier.name)
+        ?.push({ fileUri: uri.toString(), identifier });
+    };
+
+    const addDefine = (directive: LogicScriptDefineDirective) => {
+      const define: LogicScriptDefine = {
+        directive: directive,
+        fileUri: uri.toString(),
+        identifierMapping: buildIdentifierMappingForDefineDirective(
+          directive,
+          identifierMappings
+        ),
+      };
+      if (identifierMappings.has(directive.identifier.name)) {
+        if (directive.identifier.location) {
+          diagnostics.push({
+            message: `Duplicate definition for ${directive.identifier.name}`,
+            range: pegJSLocationRangeToVSCodeRange(
+              directive.identifier.location
+            ),
+          });
+        }
+      } else {
+        identifierMappings.set(
+          directive.identifier.name,
+          define.identifierMapping
+        );
+      }
+      documentDefines.push(define);
+
+      if (!definesByName.has(directive.identifier.name)) {
+        definesByName.set(directive.identifier.name, []);
+      }
+      definesByName.get(directive.identifier.name)?.push(define);
+    };
+
     const processArgument = (argument: LogicScriptArgument) => {
       if (argument.type === "Identifier") {
-        documentIdentifiers.push(argument);
+        addIdentifier(argument);
       }
     };
 
@@ -296,44 +359,16 @@ async function refreshTextDocument(uri: URI, contents: string): Promise<void> {
       } else if (expression.type === "TestCall") {
         expression.argumentList.forEach(processArgument);
       } else if (expression.type === "Identifier") {
-        documentIdentifiers.push(expression);
+        addIdentifier(expression);
       }
     };
 
     const processStatement = (statement: LogicScriptStatement) => {
       if (statement.type === "DefineDirective") {
-        const define: LogicScriptDefine = {
-          directive: statement,
-          fileUri: uri.toString(),
-          identifierMapping: buildIdentifierMappingForDefineDirective(
-            statement,
-            identifierMappings
-          ),
-        };
-        if (identifierMappings.has(statement.identifier.name)) {
-          if (statement.identifier.location) {
-            diagnostics.push({
-              message: `Duplicate definition for ${statement.identifier.name}`,
-              range: pegJSLocationRangeToVSCodeRange(
-                statement.identifier.location
-              ),
-            });
-          }
-        } else {
-          identifierMappings.set(
-            statement.identifier.name,
-            define.identifierMapping
-          );
-        }
-        documentDefines.push(define);
-
-        if (!definesByName.has(statement.identifier.name)) {
-          definesByName.set(statement.identifier.name, []);
-        }
-        definesByName.get(statement.identifier.name)?.push(define);
+        addDefine(statement);
 
         if (statement.value.type === "Identifier") {
-          documentIdentifiers.push(statement.value);
+          addIdentifier(statement.value);
         }
       } else if (statement.type === "IncludeDirective") {
         const includeURI = Utils.resolvePath(
@@ -346,28 +381,28 @@ async function refreshTextDocument(uri: URI, contents: string): Promise<void> {
       } else if (statement.type === "CommandCall") {
         statement.argumentList.forEach(processArgument);
       } else if (statement.type === "ArithmeticAssignmentStatement") {
-        documentIdentifiers.push(statement.assignee);
+        addIdentifier(statement.assignee);
         if (statement.value.type === "Identifier") {
-          documentIdentifiers.push(statement.value);
+          addIdentifier(statement.value);
         }
       } else if (statement.type === "IfStatement") {
         processBooleanExpression(statement.conditions);
         statement.thenStatements.forEach(processStatement);
         statement.elseStatements.forEach(processStatement);
       } else if (statement.type === "LeftIndirectAssignmentStatement") {
-        documentIdentifiers.push(statement.assigneePointer);
+        addIdentifier(statement.assigneePointer);
         if (statement.value.type === "Identifier") {
-          documentIdentifiers.push(statement.value);
+          addIdentifier(statement.value);
         }
       } else if (statement.type === "RightIndirectAssignmentStatement") {
-        documentIdentifiers.push(statement.assignee);
-        documentIdentifiers.push(statement.valuePointer);
+        addIdentifier(statement.assignee);
+        addIdentifier(statement.valuePointer);
       } else if (statement.type === "UnaryOperationStatement") {
-        documentIdentifiers.push(statement.identifier);
+        addIdentifier(statement.identifier);
       } else if (statement.type === "ValueAssignmentStatement") {
-        documentIdentifiers.push(statement.assignee);
+        addIdentifier(statement.assignee);
         if (statement.value.type === "Identifier") {
-          documentIdentifiers.push(statement.value);
+          addIdentifier(statement.value);
         }
       }
     };
@@ -514,6 +549,36 @@ connection.onDefinition((params) => {
     });
   });
   return definitionLinks;
+});
+
+connection.onReferences((params) => {
+  const identifier = findIdentifierAtLocation(
+    params.textDocument.uri,
+    params.position
+  );
+
+  if (!identifier) {
+    return;
+  }
+
+  const identifiers = identifiersByName.get(identifier.name);
+  if (!identifiers) {
+    return;
+  }
+
+  const locations: Location[] = [];
+  identifiers.forEach((otherIdentifier) => {
+    const { location } = otherIdentifier.identifier;
+    if (!location) {
+      return;
+    }
+
+    locations.push({
+      uri: otherIdentifier.fileUri,
+      range: pegJSLocationRangeToVSCodeRange(location),
+    });
+  });
+  return locations;
 });
 
 connection.onHover((params) => {
