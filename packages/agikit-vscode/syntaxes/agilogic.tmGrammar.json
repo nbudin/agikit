@@ -56,7 +56,7 @@
       ]
     },
     "command-call": {
-      "begin": "(?!if|else)([a-z\\.]+)\\s*\\(",
+      "begin": "(?!if|else)([a-z\\.]+)\\s*(?=\\()",
       "end": "\\)\\s*;",
       "name": "meta.function-call.command.agilogic",
       "beginCaptures": {
