@@ -16,8 +16,10 @@
       "program": "${workspaceFolder}/packages/agikit-cli/dist/cli.js",
       "args": [
         "extract",
-        "/Users/nbudin/Downloads/King's Quest 1 (AGI, DOS)",
-        "extracted/kq1"
+        "/Users/nbudin/Downloads/Space Quest 2",
+        "extracted/sq2"
+        // "/Users/nbudin/Downloads/King's Quest 1 (AGI, DOS)",
+        // "extracted/kq1"
         // "/Users/nbudin/Downloads/AGI Contest 2 Template",
         // "extracted/contest2"
       ],
