@@ -51,10 +51,13 @@ function generateWordArg(value: number, context: CodeGenerationContext): LogicSc
   return { type: 'Literal', value: canonicalWord };
 }
 
-function generateMessageArg(context: CodeGenerationContext, value: number): LogicScriptLiteral {
+function generateMessageArg(
+  context: CodeGenerationContext,
+  value: number,
+): LogicScriptLiteral | LogicScriptIdentifier {
   const message = context.logic.messages[value - 1];
   if (!message) {
-    throw new Error(`Message ${value} not found`);
+    return { type: 'Identifier', name: `m${value}` };
   }
   return { type: 'Literal', value: message };
 }
