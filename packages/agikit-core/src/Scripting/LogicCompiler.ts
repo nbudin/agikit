@@ -9,6 +9,7 @@ import {
 import {
   BasicBlock,
   BasicBlockGraph,
+  ElseBasicBlockEdge,
   IfExitBasicBlock,
   ReverseCFGNode,
   SinglePathBasicBlock,
@@ -17,6 +18,7 @@ import { DominatorTree } from '../Extract/Logic/DominatorTree';
 import assertNever from 'assert-never';
 import { flatMap, max } from 'lodash';
 import { generateLabels } from '../Extract/Logic/LogicDisasm';
+import { agiCommandsByName } from '../Types/AGICommands';
 
 type SinglePathCompiledBlock = {
   type: 'singlePath';
@@ -379,6 +381,42 @@ export class LogicCompiler {
     return stitchedBlock;
   }
 
+  generateElseVirtualReturn(from: IfExitBasicBlock): BasicBlock {
+    if (from.else) {
+      throw new Error('Block already has an else clause');
+    }
+
+    const instruction: LogicCommand = {
+      type: 'command',
+      address: this.findFreeAddress(),
+      agiCommand: agiCommandsByName.return,
+      args: [],
+    };
+    this.storeInstruction(instruction);
+    const node: LogicCommandNode = {
+      ...instruction,
+      id: instruction.address.toString(),
+    };
+
+    const block: SinglePathBasicBlock = {
+      type: 'singlePathBasicBlock',
+      commands: [node],
+      id: node.id,
+      entryPoints: new Set(),
+      metadata: {},
+    };
+
+    const edge: ElseBasicBlockEdge = {
+      type: 'else',
+      from,
+      to: block,
+    };
+
+    from.else = edge;
+    block.entryPoints.add(edge);
+    return block;
+  }
+
   compileBlock(block: BasicBlock): CompiledBlock {
     const existingCompiledBlock = this.compiledBlocks.get(block);
     if (existingCompiledBlock) {
@@ -407,9 +445,17 @@ export class LogicCompiler {
         throw new Error("Can't find next block after if");
       }
 
-      const nextBlock = this.basicBlockGraph.getNode(nextBlockId);
-      if (!nextBlock) {
-        throw new Error('Next block does not exist in tree');
+      let skip: BasicBlock;
+      if (block.else?.to) {
+        skip = block.else.to;
+      } else if (nextBlockId === 'virtualRoot') {
+        skip = this.generateElseVirtualReturn(block);
+      } else {
+        const nextBlock = this.basicBlockGraph.getNode(nextBlockId);
+        if (!nextBlock) {
+          throw new Error('Next block does not exist in tree');
+        }
+        skip = nextBlock;
       }
 
       const compiledBlock: ConditionalCompiledBlock = {
@@ -417,7 +463,7 @@ export class LogicCompiler {
         basicBlock: block,
         clauses: block.clauses,
         instructions: commands,
-        skip: block.else?.to ?? nextBlock,
+        skip: skip,
         then: block.then?.to,
       };
 

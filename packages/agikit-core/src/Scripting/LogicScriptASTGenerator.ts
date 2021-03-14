@@ -289,6 +289,7 @@ export class LogicScriptASTGenerator {
         throw new Error(`Unknown command ${statement.commandName}`);
       }
 
+      const next = statement.commandName !== 'return' ? this.generateASTForNextStatement(statement, stack) : undefined;
       const node: LogicCommandNode = {
         type: 'command',
         address,
@@ -298,7 +299,7 @@ export class LogicScriptASTGenerator {
         args: statement.argumentList.map((argument, index) =>
           this.argumentToNumber(argument, agiCommand.argTypes[index]),
         ),
-        next: this.generateASTForNextStatement(statement, stack),
+        next,
       };
       this.nodesByAddress.set(address, node);
       return node;
