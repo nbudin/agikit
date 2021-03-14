@@ -1,0 +1,370 @@
+import * as vscode from "vscode";
+import { PictureResource } from "agikit-core/dist/Types/Picture";
+import { readPictureResource } from "agikit-core/dist/Extract/Picture/ReadPicture";
+import { readFileSync } from "fs";
+import { Disposable, disposeAll } from "./disposable";
+import { randomBytes } from "crypto";
+
+interface PicDocumentDelegate {
+  getFileData(): Promise<Uint8Array>;
+}
+
+class WebviewCollection {
+  private readonly _webviews = new Set<{
+    readonly resource: string;
+    readonly webviewPanel: vscode.WebviewPanel;
+  }>();
+
+  /**
+   * Get all known webviews for a given uri.
+   */
+  public *get(uri: vscode.Uri): Iterable<vscode.WebviewPanel> {
+    const key = uri.toString();
+    for (const entry of this._webviews) {
+      if (entry.resource === key) {
+        yield entry.webviewPanel;
+      }
+    }
+  }
+
+  /**
+   * Add a new webview to the collection.
+   */
+  public add(uri: vscode.Uri, webviewPanel: vscode.WebviewPanel) {
+    const entry = { resource: uri.toString(), webviewPanel };
+    this._webviews.add(entry);
+
+    webviewPanel.onDidDispose(() => {
+      this._webviews.delete(entry);
+    });
+  }
+}
+
+export class PicEditorDocument
+  extends Disposable
+  implements vscode.CustomDocument {
+  private readonly _uri: vscode.Uri;
+  private readonly _delegate: PicDocumentDelegate;
+  private _resource: PictureResource;
+
+  static async create(
+    uri: vscode.Uri,
+    backupId: string | undefined,
+    delegate: PicDocumentDelegate
+  ): Promise<PicEditorDocument> {
+    // If we have a backup, read that. Otherwise read the resource from the workspace
+    const dataFile =
+      typeof backupId === "string" ? vscode.Uri.parse(backupId) : uri;
+    const data = readFileSync(dataFile.fsPath);
+    return new PicEditorDocument(uri, data, delegate);
+  }
+
+  private static async readFile(uri: vscode.Uri): Promise<Uint8Array> {
+    if (uri.scheme === "untitled") {
+      return new Uint8Array();
+    }
+    return vscode.workspace.fs.readFile(uri);
+  }
+
+  private constructor(
+    uri: vscode.Uri,
+    initialContent: Buffer,
+    delegate: PicDocumentDelegate
+  ) {
+    super();
+    this._uri = uri;
+    this._resource = readPictureResource(initialContent);
+    this._delegate = delegate;
+  }
+
+  public get uri() {
+    return this._uri;
+  }
+
+  public get resource() {
+    return this._resource;
+  }
+
+  private readonly _onDidDispose = this._register(
+    new vscode.EventEmitter<void>()
+  );
+  /**
+   * Fired when the document is disposed of.
+   */
+  public readonly onDidDispose = this._onDidDispose.event;
+
+  private readonly _onDidChangeDocument = this._register(
+    new vscode.EventEmitter<{
+      readonly content?: Uint8Array;
+      // readonly edits: readonly PawDrawEdit[];
+    }>()
+  );
+  /**
+   * Fired to notify webviews that the document has changed.
+   */
+  public readonly onDidChangeContent = this._onDidChangeDocument.event;
+
+  private readonly _onDidChange = this._register(
+    new vscode.EventEmitter<{
+      readonly label: string;
+      undo(): void;
+      redo(): void;
+    }>()
+  );
+  /**
+   * Fired to tell VS Code that an edit has occured in the document.
+   *
+   * This updates the document's dirty indicator.
+   */
+  public readonly onDidChange = this._onDidChange.event;
+}
+
+export class PicEditorProvider
+  implements vscode.CustomEditorProvider<PicEditorDocument> {
+  private static newPicFileId = 1;
+  private static readonly viewType = "agikit.picEditor";
+  private readonly webviews = new WebviewCollection();
+
+  public static register(context: vscode.ExtensionContext): vscode.Disposable {
+    vscode.commands.registerCommand("agikit.picEditor.new", () => {
+      const workspaceFolders = vscode.workspace.workspaceFolders;
+      if (!workspaceFolders) {
+        vscode.window.showErrorMessage(
+          "Creating new .agipic resources currently requires opening a workspace"
+        );
+        return;
+      }
+
+      const uri = vscode.Uri.joinPath(
+        workspaceFolders[0].uri,
+        `new-${PicEditorProvider.newPicFileId++}.agipic`
+      ).with({ scheme: "untitled" });
+
+      vscode.commands.executeCommand(
+        "vscode.openWith",
+        uri,
+        PicEditorProvider.viewType
+      );
+    });
+
+    return vscode.window.registerCustomEditorProvider(
+      PicEditorProvider.viewType,
+      new PicEditorProvider(context),
+      {
+        // For this demo extension, we enable `retainContextWhenHidden` which keeps the
+        // webview alive even when it is not visible. You should avoid using this setting
+        // unless is absolutely required as it does have memory overhead.
+        webviewOptions: {
+          retainContextWhenHidden: true,
+        },
+        supportsMultipleEditorsPerDocument: false,
+      }
+    );
+  }
+
+  private readonly _onDidChangeCustomDocument = new vscode.EventEmitter<
+    vscode.CustomDocumentEditEvent<PicEditorDocument>
+  >();
+  public readonly onDidChangeCustomDocument = this._onDidChangeCustomDocument
+    .event;
+
+  constructor(private readonly _context: vscode.ExtensionContext) {}
+
+  saveCustomDocument(
+    document: PicEditorDocument,
+    cancellation: vscode.CancellationToken
+  ): Thenable<void> {
+    throw new Error("Method not implemented.");
+  }
+  saveCustomDocumentAs(
+    document: PicEditorDocument,
+    destination: vscode.Uri,
+    cancellation: vscode.CancellationToken
+  ): Thenable<void> {
+    throw new Error("Method not implemented.");
+  }
+  revertCustomDocument(
+    document: PicEditorDocument,
+    cancellation: vscode.CancellationToken
+  ): Thenable<void> {
+    throw new Error("Method not implemented.");
+  }
+  backupCustomDocument(
+    document: PicEditorDocument,
+    context: vscode.CustomDocumentBackupContext,
+    cancellation: vscode.CancellationToken
+  ): Thenable<vscode.CustomDocumentBackup> {
+    throw new Error("Method not implemented.");
+  }
+
+  async openCustomDocument(
+    uri: vscode.Uri,
+    openContext: vscode.CustomDocumentOpenContext,
+    token: vscode.CancellationToken
+  ) {
+    const document: PicEditorDocument = await PicEditorDocument.create(
+      uri,
+      openContext.backupId,
+      {
+        getFileData: async () => {
+          const webviewsForDocument = Array.from(
+            this.webviews.get(document.uri)
+          );
+          if (!webviewsForDocument.length) {
+            throw new Error("Could not find webview to save for");
+          }
+          const panel = webviewsForDocument[0];
+          const response = await this.postMessageWithResponse<number[]>(
+            panel,
+            "getFileData",
+            {}
+          );
+          return new Uint8Array(response);
+        },
+      }
+    );
+
+    const listeners: vscode.Disposable[] = [];
+
+    listeners.push(
+      document.onDidChange((e) => {
+        // Tell VS Code that the document has been edited by the use.
+        this._onDidChangeCustomDocument.fire({
+          document,
+          ...e,
+        });
+      })
+    );
+
+    listeners.push(
+      document.onDidChangeContent((e) => {
+        // Update all webviews when the document changes
+        for (const webviewPanel of this.webviews.get(document.uri)) {
+          this.postMessage(webviewPanel, "update", {
+            // edits: e.edits,
+            content: e.content,
+          });
+        }
+      })
+    );
+
+    document.onDidDispose(() => disposeAll(listeners));
+
+    return document;
+  }
+
+  async resolveCustomEditor(
+    document: PicEditorDocument,
+    webviewPanel: vscode.WebviewPanel,
+    token: vscode.CancellationToken
+  ): Promise<void> {
+    // Add the webview to our internal set of active webviews
+    this.webviews.add(document.uri, webviewPanel);
+
+    // Setup initial content for the webview
+    webviewPanel.webview.options = {
+      enableScripts: true,
+    };
+    webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview);
+
+    webviewPanel.webview.onDidReceiveMessage((e) =>
+      this.onMessage(document, e)
+    );
+
+    // Wait for the webview to be properly ready before we init
+    webviewPanel.webview.onDidReceiveMessage((e) => {
+      if (e.type === "ready") {
+        if (document.uri.scheme === "untitled") {
+          this.postMessage(webviewPanel, "init", {
+            untitled: true,
+            editable: true,
+          });
+        } else {
+          const editable = vscode.workspace.fs.isWritableFileSystem(
+            document.uri.scheme
+          );
+
+          this.postMessage(webviewPanel, "init", {
+            resource: document.resource,
+            editable,
+          });
+        }
+      }
+    });
+  }
+
+  private getHtmlForWebview(webview: vscode.Webview): string {
+    // Local path to script and css for the webview
+    const scriptUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._context.extensionUri, "dist", "picEditor.js")
+    );
+
+    const styleResetUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._context.extensionUri, "media", "reset.css")
+    );
+
+    const styleVSCodeUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._context.extensionUri, "media", "vscode.css")
+    );
+
+    // const styleMainUri = webview.asWebviewUri(
+    //   vscode.Uri.joinPath(this._context.extensionUri, "media", "pawDraw.css")
+    // );
+
+    // Use a nonce to whitelist which scripts can be run
+    const nonce = randomBytes(16).toString("base64");
+
+    return /* html */ `
+			<!DOCTYPE html>
+			<html lang="en">
+			<head>
+				<meta charset="UTF-8">
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} blob:; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+				<meta name="viewport" content="width=device-width, initial-scale=1.0">
+				<link href="${styleResetUri}" rel="stylesheet" />
+				<link href="${styleVSCodeUri}" rel="stylesheet" />
+        <!-- stylesheet link for editor CSS -->
+				<title>AGI PIC Editor</title>
+			</head>
+			<body>
+				<div id="pic-editor-root"></div>
+
+				<script nonce="${nonce}" src="${scriptUri}"></script>
+			</body>
+			</html>`;
+  }
+
+  private _requestId = 1;
+  private readonly _callbacks = new Map<number, (response: any) => void>();
+
+  private postMessageWithResponse<R = unknown>(
+    panel: vscode.WebviewPanel,
+    type: string,
+    body: any
+  ): Promise<R> {
+    const requestId = this._requestId++;
+    const p = new Promise<R>((resolve) =>
+      this._callbacks.set(requestId, resolve)
+    );
+    panel.webview.postMessage({ type, requestId, body });
+    return p;
+  }
+
+  private postMessage(
+    panel: vscode.WebviewPanel,
+    type: string,
+    body: any
+  ): void {
+    panel.webview.postMessage({ type, body });
+  }
+
+  private onMessage(document: PicEditorDocument, message: any) {
+    switch (message.type) {
+      case "response": {
+        const callback = this._callbacks.get(message.requestId);
+        callback?.(message.body);
+        return;
+      }
+    }
+  }
+}

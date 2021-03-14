@@ -17,7 +17,8 @@
   "activationEvents": [
     "onLanguage:agilogic",
     "onCommand:workbench.action.tasks.runTask",
-    "onCommand:agikit.runWithScummVM"
+    "onCommand:agikit.runWithScummVM",
+    "onCustomEditor:agikit.picEditor"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -41,6 +42,17 @@
       {
         "command": "agikit.runWithScummVM",
         "title": "Run AGI game with ScummVM"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "agikit.picEditor",
+        "displayName": "AGI PIC",
+        "selector": [
+          {
+            "filenamePattern": "*.agipic"
+          }
+        ]
       }
     ],
     "languages": [
@@ -91,6 +103,10 @@
     "agikit-cli": "^0.4.2",
     "agikit-core": "^0.4.0",
     "agikit-logic-language-server": "^0.4.2",
+    "buffer": "^6.0.3",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "uuid": "^8.3.2",
     "vscode-languageclient": "^7.0.0",
     "vscode-languageserver": "^7.0.0",
     "vscode-languageserver-textdocument": "^1.0.1",
@@ -101,6 +117,9 @@
     "@types/lodash": "^4.14.168",
     "@types/mocha": "^8.0.4",
     "@types/node": "^14.14.31",
+    "@types/react": "^17.0.3",
+    "@types/react-dom": "^17.0.2",
+    "@types/uuid": "^8.3.0",
     "@types/vscode": "^1.54.0",
     "@typescript-eslint/eslint-plugin": "^4.14.1",
     "@typescript-eslint/parser": "^4.14.1",

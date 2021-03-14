@@ -3,35 +3,25 @@
 "use strict";
 
 const path = require("path");
+const webpack = require("webpack");
 
 /**@type {import('webpack').Configuration}*/
-const config = {
-  target: "node", // vscode extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
-
-  entry: {
-    extension: "./src/extension.ts",
-    startCli: "./src/startCli.ts",
-    startServer: "./src/startServer.ts",
-  },
+const commonConfig = {
   output: {
     // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
     path: path.resolve(__dirname, "dist"),
     filename: "[name].js",
-    libraryTarget: "commonjs2",
     devtoolModuleFilenameTemplate: "../[resource-path]",
   },
   devtool: "source-map",
-  externals: {
-    vscode: "commonjs vscode", // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
-  },
   resolve: {
     // support reading TypeScript and JavaScript files, 📖 -> https://github.com/TypeStrong/ts-loader
-    extensions: [".ts", ".js"],
+    extensions: [".ts", ".js", ".tsx", ".jsx"],
   },
   module: {
     rules: [
       {
-        test: /\.ts$/,
+        test: /\.tsx?$/,
         exclude: /node_modules/,
         use: [
           {
@@ -42,4 +32,43 @@ const config = {
     ],
   },
 };
-module.exports = config;
+
+/**@type {import('webpack').Configuration}*/
+const nodeConfig = {
+  ...commonConfig,
+  output: {
+    ...commonConfig.output,
+    libraryTarget: "commonjs2",
+  },
+  target: "node", // vscode extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
+
+  entry: {
+    extension: "./src/extension.ts",
+    startCli: "./src/startCli.ts",
+    startServer: "./src/startServer.ts",
+  },
+  externals: {
+    vscode: "commonjs vscode", // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
+  },
+};
+
+/**@type {import('webpack').Configuration} */
+const webviewConfig = {
+  ...commonConfig,
+  target: "web",
+  entry: {
+    picEditor: "./src/picEditor.tsx",
+  },
+  resolve: {
+    fallback: {
+      buffer: require.resolve("buffer/"),
+    },
+  },
+  plugins: [
+    new webpack.ProvidePlugin({
+      buffer: ["buffer", "Buffer"],
+    }),
+  ],
+};
+
+module.exports = [nodeConfig, webviewConfig];

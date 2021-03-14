@@ -84,12 +84,15 @@ export function readPictureResource(data: Buffer): PictureResource {
       currentByte = data.readUInt8(offset);
       if (currentByte < 0xf0) {
         offset += 1;
-        let texture: number | undefined;
+
         if (splatterEnabled) {
-          texture = consumeUInt8();
+          const texture = currentByte;
+          const position = consumeCoordinates();
+          plotPoints.push({ texture, position });
+        } else {
+          const y = consumeUInt8();
+          plotPoints.push({ texture: undefined, position: { x: currentByte, y } });
         }
-        const position = consumeCoordinates();
-        plotPoints.push({ texture, position });
       }
     } while (currentByte < 0xf0);
     return plotPoints;
