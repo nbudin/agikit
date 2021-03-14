@@ -55,6 +55,12 @@ export const BUILT_IN_IDENTIFIERS = new Map<string, IdentifierMapping>(
       number: index,
       type: AGICommandArgType.String,
     },
+    {
+      identifierType: 'variable' as const,
+      name: `m${index}`,
+      number: index,
+      type: AGICommandArgType.Message,
+    },
   ]).map((identifierMapping) => [identifierMapping.name, identifierMapping]),
 );
 
