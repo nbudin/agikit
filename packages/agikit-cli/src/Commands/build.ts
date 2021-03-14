@@ -86,7 +86,10 @@ function buildResource(
   return undefined;
 }
 
-export function buildGame(sourceDir: string, destinationDir: string): void {
+export function buildGame(root: string): void {
+  const sourceDir = path.join(root, "src");
+  const destinationDir = path.join(root, "build");
+
   fs.mkdirSync(destinationDir, { recursive: true });
   const wordList = processFile(
     parseWordList,

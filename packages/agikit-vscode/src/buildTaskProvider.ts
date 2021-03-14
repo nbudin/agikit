@@ -27,7 +27,7 @@ export function buildTaskProvider(
                 const cliPath = context.asAbsolutePath(
                   path.join("dist", "startCli.js")
                 );
-                cp = child_process.fork(cliPath, ["build", "src/", "build/"], {
+                cp = child_process.fork(cliPath, ["build", "."], {
                   cwd: workspaceFolder.uri.fsPath,
                   stdio: "pipe",
                   detached: true,

@@ -89,7 +89,9 @@ function extractResource(
   }
 }
 
-export function extractGame(srcDir: string, destDir: string): void {
+export function extractGame(srcDir: string, destRoot: string): void {
+  const destDir = path.join(destRoot, "src");
+
   const resourceDir = readV2ResourceDirs(srcDir);
   mkdirSync(destDir, { recursive: true });
   const warningResources: DirEntry[] = [];

@@ -33,7 +33,7 @@ To extract an AGI game to source files:
 
 To build AGI game volume files from extracted source files:
 
-`agikit build path/to/source/files output/path`
+`agikit build path/to/project`
 
 To auto-format a LOGIC script:
 
@@ -41,11 +41,10 @@ To auto-format a LOGIC script:
 
 ## Current status
 
-agikit is very, very early stage right now.  As of this writing (version 0.1.0), it's only been
-tested against the MS-DOS version of King's Quest I (2.0F).  The extracted and rebuilt game seems to run fine under ScummVM.
+agikit is very, very early stage right now.  As of this writing (version 0.5.0), it can decompile and compile
+King's Quest I, Space Quest II, and the agikit template project successfully.  It possibly works with other
+games too, but I haven't tested it on everything yet.
 
 Known limitations:
 
 * Only supports AGI version 2 for now
-* Compiled LOGIC code can't necessarily be decoded by AGI Studio, because the compiler doesn't (yet) guarantee that all blocks fully contain their child blocks
-  * This might be more of a limitation of AGI Studio's decompiler

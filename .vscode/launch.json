@@ -65,9 +65,8 @@
       "args": [
         "build",
         // "/Users/nbudin/Downloads/AGI Contest 2 Template/src",
-        // "build/contest2"
-        "extracted/kq1",
-        "build/kq1"
+        "extracted/sq2",
+        // "extracted/kq1",
       ],
       "preLaunchTask": "npm: build - packages/agikit-cli",
       "outFiles": [
