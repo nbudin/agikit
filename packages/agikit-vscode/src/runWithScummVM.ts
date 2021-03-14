@@ -23,18 +23,22 @@ export async function runWithScummVM(
           "No agikit task defined in this workspace.  Please add a build task."
         );
       } else {
-        await vscode.tasks.executeTask(tasks[0]);
-        child_process.exec(
-          `${scummvmPath} -p "${path.join(
-            folder.uri.fsPath,
-            "build"
-          )}" agi-fanmade`,
-          (error) => {
-            if (error) {
-              vscode.window.showErrorMessage(error.message);
-            }
+        const execution = await vscode.tasks.executeTask(tasks[0]);
+        vscode.tasks.onDidEndTask((e) => {
+          if (e.execution === execution) {
+            child_process.exec(
+              `${scummvmPath} -p "${path.join(
+                folder.uri.fsPath,
+                "build"
+              )}" agi-fanmade`,
+              (error) => {
+                if (error) {
+                  vscode.window.showErrorMessage(error.message);
+                }
+              }
+            );
           }
-        );
+        });
       }
     }
   }
