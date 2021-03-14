@@ -2,7 +2,6 @@ import {
   CompletionItem,
   CompletionItemKind,
   createConnection,
-  Definition,
   DefinitionLink,
   Diagnostic,
   DiagnosticSeverity,
@@ -19,6 +18,7 @@ import {
   TextDocumentPositionParams,
   TextDocuments,
   TextDocumentSyncKind,
+  WorkspaceFolder,
 } from "vscode-languageserver/node";
 import {
   LogicScriptParseTree,
@@ -155,19 +155,11 @@ connection.onInitialized(() => {
     );
   }
   if (hasWorkspaceFolderCapability) {
+    connection.workspace.getWorkspaceFolders().then((folders) => {
+      folders?.forEach(refreshFolder);
+    });
     connection.workspace.onDidChangeWorkspaceFolders((event) => {
-      event.added.forEach((folder) => {
-        const uri = URI.parse(folder.uri);
-        if (uri.scheme === "file") {
-          const logicFiles = listFilesRecursive(uri.fsPath).filter((filePath) =>
-            filePath.toLowerCase().endsWith(".agilogic")
-          );
-          logicFiles.forEach((logicFile) =>
-            refreshTextDocument(uri, fs.readFileSync(logicFile, "utf-8"))
-          );
-        }
-      });
-      connection.console.log("Workspace folder change event received.");
+      event.added.forEach(refreshFolder);
     });
   }
 });
@@ -201,6 +193,21 @@ connection.onDidChangeConfiguration((change) => {
     refreshTextDocument(URI.parse(document.uri), document.getText());
   });
 });
+
+function refreshFolder(folder: WorkspaceFolder) {
+  const uri = URI.parse(folder.uri);
+  if (uri.scheme === "file") {
+    const logicFiles = listFilesRecursive(uri.fsPath).filter((filePath) =>
+      filePath.toLowerCase().endsWith(".agilogic")
+    );
+    logicFiles.forEach((logicFile) =>
+      refreshTextDocument(
+        uri.with({ path: logicFile }),
+        fs.readFileSync(logicFile, "utf-8")
+      )
+    );
+  }
+}
 
 function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
   if (!hasConfigurationCapability) {
@@ -268,6 +275,8 @@ function clearDocumentData(uri: URI) {
 
 async function refreshTextDocument(uri: URI, contents: string): Promise<void> {
   let settings = await getDocumentSettings(uri.toString());
+
+  connection.console.log(`Reading ${uri.fsPath}`);
 
   let diagnostics: Diagnostic[] = [];
   let statements: LogicScriptProgram<LogicScriptStatement> | undefined;

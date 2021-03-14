@@ -7,7 +7,7 @@ import {
   LogicScriptStatement,
 } from './LogicScriptParserTypes';
 import { parse, SyntaxError } from './LogicScriptParser.generated';
-import { flatMap, map } from 'lodash';
+import { flatMap } from 'lodash';
 import path from 'path';
 import fs from 'fs';
 import {
