@@ -12,7 +12,7 @@ import {
 import LogicSemanticTokensProvider from "./Logic/logicSemanticTokensProvider";
 import { buildTaskProvider } from "./buildTaskProvider";
 import { runWithScummVM } from "./runWithScummVM";
-import { PicEditorProvider } from "./PicEditorProvider";
+import { PicEditorProvider } from "./Pic/PicEditorProvider";
 
 let client: LanguageClient;
 

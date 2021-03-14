@@ -1,55 +1,13 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
+import { renderPicture } from "agikit-core/dist/Extract/Picture/RenderPicture";
+import React = require("react");
+import { PicCanvas } from "./PicCanvas";
+import { EditingPictureResource } from "./EditingPictureTypes";
+import { EGAPalette } from "agikit-core/dist/ColorPalettes";
 import {
   PictureCommand,
   PictureCoordinate,
-  PictureResource,
 } from "agikit-core/dist/Types/Picture";
-import { renderPicture } from "agikit-core/dist/Extract/Picture/RenderPicture";
-import { EGAPalette } from "agikit-core/dist/ColorPalettes";
-import { Buffer } from "buffer";
-import * as ReactDOM from "react-dom";
-import { v4 as uuidv4 } from "uuid";
-import React = require("react");
-
-// @ts-expect-error
-window.Buffer = Buffer;
-
-// @ts-ignore
-const vscode = acquireVsCodeApi();
-vscode.postMessage({ type: "ready" });
-
-type EditingPictureCommand = PictureCommand & {
-  uuid: string;
-  enabled: boolean;
-};
-
-type EditingPictureResource = Omit<PictureResource, "commands"> & {
-  commands: EditingPictureCommand[];
-};
-
-function PicCanvas({ buffer }: { buffer: Uint8Array }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  useLayoutEffect(() => {
-    if (!ref.current) {
-      return;
-    }
-
-    const ctx = ref.current.getContext("2d");
-    if (!ctx) {
-      return;
-    }
-
-    for (let index = 0; index < buffer.length; index++) {
-      const x = index % 160;
-      const y = Math.floor(index / 160);
-      const color = EGAPalette[buffer[index]];
-      ctx.fillStyle = color;
-      ctx.fillRect(x * 4, y * 2, 4, 2);
-    }
-  }, [buffer]);
-
-  return <canvas width="640" height="400" ref={ref}></canvas>;
-}
 
 function describePoint(point: PictureCoordinate) {
   return `(${point.x}, ${point.y})`;
@@ -116,7 +74,7 @@ function describeCommand(command: PictureCommand): React.ReactNode {
   return command.type;
 }
 
-function PicEditor({
+export function PicEditor({
   pictureResource,
   setPictureResource,
 }: {
@@ -157,7 +115,7 @@ function PicEditor({
     }));
   };
 
-  const disableAllAfter = (uuid: string) => {
+  const jumpTo = (uuid: string) => {
     setPictureResource((prevResource) => {
       const disableAfterIndex = prevResource.commands.findIndex(
         (command) => command.uuid === uuid
@@ -166,7 +124,7 @@ function PicEditor({
         ...prevResource,
         commands: prevResource.commands.map((command, index) => ({
           ...command,
-          enabled: index > disableAfterIndex ? false : command.enabled,
+          enabled: index > disableAfterIndex ? false : true,
         })),
       };
     });
@@ -206,10 +164,10 @@ function PicEditor({
                   <div style={{ flexGrow: 1 }}>{describeCommand(command)}</div>
                   <button
                     type="button"
-                    onClick={() => disableAllAfter(command.uuid)}
-                    style={{ width: "auto" }}
+                    onClick={() => jumpTo(command.uuid)}
+                    style={{ width: "auto", margin: "1px" }}
                   >
-                    Isolate
+                    Go to
                   </button>
                 </div>
               </li>
@@ -220,79 +178,3 @@ function PicEditor({
     </div>
   );
 }
-
-function VscodePicEditor() {
-  const [
-    pictureResource,
-    setPictureResource,
-  ] = useState<EditingPictureResource>({
-    commands: [],
-  });
-  const [editable, setEditable] = useState(false);
-
-  useEffect(() => {
-    const messageHandler = async (e: MessageEvent) => {
-      const { type, body, requestId } = e.data;
-      switch (type) {
-        case "init": {
-          setEditable(body.editable);
-          if (body.untitled) {
-            setPictureResource({ commands: [] });
-            return;
-          } else {
-            // Load the initial image into the canvas.
-            setPictureResource({
-              ...body.resource,
-              commands: body.resource.commands.map(
-                (command: PictureCommand) => ({
-                  ...command,
-                  uuid: uuidv4(),
-                  enabled: true,
-                })
-              ),
-            });
-            return;
-          }
-        }
-        case "update": {
-          const data = body.content
-            ? new Uint8Array(body.content.data)
-            : undefined;
-          // const strokes = body.edits.map(
-          //   (edit) => new Stroke(edit.color, edit.stroke)
-          // );
-          // await editor.reset(data, strokes);
-          return;
-        }
-        case "getFileData": {
-          // Get the image data for the canvas and post it back to the extension.
-          // editor.getImageData().then((data) => {
-          //   vscode.postMessage({
-          //     type: "response",
-          //     requestId,
-          //     body: Array.from(data),
-          //   });
-          // });
-          return;
-        }
-      }
-    };
-    window.addEventListener("message", messageHandler);
-
-    return () => {
-      window.removeEventListener("message", messageHandler);
-    };
-  });
-
-  return (
-    <PicEditor
-      pictureResource={pictureResource}
-      setPictureResource={setPictureResource}
-    />
-  );
-}
-
-ReactDOM.render(
-  <VscodePicEditor />,
-  document.querySelector("#pic-editor-root")
-);

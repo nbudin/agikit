@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { PictureResource } from "agikit-core/dist/Types/Picture";
 import { readPictureResource } from "agikit-core/dist/Extract/Picture/ReadPicture";
 import { readFileSync } from "fs";
-import { Disposable, disposeAll } from "./disposable";
+import { Disposable, disposeAll } from "../disposable";
 import { randomBytes } from "crypto";
 
 interface PicDocumentDelegate {
@@ -296,7 +296,11 @@ export class PicEditorProvider
   private getHtmlForWebview(webview: vscode.Webview): string {
     // Local path to script and css for the webview
     const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._context.extensionUri, "dist", "picEditor.js")
+      vscode.Uri.joinPath(
+        this._context.extensionUri,
+        "dist",
+        "VscodePicEditor.js"
+      )
     );
 
     const styleResetUri = webview.asWebviewUri(
