@@ -311,9 +311,9 @@ export class PicEditorProvider
       vscode.Uri.joinPath(this._context.extensionUri, "media", "vscode.css")
     );
 
-    // const styleMainUri = webview.asWebviewUri(
-    //   vscode.Uri.joinPath(this._context.extensionUri, "media", "pawDraw.css")
-    // );
+    const styleMainUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._context.extensionUri, "media", "piceditor.css")
+    );
 
     // Use a nonce to whitelist which scripts can be run
     const nonce = randomBytes(16).toString("base64");
@@ -327,7 +327,7 @@ export class PicEditorProvider
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 				<link href="${styleResetUri}" rel="stylesheet" />
 				<link href="${styleVSCodeUri}" rel="stylesheet" />
-        <!-- stylesheet link for editor CSS -->
+				<link href="${styleMainUri}" rel="stylesheet" />
 				<title>AGI PIC Editor</title>
 			</head>
 			<body>

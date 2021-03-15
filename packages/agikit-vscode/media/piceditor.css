@@ -1,0 +1,58 @@
+#pic-editor-root {
+  margin-block: 0;
+}
+
+.pic-editor {
+  display: grid;
+  grid-template:
+    "visual controls" 50vh
+    "priority controls" 50vh / minmax(320px, 640px) minmax(200px, 1fr);
+}
+
+.pic-editor-visual-area {
+  grid-area: visual;
+}
+
+.pic-editor-priority-area {
+  grid-area: priority;
+}
+
+.pic-editor-visual-area, .pic-editor-priority-area {
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--input-margin-vertical);
+  padding-bottom: var(--input-margin-vertical);
+}
+
+.pic-editor-canvas-display {
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  width: 100%;
+  height: 0;
+  padding-bottom: 62.5%; /* 200 / 320 */
+  transition: background-image 0.01s ease-in-out;
+}
+
+.pic-editor-controls {
+  grid-area: controls;
+}
+
+.pic-editor-command-list {
+  padding-left: 0;
+}
+
+.pic-editor-command-list li {
+  list-style-type: none;
+}
+
+.pic-editor-command-list li:hover {
+  background-color: var(--vscode-list-hoverBackground);
+}
+
+.pic-editor-go-to-command-button {
+  width: fit-content;
+  margin: 1px;
+  white-space: nowrap;
+}
