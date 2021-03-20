@@ -73,6 +73,12 @@ button.secondary:hover {
 	background: var(--vscode-button-secondaryHoverBackground);
 }
 
+button.secondary.inverse {
+	background: var(--vscode-button-secondaryForeground);
+  color: var(--vscode-button-secondaryBackground);
+  border: 1px var(--vscode-button-secondaryBackground) solid;
+}
+
 input:not([type='checkbox']),
 textarea {
 	display: block;

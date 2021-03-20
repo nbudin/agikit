@@ -119,10 +119,7 @@ export function PicCommandList({
   };
 
   return (
-    <div
-      className="pic-editor-controls"
-      style={{ display: "flex", flexDirection: "column" }}
-    >
+    <>
       <div style={{ display: "flex" }}>
         <button
           type="button"
@@ -165,6 +162,6 @@ export function PicCommandList({
           ))}
         </ul>
       </div>
-    </div>
+    </>
   );
 }

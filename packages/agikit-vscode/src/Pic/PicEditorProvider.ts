@@ -303,16 +303,12 @@ export class PicEditorProvider
       )
     );
 
-    const styleResetUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._context.extensionUri, "media", "reset.css")
-    );
-
-    const styleVSCodeUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._context.extensionUri, "media", "vscode.css")
-    );
-
     const styleMainUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._context.extensionUri, "media", "piceditor.css")
+      vscode.Uri.joinPath(
+        this._context.extensionUri,
+        "dist",
+        "VscodePicEditor.css"
+      )
     );
 
     // Use a nonce to whitelist which scripts can be run
@@ -323,10 +319,8 @@ export class PicEditorProvider
 			<html lang="en">
 			<head>
 				<meta charset="UTF-8">
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} blob:; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} blob:; style-src ${webview.cspSource}; font-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<link href="${styleResetUri}" rel="stylesheet" />
-				<link href="${styleVSCodeUri}" rel="stylesheet" />
 				<link href="${styleMainUri}" rel="stylesheet" />
 				<title>AGI PIC Editor</title>
 			</head>

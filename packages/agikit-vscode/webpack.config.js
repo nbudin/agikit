@@ -4,6 +4,7 @@
 
 const path = require("path");
 const webpack = require("webpack");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 /**@type {import('webpack').Configuration}*/
 const commonConfig = {
@@ -26,6 +27,15 @@ const commonConfig = {
             loader: "ts-loader",
           },
         ],
+      },
+      {
+        test: /\.(png|jpe?g|gif|svg|eot|ttf|woff|woff2)$/i,
+        // More information here https://webpack.js.org/guides/asset-modules/
+        type: "asset",
+      },
+      {
+        test: /\.css$/i,
+        use: [MiniCssExtractPlugin.loader, "css-loader"],
       },
     ],
   },
@@ -64,6 +74,7 @@ const webviewConfig = {
     },
   },
   plugins: [
+    new MiniCssExtractPlugin(),
     new webpack.ProvidePlugin({
       buffer: ["buffer", "Buffer"],
     }),

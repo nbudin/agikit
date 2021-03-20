@@ -5,8 +5,9 @@
 .pic-editor {
   display: grid;
   grid-template:
-    "visual controls" 50vh
-    "priority controls" 50vh / minmax(320px, 640px) minmax(200px, 1fr);
+    "visual controls" calc(50vh - 0.5em)
+    "priority controls" calc(50vh - 0.5em) / minmax(320px, 640px) minmax(200px, 1fr);
+  gap: 1em;
 }
 
 .pic-editor-visual-area {
@@ -25,14 +26,10 @@
 }
 
 .pic-editor-canvas-display {
-  background-position: center;
-  background-size: contain;
-  background-repeat: no-repeat;
+  object-fit: contain;
+  flex-grow: 1;
   image-rendering: pixelated;
-  width: 100%;
-  height: 0;
-  padding-bottom: 62.5%; /* 200 / 320 */
-  transition: background-image 0.01s ease-in-out;
+  /* transition: src 0.01s  ease-in-out; */
 }
 
 .pic-editor-controls {
@@ -55,4 +52,12 @@
   width: fit-content;
   margin: 1px;
   white-space: nowrap;
+}
+
+.pic-editor-color-picker {
+  max-width: 30rem;
+  display: flex;
+  padding: var(--input-padding-vertical) var(--input-padding-horizontal);
+  background-color: var(--vscode-editor-background);
+  border: 1px var(--vscode-panel-border) solid;
 }

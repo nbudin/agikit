@@ -6,6 +6,11 @@ import { v4 as uuidv4 } from "uuid";
 import { PicEditor } from "./PicEditor";
 import { EditingPictureResource } from "./EditingPictureTypes";
 
+import "./reset.css";
+import "./vscode.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
+import "./piceditor.css";
+
 // @ts-expect-error
 window.Buffer = Buffer;
 

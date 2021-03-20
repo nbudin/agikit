@@ -13,7 +13,10 @@
 			"options": {
 				"cwd": "packages/agikit-vscode"
 			},
-			"dependsOn": ["npm: build - packages/agikit-logic-language-server", "npm: build - packages/agikit-cli"]
+			"dependsOn": [
+				// "npm: build - packages/agikit-logic-language-server",
+				// "npm: build - packages/agikit-cli"
+			]
 		},
 		{
 			"label": "Watch agikit-vscode",
