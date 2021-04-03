@@ -29,7 +29,7 @@
   object-fit: contain;
   flex-grow: 1;
   image-rendering: pixelated;
-  /* transition: src 0.01s  ease-in-out; */
+  cursor: crosshair;
 }
 
 .pic-editor-controls {
@@ -48,7 +48,17 @@
   background-color: var(--vscode-list-hoverBackground);
 }
 
-.pic-editor-go-to-command-button {
+.pic-editor-command-list li.current {
+  border-bottom: 2px var(--vscode-editorCursor-foreground) dashed;
+  margin-bottom: 3px;
+}
+
+.pic-editor-command-list li.prev-current {
+  border-top: 2px var(--vscode-editorCursor-foreground) dashed;
+  margin-top: 3px;
+}
+
+.pic-editor-command-action-button {
   width: fit-content;
   margin: 1px;
   white-space: nowrap;

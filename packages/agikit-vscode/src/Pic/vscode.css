@@ -64,6 +64,10 @@ button:focus {
 	outline-color: var(--vscode-focusBorder);
 }
 
+button:disabled {
+	opacity: 0.7;
+}
+
 button.secondary {
 	color: var(--vscode-button-secondaryForeground);
 	background: var(--vscode-button-secondaryBackground);

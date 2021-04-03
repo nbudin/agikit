@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PictureCommand } from "agikit-core/dist/Types/Picture";
+import { buildPicture } from "agikit-core/dist/Build/BuildPicture";
 import { Buffer } from "buffer";
 import * as ReactDOM from "react-dom";
 import { v4 as uuidv4 } from "uuid";
@@ -10,11 +11,15 @@ import "./reset.css";
 import "./vscode.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./piceditor.css";
+import {
+  PicEditorControlContext,
+  PicEditorControlContextValue,
+} from "./PicEditorControlContext";
 
 // @ts-expect-error
 window.Buffer = Buffer;
 
-// @ts-ignore
+// @ts-expect-error
 const vscode = acquireVsCodeApi();
 vscode.postMessage({ type: "ready" });
 
@@ -26,6 +31,33 @@ function VscodePicEditor() {
     commands: [],
   });
   const [editable, setEditable] = useState(false);
+  const [resolveConfirm, setResolveConfirm] = useState<
+    (result: boolean) => void | undefined
+  >();
+  const controlContextValue = useMemo<PicEditorControlContextValue>(
+    () => ({
+      confirm: (message) => {
+        if (resolveConfirm) {
+          return Promise.reject("Already showing a confirmation quick pick");
+        }
+        return new Promise<boolean>((resolve) => {
+          setResolveConfirm(() => {
+            // we have to do it this way because this is the only way to set a function as a state
+            // value
+            return resolve;
+          });
+          vscode.postMessage({ type: "confirm", message });
+        });
+      },
+      addCommands: (commands, afterCommandId) => {
+        vscode.postMessge({ type: "addCommands", commands, afterCommandId });
+      },
+      deleteCommand: (commandId) => {
+        vscode.postMessage({ type: "deleteCommand", commandId });
+      },
+    }),
+    [resolveConfirm]
+  );
 
   useEffect(() => {
     const messageHandler = async (e: MessageEvent) => {
@@ -38,38 +70,28 @@ function VscodePicEditor() {
             return;
           } else {
             // Load the initial image into the canvas.
-            setPictureResource({
-              ...body.resource,
-              commands: body.resource.commands.map(
-                (command: PictureCommand) => ({
-                  ...command,
-                  uuid: uuidv4(),
-                  enabled: true,
-                })
-              ),
-            });
+            setPictureResource(body.resource);
             return;
           }
         }
+        case "confirmResult":
+          const result = body.confirmed;
+          if (resolveConfirm) {
+            resolveConfirm(result);
+          }
+          setResolveConfirm(undefined);
+          return;
         case "update": {
-          const data = body.content
-            ? new Uint8Array(body.content.data)
-            : undefined;
-          // const strokes = body.edits.map(
-          //   (edit) => new Stroke(edit.color, edit.stroke)
-          // );
-          // await editor.reset(data, strokes);
+          const newResource = body.content;
+          setPictureResource(newResource);
           return;
         }
         case "getFileData": {
-          // Get the image data for the canvas and post it back to the extension.
-          // editor.getImageData().then((data) => {
-          //   vscode.postMessage({
-          //     type: "response",
-          //     requestId,
-          //     body: Array.from(data),
-          //   });
-          // });
+          vscode.postMessage({
+            type: "response",
+            requestId,
+            body: Array.from(buildPicture(pictureResource)),
+          });
           return;
         }
       }
@@ -82,10 +104,12 @@ function VscodePicEditor() {
   });
 
   return (
-    <PicEditor
-      pictureResource={pictureResource}
-      setPictureResource={setPictureResource}
-    />
+    <PicEditorControlContext.Provider value={controlContextValue}>
+      <PicEditor
+        pictureResource={pictureResource}
+        setPictureResource={setPictureResource}
+      />
+    </PicEditorControlContext.Provider>
   );
 }
 

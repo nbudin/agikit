@@ -3,8 +3,10 @@ import {
   PictureCommand,
   PictureCoordinate,
 } from "agikit-core/dist/Types/Picture";
-import React from "react";
+import React, { useContext, useEffect, useMemo, useRef } from "react";
+import { CommandListNavigationContext } from "./CommandListNavigation";
 import { EditingPictureResource } from "./EditingPictureTypes";
+import { PicEditorControlContext } from "./PicEditorControlContext";
 
 function describePoint(point: PictureCoordinate) {
   return `(${point.x}, ${point.y})`;
@@ -73,50 +75,35 @@ function describeCommand(command: PictureCommand): React.ReactNode {
 
 export function PicCommandList({
   pictureResource,
-  setPictureResource,
 }: {
   pictureResource: EditingPictureResource;
-  setPictureResource: React.Dispatch<
-    React.SetStateAction<EditingPictureResource>
-  >;
 }) {
-  const setAllCommandsEnabled = (enabled: boolean) => {
-    setPictureResource((prevResource) => ({
-      ...prevResource,
-      commands: prevResource.commands.map((command) => ({
-        ...command,
-        enabled,
-      })),
-    }));
-  };
+  const { confirm, deleteCommand } = useContext(PicEditorControlContext);
+  const {
+    setAllCommandsEnabled,
+    setCommandEnabled,
+    jumpRelative,
+    jumpTo,
+    currentCommandId,
+  } = useContext(CommandListNavigationContext);
+  const commandElements = useRef(new Map<string, HTMLLIElement>());
 
-  const setCommandEnabled = (uuid: string, enabled: boolean) => {
-    setPictureResource((prevResource) => ({
-      ...prevResource,
-      commands: prevResource.commands.map((command) => {
-        if (command.uuid === uuid) {
-          return { ...command, enabled };
-        }
+  const firstCommand = useMemo(() => pictureResource.commands[0], [
+    pictureResource.commands,
+  ]);
 
-        return command;
-      }),
-    }));
-  };
+  useEffect(() => {
+    let commandElement: HTMLLIElement | undefined;
+    if (currentCommandId) {
+      commandElement = commandElements.current.get(currentCommandId);
+    } else if (firstCommand) {
+      commandElement = commandElements.current.get(firstCommand.uuid);
+    }
 
-  const jumpTo = (uuid: string) => {
-    setPictureResource((prevResource) => {
-      const disableAfterIndex = prevResource.commands.findIndex(
-        (command) => command.uuid === uuid
-      );
-      return {
-        ...prevResource,
-        commands: prevResource.commands.map((command, index) => ({
-          ...command,
-          enabled: index > disableAfterIndex ? false : true,
-        })),
-      };
-    });
-  };
+    if (commandElement) {
+      commandElement.scrollIntoView({ block: "center" });
+    }
+  }, [currentCommandId, firstCommand]);
 
   return (
     <>
@@ -124,22 +111,78 @@ export function PicCommandList({
         <button
           type="button"
           style={{ margin: "1px" }}
-          onClick={() => setAllCommandsEnabled(true)}
+          onClick={() => setAllCommandsEnabled(false)}
+          aria-label="Go to start"
+          title="Go to start"
+          disabled={
+            pictureResource.commands.length === 0 || currentCommandId == null
+          }
         >
-          Enable all
+          <i className="bi-chevron-bar-up" role="img" />
         </button>
         <button
           type="button"
           style={{ margin: "1px" }}
-          onClick={() => setAllCommandsEnabled(false)}
+          onClick={() => jumpRelative(-1)}
+          disabled={
+            pictureResource.commands.length === 0 || currentCommandId == null
+          }
+          title="Previous command"
+          aria-label="Previous command"
         >
-          Disable all
+          <i className="bi-chevron-up" role="img" />
+        </button>
+        <button
+          type="button"
+          style={{ margin: "1px" }}
+          onClick={() => jumpRelative(1)}
+          disabled={
+            pictureResource.commands.length === 0 ||
+            currentCommandId ===
+              pictureResource.commands[pictureResource.commands.length - 1]
+                ?.uuid
+          }
+          title="Next command"
+          aria-label="Next command"
+        >
+          <i className="bi-chevron-down" role="img" />
+        </button>
+        <button
+          type="button"
+          style={{ margin: "1px" }}
+          onClick={() => setAllCommandsEnabled(true)}
+          aria-label="Go to end"
+          title="Go to end"
+          disabled={
+            pictureResource.commands.length === 0 ||
+            currentCommandId ===
+              pictureResource.commands[pictureResource.commands.length - 1]
+                ?.uuid
+          }
+        >
+          <i className="bi-chevron-bar-down" role="img" />
         </button>
       </div>
       <div style={{ overflowY: "scroll" }}>
         <ul className="pic-editor-command-list">
-          {pictureResource.commands.map((command) => (
-            <li key={command.uuid}>
+          {pictureResource.commands.map((command, index) => (
+            <li
+              key={command.uuid}
+              className={
+                currentCommandId && command.uuid === currentCommandId
+                  ? "current"
+                  : currentCommandId == null && index === 0
+                  ? "prev-current"
+                  : ""
+              }
+              ref={(element) => {
+                if (element) {
+                  commandElements.current.set(command.uuid, element);
+                } else {
+                  commandElements.current.delete(command.uuid);
+                }
+              }}
+            >
               <div style={{ display: "flex", alignItems: "center" }}>
                 <input
                   type="checkbox"
@@ -152,8 +195,27 @@ export function PicCommandList({
                 <div style={{ flexGrow: 1 }}>{describeCommand(command)}</div>
                 <button
                   type="button"
+                  onClick={async () => {
+                    if (
+                      await confirm(
+                        "Are you sure you want to delete this command?"
+                      )
+                    ) {
+                      deleteCommand(command.uuid);
+                    }
+                  }}
+                  className="secondary pic-editor-command-action-button"
+                >
+                  <i
+                    className="bi-trash"
+                    role="img"
+                    aria-label="Delete command"
+                  />
+                </button>
+                <button
+                  type="button"
                   onClick={() => jumpTo(command.uuid)}
-                  className="secondary pic-editor-go-to-command-button"
+                  className="secondary pic-editor-command-action-button"
                 >
                   Go to
                 </button>

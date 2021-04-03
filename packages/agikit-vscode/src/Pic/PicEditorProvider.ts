@@ -1,9 +1,13 @@
 import * as vscode from "vscode";
-import { PictureResource } from "agikit-core/dist/Types/Picture";
 import { readPictureResource } from "agikit-core/dist/Extract/Picture/ReadPicture";
-import { readFileSync } from "fs";
 import { Disposable, disposeAll } from "../disposable";
 import { randomBytes } from "crypto";
+import {
+  applyEditsToResource,
+  EditingPictureResource,
+  PicDocumentEdit,
+  prepareCommandForEditing,
+} from "./EditingPictureTypes";
 
 interface PicDocumentDelegate {
   getFileData(): Promise<Uint8Array>;
@@ -40,12 +44,22 @@ class WebviewCollection {
   }
 }
 
+function readDocumentForEditing(content: Buffer): EditingPictureResource {
+  const resource = readPictureResource(content);
+  return {
+    ...resource,
+    commands: resource.commands.map(prepareCommandForEditing),
+  };
+}
+
 export class PicEditorDocument
   extends Disposable
   implements vscode.CustomDocument {
   private readonly _uri: vscode.Uri;
   private readonly _delegate: PicDocumentDelegate;
-  private _resource: PictureResource;
+  private _resource: EditingPictureResource;
+  private _edits: Array<PicDocumentEdit> = [];
+  private _savedEdits: Array<PicDocumentEdit> = [];
 
   static async create(
     uri: vscode.Uri,
@@ -55,15 +69,15 @@ export class PicEditorDocument
     // If we have a backup, read that. Otherwise read the resource from the workspace
     const dataFile =
       typeof backupId === "string" ? vscode.Uri.parse(backupId) : uri;
-    const data = readFileSync(dataFile.fsPath);
+    const data = await this.readFile(dataFile);
     return new PicEditorDocument(uri, data, delegate);
   }
 
-  private static async readFile(uri: vscode.Uri): Promise<Uint8Array> {
+  private static async readFile(uri: vscode.Uri): Promise<Buffer> {
     if (uri.scheme === "untitled") {
-      return new Uint8Array();
+      return Buffer.alloc(0);
     }
-    return vscode.workspace.fs.readFile(uri);
+    return Buffer.from(await vscode.workspace.fs.readFile(uri));
   }
 
   private constructor(
@@ -72,8 +86,9 @@ export class PicEditorDocument
     delegate: PicDocumentDelegate
   ) {
     super();
+
     this._uri = uri;
-    this._resource = readPictureResource(initialContent);
+    this._resource = readDocumentForEditing(initialContent);
     this._delegate = delegate;
   }
 
@@ -88,20 +103,17 @@ export class PicEditorDocument
   private readonly _onDidDispose = this._register(
     new vscode.EventEmitter<void>()
   );
-  /**
-   * Fired when the document is disposed of.
-   */
+
+  // Fired when the document is disposed of.
   public readonly onDidDispose = this._onDidDispose.event;
 
   private readonly _onDidChangeDocument = this._register(
     new vscode.EventEmitter<{
-      readonly content?: Uint8Array;
-      // readonly edits: readonly PawDrawEdit[];
+      readonly content: EditingPictureResource;
     }>()
   );
-  /**
-   * Fired to notify webviews that the document has changed.
-   */
+
+  // Fired to notify webviews that the document has changed.
   public readonly onDidChangeContent = this._onDidChangeDocument.event;
 
   private readonly _onDidChange = this._register(
@@ -111,12 +123,94 @@ export class PicEditorDocument
       redo(): void;
     }>()
   );
-  /**
-   * Fired to tell VS Code that an edit has occured in the document.
-   *
-   * This updates the document's dirty indicator.
-   */
+
   public readonly onDidChange = this._onDidChange.event;
+
+  dispose(): void {
+    this._onDidDispose.fire();
+    super.dispose();
+  }
+
+  makeEdit(edit: PicDocumentEdit) {
+    this._edits.push(edit);
+
+    const undo = async () => {
+      this._edits.pop();
+      this._onDidChangeDocument.fire({
+        content: applyEditsToResource(this._resource, this._edits),
+      });
+    };
+    const redo = async () => {
+      this._edits.push(edit);
+      this._onDidChangeDocument.fire({
+        content: applyEditsToResource(this._resource, this._edits),
+      });
+    };
+
+    if (edit.type === "AddCommands") {
+      this._onDidChange.fire({
+        label: edit.commands.map((c) => c.type).join(", "),
+        undo,
+        redo,
+      });
+    } else {
+      const command = this._resource.commands.find(
+        (c) => c.uuid === edit.commandId
+      );
+      this._onDidChange.fire({
+        label: `Remove ${command?.type ?? "command"}`,
+        undo,
+        redo,
+      });
+    }
+
+    this._onDidChangeDocument.fire({
+      content: applyEditsToResource(this._resource, this._edits),
+    });
+  }
+
+  async save(cancellation: vscode.CancellationToken): Promise<void> {
+    await this.saveAs(this.uri, cancellation);
+    this._savedEdits = Array.from(this._edits);
+  }
+
+  async saveAs(
+    targetResource: vscode.Uri,
+    cancellation: vscode.CancellationToken
+  ): Promise<void> {
+    const fileData = await this._delegate.getFileData();
+    if (cancellation.isCancellationRequested) {
+      return;
+    }
+    await vscode.workspace.fs.writeFile(targetResource, fileData);
+  }
+
+  async revert(_cancellation: vscode.CancellationToken): Promise<void> {
+    const diskContent = await PicEditorDocument.readFile(this.uri);
+    this._resource = readDocumentForEditing(diskContent);
+    this._edits = this._savedEdits;
+    this._onDidChangeDocument.fire({
+      content: applyEditsToResource(this._resource, this._edits),
+    });
+  }
+
+  async backup(
+    destination: vscode.Uri,
+    cancellation: vscode.CancellationToken
+  ): Promise<vscode.CustomDocumentBackup> {
+    await this.saveAs(destination, cancellation);
+
+    return {
+      id: destination.toString(),
+      delete: async () => {
+        try {
+          await vscode.workspace.fs.delete(destination);
+        } catch {
+          // noop
+        }
+      },
+    };
+  }
 }
 
 export class PicEditorProvider
@@ -170,31 +264,34 @@ export class PicEditorProvider
 
   constructor(private readonly _context: vscode.ExtensionContext) {}
 
-  saveCustomDocument(
+  public saveCustomDocument(
     document: PicEditorDocument,
     cancellation: vscode.CancellationToken
   ): Thenable<void> {
-    throw new Error("Method not implemented.");
+    return document.save(cancellation);
   }
-  saveCustomDocumentAs(
+
+  public saveCustomDocumentAs(
     document: PicEditorDocument,
     destination: vscode.Uri,
     cancellation: vscode.CancellationToken
   ): Thenable<void> {
-    throw new Error("Method not implemented.");
+    return document.saveAs(destination, cancellation);
   }
+
   revertCustomDocument(
     document: PicEditorDocument,
     cancellation: vscode.CancellationToken
   ): Thenable<void> {
     throw new Error("Method not implemented.");
   }
+
   backupCustomDocument(
     document: PicEditorDocument,
     context: vscode.CustomDocumentBackupContext,
     cancellation: vscode.CancellationToken
   ): Thenable<vscode.CustomDocumentBackup> {
-    throw new Error("Method not implemented.");
+    return document.backup(context.destination, cancellation);
   }
 
   async openCustomDocument(
@@ -289,6 +386,26 @@ export class PicEditorProvider
             editable,
           });
         }
+      } else if (e.type === "confirm") {
+        vscode.window
+          .showInformationMessage(e.message, { modal: true }, "OK")
+          .then((button) => {
+            webviewPanel.webview.postMessage({
+              type: "confirmResult",
+              body: { confirmed: button === "OK" },
+            });
+          });
+      } else if (e.type === "deleteCommand") {
+        document.makeEdit({
+          type: "DeleteCommand",
+          commandId: e.commandId,
+        });
+      } else if (e.type === "addCommands") {
+        document.makeEdit({
+          type: "AddCommands",
+          afterCommandId: e.afterCommandId,
+          commands: e.commands,
+        });
       }
     });
   }

@@ -6,17 +6,11 @@
 			"type": "npm",
 			"script": "webpack",
 			"problemMatcher": "$tsc-watch",
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
+			"group": "build",
 			"options": {
 				"cwd": "packages/agikit-vscode"
 			},
-			"dependsOn": [
-				// "npm: build - packages/agikit-logic-language-server",
-				// "npm: build - packages/agikit-cli"
-			]
+			"dependsOn": []
 		},
 		{
 			"label": "Watch agikit-vscode",
@@ -44,7 +38,10 @@
 			"type": "npm",
 			"script": "build",
 			"path": "packages/agikit-core/",
-			"group": "build",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
 			"problemMatcher": [],
 			"label": "npm: build - packages/agikit-core",
 			"detail": "tsc"
