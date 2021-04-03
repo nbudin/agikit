@@ -1,21 +1,10 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import { EGAPalette } from 'agikit-core/dist/ColorPalettes';
+import { clamp } from 'lodash';
 
 const PIC_WIDTH = 160;
 const PIC_HEIGHT = 200;
 const DISPLAY_ASPECT_RATIO = (PIC_WIDTH * 2) / PIC_HEIGHT;
-
-function clamp(n: number, min: number, max: number): number {
-  if (n < min) {
-    return min;
-  }
-
-  if (n > max) {
-    return max;
-  }
-
-  return n;
-}
 
 function calculateClampedPosition(
   clientPosition: number,
@@ -44,29 +33,21 @@ export function PicCanvas({
   onCursorDown: (position: CursorPosition) => void;
   onCursorOut: () => void;
 }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<OffscreenCanvas>(new OffscreenCanvas(PIC_WIDTH * 2, PIC_HEIGHT));
   const imgRef = useRef<HTMLImageElement>(null);
   const [blobURL, setBlobURL] = useState('');
 
   useLayoutEffect(() => {
-    if (!canvasRef.current) {
-      return;
-    }
+    const render = async (ctx: OffscreenCanvasRenderingContext2D) => {
+      for (let index = 0; index < buffer.length; index++) {
+        const x = index % PIC_WIDTH;
+        const y = Math.floor(index / PIC_WIDTH);
+        const color = EGAPalette[buffer[index]];
+        ctx.fillStyle = color;
+        ctx.fillRect(x * 2, y, 2, 1);
+      }
 
-    const ctx = canvasRef.current.getContext('2d');
-    if (!ctx) {
-      return;
-    }
-
-    for (let index = 0; index < buffer.length; index++) {
-      const x = index % PIC_WIDTH;
-      const y = Math.floor(index / PIC_WIDTH);
-      const color = EGAPalette[buffer[index]];
-      ctx.fillStyle = color;
-      ctx.fillRect(x * 2, y, 2, 1);
-    }
-
-    canvasRef.current.toBlob((blob) => {
+      const blob = await canvasRef.current.convertToBlob({ type: 'image/bmp' });
       if (blob) {
         setBlobURL((prevURL) => {
           if (prevURL) {
@@ -77,7 +58,18 @@ export function PicCanvas({
           return URL.createObjectURL(blob);
         });
       }
-    });
+    };
+
+    if (!canvasRef.current) {
+      return;
+    }
+
+    const ctx = canvasRef.current.getContext('2d');
+    if (!ctx) {
+      return;
+    }
+
+    render(ctx);
   }, [buffer]);
 
   const calculateCursorPosition = (event: React.MouseEvent) => {
@@ -151,12 +143,6 @@ export function PicCanvas({
 
   return (
     <>
-      <canvas
-        ref={canvasRef}
-        height={PIC_HEIGHT}
-        width={PIC_WIDTH * 2}
-        style={{ display: 'none' }}
-      ></canvas>
       <img
         ref={imgRef}
         src={blobURL}

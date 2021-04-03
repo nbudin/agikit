@@ -457,12 +457,24 @@ function makeBuffer(fillColor: number): Uint8Array {
   return Buffer.alloc(160 * 200, fillColor);
 }
 
-export function renderPicture(picture: PictureResource): RenderedPicture {
-  const visualBuffer = makeBuffer(15);
-  const priorityBuffer = makeBuffer(4);
-  let pictureColor: number | undefined;
-  let priorityColor: number | undefined;
-  let pen: PicturePenSettings = {
+export function renderPicture(
+  picture: PictureResource,
+  startingFrom?: {
+    renderedPicture: RenderedPicture;
+    pictureColor: number | undefined;
+    priorityColor: number | undefined;
+    pen: PicturePenSettings;
+  },
+): RenderedPicture {
+  const visualBuffer = startingFrom
+    ? new Uint8Array(startingFrom.renderedPicture.visualBuffer)
+    : makeBuffer(15);
+  const priorityBuffer = startingFrom
+    ? new Uint8Array(startingFrom.renderedPicture.priorityBuffer)
+    : makeBuffer(4);
+  let pictureColor: number | undefined = startingFrom?.pictureColor;
+  let priorityColor: number | undefined = startingFrom?.priorityColor;
+  let pen: PicturePenSettings = startingFrom?.pen ?? {
     shape: 'rectangle',
     size: 0,
     splatter: false,
@@ -499,6 +511,7 @@ export function renderPicture(picture: PictureResource): RenderedPicture {
   const plotWithPenInCurrentColors = (position: PictureCoordinate, texture: number | undefined) => {
     const penMask = penMasks[pen.shape][pen.size];
     let textureStartPosition: number | undefined;
+    let maskOnPixelCount = 0; // texture bitmap only affects masked-on pixels; only count those
     if (pen.splatter && texture != null) {
       textureStartPosition = penTextureStartPositions[texture];
     }
@@ -511,9 +524,10 @@ export function renderPicture(picture: PictureResource): RenderedPicture {
 
       if (textureStartPosition != null) {
         // yes, mod 255, per the AGI spec.  Lance Ewing thinks it was a bug in AGI itself
-        const texturePosition = (textureStartPosition + index) % 255;
+        const texturePosition = (textureStartPosition + maskOnPixelCount) % 255;
         const textureByte = penTexturePatterns[Math.floor(texturePosition / 8)];
         const textureBit = textureByte & (1 << texturePosition % 8);
+        maskOnPixelCount += 1;
         if (textureBit === 0) {
           continue;
         }
