@@ -5,8 +5,8 @@
 .pic-editor {
   display: grid;
   grid-template:
-    "visual controls" calc(50vh - 0.5em)
-    "priority controls" calc(50vh - 0.5em) / minmax(320px, 640px) minmax(200px, 1fr);
+    'visual controls' calc(50vh - 0.5em)
+    'priority controls' calc(50vh - 0.5em) / minmax(320px, 640px) minmax(200px, 1fr);
   gap: 1em;
 }
 
@@ -18,7 +18,8 @@
   grid-area: priority;
 }
 
-.pic-editor-visual-area, .pic-editor-priority-area {
+.pic-editor-visual-area,
+.pic-editor-priority-area {
   display: flex;
   flex-direction: column;
   padding-top: var(--input-margin-vertical);

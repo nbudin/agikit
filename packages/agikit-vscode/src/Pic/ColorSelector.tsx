@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { EGAPalette } from "agikit-core/dist/ColorPalettes";
-import { usePopper } from "react-popper";
-import useOnclickOutside from "react-cool-onclickoutside";
-import { stylesForColorNumber } from "./colorUtils";
+import React, { useEffect, useState } from 'react';
+import { EGAPalette } from 'agikit-core/dist/ColorPalettes';
+import { usePopper } from 'react-popper';
+import useOnclickOutside from 'react-cool-onclickoutside';
+import { stylesForColorNumber } from './colorUtils';
 
 export default function ColorSelector({
   palette,
@@ -39,22 +39,22 @@ export default function ColorSelector({
         className={`secondary`}
         onClick={() => setOpen((prevOpen) => !prevOpen)}
         style={{
-          width: "3rem",
-          height: "3rem",
-          margin: "1px",
+          width: '3rem',
+          height: '3rem',
+          margin: '1px',
           ...stylesForColorNumber(color, palette),
         }}
       >
-        {colorType}: {color ?? "off"}
+        {colorType}: {color ?? 'off'}
       </button>
       <div
         className="pic-editor-color-picker"
-        style={{ ...styles.popper, visibility: open ? "visible" : "hidden" }}
+        style={{ ...styles.popper, visibility: open ? 'visible' : 'hidden' }}
         ref={setPopover}
         {...attributes.popper}
       >
         <div style={styles.arrow} {...attributes.arrow} />
-        <div style={{ display: "flex", flexWrap: "wrap" }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
           {palette.map((_colorValue, colorNumber) => (
             <button
               type="button"
@@ -63,9 +63,9 @@ export default function ColorSelector({
                 setColor(colorNumber);
               }}
               style={{
-                width: "3rem",
-                height: "3rem",
-                margin: "1px",
+                width: '3rem',
+                height: '3rem',
+                margin: '1px',
                 ...stylesForColorNumber(colorNumber, palette),
               }}
             >
@@ -79,9 +79,9 @@ export default function ColorSelector({
               setColor(undefined);
             }}
             style={{
-              width: "3rem",
-              height: "3rem",
-              margin: "1px",
+              width: '3rem',
+              height: '3rem',
+              margin: '1px',
               ...stylesForColorNumber(undefined, palette),
             }}
           >

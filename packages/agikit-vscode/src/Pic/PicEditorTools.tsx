@@ -1,21 +1,21 @@
-import React from "react";
-import { EGAPalette } from "agikit-core/dist/ColorPalettes";
-import ColorSelector from "./ColorSelector";
+import React from 'react';
+import { EGAPalette } from 'agikit-core/dist/ColorPalettes';
+import ColorSelector from './ColorSelector';
 
 export const PICTURE_TOOLS = [
   {
-    name: "absoluteLine",
-    description: "Absolute line",
-    iconClass: "bi-pentagon",
+    name: 'absoluteLine',
+    description: 'Absolute line',
+    iconClass: 'bi-pentagon',
   },
   {
-    name: "relativeLine",
-    description: "Relative line",
-    iconClass: "bi-pencil",
+    name: 'relativeLine',
+    description: 'Relative line',
+    iconClass: 'bi-pencil',
   },
-  { name: "corner", description: "Corner line", iconClass: "bi-bounding-box" },
-  { name: "fill", description: "Fill", iconClass: "bi-paint-bucket" },
-  { name: "pen", description: "Pen", iconClass: "bi-pen" },
+  { name: 'corner', description: 'Corner line', iconClass: 'bi-bounding-box' },
+  { name: 'fill', description: 'Fill', iconClass: 'bi-paint-bucket' },
+  { name: 'pen', description: 'Pen', iconClass: 'bi-pen' },
 ] as const;
 
 export type PictureTool = typeof PICTURE_TOOLS[number];
@@ -36,26 +36,22 @@ export default function PicEditorTools({
   setPriorityColor: React.Dispatch<React.SetStateAction<number | undefined>>;
 }) {
   return (
-    <div style={{ display: "flex" }}>
+    <div style={{ display: 'flex' }}>
       {PICTURE_TOOLS.map((tool) => (
         <button
           key={tool.name}
           type="button"
-          className={`secondary${selectedTool === tool ? " inverse" : ""}`}
+          className={`secondary${selectedTool === tool ? ' inverse' : ''}`}
           onClick={() => setSelectedTool(tool)}
           style={{
-            width: "3rem",
-            height: "3rem",
-            fontSize: "1.5rem",
-            margin: "1px",
+            width: '3rem',
+            height: '3rem',
+            fontSize: '1.5rem',
+            margin: '1px',
           }}
           title={tool.description}
         >
-          <i
-            className={tool.iconClass}
-            role="img"
-            aria-label={tool.description}
-          />
+          <i className={tool.iconClass} role="img" aria-label={tool.description} />
         </button>
       ))}
       <ColorSelector

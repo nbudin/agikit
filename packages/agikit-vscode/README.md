@@ -7,11 +7,11 @@ For a walkthrough on getting started, visit https://github.com/nbudin/agikit-pro
 ## Known Issues
 
 This is very, very early stage software, and a lot is probably broken and a lot more will change
-in upcoming releases.  Do not use agikit yet unless you're prepared to run into bugs and
+in upcoming releases. Do not use agikit yet unless you're prepared to run into bugs and
 frustration.
 
 ## Release Notes
 
 ### 0.4.0
 
-First release of agikit-vscode.  (Prior releases were only for standalone agikit CLI tools.)
+First release of agikit-vscode. (Prior releases were only for standalone agikit CLI tools.)

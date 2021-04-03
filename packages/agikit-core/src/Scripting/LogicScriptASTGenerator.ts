@@ -289,7 +289,10 @@ export class LogicScriptASTGenerator {
         throw new Error(`Unknown command ${statement.commandName}`);
       }
 
-      const next = statement.commandName !== 'return' ? this.generateASTForNextStatement(statement, stack) : undefined;
+      const next =
+        statement.commandName !== 'return'
+          ? this.generateASTForNextStatement(statement, stack)
+          : undefined;
       const node: LogicCommandNode = {
         type: 'command',
         address,

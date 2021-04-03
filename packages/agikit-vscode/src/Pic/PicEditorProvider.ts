@@ -1,13 +1,13 @@
-import * as vscode from "vscode";
-import { readPictureResource } from "agikit-core/dist/Extract/Picture/ReadPicture";
-import { Disposable, disposeAll } from "../disposable";
-import { randomBytes } from "crypto";
+import * as vscode from 'vscode';
+import { readPictureResource } from 'agikit-core/dist/Extract/Picture/ReadPicture';
+import { Disposable, disposeAll } from '../disposable';
+import { randomBytes } from 'crypto';
 import {
   applyEditsToResource,
   EditingPictureResource,
   PicDocumentEdit,
   prepareCommandForEditing,
-} from "./EditingPictureTypes";
+} from './EditingPictureTypes';
 
 interface PicDocumentDelegate {
   getFileData(): Promise<Uint8Array>;
@@ -52,9 +52,7 @@ function readDocumentForEditing(content: Buffer): EditingPictureResource {
   };
 }
 
-export class PicEditorDocument
-  extends Disposable
-  implements vscode.CustomDocument {
+export class PicEditorDocument extends Disposable implements vscode.CustomDocument {
   private readonly _uri: vscode.Uri;
   private readonly _delegate: PicDocumentDelegate;
   private _resource: EditingPictureResource;
@@ -64,27 +62,22 @@ export class PicEditorDocument
   static async create(
     uri: vscode.Uri,
     backupId: string | undefined,
-    delegate: PicDocumentDelegate
+    delegate: PicDocumentDelegate,
   ): Promise<PicEditorDocument> {
     // If we have a backup, read that. Otherwise read the resource from the workspace
-    const dataFile =
-      typeof backupId === "string" ? vscode.Uri.parse(backupId) : uri;
+    const dataFile = typeof backupId === 'string' ? vscode.Uri.parse(backupId) : uri;
     const data = await this.readFile(dataFile);
     return new PicEditorDocument(uri, data, delegate);
   }
 
   private static async readFile(uri: vscode.Uri): Promise<Buffer> {
-    if (uri.scheme === "untitled") {
+    if (uri.scheme === 'untitled') {
       return Buffer.alloc(0);
     }
     return Buffer.from(await vscode.workspace.fs.readFile(uri));
   }
 
-  private constructor(
-    uri: vscode.Uri,
-    initialContent: Buffer,
-    delegate: PicDocumentDelegate
-  ) {
+  private constructor(uri: vscode.Uri, initialContent: Buffer, delegate: PicDocumentDelegate) {
     super();
 
     this._uri = uri;
@@ -100,9 +93,7 @@ export class PicEditorDocument
     return this._resource;
   }
 
-  private readonly _onDidDispose = this._register(
-    new vscode.EventEmitter<void>()
-  );
+  private readonly _onDidDispose = this._register(new vscode.EventEmitter<void>());
 
   // Fired when the document is disposed of.
   public readonly onDidDispose = this._onDidDispose.event;
@@ -110,7 +101,7 @@ export class PicEditorDocument
   private readonly _onDidChangeDocument = this._register(
     new vscode.EventEmitter<{
       readonly content: EditingPictureResource;
-    }>()
+    }>(),
   );
 
   // Fired to notify webviews that the document has changed.
@@ -121,7 +112,7 @@ export class PicEditorDocument
       readonly label: string;
       undo(): void;
       redo(): void;
-    }>()
+    }>(),
   );
 
   public readonly onDidChange = this._onDidChange.event;
@@ -147,18 +138,16 @@ export class PicEditorDocument
       });
     };
 
-    if (edit.type === "AddCommands") {
+    if (edit.type === 'AddCommands') {
       this._onDidChange.fire({
-        label: edit.commands.map((c) => c.type).join(", "),
+        label: edit.commands.map((c) => c.type).join(', '),
         undo,
         redo,
       });
     } else {
-      const command = this._resource.commands.find(
-        (c) => c.uuid === edit.commandId
-      );
+      const command = this._resource.commands.find((c) => c.uuid === edit.commandId);
       this._onDidChange.fire({
-        label: `Remove ${command?.type ?? "command"}`,
+        label: `Remove ${command?.type ?? 'command'}`,
         undo,
         redo,
       });
@@ -174,10 +163,7 @@ export class PicEditorDocument
     this._savedEdits = Array.from(this._edits);
   }
 
-  async saveAs(
-    targetResource: vscode.Uri,
-    cancellation: vscode.CancellationToken
-  ): Promise<void> {
+  async saveAs(targetResource: vscode.Uri, cancellation: vscode.CancellationToken): Promise<void> {
     const fileData = await this._delegate.getFileData();
     if (cancellation.isCancellationRequested) {
       return;
@@ -196,7 +182,7 @@ export class PicEditorDocument
 
   async backup(
     destination: vscode.Uri,
-    cancellation: vscode.CancellationToken
+    cancellation: vscode.CancellationToken,
   ): Promise<vscode.CustomDocumentBackup> {
     await this.saveAs(destination, cancellation);
 
@@ -213,32 +199,27 @@ export class PicEditorDocument
   }
 }
 
-export class PicEditorProvider
-  implements vscode.CustomEditorProvider<PicEditorDocument> {
+export class PicEditorProvider implements vscode.CustomEditorProvider<PicEditorDocument> {
   private static newPicFileId = 1;
-  private static readonly viewType = "agikit.picEditor";
+  private static readonly viewType = 'agikit.picEditor';
   private readonly webviews = new WebviewCollection();
 
   public static register(context: vscode.ExtensionContext): vscode.Disposable {
-    vscode.commands.registerCommand("agikit.picEditor.new", () => {
+    vscode.commands.registerCommand('agikit.picEditor.new', () => {
       const workspaceFolders = vscode.workspace.workspaceFolders;
       if (!workspaceFolders) {
         vscode.window.showErrorMessage(
-          "Creating new .agipic resources currently requires opening a workspace"
+          'Creating new .agipic resources currently requires opening a workspace',
         );
         return;
       }
 
       const uri = vscode.Uri.joinPath(
         workspaceFolders[0].uri,
-        `new-${PicEditorProvider.newPicFileId++}.agipic`
-      ).with({ scheme: "untitled" });
+        `new-${PicEditorProvider.newPicFileId++}.agipic`,
+      ).with({ scheme: 'untitled' });
 
-      vscode.commands.executeCommand(
-        "vscode.openWith",
-        uri,
-        PicEditorProvider.viewType
-      );
+      vscode.commands.executeCommand('vscode.openWith', uri, PicEditorProvider.viewType);
     });
 
     return vscode.window.registerCustomEditorProvider(
@@ -252,21 +233,20 @@ export class PicEditorProvider
           retainContextWhenHidden: true,
         },
         supportsMultipleEditorsPerDocument: false,
-      }
+      },
     );
   }
 
   private readonly _onDidChangeCustomDocument = new vscode.EventEmitter<
     vscode.CustomDocumentEditEvent<PicEditorDocument>
   >();
-  public readonly onDidChangeCustomDocument = this._onDidChangeCustomDocument
-    .event;
+  public readonly onDidChangeCustomDocument = this._onDidChangeCustomDocument.event;
 
   constructor(private readonly _context: vscode.ExtensionContext) {}
 
   public saveCustomDocument(
     document: PicEditorDocument,
-    cancellation: vscode.CancellationToken
+    cancellation: vscode.CancellationToken,
   ): Thenable<void> {
     return document.save(cancellation);
   }
@@ -274,22 +254,22 @@ export class PicEditorProvider
   public saveCustomDocumentAs(
     document: PicEditorDocument,
     destination: vscode.Uri,
-    cancellation: vscode.CancellationToken
+    cancellation: vscode.CancellationToken,
   ): Thenable<void> {
     return document.saveAs(destination, cancellation);
   }
 
   revertCustomDocument(
     document: PicEditorDocument,
-    cancellation: vscode.CancellationToken
+    cancellation: vscode.CancellationToken,
   ): Thenable<void> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   backupCustomDocument(
     document: PicEditorDocument,
     context: vscode.CustomDocumentBackupContext,
-    cancellation: vscode.CancellationToken
+    cancellation: vscode.CancellationToken,
   ): Thenable<vscode.CustomDocumentBackup> {
     return document.backup(context.destination, cancellation);
   }
@@ -297,29 +277,19 @@ export class PicEditorProvider
   async openCustomDocument(
     uri: vscode.Uri,
     openContext: vscode.CustomDocumentOpenContext,
-    token: vscode.CancellationToken
+    token: vscode.CancellationToken,
   ) {
-    const document: PicEditorDocument = await PicEditorDocument.create(
-      uri,
-      openContext.backupId,
-      {
-        getFileData: async () => {
-          const webviewsForDocument = Array.from(
-            this.webviews.get(document.uri)
-          );
-          if (!webviewsForDocument.length) {
-            throw new Error("Could not find webview to save for");
-          }
-          const panel = webviewsForDocument[0];
-          const response = await this.postMessageWithResponse<number[]>(
-            panel,
-            "getFileData",
-            {}
-          );
-          return new Uint8Array(response);
-        },
-      }
-    );
+    const document: PicEditorDocument = await PicEditorDocument.create(uri, openContext.backupId, {
+      getFileData: async () => {
+        const webviewsForDocument = Array.from(this.webviews.get(document.uri));
+        if (!webviewsForDocument.length) {
+          throw new Error('Could not find webview to save for');
+        }
+        const panel = webviewsForDocument[0];
+        const response = await this.postMessageWithResponse<number[]>(panel, 'getFileData', {});
+        return new Uint8Array(response);
+      },
+    });
 
     const listeners: vscode.Disposable[] = [];
 
@@ -330,19 +300,19 @@ export class PicEditorProvider
           document,
           ...e,
         });
-      })
+      }),
     );
 
     listeners.push(
       document.onDidChangeContent((e) => {
         // Update all webviews when the document changes
         for (const webviewPanel of this.webviews.get(document.uri)) {
-          this.postMessage(webviewPanel, "update", {
+          this.postMessage(webviewPanel, 'update', {
             // edits: e.edits,
             content: e.content,
           });
         }
-      })
+      }),
     );
 
     document.onDidDispose(() => disposeAll(listeners));
@@ -353,7 +323,7 @@ export class PicEditorProvider
   async resolveCustomEditor(
     document: PicEditorDocument,
     webviewPanel: vscode.WebviewPanel,
-    token: vscode.CancellationToken
+    token: vscode.CancellationToken,
   ): Promise<void> {
     // Add the webview to our internal set of active webviews
     this.webviews.add(document.uri, webviewPanel);
@@ -364,45 +334,39 @@ export class PicEditorProvider
     };
     webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview);
 
-    webviewPanel.webview.onDidReceiveMessage((e) =>
-      this.onMessage(document, e)
-    );
+    webviewPanel.webview.onDidReceiveMessage((e) => this.onMessage(document, e));
 
     // Wait for the webview to be properly ready before we init
     webviewPanel.webview.onDidReceiveMessage((e) => {
-      if (e.type === "ready") {
-        if (document.uri.scheme === "untitled") {
-          this.postMessage(webviewPanel, "init", {
+      if (e.type === 'ready') {
+        if (document.uri.scheme === 'untitled') {
+          this.postMessage(webviewPanel, 'init', {
             untitled: true,
             editable: true,
           });
         } else {
-          const editable = vscode.workspace.fs.isWritableFileSystem(
-            document.uri.scheme
-          );
+          const editable = vscode.workspace.fs.isWritableFileSystem(document.uri.scheme);
 
-          this.postMessage(webviewPanel, "init", {
+          this.postMessage(webviewPanel, 'init', {
             resource: document.resource,
             editable,
           });
         }
-      } else if (e.type === "confirm") {
-        vscode.window
-          .showInformationMessage(e.message, { modal: true }, "OK")
-          .then((button) => {
-            webviewPanel.webview.postMessage({
-              type: "confirmResult",
-              body: { confirmed: button === "OK" },
-            });
+      } else if (e.type === 'confirm') {
+        vscode.window.showInformationMessage(e.message, { modal: true }, 'OK').then((button) => {
+          webviewPanel.webview.postMessage({
+            type: 'confirmResult',
+            body: { confirmed: button === 'OK' },
           });
-      } else if (e.type === "deleteCommand") {
+        });
+      } else if (e.type === 'deleteCommand') {
         document.makeEdit({
-          type: "DeleteCommand",
+          type: 'DeleteCommand',
           commandId: e.commandId,
         });
-      } else if (e.type === "addCommands") {
+      } else if (e.type === 'addCommands') {
         document.makeEdit({
-          type: "AddCommands",
+          type: 'AddCommands',
           afterCommandId: e.afterCommandId,
           commands: e.commands,
         });
@@ -413,23 +377,15 @@ export class PicEditorProvider
   private getHtmlForWebview(webview: vscode.Webview): string {
     // Local path to script and css for the webview
     const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this._context.extensionUri,
-        "dist",
-        "VscodePicEditor.js"
-      )
+      vscode.Uri.joinPath(this._context.extensionUri, 'dist', 'VscodePicEditor.js'),
     );
 
     const styleMainUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this._context.extensionUri,
-        "dist",
-        "VscodePicEditor.css"
-      )
+      vscode.Uri.joinPath(this._context.extensionUri, 'dist', 'VscodePicEditor.css'),
     );
 
     // Use a nonce to whitelist which scripts can be run
-    const nonce = randomBytes(16).toString("base64");
+    const nonce = randomBytes(16).toString('base64');
 
     return /* html */ `
 			<!DOCTYPE html>
@@ -455,27 +411,21 @@ export class PicEditorProvider
   private postMessageWithResponse<R = unknown>(
     panel: vscode.WebviewPanel,
     type: string,
-    body: any
+    body: any,
   ): Promise<R> {
     const requestId = this._requestId++;
-    const p = new Promise<R>((resolve) =>
-      this._callbacks.set(requestId, resolve)
-    );
+    const p = new Promise<R>((resolve) => this._callbacks.set(requestId, resolve));
     panel.webview.postMessage({ type, requestId, body });
     return p;
   }
 
-  private postMessage(
-    panel: vscode.WebviewPanel,
-    type: string,
-    body: any
-  ): void {
+  private postMessage(panel: vscode.WebviewPanel, type: string, body: any): void {
     panel.webview.postMessage({ type, body });
   }
 
   private onMessage(document: PicEditorDocument, message: any) {
     switch (message.type) {
-      case "response": {
+      case 'response': {
         const callback = this._callbacks.get(message.requestId);
         callback?.(message.body);
         return;

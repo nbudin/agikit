@@ -1,8 +1,5 @@
-import React, { useCallback, useMemo } from "react";
-import {
-  EditingPictureCommand,
-  EditingPictureResource,
-} from "./EditingPictureTypes";
+import React, { useCallback, useMemo } from 'react';
+import { EditingPictureCommand, EditingPictureResource } from './EditingPictureTypes';
 
 export type CommandListNavigationContextValue = {
   enabledCommands: EditingPictureCommand[];
@@ -13,28 +10,22 @@ export type CommandListNavigationContextValue = {
   jumpRelative: (amount: number) => void;
 };
 
-export const CommandListNavigationContext = React.createContext<CommandListNavigationContextValue>(
-  {
-    enabledCommands: [],
-    currentCommandId: undefined,
-    setAllCommandsEnabled: () => {},
-    setCommandEnabled: () => {},
-    jumpTo: () => {},
-    jumpRelative: () => {},
-  }
-);
+export const CommandListNavigationContext = React.createContext<CommandListNavigationContextValue>({
+  enabledCommands: [],
+  currentCommandId: undefined,
+  setAllCommandsEnabled: () => {},
+  setCommandEnabled: () => {},
+  jumpTo: () => {},
+  jumpRelative: () => {},
+});
 
 export function useCommandListNavigation(
-  commands: EditingPictureResource["commands"],
+  commands: EditingPictureResource['commands'],
   setCommands: React.Dispatch<
-    (
-      prevCommands: EditingPictureResource["commands"]
-    ) => EditingPictureResource["commands"]
-  >
+    (prevCommands: EditingPictureResource['commands']) => EditingPictureResource['commands']
+  >,
 ): CommandListNavigationContextValue {
-  const enabledCommands = useMemo(() => commands.filter((c) => c.enabled), [
-    commands,
-  ]);
+  const enabledCommands = useMemo(() => commands.filter((c) => c.enabled), [commands]);
 
   const currentCommandId = useMemo(() => {
     if (enabledCommands.length > 0) {
@@ -49,10 +40,10 @@ export function useCommandListNavigation(
         prevCommands.map((command) => ({
           ...command,
           enabled,
-        }))
+        })),
       );
     },
-    [setCommands]
+    [setCommands],
   );
 
   const setCommandEnabled = useCallback(
@@ -64,39 +55,35 @@ export function useCommandListNavigation(
           }
 
           return command;
-        })
+        }),
       );
     },
-    [setCommands]
+    [setCommands],
   );
 
   const jumpTo = useCallback(
     (uuid: string) => {
       setCommands((prevCommands) => {
-        const disableAfterIndex = prevCommands.findIndex(
-          (command) => command.uuid === uuid
-        );
+        const disableAfterIndex = prevCommands.findIndex((command) => command.uuid === uuid);
         return prevCommands.map((command, index) => ({
           ...command,
           enabled: index > disableAfterIndex ? false : true,
         }));
       });
     },
-    [setCommands]
+    [setCommands],
   );
 
   const jumpRelative = useCallback(
     (amount: number) => {
       const currentCommandIndex =
-        currentCommandId != null
-          ? commands.findIndex((c) => c.uuid === currentCommandId)
-          : -1;
+        currentCommandId != null ? commands.findIndex((c) => c.uuid === currentCommandId) : -1;
       const targetCommand = commands[currentCommandIndex + amount];
       if (targetCommand) {
         jumpTo(targetCommand.uuid);
       }
     },
-    [jumpTo, currentCommandId, commands]
+    [jumpTo, currentCommandId, commands],
   );
 
   const contextValue = useMemo(() => {

@@ -19,18 +19,18 @@ import {
   TextDocuments,
   TextDocumentSyncKind,
   WorkspaceFolder,
-} from "vscode-languageserver/node";
+} from 'vscode-languageserver/node';
 import {
   LogicScriptParseTree,
   parseLogicScriptRaw,
   buildIdentifierMappingForDefineDirective,
-} from "agikit-core/dist/Scripting/LogicScriptParser";
-import { URI, Utils } from "vscode-uri";
-import fs from "fs";
-import path from "path";
-import { TextDocument } from "vscode-languageserver-textdocument";
-import { SyntaxError } from "agikit-core/dist/Scripting/LogicScriptParser.generated";
-import { agiCommands } from "agikit-core/dist/Types/AGICommands";
+} from 'agikit-core/dist/Scripting/LogicScriptParser';
+import { URI, Utils } from 'vscode-uri';
+import fs from 'fs';
+import path from 'path';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { SyntaxError } from 'agikit-core/dist/Scripting/LogicScriptParser.generated';
+import { agiCommands } from 'agikit-core/dist/Types/AGICommands';
 import {
   LogicScriptArgument,
   LogicScriptBooleanExpression,
@@ -40,17 +40,14 @@ import {
   LogicScriptProgram,
   LogicScriptStatement,
   PegJSLocationRange,
-} from "agikit-core/dist/Scripting/LogicScriptParserTypes";
+} from 'agikit-core/dist/Scripting/LogicScriptParserTypes';
 import {
   BUILT_IN_IDENTIFIERS,
   IdentifierMapping,
-} from "agikit-core/dist/Scripting/LogicScriptIdentifierMapping";
+} from 'agikit-core/dist/Scripting/LogicScriptIdentifierMapping';
 
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
-const parseTrees = new Map<
-  string,
-  LogicScriptParseTree<LogicScriptStatement>
->();
+const parseTrees = new Map<string, LogicScriptParseTree<LogicScriptStatement>>();
 
 type LogicScriptDefine = {
   directive: LogicScriptDefineDirective;
@@ -65,10 +62,7 @@ const definesByName = new Map<string, LogicScriptDefine[]>();
 const definesByDocument = new Map<string, LogicScriptDefine[]>();
 const identifiersByDocument = new Map<string, LogicScriptIdentifier[]>();
 const identifiersByName = new Map<string, LogicScriptIdentifierWithFileUri[]>();
-const includeDirectivesByDocument = new Map<
-  string,
-  LogicScriptIncludeDirective[]
->();
+const includeDirectivesByDocument = new Map<string, LogicScriptIncludeDirective[]>();
 const includedDocumentsByDocument = new Map<string, string[]>();
 
 let connection = createConnection(ProposedFeatures.all);
@@ -109,9 +103,7 @@ connection.onInitialize((params: InitializeParams) => {
 
   // Does the client support the `workspace/configuration` request?
   // If not, we fall back using global settings.
-  hasConfigurationCapability = !!(
-    capabilities.workspace && !!capabilities.workspace.configuration
-  );
+  hasConfigurationCapability = !!(capabilities.workspace && !!capabilities.workspace.configuration);
   hasWorkspaceFolderCapability = !!(
     capabilities.workspace && !!capabilities.workspace.workspaceFolders
   );
@@ -149,10 +141,7 @@ connection.onInitialize((params: InitializeParams) => {
 connection.onInitialized(() => {
   if (hasConfigurationCapability) {
     // Register for all configuration changes.
-    connection.client.register(
-      DidChangeConfigurationNotification.type,
-      undefined
-    );
+    connection.client.register(DidChangeConfigurationNotification.type, undefined);
   }
   if (hasWorkspaceFolderCapability) {
     connection.workspace.getWorkspaceFolders().then((folders) => {
@@ -183,9 +172,7 @@ connection.onDidChangeConfiguration((change) => {
     // Reset all cached document settings
     documentSettings.clear();
   } else {
-    globalSettings = <ExampleSettings>(
-      (change.settings.agikit || defaultSettings)
-    );
+    globalSettings = <ExampleSettings>(change.settings.agikit || defaultSettings);
   }
 
   // Revalidate all open text documents
@@ -196,15 +183,12 @@ connection.onDidChangeConfiguration((change) => {
 
 function refreshFolder(folder: WorkspaceFolder) {
   const uri = URI.parse(folder.uri);
-  if (uri.scheme === "file") {
+  if (uri.scheme === 'file') {
     const logicFiles = listFilesRecursive(uri.fsPath).filter((filePath) =>
-      filePath.toLowerCase().endsWith(".agilogic")
+      filePath.toLowerCase().endsWith('.agilogic'),
     );
     logicFiles.forEach((logicFile) =>
-      refreshTextDocument(
-        uri.with({ path: logicFile }),
-        fs.readFileSync(logicFile, "utf-8")
-      )
+      refreshTextDocument(uri.with({ path: logicFile }), fs.readFileSync(logicFile, 'utf-8')),
     );
   }
 }
@@ -217,7 +201,7 @@ function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
   if (!result) {
     result = connection.workspace.getConfiguration({
       scopeUri: resource,
-      section: "agikit",
+      section: 'agikit',
     });
     documentSettings.set(resource, result);
   }
@@ -232,10 +216,7 @@ documents.onDidClose((e) => {
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 documents.onDidChangeContent((change) => {
-  refreshTextDocument(
-    URI.parse(change.document.uri),
-    change.document.getText()
-  );
+  refreshTextDocument(URI.parse(change.document.uri), change.document.getText());
 });
 
 function clearDocumentData(uri: URI) {
@@ -248,7 +229,7 @@ function clearDocumentData(uri: URI) {
       if (defineList) {
         definesByName.set(
           define.directive.identifier.name,
-          defineList.filter((define) => define.fileUri !== uriString)
+          defineList.filter((define) => define.fileUri !== uriString),
         );
       }
     });
@@ -260,9 +241,7 @@ function clearDocumentData(uri: URI) {
       if (identifierList) {
         identifiersByName.set(
           identifier.name,
-          identifierList.filter(
-            (identifier) => identifier.fileUri !== uriString
-          )
+          identifierList.filter((identifier) => identifier.fileUri !== uriString),
         );
       }
     });
@@ -288,7 +267,7 @@ async function refreshTextDocument(uri: URI, contents: string): Promise<void> {
         severity: DiagnosticSeverity.Error,
         range: pegJSLocationRangeToVSCodeRange(error.location),
         message: error.message,
-        source: "agikit",
+        source: 'agikit',
       };
       diagnostics.push(diagnostic);
     } else {
@@ -309,34 +288,24 @@ async function refreshTextDocument(uri: URI, contents: string): Promise<void> {
       if (!identifiersByName.has(identifier.name)) {
         identifiersByName.set(identifier.name, []);
       }
-      identifiersByName
-        .get(identifier.name)
-        ?.push({ fileUri: uri.toString(), identifier });
+      identifiersByName.get(identifier.name)?.push({ fileUri: uri.toString(), identifier });
     };
 
     const addDefine = (directive: LogicScriptDefineDirective) => {
       const define: LogicScriptDefine = {
         directive: directive,
         fileUri: uri.toString(),
-        identifierMapping: buildIdentifierMappingForDefineDirective(
-          directive,
-          identifierMappings
-        ),
+        identifierMapping: buildIdentifierMappingForDefineDirective(directive, identifierMappings),
       };
       if (identifierMappings.has(directive.identifier.name)) {
         if (directive.identifier.location) {
           diagnostics.push({
             message: `Duplicate definition for ${directive.identifier.name}`,
-            range: pegJSLocationRangeToVSCodeRange(
-              directive.identifier.location
-            ),
+            range: pegJSLocationRangeToVSCodeRange(directive.identifier.location),
           });
         }
       } else {
-        identifierMappings.set(
-          directive.identifier.name,
-          define.identifierMapping
-        );
+        identifierMappings.set(directive.identifier.name, define.identifierMapping);
       }
       documentDefines.push(define);
 
@@ -347,70 +316,61 @@ async function refreshTextDocument(uri: URI, contents: string): Promise<void> {
     };
 
     const processArgument = (argument: LogicScriptArgument) => {
-      if (argument.type === "Identifier") {
+      if (argument.type === 'Identifier') {
         addIdentifier(argument);
       }
     };
 
-    const processBooleanExpression = (
-      expression: LogicScriptBooleanExpression
-    ) => {
-      if (
-        expression.type === "AndExpression" ||
-        expression.type === "OrExpression"
-      ) {
+    const processBooleanExpression = (expression: LogicScriptBooleanExpression) => {
+      if (expression.type === 'AndExpression' || expression.type === 'OrExpression') {
         expression.clauses.forEach(processBooleanExpression);
-      } else if (expression.type === "NotExpression") {
+      } else if (expression.type === 'NotExpression') {
         processBooleanExpression(expression.expression);
-      } else if (expression.type === "BooleanBinaryOperation") {
+      } else if (expression.type === 'BooleanBinaryOperation') {
         processArgument(expression.left);
         processArgument(expression.right);
-      } else if (expression.type === "TestCall") {
+      } else if (expression.type === 'TestCall') {
         expression.argumentList.forEach(processArgument);
-      } else if (expression.type === "Identifier") {
+      } else if (expression.type === 'Identifier') {
         addIdentifier(expression);
       }
     };
 
     const processStatement = (statement: LogicScriptStatement) => {
-      if (statement.type === "DefineDirective") {
+      if (statement.type === 'DefineDirective') {
         addDefine(statement);
 
-        if (statement.value.type === "Identifier") {
+        if (statement.value.type === 'Identifier') {
           addIdentifier(statement.value);
         }
-      } else if (statement.type === "IncludeDirective") {
-        const includeURI = Utils.resolvePath(
-          uri,
-          "..",
-          statement.filename.value
-        );
+      } else if (statement.type === 'IncludeDirective') {
+        const includeURI = Utils.resolvePath(uri, '..', statement.filename.value);
         documentIncludes.push(statement);
         includeURIs.push(includeURI);
-      } else if (statement.type === "CommandCall") {
+      } else if (statement.type === 'CommandCall') {
         statement.argumentList.forEach(processArgument);
-      } else if (statement.type === "ArithmeticAssignmentStatement") {
+      } else if (statement.type === 'ArithmeticAssignmentStatement') {
         addIdentifier(statement.assignee);
-        if (statement.value.type === "Identifier") {
+        if (statement.value.type === 'Identifier') {
           addIdentifier(statement.value);
         }
-      } else if (statement.type === "IfStatement") {
+      } else if (statement.type === 'IfStatement') {
         processBooleanExpression(statement.conditions);
         statement.thenStatements.forEach(processStatement);
         statement.elseStatements.forEach(processStatement);
-      } else if (statement.type === "LeftIndirectAssignmentStatement") {
+      } else if (statement.type === 'LeftIndirectAssignmentStatement') {
         addIdentifier(statement.assigneePointer);
-        if (statement.value.type === "Identifier") {
+        if (statement.value.type === 'Identifier') {
           addIdentifier(statement.value);
         }
-      } else if (statement.type === "RightIndirectAssignmentStatement") {
+      } else if (statement.type === 'RightIndirectAssignmentStatement') {
         addIdentifier(statement.assignee);
         addIdentifier(statement.valuePointer);
-      } else if (statement.type === "UnaryOperationStatement") {
+      } else if (statement.type === 'UnaryOperationStatement') {
         addIdentifier(statement.identifier);
-      } else if (statement.type === "ValueAssignmentStatement") {
+      } else if (statement.type === 'ValueAssignmentStatement') {
         addIdentifier(statement.assignee);
-        if (statement.value.type === "Identifier") {
+        if (statement.value.type === 'Identifier') {
           addIdentifier(statement.value);
         }
       }
@@ -421,7 +381,7 @@ async function refreshTextDocument(uri: URI, contents: string): Promise<void> {
     definesByDocument.set(uri.toString(), documentDefines);
     includedDocumentsByDocument.set(
       uri.toString(),
-      includeURIs.map((includeURI) => includeURI.toString())
+      includeURIs.map((includeURI) => includeURI.toString()),
     );
     includeDirectivesByDocument.set(uri.toString(), documentIncludes);
     identifiersByDocument.set(uri.toString(), documentIdentifiers);
@@ -431,10 +391,10 @@ async function refreshTextDocument(uri: URI, contents: string): Promise<void> {
         if (includedDocument) {
           await refreshTextDocument(includeURI, includedDocument.getText());
         } else {
-          const includeContents = fs.readFileSync(includeURI.fsPath, "utf-8");
+          const includeContents = fs.readFileSync(includeURI.fsPath, 'utf-8');
           await refreshTextDocument(includeURI, includeContents);
         }
-      })
+      }),
     );
   }
 
@@ -449,7 +409,7 @@ connection.onDidChangeWatchedFiles((change) => {
       changedFile.type === FileChangeType.Changed ||
       changedFile.type === FileChangeType.Created
     ) {
-      refreshTextDocument(uri, fs.readFileSync(uri.fsPath, "utf-8"));
+      refreshTextDocument(uri, fs.readFileSync(uri.fsPath, 'utf-8'));
     } else if (changedFile.type === FileChangeType.Deleted) {
       clearDocumentData(uri);
     }
@@ -467,26 +427,22 @@ function visibleDefinesForDocument(uri: string): LogicScriptDefine[] {
 }
 
 // This handler provides the initial list of the completion items.
-connection.onCompletion(
-  (textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-    const documentDefines = visibleDefinesForDocument(
-      textDocumentPosition.textDocument.uri
-    );
+connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
+  const documentDefines = visibleDefinesForDocument(textDocumentPosition.textDocument.uri);
 
-    return [
-      ...agiCommands.map((command) => ({
-        label: command.name,
-        kind: CompletionItemKind.Function,
-        data: command,
-      })),
-      ...documentDefines.map((define) => ({
-        label: define.directive.identifier.name,
-        kind: CompletionItemKind.Variable,
-        data: define,
-      })),
-    ];
-  }
-);
+  return [
+    ...agiCommands.map((command) => ({
+      label: command.name,
+      kind: CompletionItemKind.Function,
+      data: command,
+    })),
+    ...documentDefines.map((define) => ({
+      label: define.directive.identifier.name,
+      kind: CompletionItemKind.Variable,
+      data: define,
+    })),
+  ];
+});
 
 // This handler resolves additional information for the item selected in
 // the completion list.
@@ -500,7 +456,7 @@ connection.onCompletionResolve(
     //   item.documentation = "JavaScript documentation";
     // }
     return item;
-  }
+  },
 );
 
 function findIdentifierAtLocation(documentUri: string, position: Position) {
@@ -516,10 +472,7 @@ function findIdentifierAtLocation(documentUri: string, position: Position) {
       return false;
     }
 
-    if (
-      range.start.character > position.character ||
-      range.end.character < position.character
-    ) {
+    if (range.start.character > position.character || range.end.character < position.character) {
       return false;
     }
 
@@ -530,10 +483,7 @@ function findIdentifierAtLocation(documentUri: string, position: Position) {
 }
 
 connection.onDefinition((params) => {
-  const identifier = findIdentifierAtLocation(
-    params.textDocument.uri,
-    params.position
-  );
+  const identifier = findIdentifierAtLocation(params.textDocument.uri, params.position);
 
   if (!identifier) {
     return;
@@ -561,10 +511,7 @@ connection.onDefinition((params) => {
 });
 
 connection.onReferences((params) => {
-  const identifier = findIdentifierAtLocation(
-    params.textDocument.uri,
-    params.position
-  );
+  const identifier = findIdentifierAtLocation(params.textDocument.uri, params.position);
 
   if (!identifier) {
     return;
@@ -591,10 +538,7 @@ connection.onReferences((params) => {
 });
 
 connection.onHover((params) => {
-  const identifier = findIdentifierAtLocation(
-    params.textDocument.uri,
-    params.position
-  );
+  const identifier = findIdentifierAtLocation(params.textDocument.uri, params.position);
 
   if (!identifier) {
     return;
@@ -611,16 +555,14 @@ connection.onHover((params) => {
   }
 
   let description: string;
-  if (firstDefine.identifierMapping.identifierType === "constant") {
+  if (firstDefine.identifierMapping.identifierType === 'constant') {
     description = JSON.stringify(firstDefine.identifierMapping.value);
   } else {
     description = `${firstDefine.identifierMapping.type} #${firstDefine.identifierMapping.number}`;
   }
 
   return {
-    range: identifier.location
-      ? pegJSLocationRangeToVSCodeRange(identifier.location)
-      : undefined,
+    range: identifier.location ? pegJSLocationRangeToVSCodeRange(identifier.location) : undefined,
     contents: {
       kind: MarkupKind.Markdown,
       value: `\`${identifier.name}\` - ${description}`,
@@ -629,8 +571,7 @@ connection.onHover((params) => {
 });
 
 connection.onDocumentLinks((params) => {
-  const includeDirectives =
-    includeDirectivesByDocument.get(params.textDocument.uri) ?? [];
+  const includeDirectives = includeDirectivesByDocument.get(params.textDocument.uri) ?? [];
 
   const links: DocumentLink[] = [];
 
@@ -644,8 +585,8 @@ connection.onDocumentLinks((params) => {
       range: pegJSLocationRangeToVSCodeRange(location),
       target: Utils.resolvePath(
         URI.parse(params.textDocument.uri),
-        "..",
-        directive.filename.value
+        '..',
+        directive.filename.value,
       ).toString(),
     });
   });

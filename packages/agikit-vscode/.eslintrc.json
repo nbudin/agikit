@@ -1,28 +1,24 @@
 {
-    "root": true,
-    "parser": "@typescript-eslint/parser",
-    "extends": [
-        "plugin:react-hooks/recommended"
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "extends": ["plugin:react-hooks/recommended"],
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint"],
+  "rules": {
+    "@typescript-eslint/naming-convention": [
+      "warn",
+      {
+        "selector": "function",
+        "format": ["camelCase", "PascalCase"]
+      }
     ],
-    "parserOptions": {
-        "ecmaVersion": 6,
-        "sourceType": "module"
-    },
-    "plugins": [
-        "@typescript-eslint"
-    ],
-    "rules": {
-        "@typescript-eslint/naming-convention": ["warn", {
-            "selector": "function",
-            "format": [
-                "camelCase",
-                "PascalCase"
-            ]
-        }],
-        "@typescript-eslint/semi": "warn",
-        "curly": "warn",
-        "eqeqeq": ["warn", "smart"],
-        "no-throw-literal": "warn",
-        "semi": "off"
-    }
+    "@typescript-eslint/semi": "warn",
+    "curly": "warn",
+    "eqeqeq": ["warn", "smart"],
+    "no-throw-literal": "warn",
+    "semi": "off"
+  }
 }
