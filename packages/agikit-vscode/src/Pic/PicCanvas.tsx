@@ -1,5 +1,5 @@
-import React, { useLayoutEffect, useRef, useState } from "react";
-import { EGAPalette } from "agikit-core/dist/ColorPalettes";
+import React, { useLayoutEffect, useRef, useState } from 'react';
+import { EGAPalette } from 'agikit-core/dist/ColorPalettes';
 
 const PIC_WIDTH = 160;
 const PIC_HEIGHT = 200;
@@ -21,15 +21,11 @@ function calculateClampedPosition(
   clientPosition: number,
   offsetStart: number,
   offsetSize: number,
-  virtualSize: number
+  virtualSize: number,
 ): number {
   const offsetPosition = clientPosition - offsetStart;
   const fractionalPosition = offsetPosition / offsetSize;
-  return clamp(
-    Math.round(fractionalPosition * virtualSize),
-    0,
-    virtualSize - 1
-  );
+  return clamp(Math.round(fractionalPosition * virtualSize), 0, virtualSize - 1);
 }
 
 export type CursorPosition = {
@@ -50,14 +46,14 @@ export function PicCanvas({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
-  const [blobURL, setBlobURL] = useState("");
+  const [blobURL, setBlobURL] = useState('');
 
   useLayoutEffect(() => {
     if (!canvasRef.current) {
       return;
     }
 
-    const ctx = canvasRef.current.getContext("2d");
+    const ctx = canvasRef.current.getContext('2d');
     if (!ctx) {
       return;
     }
@@ -89,8 +85,7 @@ export function PicCanvas({
       return;
     }
 
-    const elementAspectRatio =
-      imgRef.current.offsetWidth / imgRef.current.offsetHeight;
+    const elementAspectRatio = imgRef.current.offsetWidth / imgRef.current.offsetHeight;
     let horizontalOffset = 0;
     let verticalOffset = 0;
     if (elementAspectRatio < DISPLAY_ASPECT_RATIO) {
@@ -105,13 +100,9 @@ export function PicCanvas({
 
     if (
       event.clientX < imgRef.current.offsetLeft + horizontalOffset ||
-      event.clientX >
-        imgRef.current.offsetLeft +
-          imgRef.current.offsetWidth -
-          horizontalOffset ||
+      event.clientX > imgRef.current.offsetLeft + imgRef.current.offsetWidth - horizontalOffset ||
       event.clientY < imgRef.current.offsetTop + verticalOffset ||
-      event.clientY >
-        imgRef.current.offsetTop + imgRef.current.offsetHeight - verticalOffset
+      event.clientY > imgRef.current.offsetTop + imgRef.current.offsetHeight - verticalOffset
     ) {
       return;
     }
@@ -120,13 +111,13 @@ export function PicCanvas({
       event.clientX,
       imgRef.current.offsetLeft + horizontalOffset,
       imgRef.current.offsetWidth - horizontalOffset * 2,
-      PIC_WIDTH
+      PIC_WIDTH,
     );
     const y = calculateClampedPosition(
       event.clientY,
       imgRef.current.offsetTop + verticalOffset,
       imgRef.current.offsetHeight - verticalOffset * 2,
-      PIC_HEIGHT
+      PIC_HEIGHT,
     );
 
     return { x, y };
@@ -164,7 +155,7 @@ export function PicCanvas({
         ref={canvasRef}
         height={PIC_HEIGHT}
         width={PIC_WIDTH * 2}
-        style={{ display: "none" }}
+        style={{ display: 'none' }}
       ></canvas>
       <img
         ref={imgRef}
