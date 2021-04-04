@@ -1,7 +1,21 @@
+import { DEFAULT_PEN_SETTINGS } from 'agikit-core/dist/Extract/Picture/RenderPicture';
+import {
+  ChangePenPictureCommand,
+  DisablePictureDrawPictureCommand,
+  DisablePriorityDrawPictureCommand,
+  PicturePenSettings,
+  SetPictureColorPictureCommand,
+  SetPriorityColorPictureCommand,
+} from 'agikit-core/dist/Types/Picture';
 import React, { useCallback, useMemo } from 'react';
 import { EditingPictureCommand, EditingPictureResource } from './EditingPictureTypes';
 
 export type CommandListNavigationContextValue = {
+  currentCommandColors: {
+    visual: number | undefined;
+    priority: number | undefined;
+  };
+  currentCommandPenSettings: PicturePenSettings;
   enabledCommands: EditingPictureCommand[];
   currentCommandId: string | undefined;
   setAllCommandsEnabled: (enabled: boolean) => void;
@@ -11,6 +25,11 @@ export type CommandListNavigationContextValue = {
 };
 
 export const CommandListNavigationContext = React.createContext<CommandListNavigationContextValue>({
+  currentCommandColors: {
+    visual: undefined,
+    priority: undefined,
+  },
+  currentCommandPenSettings: DEFAULT_PEN_SETTINGS,
   enabledCommands: [],
   currentCommandId: undefined,
   setAllCommandsEnabled: () => {},
@@ -86,8 +105,60 @@ export function useCommandListNavigation(
     [jumpTo, currentCommandId, commands],
   );
 
+  const [currentCommandColors, currentCommandPenSettings] = useMemo(() => {
+    const currentCommandIndex =
+      currentCommandId != null ? enabledCommands.findIndex((c) => c.uuid === currentCommandId) : 0;
+    const currentCommand = enabledCommands[currentCommandIndex];
+    if (!currentCommand) {
+      return [{ visual: undefined, priority: undefined }, DEFAULT_PEN_SETTINGS];
+    }
+
+    const reversedCommandsThroughCurrent = enabledCommands
+      .slice(0, currentCommandIndex + 1)
+      .reverse();
+    let visualCommand: SetPictureColorPictureCommand | DisablePictureDrawPictureCommand | undefined;
+    let priorityCommand:
+      | SetPriorityColorPictureCommand
+      | DisablePriorityDrawPictureCommand
+      | undefined;
+    let changePenCommand: ChangePenPictureCommand | undefined;
+    for (let command of reversedCommandsThroughCurrent) {
+      if (
+        !visualCommand &&
+        (command.type === 'SetPictureColor' || command.type === 'DisablePictureDraw')
+      ) {
+        visualCommand = command;
+      }
+
+      if (
+        !priorityCommand &&
+        (command.type === 'SetPriorityColor' || command.type === 'DisablePriorityDraw')
+      ) {
+        priorityCommand = command;
+      }
+
+      if (!changePenCommand && command.type === 'ChangePen') {
+        changePenCommand = command;
+      }
+
+      if (visualCommand && priorityCommand && changePenCommand) {
+        break;
+      }
+    }
+
+    const colors = {
+      visual: visualCommand?.type === 'SetPictureColor' ? visualCommand.colorNumber : undefined,
+      priority:
+        priorityCommand?.type === 'SetPriorityColor' ? priorityCommand.colorNumber : undefined,
+    };
+
+    return [colors, changePenCommand?.settings ?? DEFAULT_PEN_SETTINGS];
+  }, [currentCommandId, enabledCommands]);
+
   const contextValue = useMemo(() => {
     return {
+      currentCommandColors,
+      currentCommandPenSettings,
       enabledCommands,
       currentCommandId,
       setAllCommandsEnabled,
@@ -96,6 +167,8 @@ export function useCommandListNavigation(
       jumpRelative,
     };
   }, [
+    currentCommandColors,
+    currentCommandPenSettings,
     enabledCommands,
     currentCommandId,
     setAllCommandsEnabled,

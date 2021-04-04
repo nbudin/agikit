@@ -1,3 +1,4 @@
+import { ColorPalette } from '../../ColorPalettes';
 import { PictureCoordinate, PicturePenSettings, PictureResource } from '../../Types/Picture';
 
 export type RenderedPicture = {
@@ -353,6 +354,12 @@ export const penTextureStartPositions = Uint8Array.of(
   0xe1,
 );
 
+export const DEFAULT_PEN_SETTINGS: PicturePenSettings = {
+  shape: 'rectangle',
+  size: 0,
+  splatter: false,
+};
+
 // ported from http://agiwiki.sierrahelp.com/index.php?title=Picture_Resource_(AGI)
 function directionBiasedRound(number: number, direction: number): number {
   if (direction < 0) {
@@ -362,39 +369,51 @@ function directionBiasedRound(number: number, direction: number): number {
   }
 }
 
-function getPixelColor(buffer: Uint8Array, position: PictureCoordinate) {
-  return buffer[position.x + position.y * 160];
+function getPixelColor(buffer: Uint8Array, position: PictureCoordinate, palette: ColorPalette) {
+  const startOffset = (position.x + position.y * 160) * 4;
+  const colorValue = buffer.subarray(startOffset, startOffset + 4);
+  return palette.colors.findIndex(
+    ([r, g, b, a]) =>
+      r === colorValue[0] && g === colorValue[1] && b === colorValue[2] && a === colorValue[3],
+  );
 }
 
-function setPixelColor(buffer: Uint8Array, position: PictureCoordinate, color: number) {
-  buffer[position.x + position.y * 160] = color;
+function setPixelColor(
+  buffer: Uint8Array,
+  position: PictureCoordinate,
+  color: number,
+  palette: ColorPalette,
+) {
+  const startOffset = (position.x + position.y * 160) * 4;
+  buffer.set(palette.colors[color], startOffset);
 }
 
 function floodFill(
   startPosition: PictureCoordinate,
   targets: { buffer: Uint8Array; color: number }[],
   checkBuffers: { buffer: Uint8Array; backgroundColor: number }[],
+  palette: ColorPalette,
 ) {
   const queue = [startPosition];
-  const visited = makeBuffer(0);
+  const visited = makeBuffer(0, palette);
 
   while (queue.length > 0) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const currentPosition = queue.shift()!;
-    if (getPixelColor(visited, currentPosition) === 1) {
+    if (getPixelColor(visited, currentPosition, palette) === 1) {
       continue;
     } else {
-      setPixelColor(visited, currentPosition, 1);
+      setPixelColor(visited, currentPosition, 1, palette);
     }
 
     const isBackgroundPixel = checkBuffers.every((checkBuffer) => {
-      const checkColor = getPixelColor(checkBuffer.buffer, currentPosition);
+      const checkColor = getPixelColor(checkBuffer.buffer, currentPosition, palette);
       return checkColor === checkBuffer.backgroundColor;
     });
 
     if (isBackgroundPixel) {
       targets.forEach(({ buffer, color }) => {
-        setPixelColor(buffer, currentPosition, color);
+        setPixelColor(buffer, currentPosition, color, palette);
       });
       if (currentPosition.x > 0) {
         queue.push({ x: currentPosition.x - 1, y: currentPosition.y });
@@ -418,6 +437,7 @@ function drawLine(
   start: PictureCoordinate,
   finish: PictureCoordinate,
   color: number,
+  palette: ColorPalette,
 ) {
   const height = finish.y - start.y;
   const width = finish.x - start.x;
@@ -434,10 +454,11 @@ function drawLine(
         buffer,
         { x: directionBiasedRound(x, addX), y: directionBiasedRound(y, addY) },
         color,
+        palette,
       );
       y += addY;
     }
-    setPixelColor(buffer, finish, color);
+    setPixelColor(buffer, finish, color, palette);
   } else {
     x = start.x;
     addY = height == 0 ? 0 : height / Math.abs(height);
@@ -446,19 +467,22 @@ function drawLine(
         buffer,
         { x: directionBiasedRound(x, addX), y: directionBiasedRound(y, addY) },
         color,
+        palette,
       );
       x += addX;
     }
-    setPixelColor(buffer, finish, color);
+    setPixelColor(buffer, finish, color, palette);
   }
 }
 
-function makeBuffer(fillColor: number): Uint8Array {
-  return Buffer.alloc(160 * 200, fillColor);
+function makeBuffer(fillColor: number, palette: ColorPalette): Uint8Array {
+  const colorAsString = Buffer.from(palette.colors[fillColor]).toString('binary');
+  return Buffer.alloc(160 * 200 * 4, colorAsString, 'binary');
 }
 
 export function renderPicture(
   picture: PictureResource,
+  palette: ColorPalette,
   startingFrom?: {
     renderedPicture: RenderedPicture;
     pictureColor: number | undefined;
@@ -468,24 +492,20 @@ export function renderPicture(
 ): RenderedPicture {
   const visualBuffer = startingFrom
     ? new Uint8Array(startingFrom.renderedPicture.visualBuffer)
-    : makeBuffer(15);
+    : makeBuffer(15, palette);
   const priorityBuffer = startingFrom
     ? new Uint8Array(startingFrom.renderedPicture.priorityBuffer)
-    : makeBuffer(4);
+    : makeBuffer(4, palette);
   let pictureColor: number | undefined = startingFrom?.pictureColor;
   let priorityColor: number | undefined = startingFrom?.priorityColor;
-  let pen: PicturePenSettings = startingFrom?.pen ?? {
-    shape: 'rectangle',
-    size: 0,
-    splatter: false,
-  };
+  let pen: PicturePenSettings = startingFrom?.pen ?? DEFAULT_PEN_SETTINGS;
 
   const drawLineInCurrentColors = (start: PictureCoordinate, finish: PictureCoordinate) => {
     if (pictureColor != null) {
-      drawLine(visualBuffer, start, finish, pictureColor);
+      drawLine(visualBuffer, start, finish, pictureColor, palette);
     }
     if (priorityColor != null) {
-      drawLine(priorityBuffer, start, finish, priorityColor);
+      drawLine(priorityBuffer, start, finish, priorityColor, palette);
     }
   };
 
@@ -498,12 +518,14 @@ export function renderPicture(
           ...(priorityColor != null ? [{ buffer: priorityBuffer, color: priorityColor }] : []),
         ],
         [{ buffer: visualBuffer, backgroundColor: 15 }],
+        palette,
       );
     } else if (priorityColor != null) {
       floodFill(
         startPosition,
         [{ buffer: priorityBuffer, color: priorityColor }],
         [{ buffer: priorityBuffer, backgroundColor: 4 }],
+        palette,
       );
     }
   };
@@ -540,10 +562,10 @@ export function renderPicture(
       const screenX = logicalX + position.x;
       const screenY = logicalY + position.y;
       if (pictureColor != null) {
-        setPixelColor(visualBuffer, { x: screenX, y: screenY }, pictureColor);
+        setPixelColor(visualBuffer, { x: screenX, y: screenY }, pictureColor, palette);
       }
       if (priorityColor != null) {
-        setPixelColor(priorityBuffer, { x: screenX, y: screenY }, priorityColor);
+        setPixelColor(priorityBuffer, { x: screenX, y: screenY }, priorityColor, palette);
       }
     }
   };

@@ -55,7 +55,7 @@ export default function ColorSelector({
       >
         <div style={styles.arrow} {...attributes.arrow} />
         <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-          {palette.map((_colorValue, colorNumber) => (
+          {palette.colors.map((_colorValue, colorNumber) => (
             <button
               type="button"
               className="secondary"

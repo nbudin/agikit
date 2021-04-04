@@ -4,6 +4,11 @@
   --input-padding-horizontal: 4px;
   --input-margin-vertical: 4px;
   --input-margin-horizontal: 0;
+
+  --agikit-list-hoverBackground: var(--vscode-list-hoverBackground);
+  --agikit-editorCursor-foreground: var(--vscode-editorCursor-foreground);
+  --agikit-editor-background: var(--vscode-editor-background);
+  --agikit-panel-border: var(--vscode-panel-border);
 }
 
 body {

@@ -1,8 +1,5 @@
 import { readV2Resource, readV2ResourceDirs } from 'agikit-core/dist/Extract/ReadResources';
 import { readLogicResource } from 'agikit-core/dist/Extract/Logic/ReadLogic';
-import { renderPicture } from 'agikit-core/dist/Extract/Picture/RenderPicture';
-import { readPictureResource } from 'agikit-core/dist/Extract/Picture/ReadPicture';
-import { writeHTMLPicture } from 'agikit-core/dist/Build/BuildHTMLPicture';
 import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import { WordList } from 'agikit-core/dist/Types/WordList';
@@ -55,13 +52,6 @@ function extractResource(srcDir: string, entry: DirEntry, destDir: string, wordL
       ),
       basicBlockGraph.buildPostDominatorTree().generateGraphviz(),
     );
-  } else if (resource.type === ResourceType.PIC) {
-    const rendered = renderPicture(readPictureResource(resource.data));
-    writeFileSync(
-      path.join(destDir, entry.resourceType.toLowerCase(), `${entry.resourceNumber}.html`),
-      writeHTMLPicture(renderPicture(readPictureResource(resource.data))),
-    );
-    writeFileSync(destPath, resource.data);
   } else {
     writeFileSync(destPath, resource.data);
   }

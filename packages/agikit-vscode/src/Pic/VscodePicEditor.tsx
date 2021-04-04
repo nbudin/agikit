@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
-import { PictureCommand } from 'agikit-core/dist/Types/Picture';
 import { buildPicture } from 'agikit-core/dist/Build/BuildPicture';
 import { Buffer } from 'buffer';
 import * as ReactDOM from 'react-dom';
-import { v4 as uuidv4 } from 'uuid';
-import { PicEditor } from './PicEditor';
-import { EditingPictureResource } from './EditingPictureTypes';
+import { PicEditor } from 'agikit-pic-editor/dist/PicEditor';
+import { EditingPictureResource } from 'agikit-pic-editor/dist/EditingPictureTypes';
+import {
+  PicEditorControlContext,
+  PicEditorControlContextValue,
+} from 'agikit-pic-editor/dist/PicEditorControlContext';
 
 import './reset.css';
 import './vscode.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import './piceditor.css';
-import { PicEditorControlContext, PicEditorControlContextValue } from './PicEditorControlContext';
+import 'agikit-pic-editor/styles/piceditor.css';
 
 // @ts-expect-error
 window.Buffer = Buffer;

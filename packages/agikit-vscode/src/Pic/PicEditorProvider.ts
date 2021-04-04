@@ -7,7 +7,7 @@ import {
   EditingPictureResource,
   PicDocumentEdit,
   prepareCommandForEditing,
-} from './EditingPictureTypes';
+} from 'agikit-pic-editor/dist/EditingPictureTypes';
 
 interface PicDocumentDelegate {
   getFileData(): Promise<Uint8Array>;

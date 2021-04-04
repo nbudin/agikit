@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { EGAPalette } from 'agikit-core/dist/ColorPalettes';
 import { PictureCommand, PictureCoordinate } from 'agikit-core/dist/Types/Picture';
 
@@ -5,7 +6,7 @@ export function describePoint(point: PictureCoordinate) {
   return `(${point.x}, ${point.y})`;
 }
 
-export function describeCommand(command: PictureCommand): React.ReactNode {
+export function describeCommand(command: PictureCommand): ReactNode {
   if (command.type === 'AbsoluteLine') {
     return `Absolute line with points: ${command.points.map(describePoint).join(', ')}`;
   }
@@ -42,10 +43,11 @@ export function describeCommand(command: PictureCommand): React.ReactNode {
   }
 
   if (command.type === 'SetPictureColor' || command.type === 'SetPriorityColor') {
+    const color = EGAPalette.colors[command.colorNumber];
     return (
       <span
         style={{
-          color: EGAPalette[command.colorNumber],
+          color: `rgb(${color[0]}, ${color[1]}, ${color[2]})`,
           backgroundColor: command.colorNumber < 10 ? 'white' : 'black',
         }}
       >

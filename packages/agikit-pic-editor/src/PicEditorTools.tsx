@@ -1,6 +1,7 @@
 import React from 'react';
 import { EGAPalette } from 'agikit-core/dist/ColorPalettes';
 import ColorSelector from './ColorSelector';
+import { PictureCommand } from 'agikit-core/dist/Types/Picture';
 
 export const PICTURE_TOOLS = [
   {
@@ -21,6 +22,9 @@ export const PICTURE_TOOLS = [
 export type PictureTool = typeof PICTURE_TOOLS[number];
 
 export default function PicEditorTools({
+  commandInProgress,
+  commitCommandInProgress,
+  cancelCommandInProgress,
   selectedTool,
   setSelectedTool,
   visualColor,
@@ -28,6 +32,9 @@ export default function PicEditorTools({
   priorityColor,
   setPriorityColor,
 }: {
+  commandInProgress: PictureCommand | undefined;
+  commitCommandInProgress: () => void;
+  cancelCommandInProgress: () => void;
   selectedTool: PictureTool;
   setSelectedTool: React.Dispatch<React.SetStateAction<PictureTool>>;
   visualColor: number | undefined;
@@ -37,23 +44,38 @@ export default function PicEditorTools({
 }) {
   return (
     <div style={{ display: 'flex' }}>
-      {PICTURE_TOOLS.map((tool) => (
-        <button
-          key={tool.name}
-          type="button"
-          className={`secondary${selectedTool === tool ? ' inverse' : ''}`}
-          onClick={() => setSelectedTool(tool)}
-          style={{
-            width: '3rem',
-            height: '3rem',
-            fontSize: '1.5rem',
-            margin: '1px',
-          }}
-          title={tool.description}
-        >
-          <i className={tool.iconClass} role="img" aria-label={tool.description} />
-        </button>
-      ))}
+      {commandInProgress ? (
+        <>
+          <button
+            type="button"
+            className="pic-editor-tool-button primary"
+            title="Finish command"
+            onClick={commitCommandInProgress}
+          >
+            <i className="bi-check" role="img" aria-label="Finish command" />
+          </button>
+          <button
+            type="button"
+            className="pic-editor-tool-button secondary"
+            title="Cancel command"
+            onClick={cancelCommandInProgress}
+          >
+            <i className="bi-x" role="img" aria-label="Cancel command" />
+          </button>
+        </>
+      ) : (
+        PICTURE_TOOLS.map((tool) => (
+          <button
+            key={tool.name}
+            type="button"
+            className={`pic-editor-tool-button secondary${selectedTool === tool ? ' inverse' : ''}`}
+            onClick={() => setSelectedTool(tool)}
+            title={tool.description}
+          >
+            <i className={tool.iconClass} role="img" aria-label={tool.description} />
+          </button>
+        ))
+      )}
       <ColorSelector
         palette={EGAPalette}
         color={visualColor}

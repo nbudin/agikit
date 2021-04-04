@@ -52,16 +52,16 @@
 }
 
 .pic-editor-command-list li:hover {
-  background-color: var(--vscode-list-hoverBackground);
+  background-color: var(--agikit-list-hoverBackground);
 }
 
 .pic-editor-command-list li.current {
-  border-bottom: 2px var(--vscode-editorCursor-foreground) dashed;
+  border-bottom: 2px var(--agikit-editorCursor-foreground) dashed;
   margin-bottom: 3px;
 }
 
 .pic-editor-command-list li.prev-current {
-  border-top: 2px var(--vscode-editorCursor-foreground) dashed;
+  border-top: 2px var(--agikit-editorCursor-foreground) dashed;
   margin-top: 3px;
 }
 
@@ -75,7 +75,14 @@
   max-width: 30rem;
   display: flex;
   padding: var(--input-padding-vertical) var(--input-padding-horizontal);
-  background-color: var(--vscode-editor-background);
-  border: 1px var(--vscode-panel-border) solid;
+  background-color: var(--agikit-editor-background);
+  border: 1px var(--agikit-panel-border) solid;
   z-index: 1000;
+}
+
+.pic-editor-tool-button {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.5rem;
+  margin: 1px;
 }
