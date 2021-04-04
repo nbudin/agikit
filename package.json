@@ -12,5 +12,8 @@
   },
   "lint-staged": {
     "*.{js,css,md}": "prettier --write"
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }
