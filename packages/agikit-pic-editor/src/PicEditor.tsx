@@ -361,6 +361,10 @@ export function PicEditor({ pictureResource }: { pictureResource: EditingPicture
     setPriorityColor(currentCommandColors.priority);
   }, [currentCommandColors.priority]);
 
+  useEffect(() => {
+    setPenSettings(currentCommandPenSettings);
+  }, [currentCommandPenSettings]);
+
   return (
     <CommandListNavigationContext.Provider value={navigationContextValue}>
       <div className="pic-editor">
@@ -422,6 +426,8 @@ export function PicEditor({ pictureResource }: { pictureResource: EditingPicture
             setVisualColor={setVisualColor}
             priorityColor={priorityColor}
             setPriorityColor={setPriorityColor}
+            penSettings={penSettings}
+            setPenSettings={setPenSettings}
           />
           <hr />
           <h3>Command list</h3>

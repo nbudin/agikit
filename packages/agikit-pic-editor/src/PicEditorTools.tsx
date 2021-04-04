@@ -1,7 +1,8 @@
 import React from 'react';
 import { EGAPalette } from 'agikit-core/dist/ColorPalettes';
 import ColorSelector from './ColorSelector';
-import { PictureCommand } from 'agikit-core/dist/Types/Picture';
+import { PictureCommand, PicturePenSettings } from 'agikit-core/dist/Types/Picture';
+import PenSettingsSelector from './PenSettingsSelector';
 
 export const PICTURE_TOOLS = [
   {
@@ -31,6 +32,8 @@ export default function PicEditorTools({
   setVisualColor,
   priorityColor,
   setPriorityColor,
+  penSettings,
+  setPenSettings,
 }: {
   commandInProgress: PictureCommand | undefined;
   commitCommandInProgress: () => void;
@@ -41,6 +44,8 @@ export default function PicEditorTools({
   setVisualColor: React.Dispatch<React.SetStateAction<number | undefined>>;
   priorityColor: number | undefined;
   setPriorityColor: React.Dispatch<React.SetStateAction<number | undefined>>;
+  penSettings: PicturePenSettings;
+  setPenSettings: React.Dispatch<React.SetStateAction<PicturePenSettings>>;
 }) {
   return (
     <div style={{ display: 'flex' }}>
@@ -88,6 +93,7 @@ export default function PicEditorTools({
         setColor={setPriorityColor}
         colorType="P"
       />
+      <PenSettingsSelector penSettings={penSettings} setPenSettings={setPenSettings} />
     </div>
   );
 }
