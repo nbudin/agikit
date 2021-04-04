@@ -57,6 +57,7 @@ export default function ColorSelector({
         <div style={{ display: 'flex', flexWrap: 'wrap' }}>
           {palette.colors.map((_colorValue, colorNumber) => (
             <button
+              key={colorNumber}
               type="button"
               className="secondary"
               onClick={() => {

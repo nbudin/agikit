@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { renderPicture } from 'agikit-core/dist/Extract/Picture/RenderPicture';
 import { assertNever } from 'assert-never';
 import { CursorPosition, PicCanvas } from './PicCanvas';
@@ -24,6 +24,7 @@ import { CommandListNavigationContext, useCommandListNavigation } from './Comman
 import { clamp, throttle } from 'lodash';
 import { describeCommand } from './describeCommand';
 import { EGAPalette } from 'agikit-core/dist/ColorPalettes';
+import { PicEditorControlContext } from './PicEditorControlContext';
 
 type CommandInProgress = Exclude<
   PictureCommand,
@@ -176,13 +177,8 @@ function addToCommandInProgress(
   assertNever(commandInProgress);
 }
 
-export function PicEditor({
-  pictureResource,
-  setPictureResource,
-}: {
-  pictureResource: EditingPictureResource;
-  setPictureResource: React.Dispatch<React.SetStateAction<EditingPictureResource>>;
-}) {
+export function PicEditor({ pictureResource }: { pictureResource: EditingPictureResource }) {
+  const { addCommands } = useContext(PicEditorControlContext);
   const [selectedTool, setSelectedTool] = useState<PictureTool>(PICTURE_TOOLS[0]);
   const [visualColor, setVisualColor] = useState<number | undefined>();
   const [priorityColor, setPriorityColor] = useState<number | undefined>();
@@ -251,16 +247,7 @@ export function PicEditor({
     [],
   );
 
-  const setCommands = useCallback(
-    (calculateNewState: (prevCommands: EditingPictureCommand[]) => EditingPictureCommand[]) =>
-      setPictureResource((prevResource) => ({
-        ...prevResource,
-        commands: calculateNewState(prevResource.commands),
-      })),
-    [setPictureResource],
-  );
-
-  const navigationContextValue = useCommandListNavigation(pictureResource.commands, setCommands);
+  const navigationContextValue = useCommandListNavigation(pictureResource.commands);
   const {
     currentCommandColors,
     currentCommandPenSettings,
@@ -324,17 +311,7 @@ export function PicEditor({
       });
     }
 
-    setCommands((prevCommands) => {
-      const currentCommandIndex = prevCommands.findIndex((cmd) => cmd.uuid === currentCommandId);
-      const newCommands = [...prevCommands];
-      newCommands.splice(
-        currentCommandIndex + 1,
-        0,
-        ...commandsToInsert.map(prepareCommandForEditing),
-      );
-      return newCommands;
-    });
-
+    addCommands(commandsToInsert.map(prepareCommandForEditing), currentCommandId);
     setCommandInProgress(undefined);
   }, [
     commandInProgress,
@@ -344,7 +321,7 @@ export function PicEditor({
     visualColor,
     priorityColor,
     penSettings,
-    setCommands,
+    addCommands,
   ]);
 
   const cancelCommandInProgress = useCallback(() => setCommandInProgress(undefined), []);

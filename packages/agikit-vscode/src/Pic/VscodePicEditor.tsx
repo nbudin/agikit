@@ -3,7 +3,10 @@ import { buildPicture } from 'agikit-core/dist/Build/BuildPicture';
 import { Buffer } from 'buffer';
 import * as ReactDOM from 'react-dom';
 import { PicEditor } from 'agikit-pic-editor/dist/PicEditor';
-import { EditingPictureResource } from 'agikit-pic-editor/dist/EditingPictureTypes';
+import {
+  EditingPictureCommand,
+  EditingPictureResource,
+} from 'agikit-pic-editor/dist/EditingPictureTypes';
 import {
   PicEditorControlContext,
   PicEditorControlContextValue,
@@ -43,10 +46,19 @@ function VscodePicEditor() {
         });
       },
       addCommands: (commands, afterCommandId) => {
-        vscode.postMessge({ type: 'addCommands', commands, afterCommandId });
+        vscode.postMessage({ type: 'addCommands', commands, afterCommandId });
       },
       deleteCommand: (commandId) => {
         vscode.postMessage({ type: 'deleteCommand', commandId });
+      },
+      setCommandsEnabled: (enabled: (command: EditingPictureCommand) => boolean) => {
+        setPictureResource((prevResource) => ({
+          ...prevResource,
+          commands: prevResource.commands.map((command) => ({
+            ...command,
+            enabled: enabled(command),
+          })),
+        }));
       },
     }),
     [resolveConfirm],
@@ -98,7 +110,7 @@ function VscodePicEditor() {
 
   return (
     <PicEditorControlContext.Provider value={controlContextValue}>
-      <PicEditor pictureResource={pictureResource} setPictureResource={setPictureResource} />
+      <PicEditor pictureResource={pictureResource} />
     </PicEditorControlContext.Provider>
   );
 }

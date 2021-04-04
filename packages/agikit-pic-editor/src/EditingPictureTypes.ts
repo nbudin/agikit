@@ -1,4 +1,5 @@
 import { PictureCommand, PictureResource } from 'agikit-core/dist/Types/Picture';
+import assertNever from 'assert-never';
 import { v4 as uuidv4 } from 'uuid';
 
 export type EditingPictureCommand = PictureCommand & {
@@ -17,7 +18,7 @@ export type PicDocumentDeleteCommandEdit = {
 
 export type PicDocumentAddCommandsEdit = {
   type: 'AddCommands';
-  commands: PictureCommand[];
+  commands: EditingPictureCommand[];
   afterCommandId: string | undefined;
 };
 
@@ -47,19 +48,23 @@ export function applyEdit(
     }
 
     const newCommands = [...resource.commands];
-    newCommands.splice(index, 0, ...edit.commands.map(prepareCommandForEditing));
+    newCommands.splice(index + 1, 0, ...edit.commands);
     return { ...resource, commands: newCommands };
   }
 
-  const index = resource.commands.findIndex((c) => c.uuid === edit.commandId);
+  if (edit.type === 'DeleteCommand') {
+    const index = resource.commands.findIndex((c) => c.uuid === edit.commandId);
 
-  if (index === -1) {
-    throw new Error(`Invalid edit: can't find command ${edit.commandId} to delete`);
+    if (index === -1) {
+      throw new Error(`Invalid edit: can't find command ${edit.commandId} to delete`);
+    }
+
+    const newCommands = [...resource.commands];
+    newCommands.splice(index, 1);
+    return { ...resource, commands: newCommands };
   }
 
-  const newCommands = [...resource.commands];
-  newCommands.splice(index, 1);
-  return { ...resource, commands: newCommands };
+  assertNever(edit);
 }
 
 export function applyEditsToResource(

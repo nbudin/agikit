@@ -4,7 +4,11 @@ import { Buffer } from 'buffer';
 
 import { PicEditor } from './PicEditor';
 import { PicEditorControlContext, PicEditorControlContextValue } from './PicEditorControlContext';
-import { EditingPictureResource, prepareCommandForEditing } from './EditingPictureTypes';
+import {
+  EditingPictureCommand,
+  EditingPictureResource,
+  prepareCommandForEditing,
+} from './EditingPictureTypes';
 
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import '../styles/dev-editor.css';
@@ -48,13 +52,22 @@ const DevPicEditor = () => {
           commands: prevResource.commands.filter((cmd) => cmd.uuid !== commandId),
         }));
       },
+      setCommandsEnabled: (enabled: (command: EditingPictureCommand) => boolean) => {
+        setPictureResource((prevResource) => ({
+          ...prevResource,
+          commands: prevResource.commands.map((command) => ({
+            ...command,
+            enabled: enabled(command),
+          })),
+        }));
+      },
     }),
     [],
   );
 
   return (
     <PicEditorControlContext.Provider value={controlContextValue}>
-      <PicEditor pictureResource={pictureResource} setPictureResource={setPictureResource} />
+      <PicEditor pictureResource={pictureResource} />
     </PicEditorControlContext.Provider>
   );
 };

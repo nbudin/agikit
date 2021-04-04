@@ -7,8 +7,9 @@ import {
   SetPictureColorPictureCommand,
   SetPriorityColorPictureCommand,
 } from 'agikit-core/dist/Types/Picture';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import { EditingPictureCommand, EditingPictureResource } from './EditingPictureTypes';
+import { PicEditorControlContext } from './PicEditorControlContext';
 
 export type CommandListNavigationContextValue = {
   currentCommandColors: {
@@ -40,11 +41,9 @@ export const CommandListNavigationContext = React.createContext<CommandListNavig
 
 export function useCommandListNavigation(
   commands: EditingPictureResource['commands'],
-  setCommands: React.Dispatch<
-    (prevCommands: EditingPictureResource['commands']) => EditingPictureResource['commands']
-  >,
 ): CommandListNavigationContextValue {
   const enabledCommands = useMemo(() => commands.filter((c) => c.enabled), [commands]);
+  const { setCommandsEnabled } = useContext(PicEditorControlContext);
 
   const currentCommandId = useMemo(() => {
     if (enabledCommands.length > 0) {
@@ -54,43 +53,35 @@ export function useCommandListNavigation(
   }, [enabledCommands]);
 
   const setAllCommandsEnabled = useCallback(
-    (enabled: boolean) => {
-      setCommands((prevCommands) =>
-        prevCommands.map((command) => ({
-          ...command,
-          enabled,
-        })),
-      );
-    },
-    [setCommands],
+    (enabled: boolean) => setCommandsEnabled(() => enabled),
+    [setCommandsEnabled],
   );
 
   const setCommandEnabled = useCallback(
     (uuid: string, enabled: boolean) => {
-      setCommands((prevCommands) =>
-        prevCommands.map((command) => {
-          if (command.uuid === uuid) {
-            return { ...command, enabled };
-          }
+      setCommandsEnabled((command) => {
+        if (command.uuid === uuid) {
+          return enabled;
+        }
 
-          return command;
-        }),
-      );
+        return command.enabled;
+      });
     },
-    [setCommands],
+    [setCommandsEnabled],
   );
 
   const jumpTo = useCallback(
     (uuid: string) => {
-      setCommands((prevCommands) => {
-        const disableAfterIndex = prevCommands.findIndex((command) => command.uuid === uuid);
-        return prevCommands.map((command, index) => ({
-          ...command,
-          enabled: index > disableAfterIndex ? false : true,
-        }));
+      let foundCommand = false;
+      setCommandsEnabled((command) => {
+        const enabled = foundCommand ? false : true;
+        if (command.uuid === uuid) {
+          foundCommand = true;
+        }
+        return enabled;
       });
     },
-    [setCommands],
+    [setCommandsEnabled],
   );
 
   const jumpRelative = useCallback(
