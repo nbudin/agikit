@@ -1,3 +1,4 @@
+import { max } from 'lodash';
 import { ColorPalette } from '../../ColorPalettes';
 import { PictureCoordinate, PicturePenSettings, PictureResource } from '../../Types/Picture';
 
@@ -18,7 +19,7 @@ function penMask(templateStrings: TemplateStringsArray): PicturePenMask {
   const [maskDefinition] = templateStrings;
   const lines = maskDefinition.split(/\r?\n/).filter((line) => line.trim().length > 0);
   const height = lines.length;
-  const width = lines[0].length;
+  const width = max(lines.map((line) => line.length)) ?? lines[0].length;
   const mask: boolean[] = [];
   let origin: PictureCoordinate | undefined;
 
@@ -556,7 +557,7 @@ export function renderPicture(
       }
 
       const maskX = index % penMask.width;
-      const maskY = Math.floor(index / penMask.height);
+      const maskY = Math.floor(index / penMask.width);
       const logicalX = maskX - penMask.origin.x;
       const logicalY = maskY - penMask.origin.y;
       const screenX = logicalX + position.x;

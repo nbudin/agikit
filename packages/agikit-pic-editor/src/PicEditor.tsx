@@ -78,13 +78,15 @@ function getInitialCommandForSelectedTool(
     return {
       type: 'PlotWithPen',
       opcode: 250,
-      points: [
-        { position, texture: penSettings.splatter ? Math.floor(Math.random() * 120) : undefined },
-      ],
+      points: [{ position, texture: penSettings.splatter ? generateRandomTexture() : undefined }],
     };
   }
 
   assertNever(selectedTool);
+}
+
+function generateRandomTexture(): number {
+  return Math.floor(Math.random() * 120);
 }
 
 function addToCommandInProgress(
@@ -211,7 +213,8 @@ export function PicEditor({ pictureResource }: { pictureResource: EditingPicture
         (commandInProgress.type === 'AbsoluteLine' ||
           commandInProgress.type === 'RelativeLine' ||
           commandInProgress.type === 'DrawXCorner' ||
-          commandInProgress.type === 'DrawYCorner')
+          commandInProgress.type === 'DrawYCorner' ||
+          commandInProgress.type === 'PlotWithPen')
       ) {
         return addToCommandInProgress(commandInProgress, penSettings, cursorPosition);
       }
@@ -364,6 +367,22 @@ export function PicEditor({ pictureResource }: { pictureResource: EditingPicture
   useEffect(() => {
     setPenSettings(currentCommandPenSettings);
   }, [currentCommandPenSettings]);
+
+  useEffect(() => {
+    setCommandInProgress((prevCommandInProgress) => {
+      if (prevCommandInProgress && prevCommandInProgress.type === 'PlotWithPen') {
+        return {
+          ...prevCommandInProgress,
+          points: prevCommandInProgress.points.map((point) => ({
+            ...point,
+            texture: penSettings.splatter ? point.texture ?? generateRandomTexture() : undefined,
+          })),
+        };
+      }
+
+      return prevCommandInProgress;
+    });
+  }, [penSettings]);
 
   return (
     <CommandListNavigationContext.Provider value={navigationContextValue}>
