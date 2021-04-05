@@ -1,6 +1,6 @@
 {
   "name": "agikit",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "A development toolchain for the Sierra AGI adventure game engine",
   "author": "Nat Budin <natbudin@gmail.com>",
   "homepage": "https://github.com/nbudin/agikit",
@@ -16,8 +16,8 @@
     "url": "https://github.com/nbudin/agikit/issues"
   },
   "dependencies": {
-    "agikit-cli": "^0.4.2",
-    "agikit-core": "^0.4.0"
+    "agikit-cli": "^0.5.0",
+    "agikit-core": "^0.5.0"
   },
   "gitHead": "a94e1e281f5817f0aca4a3a8874a00496e7abbc6",
   "devDependencies": {
