@@ -104,7 +104,7 @@
     "agikit-cli": "^0.5.0",
     "agikit-core": "^0.5.0",
     "agikit-logic-language-server": "^0.5.0",
-    "agikit-pic-editor": "^0.5.0",
+    "@agikit/react-editors": "^0.5.0",
     "bootstrap-icons": "^1.4.0",
     "buffer": "^6.0.3",
     "react": "^17.0.1",
