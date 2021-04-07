@@ -1,12 +1,8 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { renderPicture } from 'agikit-core/dist/Extract/Picture/RenderPicture';
 import { assertNever } from 'assert-never';
-import { CursorPosition, PicCanvas } from './PicCanvas';
-import {
-  EditingPictureCommand,
-  EditingPictureResource,
-  prepareCommandForEditing,
-} from './EditingPictureTypes';
+import { PicCanvas } from './PicCanvas';
+import { EditingPictureResource, prepareCommandForEditing } from './EditingPictureTypes';
 import { PicCommandList } from './PicCommandList';
 import { PictureTool, PICTURE_TOOLS } from './PicEditorTools';
 import PicEditorTools from './PicEditorTools';
@@ -25,6 +21,7 @@ import { clamp, throttle } from 'lodash';
 import { describeCommand } from './describeCommand';
 import { EGAPalette } from 'agikit-core/dist/ColorPalettes';
 import { PicEditorControlContext } from './PicEditorControlContext';
+import { CursorPosition } from './DrawingCanvas';
 
 type CommandInProgress = Exclude<
   PictureCommand,

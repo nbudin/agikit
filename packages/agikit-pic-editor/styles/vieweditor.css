@@ -1,0 +1,21 @@
+.transparent-backdrop {
+  background: linear-gradient(
+      45deg,
+      rgba(0, 0, 0, 0.0980392) 25%,
+      transparent 25%,
+      transparent 75%,
+      rgba(0, 0, 0, 0.0980392) 75%,
+      rgba(0, 0, 0, 0.0980392) 0
+    ),
+    linear-gradient(
+      45deg,
+      rgba(0, 0, 0, 0.0980392) 25%,
+      transparent 25%,
+      transparent 75%,
+      rgba(0, 0, 0, 0.0980392) 75%,
+      rgba(0, 0, 0, 0.0980392) 0
+    ),
+    white;
+  background-size: 10px 10px, 10px 10px;
+  background-position: 0 0, 5px 5px;
+}

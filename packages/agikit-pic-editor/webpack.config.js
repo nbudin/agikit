@@ -10,7 +10,8 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const config = {
   target: 'web',
   entry: {
-    'dev-index': './src/dev-index.tsx',
+    DevPicEditor: './dev-site/DevPicEditor.tsx',
+    DevViewEditor: './dev-site/DevViewEditor.tsx',
   },
   mode: 'development',
   output: {

@@ -2,16 +2,19 @@ import { useMemo, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { Buffer } from 'buffer';
 
-import { PicEditor } from './PicEditor';
-import { PicEditorControlContext, PicEditorControlContextValue } from './PicEditorControlContext';
+import { PicEditor } from '../src/PicEditor';
+import {
+  PicEditorControlContext,
+  PicEditorControlContextValue,
+} from '../src/PicEditorControlContext';
 import {
   EditingPictureCommand,
   EditingPictureResource,
   prepareCommandForEditing,
-} from './EditingPictureTypes';
+} from '../src/EditingPictureTypes';
 
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import '../styles/dev-editor.css';
+import './dev-site.css';
 import '../styles/piceditor.css';
 
 // @ts-expect-error
