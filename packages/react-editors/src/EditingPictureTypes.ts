@@ -24,7 +24,7 @@ export type PicDocumentAddCommandsEdit = {
 
 export type PicDocumentEdit = PicDocumentAddCommandsEdit | PicDocumentDeleteCommandEdit;
 
-export function prepareCommandForEditing(
+export function preparePicCommandForEditing(
   command: PictureCommand,
 ): EditingPictureResource['commands'][number] {
   return {

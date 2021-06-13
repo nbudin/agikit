@@ -1,7 +1,4 @@
-import { EGAPalette } from 'agikit-core/dist/ColorPalettes';
-import { renderViewCel } from 'agikit-core/dist/Extract/View/RenderView';
-import { ViewCel, ViewLoop } from 'agikit-core/dist/Types/View';
-import { useMemo } from 'react';
+import { ViewCel } from 'agikit-core/dist/Types/View';
 import { DrawingCanvas } from './DrawingCanvas';
 
 export const ViewCelCanvas = ({

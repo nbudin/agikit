@@ -79,3 +79,7 @@
   justify-content: space-between;
   align-items: center;
 }
+
+.view-editor-tools {
+  display: flex;
+}

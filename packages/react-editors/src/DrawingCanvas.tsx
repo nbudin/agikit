@@ -21,6 +21,7 @@ export function DrawingCanvas({
   canvasHeight,
   onCursorMove,
   onCursorDown,
+  onCursorUp,
   onCursorOut,
 }: {
   buffer: Uint8Array;
@@ -30,6 +31,7 @@ export function DrawingCanvas({
   canvasHeight?: number;
   onCursorMove?: (position: CursorPosition) => void;
   onCursorDown?: (position: CursorPosition) => void;
+  onCursorUp?: (position: CursorPosition) => void;
   onCursorOut?: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -119,6 +121,18 @@ export function DrawingCanvas({
     }
   };
 
+  const mouseUp = (event: React.MouseEvent) => {
+    if (!canvasRef.current || !onCursorUp) {
+      return;
+    }
+
+    const position = calculateCursorPosition(event);
+
+    if (position) {
+      onCursorUp(position);
+    }
+  };
+
   return (
     <canvas
       ref={canvasRef}
@@ -132,6 +146,7 @@ export function DrawingCanvas({
           onCursorOut();
         }
       }}
+      onMouseUp={mouseUp}
     />
   );
 }

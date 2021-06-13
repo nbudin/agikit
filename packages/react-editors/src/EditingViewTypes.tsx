@@ -5,6 +5,7 @@ import {
   AGIView,
   MirroredViewCel,
 } from 'agikit-core/dist/Types/View';
+import { ViewEditorCommand } from './ViewEditorCommands';
 
 export type EditingRegularLoop = {
   type: 'regular';
@@ -22,6 +23,7 @@ export type EditingViewLoop = EditingRegularLoop | EditingMirroredLoop;
 export type EditingView = {
   loops: EditingViewLoop[];
   description: string | undefined;
+  commands: ViewEditorCommand[];
 };
 
 export function flipCel(cel: ViewCel): NonMirroredViewCel {
@@ -92,5 +94,5 @@ export function buildEditingView(view: AGIView): EditingView {
     };
   });
 
-  return { ...view, loops: editingLoops };
+  return { ...view, loops: editingLoops, commands: [] };
 }

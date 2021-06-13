@@ -10,7 +10,7 @@ import {
 import {
   EditingPictureCommand,
   EditingPictureResource,
-  prepareCommandForEditing,
+  preparePicCommandForEditing,
 } from '../src/EditingPictureTypes';
 
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -33,7 +33,7 @@ const DevPicEditor = () => {
           if (afterCommandId == null) {
             return {
               ...prevResource,
-              commands: [...commands.map(prepareCommandForEditing), ...prevResource.commands],
+              commands: [...commands.map(preparePicCommandForEditing), ...prevResource.commands],
             };
           }
 
@@ -42,7 +42,11 @@ const DevPicEditor = () => {
           );
           if (afterCommandIndex > -1) {
             const newCommands = [...prevResource.commands];
-            newCommands.splice(afterCommandIndex + 1, 0, ...commands.map(prepareCommandForEditing));
+            newCommands.splice(
+              afterCommandIndex + 1,
+              0,
+              ...commands.map(preparePicCommandForEditing),
+            );
             return { ...prevResource, commands: newCommands };
           }
 

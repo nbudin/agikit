@@ -1,12 +1,7 @@
 import { ColorPalette } from '../../ColorPalettes';
-import { ViewLoop } from '../../Types/View';
+import { ViewCel } from '../../Types/View';
 
-export function renderViewCel(
-  loop: ViewLoop,
-  celNumber: number,
-  palette: ColorPalette,
-): Uint8Array {
-  const cel = loop.cels[celNumber];
+export function renderViewCel(cel: ViewCel, palette: ColorPalette): Uint8Array {
   const buffer = Buffer.alloc(cel.buffer.length * 4);
 
   for (let offset = 0; offset < cel.buffer.length; offset++) {

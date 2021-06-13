@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useEffect, useMemo, useState } from 're
 import { renderPicture } from 'agikit-core/dist/Extract/Picture/RenderPicture';
 import { assertNever } from 'assert-never';
 import { PicCanvas } from './PicCanvas';
-import { EditingPictureResource, prepareCommandForEditing } from './EditingPictureTypes';
+import { EditingPictureResource, preparePicCommandForEditing } from './EditingPictureTypes';
 import { PicCommandList } from './PicCommandList';
 import { PictureTool, PICTURE_TOOLS } from './PicEditorTools';
 import PicEditorTools from './PicEditorTools';
@@ -311,7 +311,7 @@ export function PicEditor({ pictureResource }: { pictureResource: EditingPicture
       });
     }
 
-    addCommands(commandsToInsert.map(prepareCommandForEditing), currentCommandId);
+    addCommands(commandsToInsert.map(preparePicCommandForEditing), currentCommandId);
     setCommandInProgress(undefined);
   }, [
     commandInProgress,

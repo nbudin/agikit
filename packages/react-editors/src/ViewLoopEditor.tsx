@@ -1,34 +1,97 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { AGIView, ViewCel } from 'agikit-core/dist/Types/View';
+import { useContext, useEffect, useMemo, useState } from 'react';
+import { ViewCel } from 'agikit-core/dist/Types/View';
 import { renderViewCel } from 'agikit-core/dist/Extract/View/RenderView';
 import { EGAPalette } from 'agikit-core/dist/ColorPalettes';
 import { ViewCelCanvas } from './ViewCelCanvas';
 import { EditingView } from './EditingViewTypes';
+import ColorSelector from './ColorSelector';
+import { CursorPosition } from './DrawingCanvas';
+import { BrushStroke } from './ViewEditorBrushStrokes';
+import { applyViewEditorCommands } from './ViewEditorCommands';
+import { ViewEditorContext } from './ViewEditorContext';
+import { ViewEditorControlContext } from './ViewEditorControlContext';
+import { v4 } from 'uuid';
 
-export function ViewLoopEditor({
-  view,
-  loopNumber,
-  celNumber,
-  setCelNumber,
-  zoom,
-  setZoom,
-}: {
-  view: EditingView;
-  loopNumber: number;
-  celNumber: number;
-  setCelNumber: React.Dispatch<React.SetStateAction<number>>;
-  zoom: number;
-  setZoom: React.Dispatch<React.SetStateAction<number>>;
-}) {
+export function ViewLoopEditor() {
+  const {
+    view,
+    loopNumber,
+    celNumber,
+    setCelNumber,
+    drawingColor,
+    setDrawingColor,
+    zoom,
+    setZoom,
+  } = useContext(ViewEditorContext);
+  const { addCommands } = useContext(ViewEditorControlContext);
   const loop = view.loops[loopNumber];
   const [animating, setAnimating] = useState(false);
   const [fps, setFps] = useState(5);
   const cel = loop.cels[celNumber];
+  const [currentBrushStroke, setCurrentBrushStroke] = useState<BrushStroke>();
 
   const renderedCels = useMemo(
-    () => loop.cels.map((cel: ViewCel, index: number) => renderViewCel(loop, index, EGAPalette)),
-    [loop],
+    () =>
+      loop.cels.map((cel: ViewCel, index: number) => {
+        const celCommands = view.commands.filter(
+          (command) => command.loop === loopNumber && command.cel === index,
+        );
+        if (currentBrushStroke) {
+          celCommands.push({
+            uuid: v4(),
+            loop: loopNumber,
+            cel: index,
+            type: 'Brush',
+            brushStroke: currentBrushStroke,
+          });
+        }
+        const celWithCommandsApplied = applyViewEditorCommands(cel, celCommands);
+        const renderedCel = renderViewCel(celWithCommandsApplied, EGAPalette);
+        return { ...cel, buffer: renderedCel };
+      }),
+    [loop, view.commands, loopNumber, currentBrushStroke],
   );
+
+  const cursorDownInCanvas = (position: CursorPosition) => {
+    if (drawingColor != null) {
+      setCurrentBrushStroke({ drawingColor, positions: [position] });
+    }
+  };
+
+  const cursorMoveInCanvas = (position: CursorPosition) => {
+    if (drawingColor != null && currentBrushStroke) {
+      setCurrentBrushStroke((prevCurrentBrushStroke) => {
+        const brushStrokeInProgress = prevCurrentBrushStroke || { drawingColor, positions: [] };
+        if (
+          !brushStrokeInProgress.positions.some(
+            (existingPosition) =>
+              existingPosition.x === position.x && existingPosition.y === position.y,
+          )
+        ) {
+          return {
+            ...brushStrokeInProgress,
+            positions: [...brushStrokeInProgress.positions, position],
+          };
+        }
+        return brushStrokeInProgress;
+      });
+    }
+  };
+
+  const finishBrushStroke = () => {
+    if (currentBrushStroke) {
+      addCommands([
+        {
+          uuid: v4(),
+          type: 'Brush',
+          cel: celNumber,
+          loop: loopNumber,
+          brushStroke: currentBrushStroke,
+        },
+      ]);
+      setCurrentBrushStroke(undefined);
+    }
+  };
 
   useEffect(() => {
     if (animating) {
@@ -48,7 +111,15 @@ export function ViewLoopEditor({
     <>
       <div className="view-editor-cel-canvas">
         {cel && (
-          <ViewCelCanvas cel={loop.cels[celNumber]} buffer={renderedCels[celNumber]} zoom={zoom} />
+          <ViewCelCanvas
+            cel={renderedCels[celNumber]}
+            buffer={renderedCels[celNumber].buffer}
+            zoom={zoom}
+            onCursorDown={cursorDownInCanvas}
+            onCursorMove={cursorMoveInCanvas}
+            onCursorUp={finishBrushStroke}
+            onCursorOut={finishBrushStroke}
+          />
         )}
       </div>
       <div className="view-editor-cel-controls">
@@ -70,10 +141,10 @@ export function ViewLoopEditor({
             </>
           )}
         </div>
-        <div>
+        <div className="view-editor-tools">
           <button
             type="button"
-            className="agikit-tool-button primary"
+            className="agikit-tool-button secondary"
             title="Zoom out"
             disabled={zoom <= 1}
             onClick={() => setZoom((prevZoom) => prevZoom - 1)}
@@ -83,12 +154,19 @@ export function ViewLoopEditor({
 
           <button
             type="button"
-            className="agikit-tool-button primary"
+            className="agikit-tool-button secondary"
             title="Zoom in"
             onClick={() => setZoom((prevZoom) => prevZoom + 1)}
           >
             <i className="bi-zoom-in" role="img" aria-label="Zoom in" />
           </button>
+
+          <ColorSelector
+            palette={EGAPalette}
+            color={drawingColor}
+            setColor={setDrawingColor}
+            transparentColor={cel.transparentColor}
+          />
         </div>
         <div>
           <button

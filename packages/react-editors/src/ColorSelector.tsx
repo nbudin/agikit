@@ -13,7 +13,7 @@ export default function ColorSelector({
   palette: typeof EGAPalette;
   color: number | undefined;
   setColor: React.Dispatch<React.SetStateAction<number | undefined>>;
-  colorType: string;
+  colorType?: string;
   transparentColor?: number;
 }) {
   const { setButton, setPopover, styles, attributes, open, setOpen } = usePopoverButton();
@@ -27,7 +27,8 @@ export default function ColorSelector({
         onClick={() => setOpen((prevOpen) => !prevOpen)}
         style={stylesForColorNumber(color, palette)}
       >
-        {colorType}: {color ?? 'off'}
+        {colorType && `${colorType}: `}
+        {color ?? 'off'}
       </button>
       <div
         className="pic-editor-color-picker"

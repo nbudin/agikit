@@ -6,7 +6,7 @@ import {
   applyEditsToResource,
   EditingPictureResource,
   PicDocumentEdit,
-  prepareCommandForEditing,
+  preparePicCommandForEditing,
 } from '@agikit/react-editors/dist/EditingPictureTypes';
 
 interface PicDocumentDelegate {
@@ -48,7 +48,7 @@ function readDocumentForEditing(content: Buffer): EditingPictureResource {
   const resource = readPictureResource(content);
   return {
     ...resource,
-    commands: resource.commands.map(prepareCommandForEditing),
+    commands: resource.commands.map(preparePicCommandForEditing),
   };
 }
 
