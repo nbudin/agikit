@@ -1,33 +1,34 @@
 import { useMemo, useState } from 'react';
-import { AGIView } from 'agikit-core/dist/Types/View';
 
 import { ViewLoopEditor } from './ViewLoopEditor';
 import { EditingView, EditingViewLoop } from './EditingViewTypes';
 import { ViewEditorContextValue, ViewEditorContext } from './ViewEditorContext';
-import { ViewEditorCommand } from './ViewEditorCommands';
+import { applyViewEditorCommands, ViewEditorCommand } from './ViewEditorCommands';
 
 export function ViewEditor({ view }: { view: EditingView }) {
   const [loopNumber, setLoopNumber] = useState(0);
   const [celNumber, setCelNumber] = useState(0);
   const [zoom, setZoom] = useState(6);
   const [drawingColor, setDrawingColor] = useState<number | undefined>(0);
-  const [commands, setCommands] = useState<ViewEditorCommand[]>([]);
+
+  const viewWithCommandsApplied = useMemo(() => applyViewEditorCommands(view, view.commands), [
+    view,
+  ]);
 
   const contextValue = useMemo<ViewEditorContextValue>(
     () => ({
       view,
+      viewWithCommandsApplied,
       celNumber,
       setCelNumber,
       loopNumber,
       setLoopNumber,
       zoom,
       setZoom,
-      commands,
-      setCommands,
       drawingColor,
       setDrawingColor,
     }),
-    [view, celNumber, loopNumber, zoom, commands, drawingColor],
+    [view, viewWithCommandsApplied, celNumber, loopNumber, zoom, drawingColor],
   );
 
   const currentLoop = view.loops[loopNumber];

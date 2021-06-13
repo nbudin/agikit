@@ -1,9 +1,11 @@
 import React from 'react';
+import { AGIView } from '../../agikit-core/dist/Types/View';
 import { EditingView } from './EditingViewTypes';
 import { ViewEditorCommand } from './ViewEditorCommands';
 
 export type ViewEditorContextValue = {
   view: EditingView;
+  viewWithCommandsApplied: AGIView;
   loopNumber: number;
   setLoopNumber: React.Dispatch<React.SetStateAction<number>>;
   celNumber: number;
@@ -12,13 +14,15 @@ export type ViewEditorContextValue = {
   setZoom: React.Dispatch<React.SetStateAction<number>>;
   drawingColor: number | undefined;
   setDrawingColor: React.Dispatch<React.SetStateAction<number | undefined>>;
-  commands: ViewEditorCommand[];
-  setCommands: React.Dispatch<React.SetStateAction<ViewEditorCommand[]>>;
 };
 
 export const ViewEditorContext = React.createContext<ViewEditorContextValue>({
   view: {
     commands: [],
+    description: '',
+    loops: [],
+  },
+  viewWithCommandsApplied: {
     description: '',
     loops: [],
   },
@@ -30,6 +34,4 @@ export const ViewEditorContext = React.createContext<ViewEditorContextValue>({
   setZoom: () => {},
   drawingColor: undefined,
   setDrawingColor: () => {},
-  commands: [],
-  setCommands: () => {},
 });

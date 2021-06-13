@@ -15,7 +15,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import './dev-site.css';
 import '../styles/common.css';
 import '../styles/vieweditor.css';
-import { ViewEditorCommand } from '../src/ViewEditorCommands';
+import { applyViewEditorCommands, ViewEditorCommand } from '../src/ViewEditorCommands';
 
 // @ts-expect-error
 window.Buffer = Buffer;
@@ -68,7 +68,9 @@ const DevViewEditor = () => {
       }
 
       if (event.key === 's') {
-        const builtView = new Blob([buildView(viewResource)]);
+        const builtView = new Blob([
+          buildView(applyViewEditorCommands(viewResource, viewResource.commands)),
+        ]);
         const a = document.createElement('a');
         a.href = URL.createObjectURL(builtView);
         a.download = 'saved.agiview';

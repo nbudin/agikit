@@ -3,7 +3,6 @@ import { ViewCel } from 'agikit-core/dist/Types/View';
 import { renderViewCel } from 'agikit-core/dist/Extract/View/RenderView';
 import { EGAPalette } from 'agikit-core/dist/ColorPalettes';
 import { ViewCelCanvas } from './ViewCelCanvas';
-import { EditingView } from './EditingViewTypes';
 import ColorSelector from './ColorSelector';
 import { CursorPosition } from './DrawingCanvas';
 import { BrushStroke } from './ViewEditorBrushStrokes';
@@ -15,6 +14,7 @@ import { v4 } from 'uuid';
 export function ViewLoopEditor() {
   const {
     view,
+    viewWithCommandsApplied,
     loopNumber,
     celNumber,
     setCelNumber,
@@ -24,32 +24,35 @@ export function ViewLoopEditor() {
     setZoom,
   } = useContext(ViewEditorContext);
   const { addCommands } = useContext(ViewEditorControlContext);
-  const loop = view.loops[loopNumber];
+  const loop = viewWithCommandsApplied.loops[loopNumber];
   const [animating, setAnimating] = useState(false);
   const [fps, setFps] = useState(5);
   const cel = loop.cels[celNumber];
   const [currentBrushStroke, setCurrentBrushStroke] = useState<BrushStroke>();
 
+  const viewWithCurrentBrushStrokeApplied = useMemo(
+    () =>
+      currentBrushStroke
+        ? applyViewEditorCommands(viewWithCommandsApplied, [
+            {
+              uuid: 'pending',
+              loop: loopNumber,
+              cel: celNumber,
+              type: 'Brush',
+              brushStroke: currentBrushStroke,
+            },
+          ])
+        : viewWithCommandsApplied,
+    [viewWithCommandsApplied, currentBrushStroke, celNumber, loopNumber],
+  );
+
   const renderedCels = useMemo(
     () =>
-      loop.cels.map((cel: ViewCel, index: number) => {
-        const celCommands = view.commands.filter(
-          (command) => command.loop === loopNumber && command.cel === index,
-        );
-        if (currentBrushStroke) {
-          celCommands.push({
-            uuid: v4(),
-            loop: loopNumber,
-            cel: index,
-            type: 'Brush',
-            brushStroke: currentBrushStroke,
-          });
-        }
-        const celWithCommandsApplied = applyViewEditorCommands(cel, celCommands);
-        const renderedCel = renderViewCel(celWithCommandsApplied, EGAPalette);
+      viewWithCurrentBrushStrokeApplied.loops[loopNumber].cels.map((cel: ViewCel) => {
+        const renderedCel = renderViewCel(cel, EGAPalette);
         return { ...cel, buffer: renderedCel };
       }),
-    [loop, view.commands, loopNumber, currentBrushStroke],
+    [viewWithCurrentBrushStrokeApplied, loopNumber],
   );
 
   const cursorDownInCanvas = (position: CursorPosition) => {
