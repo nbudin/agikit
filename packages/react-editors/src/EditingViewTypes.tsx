@@ -90,7 +90,14 @@ export function buildEditingView(view: AGIView): EditingView {
     editingLoops[mirroredLoopNumber] = {
       type: 'mirrored',
       mirroredFromLoop: targetLoop,
-      cels: view.loops[mirroredLoopNumber].cels as MirroredViewCel[],
+      cels: view.loops[mirroredLoopNumber].cels.map((cel) => {
+        const mirroredCel: MirroredViewCel = {
+          ...cel,
+          mirrored: true,
+          mirroredFromLoop: targetLoop,
+        };
+        return mirroredCel;
+      }),
     };
   });
 

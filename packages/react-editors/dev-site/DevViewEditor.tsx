@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { Buffer } from 'buffer';
 import { readViewResource } from 'agikit-core/dist/Extract/View/ReadView';
+import { buildView } from 'agikit-core/dist/Build/BuildView';
 import { ViewEditor } from '../src/ViewEditor';
 import { templateEgoBase64 } from './dev-example-data';
 import { buildEditingView, EditingView } from '../src/EditingViewTypes';
@@ -65,8 +66,17 @@ const DevViewEditor = () => {
           }
         }
       }
+
+      if (event.key === 's') {
+        const builtView = new Blob([buildView(viewResource)]);
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(builtView);
+        a.download = 'saved.agiview';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
     },
-    [controlContextValue, viewResource.commands, redoCommands],
+    [controlContextValue, viewResource, redoCommands],
   );
 
   useEffect(() => {
