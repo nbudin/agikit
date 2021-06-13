@@ -19,3 +19,63 @@
   background-size: 10px 10px, 10px 10px;
   background-position: 0 0, 5px 5px;
 }
+
+.view-editor {
+  display: grid;
+  grid-template:
+    'cel-canvas navigation-controls' 1fr
+    'cel-controls navigation-controls' min-content / minmax(320px, 1fr) minmax(200px, 320px);
+  gap: 1rem;
+  height: 100vh;
+  width: 100vw;
+}
+
+.view-editor-navigation-controls {
+  grid-area: navigation-controls;
+  border-left: 1px var(--agikit-panel-border) solid;
+  padding: 0.5rem;
+}
+
+.view-editor-loop-list,
+.view-editor-cel-list {
+  list-style: none;
+  margin-bottom: 1rem;
+}
+
+.view-editor-loop-list button,
+.view-editor-cel-list button {
+  background: none;
+  border: none;
+  padding-left: 0;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.view-editor-loop-list button:hover,
+.view-editor-cel-list button:hover {
+  background-color: var(--agikit-list-hoverBackground);
+}
+
+.view-editor-loop-list button.current,
+.view-editor-cel-list button.current {
+  background-color: var(--agikit-editorCursor-foreground);
+  color: var(--agikit-editor-background);
+}
+
+.view-editor-cel-canvas {
+  grid-area: cel-canvas;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-editor-cel-controls {
+  grid-area: cel-controls;
+  border-top: 1px var(--agikit-panel-border) solid;
+  padding: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

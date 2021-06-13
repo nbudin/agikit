@@ -79,14 +79,3 @@
   border: 1px var(--agikit-panel-border) solid;
   z-index: 1000;
 }
-
-.pic-editor-tool-button,
-.pic-editor-popover-button {
-  width: 3rem;
-  height: 3rem;
-  margin: 1px;
-}
-
-.pic-editor-tool-button {
-  font-size: 1.5rem;
-}

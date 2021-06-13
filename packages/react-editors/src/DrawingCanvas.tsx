@@ -53,7 +53,7 @@ export function DrawingCanvas({
     }
 
     renderCanvas2D(canvasRef.current, ctxRef.current.ctx, sourceWidth, sourceHeight, buffer);
-  }, [buffer, sourceWidth, sourceHeight]);
+  }, [buffer, sourceWidth, sourceHeight, canvasWidth, canvasHeight]);
 
   const calculateCursorPosition = (event: React.MouseEvent) => {
     if (!canvasRef.current) {

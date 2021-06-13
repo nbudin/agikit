@@ -53,7 +53,7 @@ export default function PicEditorTools({
         <>
           <button
             type="button"
-            className="pic-editor-tool-button primary"
+            className="agikit-tool-button primary"
             title="Finish command"
             onClick={commitCommandInProgress}
           >
@@ -61,7 +61,7 @@ export default function PicEditorTools({
           </button>
           <button
             type="button"
-            className="pic-editor-tool-button secondary"
+            className="agikit-tool-button secondary"
             title="Cancel command"
             onClick={cancelCommandInProgress}
           >
@@ -73,7 +73,7 @@ export default function PicEditorTools({
           <button
             key={tool.name}
             type="button"
-            className={`pic-editor-tool-button secondary${selectedTool === tool ? ' inverse' : ''}`}
+            className={`agikit-tool-button secondary${selectedTool === tool ? ' inverse' : ''}`}
             onClick={() => setSelectedTool(tool)}
             title={tool.description}
           >

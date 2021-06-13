@@ -15,6 +15,7 @@ import {
 
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './dev-site.css';
+import '../styles/common.css';
 import '../styles/piceditor.css';
 
 // @ts-expect-error

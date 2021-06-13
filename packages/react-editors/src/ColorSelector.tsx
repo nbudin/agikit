@@ -8,11 +8,13 @@ export default function ColorSelector({
   color,
   setColor,
   colorType,
+  transparentColor,
 }: {
   palette: typeof EGAPalette;
   color: number | undefined;
   setColor: React.Dispatch<React.SetStateAction<number | undefined>>;
   colorType: string;
+  transparentColor?: number;
 }) {
   const { setButton, setPopover, styles, attributes, open, setOpen } = usePopoverButton();
 
@@ -39,25 +41,31 @@ export default function ColorSelector({
             <button
               key={colorNumber}
               type="button"
-              className="pic-editor-tool-button secondary"
+              className="agikit-tool-button secondary"
               onClick={() => {
                 setColor(colorNumber);
               }}
-              style={stylesForColorNumber(colorNumber, palette)}
+              style={
+                colorNumber === transparentColor
+                  ? stylesForColorNumber(undefined, palette)
+                  : stylesForColorNumber(colorNumber, palette)
+              }
             >
               {colorNumber}
             </button>
           ))}
-          <button
-            type="button"
-            className="pic-editor-tool-button secondary"
-            onClick={() => {
-              setColor(undefined);
-            }}
-            style={stylesForColorNumber(undefined, palette)}
-          >
-            off
-          </button>
+          {transparentColor == null && (
+            <button
+              type="button"
+              className="agikit-tool-button secondary"
+              onClick={() => {
+                setColor(undefined);
+              }}
+              style={stylesForColorNumber(undefined, palette)}
+            >
+              off
+            </button>
+          )}
         </div>
       </div>
     </>
