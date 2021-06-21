@@ -23,7 +23,9 @@ window.Buffer = Buffer;
 const templateEgo = readViewResource(Buffer.from(templateEgoBase64, 'base64'));
 
 const DevViewEditor = () => {
-  const [viewResource, setViewResource] = useState<EditingView>(buildEditingView(templateEgo));
+  const [viewResource, setViewResource] = useState<EditingView>(() =>
+    buildEditingView(templateEgo),
+  );
   const [redoCommands, setRedoCommands] = useState<ViewEditorCommand[]>([]);
 
   const controlContextValue: ViewEditorControlContextValue = useMemo(

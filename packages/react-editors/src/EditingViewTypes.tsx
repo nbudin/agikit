@@ -1,20 +1,17 @@
-import {
-  NonMirroredViewCel,
-  ViewCel,
-  ViewLoop,
-  AGIView,
-  MirroredViewCel,
-} from 'agikit-core/dist/Types/View';
+import { NonMirroredViewCel, ViewCel, AGIView, MirroredViewCel } from 'agikit-core/dist/Types/View';
 import { ViewEditorCommand } from './ViewEditorCommands';
 
 export type EditingRegularLoop = {
+  loopNumber: number;
   type: 'regular';
   cels: NonMirroredViewCel[];
+  mirroredByLoopNumbers: number[];
 };
 
 export type EditingMirroredLoop = {
+  loopNumber: number;
   type: 'mirrored';
-  mirroredFromLoop: EditingRegularLoop;
+  mirroredFromLoopNumber: number;
   cels: MirroredViewCel[];
 };
 
@@ -26,7 +23,7 @@ export type EditingView = {
   commands: ViewEditorCommand[];
 };
 
-export function flipCel(cel: ViewCel): NonMirroredViewCel {
+export function flipCelBuffer(cel: NonMirroredViewCel): Uint8Array {
   const flippedBuffer = new Uint8Array(cel.buffer.length);
 
   for (let x = 0; x < cel.width; x++) {
@@ -38,47 +35,72 @@ export function flipCel(cel: ViewCel): NonMirroredViewCel {
     }
   }
 
-  return {
-    ...cel,
-    mirrored: false,
-    mirroredFromLoop: undefined,
-    buffer: flippedBuffer,
-  };
+  return flippedBuffer;
 }
 
-export function buildEditingRegularLoop(loop: ViewLoop): EditingRegularLoop {
-  return {
-    type: 'regular',
-    cels: loop.cels.map((cel) => {
-      if (cel.mirrored) {
-        return flipCel(cel);
-      }
+export function buildEditingLoop(view: AGIView, loopNumber: number): EditingViewLoop {
+  const loop = view.loops[loopNumber];
+  let mirrorTarget: number | undefined;
 
-      return cel;
-    }),
-  };
+  if (loop.cels.every((cel) => cel.mirrored)) {
+    const mirroredFromLoopNumber = loop.cels[0].mirroredFromLoopNumber;
+    if (
+      mirroredFromLoopNumber != null &&
+      loop.cels.every((cel) => cel.mirroredFromLoopNumber === mirroredFromLoopNumber)
+    ) {
+      mirrorTarget = mirroredFromLoopNumber;
+    }
+  }
+
+  if (mirrorTarget != null) {
+    return {
+      ...loop,
+      type: 'mirrored',
+      mirroredFromLoopNumber: mirrorTarget,
+      cels: loop.cels.map((cel) => {
+        const sourceCel = view.loops[mirrorTarget as number].cels[cel.celNumber];
+        if (sourceCel.mirrored) {
+          throw new Error('Mirrored cel points at another mirrored cel');
+        }
+
+        return {
+          ...cel,
+          mirrored: true,
+          mirroredFromLoopNumber: mirrorTarget as number,
+          buffer: flipCelBuffer(sourceCel),
+        };
+      }),
+    };
+  } else {
+    return {
+      ...loop,
+      type: 'regular',
+      mirroredByLoopNumbers: [],
+      cels: loop.cels.map((cel) => {
+        if (cel.mirrored) {
+          throw new Error('Mirrored cel found in a regular loop');
+        }
+
+        return {
+          ...cel,
+          mirrored: false,
+          mirroredFromLoopNumber: undefined,
+        };
+      }),
+    };
+  }
 }
 
 export function buildEditingView(view: AGIView): EditingView {
   const editingLoops: EditingViewLoop[] = [];
-  const loopNumbers = new Map<ViewLoop, number>(
-    view.loops.map((loop, loopNumber) => [loop, loopNumber]),
-  );
   const mirrorTargets = new Map<number, number>();
 
   view.loops.forEach((loop, loopNumber) => {
-    if (loop.cels.every((cel) => cel.mirrored)) {
-      const mirroredFromLoop = loop.cels[0].mirroredFromLoop;
-      if (mirroredFromLoop && loop.cels.every((cel) => cel.mirroredFromLoop === mirroredFromLoop)) {
-        const mirrorTargetNumber = loopNumbers.get(mirroredFromLoop);
-        if (mirrorTargetNumber != null) {
-          mirrorTargets.set(loopNumber, mirrorTargetNumber);
-          return;
-        }
-      }
+    const editingLoop = buildEditingLoop(view, loopNumber);
+    if (editingLoop.type === 'mirrored') {
+      mirrorTargets.set(editingLoop.loopNumber, editingLoop.mirroredFromLoopNumber);
     }
-
-    editingLoops[loopNumber] = buildEditingRegularLoop(loop);
+    editingLoops[loopNumber] = editingLoop;
   });
 
   mirrorTargets.forEach((targetLoopNumber, mirroredLoopNumber) => {
@@ -87,18 +109,7 @@ export function buildEditingView(view: AGIView): EditingView {
       throw new Error('Mirrored loops cannot target other mirrored loops');
     }
 
-    editingLoops[mirroredLoopNumber] = {
-      type: 'mirrored',
-      mirroredFromLoop: targetLoop,
-      cels: view.loops[mirroredLoopNumber].cels.map((cel) => {
-        const mirroredCel: MirroredViewCel = {
-          ...cel,
-          mirrored: true,
-          mirroredFromLoop: targetLoop,
-        };
-        return mirroredCel;
-      }),
-    };
+    targetLoop.mirroredByLoopNumbers.push(mirroredLoopNumber);
   });
 
   return { ...view, loops: editingLoops, commands: [] };

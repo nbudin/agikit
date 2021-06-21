@@ -1,4 +1,4 @@
-import { AGIView, ViewLoop, ViewCel, NonMirroredViewCel } from '../../Types/View';
+import { AGIView, ViewLoop, ViewCel } from '../../Types/View';
 
 export function readViewResource(data: Buffer): AGIView {
   // AGI Spec says the purpose of the first 2 bytes is unknown :/
@@ -43,7 +43,6 @@ export function readViewResource(data: Buffer): AGIView {
   }
 
   const loops: ViewLoop[] = [];
-  const mirroredCelLoopTargets = new Map<ViewCel, number>();
   for (let loopNumber = 0; loopNumber < loopCount; loopNumber++) {
     const loopOffset = loopOffsets[loopNumber];
     offset = loopOffset;
@@ -53,7 +52,11 @@ export function readViewResource(data: Buffer): AGIView {
       celOffsets.push(loopOffset + consumeUInt16LE());
     }
 
-    const cels: ViewCel[] = [];
+    const loop: ViewLoop = {
+      loopNumber,
+      cels: [],
+    };
+
     for (let celNumber = 0; celNumber < celCount; celNumber++) {
       const celOffset = celOffsets[celNumber];
       offset = celOffset;
@@ -63,58 +66,57 @@ export function readViewResource(data: Buffer): AGIView {
       const transparentColor = transparencyMirroringByte & 0x0f;
       const mirrored = (transparencyMirroringByte & 0b10000000) > 0;
       const mirroredFromLoopNumber = (transparencyMirroringByte & 0b01110000) >> 4;
-      const pixels: number[] = [];
-
-      for (let y = 0; y < height; y++) {
-        let x = 0;
-
-        let byte: number;
-        do {
-          byte = consumeUInt8();
-          if (byte > 0) {
-            const color = byte >> 4;
-            const pixelCount = byte & 0x0f;
-            x += pixelCount;
-            for (let pixelNumber = 0; pixelNumber < pixelCount; pixelNumber++) {
-              pixels.push(color);
-            }
-          }
-        } while (byte > 0);
-
-        if (x < width) {
-          const fillPixels = width - x;
-          for (let pixelNumber = 0; pixelNumber < fillPixels; pixelNumber++) {
-            pixels.push(transparentColor);
-          }
-        }
-      }
-
-      const cel: NonMirroredViewCel = {
-        width,
-        height,
-        transparentColor,
-        buffer: Uint8Array.from(pixels),
-        // we'll set these later once we've decoded all the loops in this view
-        mirrored: false,
-        mirroredFromLoop: undefined,
-      };
-      cels.push(cel);
 
       if (mirrored && mirroredFromLoopNumber !== loopNumber) {
-        mirroredCelLoopTargets.set(cel, mirroredFromLoopNumber);
+        loop.cels.push({
+          celNumber,
+          width,
+          height,
+          transparentColor,
+          mirrored,
+          mirroredFromLoopNumber,
+        });
+      } else {
+        const pixels: number[] = [];
+
+        for (let y = 0; y < height; y++) {
+          let x = 0;
+
+          let byte: number;
+          do {
+            byte = consumeUInt8();
+            if (byte > 0) {
+              const color = byte >> 4;
+              const pixelCount = byte & 0x0f;
+              x += pixelCount;
+              for (let pixelNumber = 0; pixelNumber < pixelCount; pixelNumber++) {
+                pixels.push(color);
+              }
+            }
+          } while (byte > 0);
+
+          if (x < width) {
+            const fillPixels = width - x;
+            for (let pixelNumber = 0; pixelNumber < fillPixels; pixelNumber++) {
+              pixels.push(transparentColor);
+            }
+          }
+        }
+
+        loop.cels.push({
+          celNumber,
+          width,
+          height,
+          transparentColor,
+          buffer: Uint8Array.from(pixels),
+          mirrored: false,
+          mirroredFromLoopNumber: undefined,
+        });
       }
     }
 
-    const loop: ViewLoop = {
-      cels,
-    };
     loops.push(loop);
   }
-
-  mirroredCelLoopTargets.forEach((loopTarget, cel) => {
-    cel.mirrored = true;
-    cel.mirroredFromLoop = loops[loopTarget];
-  });
 
   return {
     description,

@@ -1,4 +1,4 @@
-import { AGIView, ViewCel, ViewLoop } from '../Types/View';
+import { AGIView, NonMirroredViewCel, ViewCel, ViewLoop } from '../Types/View';
 import { encodeUInt16LE } from '../DataEncoding';
 
 function buildHeaderForOptionalBuffers(
@@ -38,7 +38,7 @@ function concatOptionalBuffers(buffers: (Buffer | undefined)[]): Buffer {
   return Buffer.concat(definedBuffers);
 }
 
-function encodeCel(cel: ViewCel, mirrorSourceLoopNumber: number | undefined): Buffer {
+function encodeCel(cel: NonMirroredViewCel, mirrorSourceLoopNumber: number | undefined): Buffer {
   let transparencyMirroringByte = cel.transparentColor & 0x0f;
   if (mirrorSourceLoopNumber != null) {
     transparencyMirroringByte += 0b10000000;
@@ -75,7 +75,13 @@ function encodeCel(cel: ViewCel, mirrorSourceLoopNumber: number | undefined): Bu
 }
 
 function encodeLoop(loop: ViewLoop, mirrorSourceLoopNumber: number | undefined): Buffer {
-  const encodedCels = loop.cels.map((cel) => encodeCel(cel, mirrorSourceLoopNumber));
+  const encodedCels = loop.cels.map((cel) => {
+    if (cel.mirrored) {
+      throw new Error(`Can't encode mirrored cel ${cel.celNumber} in loop ${loop.loopNumber}`);
+    }
+
+    return encodeCel(cel, mirrorSourceLoopNumber);
+  });
   const headerLength = 1 + encodedCels.length * 2;
   return Buffer.concat([
     Buffer.from([loop.cels.length]),
@@ -89,18 +95,23 @@ export function buildView(view: AGIView): Buffer {
   const mirrorSourceLoopNumbersByTargetLoopNumber = new Map<number, number>();
   view.loops.forEach((loop, loopNumber) => {
     if (loop.cels.some((cel) => cel.mirrored)) {
-      let mirrorSourceLoop: ViewLoop | undefined = undefined;
+      let mirrorSourceLoopNumber: number | undefined = undefined;
       loop.cels.forEach((cel) => {
-        if (mirrorSourceLoop != null) {
-          if (cel.mirroredFromLoop !== mirrorSourceLoop) {
+        if (mirrorSourceLoopNumber != null) {
+          if (cel.mirroredFromLoopNumber !== mirrorSourceLoopNumber) {
             throw new Error(`Cels in loop ${loopNumber} target different loops for mirorring!`);
           }
         } else {
-          mirrorSourceLoop = cel.mirroredFromLoop;
+          mirrorSourceLoopNumber = cel.mirroredFromLoopNumber;
         }
       });
 
-      const mirrorSourceLoopNumber = view.loops.findIndex((l) => l === mirrorSourceLoop);
+      if (mirrorSourceLoopNumber == null) {
+        throw new Error(
+          `Cels in loop ${loopNumber} are marked as mirrored but have no mirroredFromLoopNumber!`,
+        );
+      }
+
       mirrorSourceLoopNumbers.add(mirrorSourceLoopNumber);
       mirrorSourceLoopNumbersByTargetLoopNumber.set(loopNumber, mirrorSourceLoopNumber);
     }

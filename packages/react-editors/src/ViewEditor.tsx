@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { ViewLoopEditor } from './ViewLoopEditor';
-import { EditingView, EditingViewLoop } from './EditingViewTypes';
+import { buildEditingView, EditingView, EditingViewLoop } from './EditingViewTypes';
 import { ViewEditorContextValue, ViewEditorContext } from './ViewEditorContext';
 import { applyViewEditorCommands, ViewEditorCommand } from './ViewEditorCommands';
 
@@ -11,9 +11,10 @@ export function ViewEditor({ view }: { view: EditingView }) {
   const [zoom, setZoom] = useState(6);
   const [drawingColor, setDrawingColor] = useState<number | undefined>(0);
 
-  const viewWithCommandsApplied = useMemo(() => applyViewEditorCommands(view, view.commands), [
-    view,
-  ]);
+  const viewWithCommandsApplied = useMemo(
+    () => buildEditingView(applyViewEditorCommands(view, view.commands)),
+    [view],
+  );
 
   const contextValue = useMemo<ViewEditorContextValue>(
     () => ({
@@ -31,7 +32,23 @@ export function ViewEditor({ view }: { view: EditingView }) {
     [view, viewWithCommandsApplied, celNumber, loopNumber, zoom, drawingColor],
   );
 
+  const [animating, setAnimating] = useState(false);
+  const [fps, setFps] = useState(5);
   const currentLoop = view.loops[loopNumber];
+
+  useEffect(() => {
+    if (animating) {
+      const interval = setInterval(() => {
+        setCelNumber((prevCelNumber) =>
+          prevCelNumber < currentLoop.cels.length - 1 ? prevCelNumber + 1 : 0,
+        );
+      }, 1000 / fps);
+
+      return () => {
+        clearInterval(interval);
+      };
+    }
+  }, [currentLoop.cels.length, animating, fps, setCelNumber]);
 
   return (
     <ViewEditorContext.Provider value={contextValue}>
@@ -53,8 +70,7 @@ export function ViewEditor({ view }: { view: EditingView }) {
                   }}
                 >
                   Loop {index}
-                  {loop.type === 'mirrored' &&
-                    ` (mirrors loop ${view.loops.indexOf(loop.mirroredFromLoop)})`}
+                  {loop.type === 'mirrored' && ` (mirrors loop ${loop.mirroredFromLoopNumber})`}
                 </button>
               </li>
             ))}
@@ -76,6 +92,32 @@ export function ViewEditor({ view }: { view: EditingView }) {
               </li>
             ))}
           </ul>
+
+          <div>
+            <button
+              type="button"
+              className="agikit-tool-button primary"
+              title={animating ? 'Pause animation' : 'Play animation'}
+              onClick={() => setAnimating((prevAnimating) => !prevAnimating)}
+            >
+              <i
+                className={animating ? 'bi-pause' : 'bi-play'}
+                role="img"
+                aria-label={animating ? 'Pause animation' : 'Play animation'}
+              />
+            </button>
+            <label>
+              <input
+                type="range"
+                value={fps}
+                onChange={(event) => setFps(event.target.valueAsNumber)}
+                min={0.5}
+                max={60}
+                step={0.5}
+              />{' '}
+              {fps} FPS
+            </label>
+          </div>
         </div>
       </div>
     </ViewEditorContext.Provider>

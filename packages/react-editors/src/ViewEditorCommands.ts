@@ -1,5 +1,5 @@
 import assertNever from 'assert-never';
-import { AGIView, ViewCel } from '../../agikit-core/dist/Types/View';
+import { AGIView, ViewCel, ViewLoop } from '../../agikit-core/dist/Types/View';
 import { applyBrushStroke, BrushStroke } from './ViewEditorBrushStrokes';
 
 type ViewEditorCommandCommon = {
@@ -15,27 +15,47 @@ type ViewEditorBrushCommand = ViewEditorCommandCommon & {
 
 export type ViewEditorCommand = ViewEditorBrushCommand;
 
+export function updateCel(
+  view: AGIView,
+  loopNumber: number,
+  celNumber: number,
+  update: (cel: ViewCel) => ViewCel,
+): AGIView {
+  return {
+    ...view,
+    loops: view.loops.map((loop) => {
+      if (loop.loopNumber === loopNumber) {
+        return {
+          ...loop,
+          cels: view.loops[loopNumber].cels.map((cel) => {
+            if (cel.celNumber === celNumber) {
+              return update(cel);
+            } else {
+              return cel;
+            }
+          }),
+        };
+      } else {
+        return loop;
+      }
+    }),
+  };
+}
+
 export function applyViewEditorCommand(view: AGIView, command: ViewEditorCommand): AGIView {
   if (command.type === 'Brush') {
-    return {
-      ...view,
-      loops: view.loops.map((loop, loopNumber) => {
-        if (loopNumber === command.loop) {
-          return {
-            ...loop,
-            cels: loop.cels.map((cel, celNumber) => {
-              if (celNumber === command.cel) {
-                return { ...cel, buffer: applyBrushStroke(cel.buffer, cel, command.brushStroke) };
-              } else {
-                return cel;
-              }
-            }),
-          };
-        } else {
-          return loop;
-        }
-      }),
-    };
+    return updateCel(view, command.loop, command.cel, (cel) => {
+      if (cel.mirrored) {
+        throw new Error(
+          "Can't apply brush command on a mirrored cel; brush commands must be done on source",
+        );
+      }
+
+      return {
+        ...cel,
+        buffer: applyBrushStroke(cel.buffer, cel, command.brushStroke),
+      };
+    });
   }
 
   assertNever(command.type);

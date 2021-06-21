@@ -1,23 +1,25 @@
 export type ViewCelCommon = {
+  celNumber: number;
   width: number;
   height: number;
   transparentColor: number;
-  buffer: Uint8Array;
 };
 
 export type NonMirroredViewCel = ViewCelCommon & {
   mirrored: false;
-  mirroredFromLoop: undefined;
+  mirroredFromLoopNumber: undefined;
+  buffer: Uint8Array;
 };
 
 export type MirroredViewCel = ViewCelCommon & {
   mirrored: true;
-  mirroredFromLoop: ViewLoop;
+  mirroredFromLoopNumber: number;
 };
 
 export type ViewCel = MirroredViewCel | NonMirroredViewCel;
 
 export type ViewLoop = {
+  loopNumber: number;
   cels: ViewCel[];
 };
 

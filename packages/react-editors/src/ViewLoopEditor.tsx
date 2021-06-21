@@ -10,6 +10,7 @@ import { applyViewEditorCommands } from './ViewEditorCommands';
 import { ViewEditorContext } from './ViewEditorContext';
 import { ViewEditorControlContext } from './ViewEditorControlContext';
 import { v4 } from 'uuid';
+import { buildEditingView } from './EditingViewTypes';
 
 export function ViewLoopEditor() {
   const {
@@ -17,7 +18,6 @@ export function ViewLoopEditor() {
     viewWithCommandsApplied,
     loopNumber,
     celNumber,
-    setCelNumber,
     drawingColor,
     setDrawingColor,
     zoom,
@@ -25,31 +25,31 @@ export function ViewLoopEditor() {
   } = useContext(ViewEditorContext);
   const { addCommands } = useContext(ViewEditorControlContext);
   const loop = viewWithCommandsApplied.loops[loopNumber];
-  const [animating, setAnimating] = useState(false);
-  const [fps, setFps] = useState(5);
   const cel = loop.cels[celNumber];
   const [currentBrushStroke, setCurrentBrushStroke] = useState<BrushStroke>();
 
   const viewWithCurrentBrushStrokeApplied = useMemo(
     () =>
       currentBrushStroke
-        ? applyViewEditorCommands(viewWithCommandsApplied, [
-            {
-              uuid: 'pending',
-              loop: loopNumber,
-              cel: celNumber,
-              type: 'Brush',
-              brushStroke: currentBrushStroke,
-            },
-          ])
+        ? buildEditingView(
+            applyViewEditorCommands(viewWithCommandsApplied, [
+              {
+                uuid: 'pending',
+                loop: cel.mirrored ? cel.mirroredFromLoopNumber : loopNumber,
+                cel: celNumber,
+                type: 'Brush',
+                brushStroke: currentBrushStroke,
+              },
+            ]),
+          )
         : viewWithCommandsApplied,
-    [viewWithCommandsApplied, currentBrushStroke, celNumber, loopNumber],
+    [cel, viewWithCommandsApplied, currentBrushStroke, celNumber, loopNumber],
   );
 
   const renderedCels = useMemo(
     () =>
       viewWithCurrentBrushStrokeApplied.loops[loopNumber].cels.map((cel: ViewCel) => {
-        const renderedCel = renderViewCel(cel, EGAPalette);
+        const renderedCel = renderViewCel(viewWithCurrentBrushStrokeApplied, cel, EGAPalette);
         return { ...cel, buffer: renderedCel };
       }),
     [viewWithCurrentBrushStrokeApplied, loopNumber],
@@ -57,23 +57,31 @@ export function ViewLoopEditor() {
 
   const cursorDownInCanvas = (position: CursorPosition) => {
     if (drawingColor != null) {
-      setCurrentBrushStroke({ drawingColor, positions: [position] });
+      const virtualPosition = cel.mirrored
+        ? { ...position, x: cel.width - position.x - 1 }
+        : position;
+
+      setCurrentBrushStroke({ drawingColor, positions: [virtualPosition] });
     }
   };
 
   const cursorMoveInCanvas = (position: CursorPosition) => {
     if (drawingColor != null && currentBrushStroke) {
+      const virtualPosition = cel.mirrored
+        ? { ...position, x: cel.width - position.x - 1 }
+        : position;
+
       setCurrentBrushStroke((prevCurrentBrushStroke) => {
         const brushStrokeInProgress = prevCurrentBrushStroke || { drawingColor, positions: [] };
         if (
           !brushStrokeInProgress.positions.some(
             (existingPosition) =>
-              existingPosition.x === position.x && existingPosition.y === position.y,
+              existingPosition.x === virtualPosition.x && existingPosition.y === virtualPosition.y,
           )
         ) {
           return {
             ...brushStrokeInProgress,
-            positions: [...brushStrokeInProgress.positions, position],
+            positions: [...brushStrokeInProgress.positions, virtualPosition],
           };
         }
         return brushStrokeInProgress;
@@ -83,6 +91,17 @@ export function ViewLoopEditor() {
 
   const finishBrushStroke = () => {
     if (currentBrushStroke) {
+      if (cel.mirrored) {
+        addCommands([
+          {
+            uuid: v4(),
+            type: 'Brush',
+            cel: celNumber,
+            loop: cel.mirroredFromLoopNumber,
+            brushStroke: currentBrushStroke,
+          },
+        ]);
+      }
       addCommands([
         {
           uuid: v4(),
@@ -95,20 +114,6 @@ export function ViewLoopEditor() {
       setCurrentBrushStroke(undefined);
     }
   };
-
-  useEffect(() => {
-    if (animating) {
-      const interval = setInterval(() => {
-        setCelNumber((prevCelNumber) =>
-          prevCelNumber < loop.cels.length - 1 ? prevCelNumber + 1 : 0,
-        );
-      }, 1000 / fps);
-
-      return () => {
-        clearInterval(interval);
-      };
-    }
-  }, [loop.cels.length, animating, fps, setCelNumber]);
 
   return (
     <>
@@ -134,12 +139,11 @@ export function ViewLoopEditor() {
               {cel.width}x{cel.height}
               <br />
               Transparent color: {cel.transparentColor}
-              {cel.mirrored && (
-                <>
-                  <br />
-                  Mirrored from loop{' '}
-                  {view.loops.findIndex((otherLoop) => otherLoop === cel.mirroredFromLoop)}
-                </>
+              <br />
+              {cel.mirrored ? (
+                <>Mirrored from loop {cel.mirroredFromLoopNumber}</>
+              ) : (
+                <>TODO: figure out how to show what if anything is mirroring this cel</>
               )}
             </>
           )}
@@ -170,31 +174,6 @@ export function ViewLoopEditor() {
             setColor={setDrawingColor}
             transparentColor={cel.transparentColor}
           />
-        </div>
-        <div>
-          <button
-            type="button"
-            className="agikit-tool-button primary"
-            title={animating ? 'Pause animation' : 'Play animation'}
-            onClick={() => setAnimating((prevAnimating) => !prevAnimating)}
-          >
-            <i
-              className={animating ? 'bi-pause' : 'bi-play'}
-              role="img"
-              aria-label={animating ? 'Pause animation' : 'Play animation'}
-            />
-          </button>
-          <label>
-            <input
-              type="range"
-              value={fps}
-              onChange={(event) => setFps(event.target.valueAsNumber)}
-              min={0.5}
-              max={60}
-              step={0.5}
-            />{' '}
-            {fps} FPS
-          </label>
         </div>
       </div>
     </>
