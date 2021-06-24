@@ -37,17 +37,6 @@ const DevViewEditor = () => {
         setRedoCommands([]);
       },
       confirm: async (message) => window.confirm(message),
-      deleteCommand: (commandId) => {
-        let deletedCommands: ViewEditorCommand[] = [];
-        setViewResource((prevResource) => {
-          deletedCommands = prevResource.commands.filter((cmd) => cmd.uuid === commandId);
-          return {
-            ...prevResource,
-            commands: prevResource.commands.filter((cmd) => cmd.uuid !== commandId),
-          };
-        });
-        setRedoCommands((prevRedoCommands) => [...deletedCommands, ...prevRedoCommands]);
-      },
     }),
     [],
   );
@@ -64,7 +53,17 @@ const DevViewEditor = () => {
         } else {
           const lastCommand = viewResource.commands[viewResource.commands.length - 1];
           if (lastCommand) {
-            controlContextValue.deleteCommand(lastCommand.uuid);
+            let deletedCommands: ViewEditorCommand[] = [];
+            setViewResource((prevResource) => {
+              deletedCommands = prevResource.commands.filter(
+                (cmd) => cmd.uuid === lastCommand.uuid,
+              );
+              return {
+                ...prevResource,
+                commands: prevResource.commands.filter((cmd) => cmd.uuid !== lastCommand.uuid),
+              };
+            });
+            setRedoCommands((prevRedoCommands) => [...deletedCommands, ...prevRedoCommands]);
           }
         }
       }

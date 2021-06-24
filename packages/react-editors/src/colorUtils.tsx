@@ -7,7 +7,9 @@ export function backgroundStylesForColorNumber(
 ): CSSProperties {
   if (colorNumber != null) {
     const color = palette.colors[colorNumber];
-    return { backgroundColor: `rgb(${color[0]}, ${color[1]}, ${color[2]})` };
+    if (color != null) {
+      return { backgroundColor: `rgb(${color[0]}, ${color[1]}, ${color[2]})` };
+    }
   }
 
   return {

@@ -149,7 +149,7 @@ function addToCommandInProgress(
     }
 
     const axis =
-      commandInProgress.steps[commandInProgress.steps.length - 1].axis === 'x' ? 'y' : 'x';
+      commandInProgress.steps[commandInProgress.steps.length - 1]!.axis === 'x' ? 'y' : 'x';
     return {
       ...commandInProgress,
       steps: [...commandInProgress.steps, { axis, position: position[axis] }],

@@ -31,7 +31,7 @@ export function flipCelBuffer(cel: NonMirroredViewCel): Uint8Array {
       const flippedX = cel.width - 1 - x;
       const offset = y * cel.width + x;
       const flippedOffset = y * cel.width + flippedX;
-      flippedBuffer[flippedOffset] = cel.buffer[offset];
+      flippedBuffer[flippedOffset] = cel.buffer[offset] ?? cel.transparentColor;
     }
   }
 
@@ -40,10 +40,14 @@ export function flipCelBuffer(cel: NonMirroredViewCel): Uint8Array {
 
 export function buildEditingLoop(view: AGIView, loopNumber: number): EditingViewLoop {
   const loop = view.loops[loopNumber];
+  if (loop == null) {
+    throw new Error(`There is no loop ${loopNumber}`);
+  }
   let mirrorTarget: number | undefined;
 
-  if (loop.cels.every((cel) => cel.mirrored)) {
-    const mirroredFromLoopNumber = loop.cels[0].mirroredFromLoopNumber;
+  const firstCel = loop.cels[0];
+  if (firstCel && loop.cels.every((cel) => cel.mirrored)) {
+    const mirroredFromLoopNumber = firstCel.mirroredFromLoopNumber;
     if (
       mirroredFromLoopNumber != null &&
       loop.cels.every((cel) => cel.mirroredFromLoopNumber === mirroredFromLoopNumber)
@@ -53,12 +57,23 @@ export function buildEditingLoop(view: AGIView, loopNumber: number): EditingView
   }
 
   if (mirrorTarget != null) {
+    const mirrorTargetLoop = view.loops[mirrorTarget];
+    if (!mirrorTargetLoop) {
+      throw new Error(
+        `Loop ${loopNumber} specifies a mirror target of ${mirrorTarget}, but that loop does not exist`,
+      );
+    }
     return {
       ...loop,
       type: 'mirrored',
       mirroredFromLoopNumber: mirrorTarget,
       cels: loop.cels.map((cel) => {
-        const sourceCel = view.loops[mirrorTarget as number].cels[cel.celNumber];
+        const sourceCel = mirrorTargetLoop.cels[cel.celNumber];
+        if (!sourceCel) {
+          throw new Error(
+            `Mirrored loop ${loopNumber} has a cel ${cel.celNumber}, but the target loop ${mirrorTarget} does not`,
+          );
+        }
         if (sourceCel.mirrored) {
           throw new Error('Mirrored cel points at another mirrored cel');
         }
@@ -105,6 +120,10 @@ export function buildEditingView(view: AGIView): EditingView {
 
   mirrorTargets.forEach((targetLoopNumber, mirroredLoopNumber) => {
     const targetLoop = editingLoops[targetLoopNumber];
+    if (!targetLoop) {
+      throw new Error(`There is no loop ${targetLoopNumber}`);
+    }
+
     if (targetLoop.type === 'mirrored') {
       throw new Error('Mirrored loops cannot target other mirrored loops');
     }

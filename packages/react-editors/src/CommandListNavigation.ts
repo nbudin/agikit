@@ -47,7 +47,7 @@ export function useCommandListNavigation(
 
   const currentCommandId = useMemo(() => {
     if (enabledCommands.length > 0) {
-      return enabledCommands[enabledCommands.length - 1].uuid;
+      return enabledCommands[enabledCommands.length - 1]!.uuid;
     }
     return undefined;
   }, [enabledCommands]);

@@ -1,5 +1,6 @@
 .DS_Store
 *.vsix
+*.tsbuildinfo
 /extracted
 /build
 /reextracted
@@ -7,6 +8,7 @@
 /packages/*/extracted
 /packages/*/build
 /packages/*/reextracted
+/packages/react-editors/dev-site-dist
 /lerna-debug.log
 node_modules
 yarn-error.log

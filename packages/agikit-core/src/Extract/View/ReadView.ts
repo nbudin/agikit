@@ -1,4 +1,4 @@
-import { AGIView, ViewLoop, ViewCel } from '../../Types/View';
+import { AGIView, ViewLoop } from '../../Types/View';
 
 export function readViewResource(data: Buffer): AGIView {
   // AGI Spec says the purpose of the first 2 bytes is unknown :/

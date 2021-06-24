@@ -66,6 +66,7 @@ const webviewConfig = {
   target: 'web',
   entry: {
     VscodePicEditor: './src/Pic/VscodePicEditor.tsx',
+    VscodeViewEditor: './src/View/VscodeViewEditor.tsx',
   },
   resolve: {
     ...commonConfig.resolve,

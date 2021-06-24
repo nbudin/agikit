@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { ViewCel } from 'agikit-core/dist/Types/View';
 import { renderViewCel } from 'agikit-core/dist/Extract/View/RenderView';
 import { EGAPalette } from 'agikit-core/dist/ColorPalettes';
@@ -14,7 +14,6 @@ import { buildEditingView } from './EditingViewTypes';
 
 export function ViewLoopEditor() {
   const {
-    view,
     viewWithCommandsApplied,
     loopNumber,
     celNumber,
@@ -25,12 +24,45 @@ export function ViewLoopEditor() {
   } = useContext(ViewEditorContext);
   const { addCommands } = useContext(ViewEditorControlContext);
   const loop = viewWithCommandsApplied.loops[loopNumber];
-  const cel = loop.cels[celNumber];
+  const cel = loop?.cels[celNumber];
   const [currentBrushStroke, setCurrentBrushStroke] = useState<BrushStroke>();
+
+  const resizeCel = (newWidth: number, newHeight: number) => {
+    if (!cel) {
+      return;
+    }
+
+    addCommands([
+      {
+        type: 'Resize',
+        width: newWidth,
+        height: newHeight,
+        loop: cel.mirrored ? cel.mirroredFromLoopNumber : loopNumber,
+        cel: celNumber,
+        originX: 0,
+        originY: 0,
+        uuid: v4(),
+      },
+    ]);
+  };
+
+  const sizeFieldChanged = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    field: 'width' | 'height',
+  ) => {
+    const value = Number.parseInt(event.target.value, 10);
+    if (cel && value != null && !Number.isNaN(value) && value > 0) {
+      if (field === 'width') {
+        resizeCel(value, cel.height);
+      } else {
+        resizeCel(cel.width, value);
+      }
+    }
+  };
 
   const viewWithCurrentBrushStrokeApplied = useMemo(
     () =>
-      currentBrushStroke
+      currentBrushStroke && cel
         ? buildEditingView(
             applyViewEditorCommands(viewWithCommandsApplied, [
               {
@@ -48,15 +80,17 @@ export function ViewLoopEditor() {
 
   const renderedCels = useMemo(
     () =>
-      viewWithCurrentBrushStrokeApplied.loops[loopNumber].cels.map((cel: ViewCel) => {
+      viewWithCurrentBrushStrokeApplied.loops[loopNumber]?.cels.map((cel: ViewCel) => {
         const renderedCel = renderViewCel(viewWithCurrentBrushStrokeApplied, cel, EGAPalette);
         return { ...cel, buffer: renderedCel };
       }),
     [viewWithCurrentBrushStrokeApplied, loopNumber],
   );
 
+  const renderedCel = renderedCels ? renderedCels[celNumber] : undefined;
+
   const cursorDownInCanvas = (position: CursorPosition) => {
-    if (drawingColor != null) {
+    if (cel && drawingColor != null) {
       const virtualPosition = cel.mirrored
         ? { ...position, x: cel.width - position.x - 1 }
         : position;
@@ -66,7 +100,7 @@ export function ViewLoopEditor() {
   };
 
   const cursorMoveInCanvas = (position: CursorPosition) => {
-    if (drawingColor != null && currentBrushStroke) {
+    if (cel && drawingColor != null && currentBrushStroke) {
       const virtualPosition = cel.mirrored
         ? { ...position, x: cel.width - position.x - 1 }
         : position;
@@ -90,7 +124,7 @@ export function ViewLoopEditor() {
   };
 
   const finishBrushStroke = () => {
-    if (currentBrushStroke) {
+    if (cel && currentBrushStroke) {
       if (cel.mirrored) {
         addCommands([
           {
@@ -115,13 +149,17 @@ export function ViewLoopEditor() {
     }
   };
 
+  if (!loop || !cel || !renderedCel) {
+    return <></>;
+  }
+
   return (
     <>
       <div className="view-editor-cel-canvas">
         {cel && (
           <ViewCelCanvas
-            cel={renderedCels[celNumber]}
-            buffer={renderedCels[celNumber].buffer}
+            cel={renderedCel}
+            buffer={renderedCel.buffer}
             zoom={zoom}
             onCursorDown={cursorDownInCanvas}
             onCursorMove={cursorMoveInCanvas}
@@ -136,14 +174,53 @@ export function ViewLoopEditor() {
           {cel && (
             <>
               <br />
-              {cel.width}x{cel.height}
+              <input
+                type="number"
+                min={1}
+                value={cel.width}
+                onChange={(event) => sizeFieldChanged(event, 'width')}
+              />
+              x
+              <input
+                type="number"
+                min={1}
+                value={cel.height}
+                onChange={(event) => sizeFieldChanged(event, 'height')}
+              />
               <br />
-              Transparent color: {cel.transparentColor}
+              Transparent color:{' '}
+              <ColorSelector
+                color={cel.transparentColor}
+                palette={EGAPalette}
+                hideOffOption
+                setColor={(newColor) => {
+                  if (newColor != null) {
+                    addCommands([
+                      {
+                        type: 'ChangeTransparentColor',
+                        loop: cel.mirrored ? cel.mirroredFromLoopNumber : loopNumber,
+                        cel: celNumber,
+                        transparentColor: newColor,
+                        uuid: v4(),
+                      },
+                    ]);
+                  }
+                }}
+              />
               <br />
               {cel.mirrored ? (
                 <>Mirrored from loop {cel.mirroredFromLoopNumber}</>
               ) : (
-                <>TODO: figure out how to show what if anything is mirroring this cel</>
+                <>
+                  {loop.type === 'regular' && loop.mirroredByLoopNumbers.length > 0 ? (
+                    <>
+                      Mirrored by {loop.mirroredByLoopNumbers.length === 1 ? 'loop' : 'loops'}{' '}
+                      {loop.mirroredByLoopNumbers.join(', ')}
+                    </>
+                  ) : (
+                    <>Not mirrored by any other loops</>
+                  )}
+                </>
               )}
             </>
           )}

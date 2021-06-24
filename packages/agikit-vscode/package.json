@@ -18,7 +18,8 @@
     "onLanguage:agilogic",
     "onCommand:workbench.action.tasks.runTask",
     "onCommand:agikit.runWithScummVM",
-    "onCustomEditor:agikit.picEditor"
+    "onCustomEditor:agikit.picEditor",
+    "onCustomEditor:agikit.viewEditor"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -51,6 +52,15 @@
         "selector": [
           {
             "filenamePattern": "*.agipic"
+          }
+        ]
+      },
+      {
+        "viewType": "agikit.viewEditor",
+        "displayName": "AGI VIEW",
+        "selector": [
+          {
+            "filenamePattern": "*.agiview"
           }
         ]
       }

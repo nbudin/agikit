@@ -37,7 +37,7 @@ export function ViewEditor({ view }: { view: EditingView }) {
   const currentLoop = view.loops[loopNumber];
 
   useEffect(() => {
-    if (animating) {
+    if (animating && currentLoop) {
       const interval = setInterval(() => {
         setCelNumber((prevCelNumber) =>
           prevCelNumber < currentLoop.cels.length - 1 ? prevCelNumber + 1 : 0,
@@ -48,7 +48,7 @@ export function ViewEditor({ view }: { view: EditingView }) {
         clearInterval(interval);
       };
     }
-  }, [currentLoop.cels.length, animating, fps, setCelNumber]);
+  }, [currentLoop, animating, fps, setCelNumber]);
 
   return (
     <ViewEditorContext.Provider value={contextValue}>
@@ -64,7 +64,8 @@ export function ViewEditor({ view }: { view: EditingView }) {
                   className={index === loopNumber ? 'current' : undefined}
                   onClick={() => {
                     setLoopNumber(index);
-                    if (celNumber >= view.loops[index].cels.length) {
+                    const targetLoop = view.loops[index];
+                    if (!targetLoop || celNumber >= targetLoop.cels.length) {
                       setCelNumber(0);
                     }
                   }}
@@ -78,7 +79,7 @@ export function ViewEditor({ view }: { view: EditingView }) {
 
           <h2>Cels</h2>
           <ul className="view-editor-cel-list">
-            {currentLoop.cels.map((cel: EditingViewLoop['cels'][number], index: number) => (
+            {currentLoop?.cels.map((cel: EditingViewLoop['cels'][number], index: number) => (
               <li key={index}>
                 <button
                   type="button"

@@ -79,6 +79,7 @@
       "type": "extensionHost",
       "request": "launch",
       "args": [
+        "${workspaceFolder}/../agikit-project-template",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/agikit-vscode"
       ],
       "outFiles": [

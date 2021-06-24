@@ -1,21 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
-import { buildPicture } from 'agikit-core/dist/Build/BuildPicture';
+import { buildView } from 'agikit-core/dist/Build/BuildView';
 import { Buffer } from 'buffer';
 import * as ReactDOM from 'react-dom';
-import { PicEditor } from '@agikit/react-editors/dist/PicEditor';
+import { ViewEditor } from '@agikit/react-editors/dist/ViewEditor';
+import { buildEditingView, EditingView } from '@agikit/react-editors/dist/EditingViewTypes';
 import {
-  EditingPictureCommand,
-  EditingPictureResource,
-} from '@agikit/react-editors/dist/EditingPictureTypes';
-import {
-  PicEditorControlContext,
-  PicEditorControlContextValue,
-} from '@agikit/react-editors/dist/PicEditorControlContext';
+  ViewEditorControlContext,
+  ViewEditorControlContextValue,
+} from '@agikit/react-editors/dist/ViewEditorControlContext';
 
 import '../reset.css';
 import '../vscode.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import '@agikit/react-editors/styles/piceditor.css';
+import '@agikit/react-editors/styles/vieweditor.css';
+import { deserializeView } from './ViewSerialization';
 
 // @ts-expect-error
 window.Buffer = Buffer;
@@ -25,12 +23,14 @@ const vscode = acquireVsCodeApi();
 vscode.postMessage({ type: 'ready' });
 
 function VscodePicEditor() {
-  const [pictureResource, setPictureResource] = useState<EditingPictureResource>({
+  const [viewResource, setViewResource] = useState<EditingView>({
+    description: undefined,
+    loops: [],
     commands: [],
   });
   const [editable, setEditable] = useState(false);
   const [resolveConfirm, setResolveConfirm] = useState<(result: boolean) => void | undefined>();
-  const controlContextValue = useMemo<PicEditorControlContextValue>(
+  const controlContextValue = useMemo<ViewEditorControlContextValue>(
     () => ({
       confirm: (message) => {
         if (resolveConfirm) {
@@ -45,20 +45,8 @@ function VscodePicEditor() {
           vscode.postMessage({ type: 'confirm', message });
         });
       },
-      addCommands: (commands, afterCommandId) => {
-        vscode.postMessage({ type: 'addCommands', commands, afterCommandId });
-      },
-      deleteCommand: (commandId) => {
-        vscode.postMessage({ type: 'deleteCommand', commandId });
-      },
-      setCommandsEnabled: (enabled: (command: EditingPictureCommand) => boolean) => {
-        setPictureResource((prevResource) => ({
-          ...prevResource,
-          commands: prevResource.commands.map((command) => ({
-            ...command,
-            enabled: enabled(command),
-          })),
-        }));
+      addCommands: (commands) => {
+        vscode.postMessage({ type: 'addCommands', commands });
       },
     }),
     [resolveConfirm],
@@ -71,11 +59,10 @@ function VscodePicEditor() {
         case 'init': {
           setEditable(body.editable);
           if (body.untitled) {
-            setPictureResource({ commands: [] });
+            setViewResource({ loops: [], description: undefined, commands: [] });
             return;
           } else {
-            // Load the initial image into the canvas.
-            setPictureResource(body.resource);
+            setViewResource(buildEditingView(deserializeView(body.resource)));
             return;
           }
         }
@@ -88,14 +75,14 @@ function VscodePicEditor() {
           return;
         case 'update': {
           const newResource = body.content;
-          setPictureResource(newResource);
+          setViewResource(buildEditingView(deserializeView(newResource)));
           return;
         }
         case 'getFileData': {
           vscode.postMessage({
             type: 'response',
             requestId,
-            body: Array.from(buildPicture(pictureResource)),
+            body: Array.from(buildView(viewResource)),
           });
           return;
         }
@@ -109,10 +96,10 @@ function VscodePicEditor() {
   });
 
   return (
-    <PicEditorControlContext.Provider value={controlContextValue}>
-      <PicEditor pictureResource={pictureResource} />
-    </PicEditorControlContext.Provider>
+    <ViewEditorControlContext.Provider value={controlContextValue}>
+      <ViewEditor view={viewResource} />
+    </ViewEditorControlContext.Provider>
   );
 }
 
-ReactDOM.render(<VscodePicEditor />, document.querySelector('#pic-editor-root'));
+ReactDOM.render(<VscodePicEditor />, document.querySelector('#view-editor-root'));

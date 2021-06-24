@@ -44,6 +44,10 @@ export function describeCommand(command: PictureCommand): ReactNode {
 
   if (command.type === 'SetPictureColor' || command.type === 'SetPriorityColor') {
     const color = EGAPalette.colors[command.colorNumber];
+    if (!color) {
+      return `${command.type} color #${command.colorNumber}`;
+    }
+
     return (
       <span
         style={{

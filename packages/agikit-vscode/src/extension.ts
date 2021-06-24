@@ -13,6 +13,7 @@ import LogicSemanticTokensProvider from './Logic/logicSemanticTokensProvider';
 import { buildTaskProvider } from './buildTaskProvider';
 import { runWithScummVM } from './runWithScummVM';
 import { PicEditorProvider } from './Pic/PicEditorProvider';
+import { ViewEditorProvider } from './View/ViewEditorProvider';
 
 let client: LanguageClient;
 
@@ -51,6 +52,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(PicEditorProvider.register(context));
+  context.subscriptions.push(ViewEditorProvider.register(context));
 
   context.subscriptions.push(
     vscode.tasks.registerTaskProvider('agikit', buildTaskProvider(context)),

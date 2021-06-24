@@ -9,12 +9,14 @@ export default function ColorSelector({
   setColor,
   colorType,
   transparentColor,
+  hideOffOption,
 }: {
   palette: typeof EGAPalette;
   color: number | undefined;
-  setColor: React.Dispatch<React.SetStateAction<number | undefined>>;
+  setColor: React.Dispatch<number | undefined>;
   colorType?: string;
   transparentColor?: number;
+  hideOffOption?: boolean;
 }) {
   const { setButton, setPopover, styles, attributes, open, setOpen } = usePopoverButton();
 
@@ -55,7 +57,7 @@ export default function ColorSelector({
               {colorNumber}
             </button>
           ))}
-          {transparentColor == null && (
+          {transparentColor == null && !hideOffOption && (
             <button
               type="button"
               className="agikit-tool-button secondary"

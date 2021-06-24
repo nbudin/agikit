@@ -8,6 +8,7 @@
   --agikit-list-hoverBackground: var(--vscode-list-hoverBackground);
   --agikit-editorCursor-foreground: var(--vscode-editorCursor-foreground);
   --agikit-editor-background: var(--vscode-editor-background);
+  --agikit-editor-foreground: var(--vscode-editor-foreground);
   --agikit-panel-border: var(--vscode-panel-border);
 }
 
@@ -103,4 +104,8 @@ textarea {
 input::placeholder,
 textarea::placeholder {
   color: var(--vscode-input-placeholderForeground);
+}
+
+#view-editor-root {
+  margin-block: 0;
 }
