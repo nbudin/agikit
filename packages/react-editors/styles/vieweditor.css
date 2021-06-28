@@ -57,17 +57,18 @@
   cursor: pointer;
   width: 100%;
   text-align: left;
-  color: var(--agikit-editor-foreground);
   flex-grow: 1;
 }
 
-.view-editor-nav-list button.item-number:hover {
-  background-color: var(--agikit-list-hoverBackground);
-}
-
-.view-editor-nav-list li.current {
+.view-editor-nav-list li.current button.item-number {
   background-color: var(--agikit-editorCursor-foreground);
   color: var(--agikit-editor-background);
+}
+
+.view-editor-nav-list button.item-number:hover,
+.view-editor-nav-list li.current button.item-number:hover {
+  background-color: var(--agikit-list-hoverBackground);
+  color: var(--agikit-editor-foreground);
 }
 
 .view-editor-cel-canvas {
