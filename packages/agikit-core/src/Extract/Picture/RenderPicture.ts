@@ -425,7 +425,7 @@ function floodFill(
       if (currentPosition.x < 159) {
         queue.push({ x: currentPosition.x + 1, y: currentPosition.y });
       }
-      if (currentPosition.y < 199) {
+      if (currentPosition.y < 167) {
         queue.push({ x: currentPosition.x, y: currentPosition.y + 1 });
       }
     }
@@ -478,7 +478,7 @@ function drawLine(
 
 function makeBuffer(fillColor: number, palette: ColorPalette): Uint8Array {
   const colorAsString = Buffer.from(palette.colors[fillColor]).toString('binary');
-  return Buffer.alloc(160 * 200 * 4, colorAsString, 'binary');
+  return Buffer.alloc(160 * 168 * 4, colorAsString, 'binary');
 }
 
 export function renderPicture(

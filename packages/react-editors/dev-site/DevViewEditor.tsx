@@ -5,7 +5,7 @@ import { readViewResource } from 'agikit-core/dist/Extract/View/ReadView';
 import { buildView } from 'agikit-core/dist/Build/BuildView';
 import { ViewEditor } from '../src/ViewEditor';
 import { templateEgoBase64 } from './dev-example-data';
-import { buildEditingView, EditingView } from '../src/EditingViewTypes';
+import { buildEditingView, buildNonEditingView, EditingView } from '../src/EditingViewTypes';
 import {
   ViewEditorControlContext,
   ViewEditorControlContextValue,
@@ -23,10 +23,38 @@ window.Buffer = Buffer;
 const templateEgo = readViewResource(Buffer.from(templateEgoBase64, 'base64'));
 
 const DevViewEditor = () => {
-  const [viewResource, setViewResource] = useState<EditingView>(() =>
-    buildEditingView(templateEgo),
-  );
+  const [viewResource, setViewResource] = useState<EditingView>(() => {
+    const savedView = window.localStorage.getItem('agikit-dev-site:view');
+    if (savedView) {
+      return buildEditingView(readViewResource(Buffer.from(savedView, 'base64')));
+    } else {
+      return buildEditingView(templateEgo);
+    }
+  });
+  const [zoom, setZoom] = useState<number>(() => {
+    const savedZoom = window.localStorage.getItem('agikit-dev-site:viewZoom');
+    if (savedZoom) {
+      const parsedZoom = Number.parseInt(savedZoom, 10);
+      if (!Number.isNaN(parsedZoom) && parsedZoom >= 1) {
+        return parsedZoom;
+      }
+    }
+
+    return 1;
+  });
   const [redoCommands, setRedoCommands] = useState<ViewEditorCommand[]>([]);
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      'agikit-dev-site:view',
+      buildView(
+        buildNonEditingView(applyViewEditorCommands(viewResource, viewResource.commands)),
+      ).toString('base64'),
+    );
+  }, [viewResource]);
+  useEffect(() => {
+    window.localStorage.setItem('agikit-dev-site:viewZoom', zoom.toString());
+  }, [zoom]);
 
   const controlContextValue: ViewEditorControlContextValue = useMemo(
     () => ({
@@ -37,8 +65,10 @@ const DevViewEditor = () => {
         setRedoCommands([]);
       },
       confirm: async (message) => window.confirm(message),
+      zoom,
+      setZoom,
     }),
-    [],
+    [zoom],
   );
 
   const keyDownListener = useCallback(
@@ -70,7 +100,9 @@ const DevViewEditor = () => {
 
       if (event.key === 's') {
         const builtView = new Blob([
-          buildView(applyViewEditorCommands(viewResource, viewResource.commands)),
+          buildView(
+            buildNonEditingView(applyViewEditorCommands(viewResource, viewResource.commands)),
+          ),
         ]);
         const a = document.createElement('a');
         a.href = URL.createObjectURL(builtView);

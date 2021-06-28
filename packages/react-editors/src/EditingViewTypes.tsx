@@ -1,4 +1,4 @@
-import { NonMirroredViewCel, ViewCel, AGIView, MirroredViewCel } from 'agikit-core/dist/Types/View';
+import { NonMirroredViewCel, AGIView, ViewLoop } from 'agikit-core/dist/Types/View';
 import { ViewEditorCommand } from './ViewEditorCommands';
 
 export type EditingRegularLoop = {
@@ -12,7 +12,6 @@ export type EditingMirroredLoop = {
   loopNumber: number;
   type: 'mirrored';
   mirroredFromLoopNumber: number;
-  cels: MirroredViewCel[];
 };
 
 export type EditingViewLoop = EditingRegularLoop | EditingMirroredLoop;
@@ -64,27 +63,9 @@ export function buildEditingLoop(view: AGIView, loopNumber: number): EditingView
       );
     }
     return {
-      ...loop,
+      loopNumber: loop.loopNumber,
       type: 'mirrored',
       mirroredFromLoopNumber: mirrorTarget,
-      cels: loop.cels.map((cel) => {
-        const sourceCel = mirrorTargetLoop.cels[cel.celNumber];
-        if (!sourceCel) {
-          throw new Error(
-            `Mirrored loop ${loopNumber} has a cel ${cel.celNumber}, but the target loop ${mirrorTarget} does not`,
-          );
-        }
-        if (sourceCel.mirrored) {
-          throw new Error('Mirrored cel points at another mirrored cel');
-        }
-
-        return {
-          ...cel,
-          mirrored: true,
-          mirroredFromLoopNumber: mirrorTarget as number,
-          buffer: flipCelBuffer(sourceCel),
-        };
-      }),
     };
   } else {
     return {
@@ -132,4 +113,39 @@ export function buildEditingView(view: AGIView): EditingView {
   });
 
   return { ...view, loops: editingLoops, commands: [] };
+}
+
+export function buildNonEditingView(editingView: EditingView): AGIView {
+  return {
+    description: editingView.description,
+    loops: editingView.loops.map<ViewLoop>((editingLoop) => {
+      if (editingLoop.type === 'regular') {
+        return editingLoop;
+      }
+
+      const mirrorSourceLoop = editingView.loops[editingLoop.mirroredFromLoopNumber];
+      if (mirrorSourceLoop == null) {
+        throw new Error(
+          `Mirrored loop ${editingLoop.loopNumber} points at nonexistent loop ${editingLoop.mirroredFromLoopNumber}`,
+        );
+      }
+      if (mirrorSourceLoop.type === 'mirrored') {
+        throw new Error(
+          `Mirrored loop ${editingLoop.loopNumber} points at mirrored loop ${editingLoop.mirroredFromLoopNumber}`,
+        );
+      }
+
+      return {
+        loopNumber: editingLoop.loopNumber,
+        cels: mirrorSourceLoop.cels.map((cel) => ({
+          mirrored: true,
+          mirroredFromLoopNumber: mirrorSourceLoop.loopNumber,
+          celNumber: cel.celNumber,
+          width: cel.width,
+          height: cel.height,
+          transparentColor: cel.transparentColor,
+        })),
+      };
+    }),
+  };
 }

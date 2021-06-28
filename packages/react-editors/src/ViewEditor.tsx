@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { ViewLoopEditor } from './ViewLoopEditor';
-import { buildEditingView, EditingView, EditingViewLoop } from './EditingViewTypes';
+import { EditingView } from './EditingViewTypes';
 import { ViewEditorContextValue, ViewEditorContext } from './ViewEditorContext';
-import { applyViewEditorCommands, ViewEditorCommand } from './ViewEditorCommands';
+import { applyViewEditorCommands } from './ViewEditorCommands';
+import { ViewEditorNavigationControls } from './ViewEditorNavigationControls';
+import { ViewCelEditor } from './ViewCelEditor';
+import { ViewEditorCelControls } from './ViewEditorCelControls';
 
 export function ViewEditor({ view }: { view: EditingView }) {
   const [loopNumber, setLoopNumber] = useState(0);
@@ -11,10 +13,41 @@ export function ViewEditor({ view }: { view: EditingView }) {
   const [zoom, setZoom] = useState(6);
   const [drawingColor, setDrawingColor] = useState<number | undefined>(0);
 
-  const viewWithCommandsApplied = useMemo(
-    () => buildEditingView(applyViewEditorCommands(view, view.commands)),
-    [view],
-  );
+  const viewWithCommandsApplied = useMemo(() => applyViewEditorCommands(view, view.commands), [
+    view,
+  ]);
+
+  const currentLoop = useMemo(() => viewWithCommandsApplied.loops[loopNumber], [
+    viewWithCommandsApplied,
+    loopNumber,
+  ]);
+  const currentLoopCels = useMemo(() => {
+    if (currentLoop?.type === 'mirrored') {
+      const mirrorSourceLoop = viewWithCommandsApplied.loops[currentLoop.mirroredFromLoopNumber];
+      if (!mirrorSourceLoop) {
+        throw new Error(
+          `Loop ${currentLoop.loopNumber} specifies nonexistent loop ${currentLoop.mirroredFromLoopNumber} as mirror source`,
+        );
+      }
+      if (mirrorSourceLoop.type === 'mirrored') {
+        throw new Error(
+          `Loop ${currentLoop.loopNumber} specifies mirrored loop ${mirrorSourceLoop.loopNumber} as mirror source`,
+        );
+      }
+      return mirrorSourceLoop.cels;
+    } else if (currentLoop) {
+      return currentLoop.cels;
+    }
+    return [];
+  }, [viewWithCommandsApplied, currentLoop]);
+
+  useEffect(() => {
+    if (celNumber > currentLoopCels.length && celNumber > 0) {
+      setCelNumber(0);
+    }
+  }, [celNumber, currentLoopCels]);
+
+  const currentCel = currentLoopCels[celNumber];
 
   const contextValue = useMemo<ViewEditorContextValue>(
     () => ({
@@ -24,102 +57,33 @@ export function ViewEditor({ view }: { view: EditingView }) {
       setCelNumber,
       loopNumber,
       setLoopNumber,
+      currentLoop,
+      currentLoopCels,
+      currentCel,
       zoom,
       setZoom,
       drawingColor,
       setDrawingColor,
     }),
-    [view, viewWithCommandsApplied, celNumber, loopNumber, zoom, drawingColor],
+    [
+      view,
+      viewWithCommandsApplied,
+      currentLoop,
+      currentLoopCels,
+      currentCel,
+      celNumber,
+      loopNumber,
+      zoom,
+      drawingColor,
+    ],
   );
-
-  const [animating, setAnimating] = useState(false);
-  const [fps, setFps] = useState(5);
-  const currentLoop = view.loops[loopNumber];
-
-  useEffect(() => {
-    if (animating && currentLoop) {
-      const interval = setInterval(() => {
-        setCelNumber((prevCelNumber) =>
-          prevCelNumber < currentLoop.cels.length - 1 ? prevCelNumber + 1 : 0,
-        );
-      }, 1000 / fps);
-
-      return () => {
-        clearInterval(interval);
-      };
-    }
-  }, [currentLoop, animating, fps, setCelNumber]);
 
   return (
     <ViewEditorContext.Provider value={contextValue}>
       <div className="view-editor">
-        <ViewLoopEditor />
-        <div className="view-editor-navigation-controls">
-          <h2>Loops</h2>
-          <ul className="view-editor-loop-list">
-            {view.loops.map((loop, index) => (
-              <li key={index}>
-                <button
-                  type="button"
-                  className={index === loopNumber ? 'current' : undefined}
-                  onClick={() => {
-                    setLoopNumber(index);
-                    const targetLoop = view.loops[index];
-                    if (!targetLoop || celNumber >= targetLoop.cels.length) {
-                      setCelNumber(0);
-                    }
-                  }}
-                >
-                  Loop {index}
-                  {loop.type === 'mirrored' && ` (mirrors loop ${loop.mirroredFromLoopNumber})`}
-                </button>
-              </li>
-            ))}
-          </ul>
-
-          <h2>Cels</h2>
-          <ul className="view-editor-cel-list">
-            {currentLoop?.cels.map((cel: EditingViewLoop['cels'][number], index: number) => (
-              <li key={index}>
-                <button
-                  type="button"
-                  className={index === celNumber ? 'current' : undefined}
-                  onClick={() => {
-                    setCelNumber(index);
-                  }}
-                >
-                  Cel {index}
-                </button>
-              </li>
-            ))}
-          </ul>
-
-          <div>
-            <button
-              type="button"
-              className="agikit-tool-button primary"
-              title={animating ? 'Pause animation' : 'Play animation'}
-              onClick={() => setAnimating((prevAnimating) => !prevAnimating)}
-            >
-              <i
-                className={animating ? 'bi-pause' : 'bi-play'}
-                role="img"
-                aria-label={animating ? 'Pause animation' : 'Play animation'}
-              />
-            </button>
-            <label>
-              <input
-                type="range"
-                value={fps}
-                onChange={(event) => setFps(event.target.valueAsNumber)}
-                min={0.5}
-                max={60}
-                step={0.5}
-              />{' '}
-              {fps} FPS
-            </label>
-          </div>
-        </div>
+        <ViewCelEditor />
+        <ViewEditorCelControls />
+        <ViewEditorNavigationControls />
       </div>
     </ViewEditorContext.Provider>
   );

@@ -15,6 +15,13 @@ interface ViewDocumentDelegate {
 }
 
 function readDocumentForEditing(content: Buffer): AGIView {
+  if (content.byteLength === 0) {
+    return {
+      description: '',
+      loops: [],
+    };
+  }
+
   return readViewResource(content);
 }
 

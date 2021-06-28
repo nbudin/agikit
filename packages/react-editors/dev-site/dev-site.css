@@ -63,3 +63,7 @@ button.secondary.inverse {
   background-color: white;
   color: darkgray;
 }
+
+button.secondary:disabled {
+  background-color: lightgray;
+}

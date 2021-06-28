@@ -1,5 +1,6 @@
 import React from 'react';
-import { EditingView } from './EditingViewTypes';
+import { NonMirroredViewCel } from '../../agikit-core/dist/Types/View';
+import { EditingView, EditingViewLoop } from './EditingViewTypes';
 
 export type ViewEditorContextValue = {
   view: EditingView;
@@ -8,8 +9,9 @@ export type ViewEditorContextValue = {
   setLoopNumber: React.Dispatch<React.SetStateAction<number>>;
   celNumber: number;
   setCelNumber: React.Dispatch<React.SetStateAction<number>>;
-  zoom: number;
-  setZoom: React.Dispatch<React.SetStateAction<number>>;
+  currentLoop: EditingViewLoop | undefined;
+  currentLoopCels: NonMirroredViewCel[];
+  currentCel: NonMirroredViewCel | undefined;
   drawingColor: number | undefined;
   setDrawingColor: React.Dispatch<React.SetStateAction<number | undefined>>;
 };
@@ -29,8 +31,9 @@ export const ViewEditorContext = React.createContext<ViewEditorContextValue>({
   setLoopNumber: () => {},
   celNumber: 0,
   setCelNumber: () => {},
-  zoom: 6,
-  setZoom: () => {},
+  currentLoop: undefined,
+  currentLoopCels: [],
+  currentCel: undefined,
   drawingColor: undefined,
   setDrawingColor: () => {},
 });

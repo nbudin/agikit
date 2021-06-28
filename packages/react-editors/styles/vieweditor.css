@@ -35,31 +35,37 @@
   padding: 0.5rem;
 }
 
-.view-editor-loop-list,
-.view-editor-cel-list {
-  list-style: none;
+.view-editor-nav-list {
   margin-bottom: 1rem;
-  padding-left: 0;
 }
 
-.view-editor-loop-list button,
-.view-editor-cel-list button {
+.view-editor-nav-list ul {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 0.5rem;
+}
+
+.view-editor-nav-list li {
+  display: flex;
+}
+
+.view-editor-nav-list button.item-number {
   background: none;
   border: none;
-  padding-left: 0;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
   cursor: pointer;
   width: 100%;
   text-align: left;
   color: var(--agikit-editor-foreground);
+  flex-grow: 1;
 }
 
-.view-editor-loop-list button:hover,
-.view-editor-cel-list button:hover {
+.view-editor-nav-list button.item-number:hover {
   background-color: var(--agikit-list-hoverBackground);
 }
 
-.view-editor-loop-list button.current,
-.view-editor-cel-list button.current {
+.view-editor-nav-list li.current {
   background-color: var(--agikit-editorCursor-foreground);
   color: var(--agikit-editor-background);
 }
