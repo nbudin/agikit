@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import { EGAPalette } from 'agikit-core/dist/ColorPalettes';
 import ColorSelector from './ColorSelector';
 import { ViewEditorContext } from './ViewEditorContext';
@@ -15,6 +15,22 @@ export function ViewEditorCelControls() {
     setDrawingColor,
   } = useContext(ViewEditorContext);
   const { addCommands, zoom, setZoom } = useContext(ViewEditorControlContext);
+  const [editingSize, setEditingSize] = useState(false);
+  const [newSize, setNewSize] = useState<{ width?: number; height?: number }>();
+
+  const validNewSize = useMemo(() => {
+    if (
+      newSize &&
+      newSize.width != null &&
+      newSize.height != null &&
+      newSize.width > 0 &&
+      newSize.height > 0
+    ) {
+      return { width: newSize.width, height: newSize.height };
+    }
+
+    return undefined;
+  }, [newSize]);
 
   const resizeCel = (newWidth: number, newHeight: number) => {
     if (!currentCel) {
@@ -39,14 +55,18 @@ export function ViewEditorCelControls() {
     event: React.ChangeEvent<HTMLInputElement>,
     field: 'width' | 'height',
   ) => {
-    const value = Number.parseInt(event.target.value, 10);
-    if (currentCel && value != null && !Number.isNaN(value) && value > 0) {
-      if (field === 'width') {
-        resizeCel(value, currentCel.height);
-      } else {
-        resizeCel(currentCel.width, value);
-      }
+    let value: number | undefined = Number.parseInt(event.target.value, 10);
+    if (Number.isNaN(value)) {
+      value = undefined;
     }
+
+    setNewSize((prevNewSize) => {
+      if (!prevNewSize) {
+        return;
+      }
+
+      return { ...prevNewSize, [field]: value };
+    });
   };
 
   if (!currentLoop || !currentCel) {
@@ -60,20 +80,62 @@ export function ViewEditorCelControls() {
         {currentCel && (
           <>
             <br />
-            <input
-              type="number"
-              min={1}
-              value={currentCel.width}
-              onChange={(event) => sizeFieldChanged(event, 'width')}
-            />
-            x
-            <input
-              type="number"
-              min={1}
-              value={currentCel.height}
-              onChange={(event) => sizeFieldChanged(event, 'height')}
-            />
-            <br />
+            {editingSize ? (
+              <div className="view-editor-cel-size-editor">
+                <input
+                  type="number"
+                  min={1}
+                  value={newSize?.width}
+                  onChange={(event) => sizeFieldChanged(event, 'width')}
+                />
+                x
+                <input
+                  type="number"
+                  min={1}
+                  value={newSize?.height}
+                  onChange={(event) => sizeFieldChanged(event, 'height')}
+                />
+                <button
+                  className="primary"
+                  type="button"
+                  disabled={validNewSize == null}
+                  onClick={() => {
+                    if (validNewSize) {
+                      resizeCel(validNewSize.width, validNewSize.height);
+                      setEditingSize(false);
+                      setNewSize(undefined);
+                    }
+                  }}
+                >
+                  Resize
+                </button>
+                <button
+                  className="secondary"
+                  type="button"
+                  onClick={() => {
+                    setEditingSize(false);
+                    setNewSize(undefined);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <>
+                {currentCel.width}x{currentCel.height}
+                <button
+                  className="secondary"
+                  type="button"
+                  onClick={() => {
+                    setEditingSize(true);
+                    setNewSize({ width: currentCel.width, height: currentCel.height });
+                  }}
+                >
+                  Edit
+                </button>
+                <br />
+              </>
+            )}
             Transparent color:{' '}
             <ColorSelector
               color={currentCel.transparentColor}
