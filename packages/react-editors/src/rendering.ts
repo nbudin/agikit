@@ -8,7 +8,7 @@ export function calculateClampedPosition(
 ): number {
   const offsetPosition = clientPosition - offsetStart;
   const fractionalPosition = offsetPosition / offsetSize;
-  return clamp(Math.round(fractionalPosition * virtualSize), 0, virtualSize - 1);
+  return clamp(Math.floor(fractionalPosition * virtualSize), 0, virtualSize - 1);
 }
 
 export function calculateLetterboxOffsets(
