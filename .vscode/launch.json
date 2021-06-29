@@ -13,7 +13,7 @@
       ],
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "/Users/nbudin/.nodenv/versions/14.15.1/bin/node",
-      "program": "${workspaceFolder}/packages/agikit-cli/dist/cli.js",
+      "program": "${workspaceFolder}/packages/cli/dist/cli.js",
       "args": [
         "extract",
         "/Users/nbudin/Downloads/Space Quest 2",
@@ -23,9 +23,9 @@
         // "/Users/nbudin/Downloads/AGI Contest 2 Template",
         // "extracted/contest2"
       ],
-      "preLaunchTask": "npm: build - packages/agikit-cli",
+      "preLaunchTask": "npm: build - packages/cli",
       "outFiles": [
-        "${workspaceFolder}/packages/agikit-cli/dist/**/*.js",
+        "${workspaceFolder}/packages/cli/dist/**/*.js",
         "${workspaceFolder}/packages/agikit-core/dist/**/*.js"
       ]
     },
@@ -38,7 +38,7 @@
       ],
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "/Users/nbudin/.nodenv/versions/14.15.1/bin/node",
-      "program": "${workspaceFolder}/packages/agikit-cli/dist/cli.js",
+      "program": "${workspaceFolder}/packages/cli/dist/cli.js",
       "args": [
         "extract",
         // "build/contest2",
@@ -46,9 +46,9 @@
         "build/kq1",
         "reextracted/kq1"
       ],
-      "preLaunchTask": "npm: build - packages/agikit-cli",
+      "preLaunchTask": "npm: build - packages/cli",
       "outFiles": [
-        "${workspaceFolder}/packages/agikit-cli/dist/**/*.js",
+        "${workspaceFolder}/packages/cli/dist/**/*.js",
         "${workspaceFolder}/packages/agikit-core/dist/**/*.js"
       ]
     },
@@ -61,16 +61,16 @@
       ],
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "/Users/nbudin/.nodenv/versions/14.15.1/bin/node",
-      "program": "${workspaceFolder}/packages/agikit-cli/dist/cli.js",
+      "program": "${workspaceFolder}/packages/cli/dist/cli.js",
       "args": [
         "build",
         // "/Users/nbudin/Downloads/AGI Contest 2 Template/src",
         "extracted/sq2",
         // "extracted/kq1",
       ],
-      "preLaunchTask": "npm: build - packages/agikit-cli",
+      "preLaunchTask": "npm: build - packages/cli",
       "outFiles": [
-        "${workspaceFolder}/packages/agikit-cli/dist/**/*.js",
+        "${workspaceFolder}/packages/cli/dist/**/*.js",
         "${workspaceFolder}/packages/agikit-core/dist/**/*.js"
       ]
     },

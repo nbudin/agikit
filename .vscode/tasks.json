@@ -25,10 +25,10 @@
 		{
 			"type": "npm",
 			"script": "build",
-			"path": "packages/agikit-cli/",
+			"path": "packages/cli/",
 			"group": "build",
 			"problemMatcher": [],
-			"label": "npm: build - packages/agikit-cli",
+			"label": "npm: build - packages/cli",
 			"detail": "tsc && add-shebang",
 			"dependsOn": [
 				"npm: build - packages/agikit-core"
