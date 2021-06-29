@@ -49,10 +49,10 @@
 		{
 			"type": "npm",
 			"script": "build",
-			"path": "packages/agikit-logic-language-server/",
+			"path": "packages/logic-language-server/",
 			"group": "build",
 			"problemMatcher": [],
-			"label": "npm: build - packages/agikit-logic-language-server",
+			"label": "npm: build - packages/logic-language-server",
 			"detail": "tsc",
 			"dependsOn": [
 				"npm: build - packages/agikit-core"
