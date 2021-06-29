@@ -1,8 +1,8 @@
 # agikit
 
-agikit is a developer toolchain for Sierra's AGI (Adventure Game Interpreter) engine.  AGI was used
+agikit is a developer toolchain for Sierra's AGI (Adventure Game Interpreter) engine. AGI was used
 in the 1980s to develop adventure games including King's Quest I, II, and III, Space Quest I and II,
-and more.  Later, it was reverse engineered by fans and used to develop many fan-made games.
+and more. Later, it was reverse engineered by fans and used to develop many fan-made games.
 A lot more information about AGI is available at
 [the AGI Programmers Wiki](http://agiwiki.sierrahelp.com).
 
@@ -10,10 +10,10 @@ A lot more information about AGI is available at
 
 agikit aims to provide:
 
-* A composable, extensible, cross-platform set of tools for working with AGI
-* Compatibility with other tools, such as WinAGI and AGI Studio
-* A platform to build other tooling, such as text editor extensions, language servers, etc.
-* A modern compiler architecture that allows for language extensions and optimization
+- A composable, extensible, cross-platform set of tools for working with AGI
+- Compatibility with other tools, such as WinAGI and AGI Studio
+- A platform to build other tooling, such as text editor extensions, language servers, etc.
+- A modern compiler architecture that allows for language extensions and optimization
 
 ## Visual Studio Code usage
 
@@ -25,7 +25,7 @@ For some template code to start with, clone: https://github.com/nbudin/agikit-pr
 
 To install it:
 
-`npm install -g agikit-cli`
+`npm install -g @agikit/cli`
 
 To extract an AGI game to source files:
 
@@ -41,10 +41,10 @@ To auto-format a LOGIC script:
 
 ## Current status
 
-agikit is very, very early stage right now.  As of this writing (version 0.5.0), it can decompile and compile
-King's Quest I, Space Quest II, and the agikit template project successfully.  It possibly works with other
+agikit is very, very early stage right now. As of this writing (version 0.5.0), it can decompile and compile
+King's Quest I, Space Quest II, and the agikit template project successfully. It possibly works with other
 games too, but I haven't tested it on everything yet.
 
 Known limitations:
 
-* Only supports AGI version 2 for now
+- Only supports AGI version 2 for now

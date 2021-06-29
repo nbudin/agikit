@@ -116,11 +116,11 @@
     "test": "node ./out/test/runTest.js"
   },
   "dependencies": {
+    "@agikit/cli": "^0.5.0",
+    "@agikit/logic-language-server": "^0.5.0",
     "@agikit/react-editors": "^0.5.0",
     "@popperjs/core": "^2.9.1",
-    "agikit-cli": "^0.5.0",
     "agikit-core": "^0.5.0",
-    "@agikit/logic-language-server": "^0.5.0",
     "bootstrap-icons": "^1.4.0",
     "buffer": "^6.0.3",
     "escape-html": "^1.0.3",
