@@ -1,6 +1,6 @@
 {
-  "name": "agikit-vscode",
-  "displayName": "agikit-vscode",
+  "name": "@agikit/vscode-extension",
+  "displayName": "@agikit/vscode-extension",
   "description": "Develop games for Sierra's AGI adventure game engine",
   "version": "0.5.0",
   "engines": {
