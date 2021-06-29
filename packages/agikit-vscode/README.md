@@ -1,4 +1,4 @@
-# @agikit/vscode-extension
+# agikit-vscode
 
 Develop games for the Sierra AGI adventure game engine in Visual Studio Code.
 
@@ -11,14 +11,6 @@ in upcoming releases. Do not use agikit yet unless you're prepared to run into b
 frustration.
 
 ## Release Notes
-
-### 0.6.0
-
-Package renamed from agikit-vscode to @agikit/vscode-extension. Added VIEW editor.
-
-### 0.5.0
-
-Added PIC editor.
 
 ### 0.4.0
 
