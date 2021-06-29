@@ -1,6 +1,6 @@
 {
   "name": "@agikit/logic-language-server",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Language server for AGI LOGIC scripts",
   "author": "Nat Budin <natbudin@gmail.com>",
   "homepage": "",
