@@ -31,19 +31,19 @@
 			"label": "npm: build - packages/cli",
 			"detail": "tsc && add-shebang",
 			"dependsOn": [
-				"npm: build - packages/agikit-core"
+				"npm: build - packages/core"
 			]
 		},
 		{
 			"type": "npm",
 			"script": "build",
-			"path": "packages/agikit-core/",
+			"path": "packages/core/",
 			"group": {
 				"kind": "build",
 				"isDefault": true
 			},
 			"problemMatcher": [],
-			"label": "npm: build - packages/agikit-core",
+			"label": "npm: build - packages/core",
 			"detail": "tsc"
 		},
 		{
@@ -55,7 +55,7 @@
 			"label": "npm: build - packages/logic-language-server",
 			"detail": "tsc",
 			"dependsOn": [
-				"npm: build - packages/agikit-core"
+				"npm: build - packages/core"
 			]
 		}
 	]

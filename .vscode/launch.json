@@ -26,7 +26,7 @@
       "preLaunchTask": "npm: build - packages/cli",
       "outFiles": [
         "${workspaceFolder}/packages/cli/dist/**/*.js",
-        "${workspaceFolder}/packages/agikit-core/dist/**/*.js"
+        "${workspaceFolder}/packages/core/dist/**/*.js"
       ]
     },
     {
@@ -49,7 +49,7 @@
       "preLaunchTask": "npm: build - packages/cli",
       "outFiles": [
         "${workspaceFolder}/packages/cli/dist/**/*.js",
-        "${workspaceFolder}/packages/agikit-core/dist/**/*.js"
+        "${workspaceFolder}/packages/core/dist/**/*.js"
       ]
     },
     {
@@ -71,7 +71,7 @@
       "preLaunchTask": "npm: build - packages/cli",
       "outFiles": [
         "${workspaceFolder}/packages/cli/dist/**/*.js",
-        "${workspaceFolder}/packages/agikit-core/dist/**/*.js"
+        "${workspaceFolder}/packages/core/dist/**/*.js"
       ]
     },
     {
