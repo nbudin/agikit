@@ -24,13 +24,13 @@ import {
   LogicScriptParseTree,
   parseLogicScriptRaw,
   buildIdentifierMappingForDefineDirective,
-} from 'agikit-core/dist/Scripting/LogicScriptParser';
+} from '@agikit/core/dist/Scripting/LogicScriptParser';
 import { URI, Utils } from 'vscode-uri';
 import fs from 'fs';
 import path from 'path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { SyntaxError } from 'agikit-core/dist/Scripting/LogicScriptParser.generated';
-import { agiCommands } from 'agikit-core/dist/Types/AGICommands';
+import { SyntaxError } from '@agikit/core/dist/Scripting/LogicScriptParser.generated';
+import { agiCommands } from '@agikit/core/dist/Types/AGICommands';
 import {
   LogicScriptArgument,
   LogicScriptBooleanExpression,
@@ -40,11 +40,11 @@ import {
   LogicScriptProgram,
   LogicScriptStatement,
   PegJSLocationRange,
-} from 'agikit-core/dist/Scripting/LogicScriptParserTypes';
+} from '@agikit/core/dist/Scripting/LogicScriptParserTypes';
 import {
   BUILT_IN_IDENTIFIERS,
   IdentifierMapping,
-} from 'agikit-core/dist/Scripting/LogicScriptIdentifierMapping';
+} from '@agikit/core/dist/Scripting/LogicScriptIdentifierMapping';
 
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 const parseTrees = new Map<string, LogicScriptParseTree<LogicScriptStatement>>();

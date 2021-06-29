@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { buildPicture } from 'agikit-core/dist/Build/BuildPicture';
+import { buildPicture } from '@agikit/core/dist/Build/BuildPicture';
 import { Buffer } from 'buffer';
 import * as ReactDOM from 'react-dom';
 import { PicEditor } from '@agikit/react-editors/dist/PicEditor';

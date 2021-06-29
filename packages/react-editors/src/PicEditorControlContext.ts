@@ -1,4 +1,4 @@
-import { PictureCommand } from 'agikit-core/dist/Types/Picture';
+import { PictureCommand } from '@agikit/core/dist/Types/Picture';
 import React from 'react';
 import { EditingPictureCommand } from './EditingPictureTypes';
 

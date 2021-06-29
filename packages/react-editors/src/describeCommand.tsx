@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
-import { EGAPalette } from 'agikit-core/dist/ColorPalettes';
-import { PictureCommand, PictureCoordinate } from 'agikit-core/dist/Types/Picture';
+import { EGAPalette } from '@agikit/core/dist/ColorPalettes';
+import { PictureCommand, PictureCoordinate } from '@agikit/core/dist/Types/Picture';
 
 export function describePoint(point: PictureCoordinate) {
   return `(${point.x}, ${point.y})`;

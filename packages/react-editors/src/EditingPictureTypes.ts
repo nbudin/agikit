@@ -1,4 +1,4 @@
-import { PictureCommand, PictureResource } from 'agikit-core/dist/Types/Picture';
+import { PictureCommand, PictureResource } from '@agikit/core/dist/Types/Picture';
 import assertNever from 'assert-never';
 import { v4 as uuidv4 } from 'uuid';
 

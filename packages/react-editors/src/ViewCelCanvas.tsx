@@ -1,4 +1,4 @@
-import { ViewCel } from 'agikit-core/dist/Types/View';
+import { ViewCel } from '@agikit/core/dist/Types/View';
 import { DrawingCanvas } from './DrawingCanvas';
 
 export const ViewCelCanvas = ({

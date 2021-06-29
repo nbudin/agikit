@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { buildView } from 'agikit-core/dist/Build/BuildView';
+import { buildView } from '@agikit/core/dist/Build/BuildView';
 import { Buffer } from 'buffer';
 import * as ReactDOM from 'react-dom';
 import { ViewEditor } from '@agikit/react-editors/dist/ViewEditor';

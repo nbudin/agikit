@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { readPictureResource } from 'agikit-core/dist/Extract/Picture/ReadPicture';
+import { readPictureResource } from '@agikit/core/dist/Extract/Picture/ReadPicture';
 import { Disposable, disposeAll } from '../disposable';
 import { randomBytes } from 'crypto';
 import {

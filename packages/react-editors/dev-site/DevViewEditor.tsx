@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { Buffer } from 'buffer';
-import { readViewResource } from 'agikit-core/dist/Extract/View/ReadView';
-import { buildView } from 'agikit-core/dist/Build/BuildView';
+import { readViewResource } from '@agikit/core/dist/Extract/View/ReadView';
+import { buildView } from '@agikit/core/dist/Build/BuildView';
 import { ViewEditor } from '../src/ViewEditor';
 import { templateEgoBase64 } from './dev-example-data';
 import { buildEditingView, buildNonEditingView, EditingView } from '../src/EditingViewTypes';

@@ -1,4 +1,4 @@
-import { DEFAULT_PEN_SETTINGS } from 'agikit-core/dist/Extract/Picture/RenderPicture';
+import { DEFAULT_PEN_SETTINGS } from '@agikit/core/dist/Extract/Picture/RenderPicture';
 import {
   ChangePenPictureCommand,
   DisablePictureDrawPictureCommand,
@@ -6,7 +6,7 @@ import {
   PicturePenSettings,
   SetPictureColorPictureCommand,
   SetPriorityColorPictureCommand,
-} from 'agikit-core/dist/Types/Picture';
+} from '@agikit/core/dist/Types/Picture';
 import React, { useCallback, useContext, useMemo } from 'react';
 import { EditingPictureCommand, EditingPictureResource } from './EditingPictureTypes';
 import { PicEditorControlContext } from './PicEditorControlContext';

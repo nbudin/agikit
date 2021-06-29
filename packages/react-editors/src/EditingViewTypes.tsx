@@ -1,4 +1,4 @@
-import { NonMirroredViewCel, AGIView, ViewLoop } from 'agikit-core/dist/Types/View';
+import { NonMirroredViewCel, AGIView, ViewLoop } from '@agikit/core/dist/Types/View';
 import { ViewEditorCommand } from './ViewEditorCommands';
 
 export type EditingRegularLoop = {

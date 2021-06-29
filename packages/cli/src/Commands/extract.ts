@@ -1,15 +1,15 @@
-import { readV2Resource, readV2ResourceDirs } from 'agikit-core/dist/Extract/ReadResources';
-import { readLogicResource } from 'agikit-core/dist/Extract/Logic/ReadLogic';
+import { readV2Resource, readV2ResourceDirs } from '@agikit/core/dist/Extract/ReadResources';
+import { readLogicResource } from '@agikit/core/dist/Extract/Logic/ReadLogic';
 import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
-import { WordList } from 'agikit-core/dist/Types/WordList';
-import { readWordsTok, exportWords } from 'agikit-core/dist/Extract/ReadWordsTok';
-import { DirEntry, ResourceType } from 'agikit-core/dist/Types/Resources';
+import { WordList } from '@agikit/core/dist/Types/WordList';
+import { readWordsTok, exportWords } from '@agikit/core/dist/Extract/ReadWordsTok';
+import { DirEntry, ResourceType } from '@agikit/core/dist/Types/Resources';
 import {
   generateLogicAsm,
   generateCodeForLogicResource,
-} from 'agikit-core/dist/Extract/Logic/CodeGeneration';
-import { readObjectList } from 'agikit-core/dist/Extract/ReadObject';
+} from '@agikit/core/dist/Extract/Logic/CodeGeneration';
+import { readObjectList } from '@agikit/core/dist/Extract/ReadObject';
 
 function extractResource(srcDir: string, entry: DirEntry, destDir: string, wordList: WordList) {
   const resource = readV2Resource(srcDir, entry);

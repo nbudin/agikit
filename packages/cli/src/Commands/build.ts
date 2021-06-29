@@ -1,22 +1,22 @@
 import path from 'path';
 import fs from 'fs';
-import { Resource, ResourceType } from 'agikit-core/dist/Types/Resources';
-import { compileLogicScript } from 'agikit-core/dist/Build/BuildLogic';
-import { SyntaxErrorWithFilePath as LogicSyntaxError } from 'agikit-core/dist/Scripting/LogicScriptParser';
+import { Resource, ResourceType } from '@agikit/core/dist/Types/Resources';
+import { compileLogicScript } from '@agikit/core/dist/Build/BuildLogic';
+import { SyntaxErrorWithFilePath as LogicSyntaxError } from '@agikit/core/dist/Scripting/LogicScriptParser';
 import {
   encodeResourceVolumes,
   encodeV2Resource,
   ExplicitVolumeSpecification,
   writeV2ResourceFiles,
-} from 'agikit-core/dist/Build/WriteResources';
+} from '@agikit/core/dist/Build/WriteResources';
 import {
   parseWordList,
   SyntaxError as WordListSyntaxError,
-} from 'agikit-core/dist/Scripting/WordListParser';
-import { WordList } from 'agikit-core/dist/Types/WordList';
-import { ObjectList } from 'agikit-core/dist/Types/ObjectList';
-import { buildObjectList } from 'agikit-core/dist/Build/BuildObjectList';
-import { buildWordsTok } from 'agikit-core/dist/Build/BuildWordsTok';
+} from '@agikit/core/dist/Scripting/WordListParser';
+import { WordList } from '@agikit/core/dist/Types/WordList';
+import { ObjectList } from '@agikit/core/dist/Types/ObjectList';
+import { buildObjectList } from '@agikit/core/dist/Build/BuildObjectList';
+import { buildWordsTok } from '@agikit/core/dist/Build/BuildWordsTok';
 
 function processFile<T>(processor: (input: string) => T, filePath: string) {
   const input = fs.readFileSync(filePath, 'utf-8');

@@ -1,5 +1,5 @@
 import React from 'react';
-import { EGAPalette } from 'agikit-core/dist/ColorPalettes';
+import { EGAPalette } from '@agikit/core/dist/ColorPalettes';
 import { stylesForColorNumber } from './colorUtils';
 import { usePopoverButton } from './usePopoverButton';
 

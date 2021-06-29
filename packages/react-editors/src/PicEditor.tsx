@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { renderPicture } from 'agikit-core/dist/Extract/Picture/RenderPicture';
+import { renderPicture } from '@agikit/core/dist/Extract/Picture/RenderPicture';
 import { assertNever } from 'assert-never';
 import { PicCanvas } from './PicCanvas';
 import { EditingPictureResource, preparePicCommandForEditing } from './EditingPictureTypes';
@@ -15,11 +15,11 @@ import {
   PicturePenSettings,
   SetPictureColorPictureCommand,
   SetPriorityColorPictureCommand,
-} from 'agikit-core/dist/Types/Picture';
+} from '@agikit/core/dist/Types/Picture';
 import { CommandListNavigationContext, useCommandListNavigation } from './CommandListNavigation';
 import { clamp, throttle } from 'lodash';
 import { describeCommand } from './describeCommand';
-import { EGAPalette } from 'agikit-core/dist/ColorPalettes';
+import { EGAPalette } from '@agikit/core/dist/ColorPalettes';
 import { PicEditorControlContext } from './PicEditorControlContext';
 import { CursorPosition } from './DrawingCanvas';
 
