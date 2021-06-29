@@ -80,25 +80,25 @@
       "request": "launch",
       "args": [
         "${workspaceFolder}/../agikit-project-template",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-extension"
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/agikit-vscode"
       ],
       "outFiles": [
         "${workspaceFolder}/out/**/*.js"
       ],
-      "preLaunchTask": "Build @agikit/vscode-extension"
+      "preLaunchTask": "Build agikit-vscode"
     },
     {
       "name": "Extension Tests",
       "type": "extensionHost",
       "request": "launch",
       "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-extension",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/agikit-vscode",
         "--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
       ],
       "outFiles": [
         "${workspaceFolder}/out/test/**/*.js"
       ],
-      "preLaunchTask": "Build @agikit/vscode-extension"
+      "preLaunchTask": "Build agikit-vscode"
     }
   ]
 }
