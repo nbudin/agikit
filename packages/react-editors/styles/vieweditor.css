@@ -49,6 +49,10 @@
   display: flex;
 }
 
+.view-editor-nav-list button {
+  width: auto;
+}
+
 .view-editor-nav-list button.item-number {
   background: none;
   border: none;
@@ -58,6 +62,7 @@
   width: 100%;
   text-align: left;
   flex-grow: 1;
+  color: var(--agikit-editor-foreground);
 }
 
 .view-editor-nav-list li.current button.item-number {
@@ -90,4 +95,13 @@
 
 .view-editor-tools {
   display: flex;
+}
+
+.view-editor-cel-size-editor {
+  display: flex;
+  align-items: baseline;
+}
+
+.view-editor-cel-size-editor button {
+  margin-left: 0.5rem;
 }

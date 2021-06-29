@@ -1,58 +1,68 @@
+import { NonMirroredViewCel } from '../../../agikit-core/dist/Types/View';
 import {
-  AGIView,
-  MirroredViewCel,
-  NonMirroredViewCel,
-  ViewLoop,
-} from '../../../agikit-core/dist/Types/View';
+  EditingMirroredLoop,
+  EditingRegularLoop,
+  EditingView,
+} from '../../../react-editors/dist/EditingViewTypes';
 
 export type SerializedNonMirroredViewCel = Omit<NonMirroredViewCel, 'buffer'> & {
-  buffer: number[];
+  bufferBase64: string;
 };
 
-export type SerializedViewCel = MirroredViewCel | SerializedNonMirroredViewCel;
+export type SerializedViewLoop =
+  | EditingMirroredLoop
+  | (Omit<EditingRegularLoop, 'cels'> & {
+      cels: SerializedNonMirroredViewCel[];
+    });
 
-export type SerializedViewLoop = Omit<ViewLoop, 'cels'> & {
-  cels: SerializedViewCel[];
-};
-
-export type SerializedView = Omit<AGIView, 'loops'> & {
+export type SerializedView = Omit<EditingView, 'loops'> & {
   loops: SerializedViewLoop[];
 };
 
-export function serializeView(view: AGIView): SerializedView {
+export function serializeView(view: EditingView): SerializedView {
   return {
     ...view,
-    loops: view.loops.map((loop) => ({
-      ...loop,
-      cels: loop.cels.map((cel) => {
-        if (cel.mirrored) {
-          return cel;
-        }
+    loops: view.loops.map((loop) => {
+      if (loop.type === 'mirrored') {
+        return { ...loop };
+      }
 
-        return {
-          ...cel,
-          buffer: [...cel.buffer],
-        };
-      }),
-    })),
+      return {
+        ...loop,
+        cels: loop.cels.map<SerializedNonMirroredViewCel>((cel) => ({
+          celNumber: cel.celNumber,
+          width: cel.width,
+          height: cel.height,
+          mirrored: false,
+          mirroredFromLoopNumber: undefined,
+          transparentColor: cel.transparentColor,
+          bufferBase64: Buffer.from(cel.buffer.buffer).toString('base64'),
+        })),
+      };
+    }),
   };
 }
 
-export function deserializeView(view: SerializedView): AGIView {
+export function deserializeView(view: SerializedView): EditingView {
   return {
     ...view,
-    loops: view.loops.map((loop) => ({
-      ...loop,
-      cels: loop.cels.map((cel) => {
-        if (cel.mirrored) {
-          return cel;
-        }
+    loops: view.loops.map((loop) => {
+      if (loop.type === 'mirrored') {
+        return loop;
+      }
 
-        return {
-          ...cel,
-          buffer: Uint8Array.from(cel.buffer),
-        };
-      }),
-    })),
+      return {
+        ...loop,
+        cels: loop.cels.map<NonMirroredViewCel>((cel) => ({
+          celNumber: cel.celNumber,
+          height: cel.height,
+          width: cel.width,
+          mirrored: false,
+          mirroredFromLoopNumber: undefined,
+          transparentColor: cel.transparentColor,
+          buffer: Buffer.from(cel.bufferBase64, 'base64'),
+        })),
+      };
+    }),
   };
 }

@@ -36,6 +36,12 @@
           "scope": "machine-overrideable",
           "type": "string",
           "description": "The path to the ScummVM executable."
+        },
+        "agikit.viewEditor.zoom": {
+          "scope": "resource",
+          "type": "integer",
+          "description": "The zoom level for view editors",
+          "minimum": 2
         }
       }
     },
@@ -110,13 +116,14 @@
     "test": "node ./out/test/runTest.js"
   },
   "dependencies": {
+    "@agikit/react-editors": "^0.5.0",
     "@popperjs/core": "^2.9.1",
     "agikit-cli": "^0.5.0",
     "agikit-core": "^0.5.0",
     "agikit-logic-language-server": "^0.5.0",
-    "@agikit/react-editors": "^0.5.0",
     "bootstrap-icons": "^1.4.0",
     "buffer": "^6.0.3",
+    "escape-html": "^1.0.3",
     "react": "^17.0.1",
     "react-cool-onclickoutside": "^1.6.1",
     "react-dom": "^17.0.1",
@@ -128,6 +135,7 @@
     "vscode-uri": "^3.0.2"
   },
   "devDependencies": {
+    "@types/escape-html": "^1.0.1",
     "@types/glob": "^7.1.3",
     "@types/lodash": "^4.14.168",
     "@types/mocha": "^8.0.4",

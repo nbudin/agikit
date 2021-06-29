@@ -3,7 +3,11 @@ import { buildView } from 'agikit-core/dist/Build/BuildView';
 import { Buffer } from 'buffer';
 import * as ReactDOM from 'react-dom';
 import { ViewEditor } from '@agikit/react-editors/dist/ViewEditor';
-import { buildEditingView, EditingView } from '@agikit/react-editors/dist/EditingViewTypes';
+import {
+  buildEditingView,
+  buildNonEditingView,
+  EditingView,
+} from '@agikit/react-editors/dist/EditingViewTypes';
 import {
   ViewEditorControlContext,
   ViewEditorControlContextValue,
@@ -22,12 +26,13 @@ window.Buffer = Buffer;
 const vscode = acquireVsCodeApi();
 vscode.postMessage({ type: 'ready' });
 
-function VscodePicEditor() {
+function VscodePicEditor({ initialZoom }: { initialZoom: number }) {
   const [viewResource, setViewResource] = useState<EditingView>({
     description: undefined,
     loops: [],
     commands: [],
   });
+  const [zoom, setZoom] = useState(initialZoom ?? 6);
   const [editable, setEditable] = useState(false);
   const [resolveConfirm, setResolveConfirm] = useState<(result: boolean) => void | undefined>();
   const controlContextValue = useMemo<ViewEditorControlContextValue>(
@@ -48,8 +53,13 @@ function VscodePicEditor() {
       addCommands: (commands) => {
         vscode.postMessage({ type: 'addCommands', commands });
       },
+      zoom,
+      setZoom: (zoom) => {
+        setZoom(zoom);
+        vscode.postMessage({ type: 'setZoom', zoom });
+      },
     }),
-    [resolveConfirm],
+    [resolveConfirm, zoom],
   );
 
   useEffect(() => {
@@ -62,7 +72,7 @@ function VscodePicEditor() {
             setViewResource({ loops: [], description: undefined, commands: [] });
             return;
           } else {
-            setViewResource(buildEditingView(deserializeView(body.resource)));
+            setViewResource(deserializeView(body.resource));
             return;
           }
         }
@@ -75,14 +85,14 @@ function VscodePicEditor() {
           return;
         case 'update': {
           const newResource = body.content;
-          setViewResource(buildEditingView(deserializeView(newResource)));
+          setViewResource(deserializeView(newResource));
           return;
         }
         case 'getFileData': {
           vscode.postMessage({
             type: 'response',
             requestId,
-            body: Array.from(buildView(viewResource)),
+            body: Array.from(buildView(buildNonEditingView(viewResource))),
           });
           return;
         }
@@ -102,4 +112,8 @@ function VscodePicEditor() {
   );
 }
 
-ReactDOM.render(<VscodePicEditor />, document.querySelector('#view-editor-root'));
+const root = document.querySelector('#view-editor-root');
+if (root) {
+  const props = JSON.parse(root.getAttribute('data-react-props') ?? '{}');
+  ReactDOM.render(<VscodePicEditor {...props} />, root);
+}

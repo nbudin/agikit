@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import escapeHtml from 'escape-html';
 import { readViewResource } from 'agikit-core/dist/Extract/View/ReadView';
 import { Disposable, disposeAll } from '../disposable';
 import { randomBytes } from 'crypto';
@@ -7,28 +8,29 @@ import {
   applyViewEditorCommands,
   ViewEditorCommand,
 } from '../../../react-editors/dist/ViewEditorCommands';
-import { AGIView } from '../../../agikit-core/dist/Types/View';
 import { serializeView } from './ViewSerialization';
+import { buildEditingView, EditingView } from '../../../react-editors/dist/EditingViewTypes';
 
 interface ViewDocumentDelegate {
   getFileData(): Promise<Uint8Array>;
 }
 
-function readDocumentForEditing(content: Buffer): AGIView {
+function readDocumentForEditing(content: Buffer): EditingView {
   if (content.byteLength === 0) {
     return {
       description: '',
       loops: [],
+      commands: [],
     };
   }
 
-  return readViewResource(content);
+  return buildEditingView(readViewResource(content));
 }
 
 export class ViewEditorDocument extends Disposable implements vscode.CustomDocument {
   private readonly _uri: vscode.Uri;
   private readonly _delegate: ViewDocumentDelegate;
-  private _resource: AGIView;
+  private _resource: EditingView;
   private _edits: Array<ViewEditorCommand> = [];
   private _savedEdits: Array<ViewEditorCommand> = [];
 
@@ -73,7 +75,7 @@ export class ViewEditorDocument extends Disposable implements vscode.CustomDocum
 
   private readonly _onDidChangeDocument = this._register(
     new vscode.EventEmitter<{
-      readonly content: AGIView;
+      readonly content: EditingView;
     }>(),
   );
 
@@ -331,6 +333,9 @@ export class ViewEditorProvider implements vscode.CustomEditorProvider<ViewEdito
         });
       } else if (e.type === 'addCommands') {
         document.addCommands(e.commands);
+      } else if (e.type === 'setZoom') {
+        const configuration = vscode.workspace.getConfiguration();
+        configuration.update('agikit.viewEditor.zoom', e.zoom);
       }
     });
   }
@@ -348,18 +353,25 @@ export class ViewEditorProvider implements vscode.CustomEditorProvider<ViewEdito
     // Use a nonce to whitelist which scripts can be run
     const nonce = randomBytes(16).toString('base64');
 
+    const configuration = vscode.workspace.getConfiguration();
+    const initialZoom = configuration.get('agikit.viewEditor.zoom', 6);
+
     return /* html */ `
 			<!DOCTYPE html>
 			<html lang="en">
 			<head>
 				<meta charset="UTF-8">
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} blob:; style-src ${webview.cspSource}; font-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${
+          webview.cspSource
+        } blob:; style-src ${webview.cspSource}; font-src ${
+      webview.cspSource
+    }; script-src 'nonce-${nonce}';">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 				<link href="${styleMainUri}" rel="stylesheet" />
 				<title>AGI VIEW Editor</title>
 			</head>
 			<body>
-				<div id="view-editor-root"></div>
+				<div id="view-editor-root" data-react-props="${escapeHtml(JSON.stringify({ initialZoom }))}"></div>
 
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
