@@ -2,24 +2,24 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "Build agikit-vscode",
+			"label": "Build @agikit/vscode-extension",
 			"type": "npm",
 			"script": "webpack",
 			"problemMatcher": "$tsc-watch",
 			"group": "build",
 			"options": {
-				"cwd": "packages/agikit-vscode"
+				"cwd": "packages/vscode-extension"
 			},
 			"dependsOn": []
 		},
 		{
-			"label": "Watch agikit-vscode",
+			"label": "Watch @agikit/vscode-extension",
 			"type": "npm",
 			"script": "webpack-dev",
 			"problemMatcher": "$tsc-watch",
 			"isBackground": true,
 			"options": {
-				"cwd": "packages/agikit-vscode"
+				"cwd": "packages/vscode-extension"
 			}
 		},
 		{
