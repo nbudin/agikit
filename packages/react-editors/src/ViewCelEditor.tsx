@@ -46,7 +46,7 @@ export function ViewCelEditor() {
     let celsToRender = currentLoopCels;
     if (currentLoopWithBrushStroke?.type === 'mirrored') {
       const mirrorSourceLoop =
-        viewWithCommandsApplied.loops[currentLoopWithBrushStroke.mirroredFromLoopNumber];
+        viewWithCurrentBrushStrokeApplied?.loops[currentLoopWithBrushStroke.mirroredFromLoopNumber];
       if (mirrorSourceLoop?.type === 'regular') {
         celsToRender = mirrorSourceLoop.cels;
       }
@@ -72,9 +72,10 @@ export function ViewCelEditor() {
 
   const cursorDownInCanvas = (position: CursorPosition) => {
     if (currentCel && drawingColor != null) {
-      const virtualPosition = currentCel.mirrored
-        ? { ...position, x: currentCel.width - position.x - 1 }
-        : position;
+      const virtualPosition =
+        currentLoop?.type === 'mirrored'
+          ? { ...position, x: currentCel.width - position.x - 1 }
+          : position;
 
       setCurrentBrushStroke({ drawingColor, positions: [virtualPosition] });
     }
@@ -82,9 +83,10 @@ export function ViewCelEditor() {
 
   const cursorMoveInCanvas = (position: CursorPosition) => {
     if (currentCel && drawingColor != null && currentBrushStroke) {
-      const virtualPosition = currentCel.mirrored
-        ? { ...position, x: currentCel.width - position.x - 1 }
-        : position;
+      const virtualPosition =
+        currentLoop?.type === 'mirrored'
+          ? { ...position, x: currentCel.width - position.x - 1 }
+          : position;
 
       setCurrentBrushStroke((prevCurrentBrushStroke) => {
         const brushStrokeInProgress = prevCurrentBrushStroke || { drawingColor, positions: [] };

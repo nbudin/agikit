@@ -84,6 +84,10 @@
   justify-content: center;
 }
 
+.view-editor-cel-canvas canvas {
+  cursor: crosshair;
+}
+
 .view-editor-cel-controls {
   grid-area: cel-controls;
   border-top: 1px var(--agikit-panel-border) solid;
