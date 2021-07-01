@@ -1,0 +1,52 @@
+.sound-editor {
+  display: grid;
+  grid-template:
+    'toolbar' min-content
+    'timeline' 1fr / 1fr;
+  gap: 1rem;
+  height: 100vh;
+}
+
+.sound-editor-toolbar {
+  grid-area: toolbar;
+  padding: 0.5rem;
+}
+
+.sound-editor-timeline-container {
+  grid-area: timeline;
+  overflow: scroll;
+  background-color: #ddd;
+}
+
+.sound-editor-timeline {
+  position: relative;
+  overflow: visible;
+  height: 1760px;
+}
+
+.sound-editor-timeline-playhead {
+  width: 1px;
+  height: 1760px;
+  background-color: #666;
+  position: absolute;
+  top: 0;
+}
+
+.sound-editor-timeline-note {
+  position: absolute;
+  border: 1px var(--agikit-editor-foreground) solid;
+  box-sizing: border-box;
+  height: 20px;
+}
+
+.bg-tone-voice-1 {
+  background-color: green;
+}
+
+.bg-tone-voice-2 {
+  background-color: skyblue;
+}
+
+.bg-tone-voice-3 {
+  background-color: yellow;
+}

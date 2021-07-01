@@ -11,6 +11,7 @@ const config = {
   target: 'web',
   entry: {
     DevPicEditor: './dev-site/DevPicEditor.tsx',
+    DevSoundEditor: './dev-site/DevSoundEditor.tsx',
     DevViewEditor: './dev-site/DevViewEditor.tsx',
   },
   mode: 'development',
