@@ -50,3 +50,11 @@
 .bg-tone-voice-3 {
   background-color: yellow;
 }
+
+.bg-noise-voice-white {
+  background-color: white;
+}
+
+.bg-noise-voice-periodic {
+  background-color: darkslategray;
+}
