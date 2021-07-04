@@ -67,6 +67,7 @@ const webviewConfig = {
   entry: {
     VscodePicEditor: './src/Pic/VscodePicEditor.tsx',
     VscodeViewEditor: './src/View/VscodeViewEditor.tsx',
+    VscodeSoundEditor: './src/Sound/VscodeSoundEditor.tsx',
   },
   resolve: {
     ...commonConfig.resolve,

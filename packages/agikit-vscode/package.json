@@ -19,7 +19,8 @@
     "onCommand:workbench.action.tasks.runTask",
     "onCommand:agikit.runWithScummVM",
     "onCustomEditor:agikit.picEditor",
-    "onCustomEditor:agikit.viewEditor"
+    "onCustomEditor:agikit.viewEditor",
+    "onCustomEditor:agikit.soundEditor"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -67,6 +68,15 @@
         "selector": [
           {
             "filenamePattern": "*.agiview"
+          }
+        ]
+      },
+      {
+        "viewType": "agikit.soundEditor",
+        "displayName": "AGI SOUND",
+        "selector": [
+          {
+            "filenamePattern": "*.agisound"
           }
         ]
       }

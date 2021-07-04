@@ -3,11 +3,7 @@ import { buildView } from '@agikit/core/dist/Build/BuildView';
 import { Buffer } from 'buffer';
 import * as ReactDOM from 'react-dom';
 import { ViewEditor } from '@agikit/react-editors/dist/ViewEditor';
-import {
-  buildEditingView,
-  buildNonEditingView,
-  EditingView,
-} from '@agikit/react-editors/dist/EditingViewTypes';
+import { buildNonEditingView, EditingView } from '@agikit/react-editors/dist/EditingViewTypes';
 import {
   ViewEditorControlContext,
   ViewEditorControlContextValue,
@@ -26,7 +22,7 @@ window.Buffer = Buffer;
 const vscode = acquireVsCodeApi();
 vscode.postMessage({ type: 'ready' });
 
-function VscodePicEditor({ initialZoom }: { initialZoom: number }) {
+function VscodeViewEditor({ initialZoom }: { initialZoom: number }) {
   const [viewResource, setViewResource] = useState<EditingView>({
     description: undefined,
     loops: [],
@@ -115,5 +111,5 @@ function VscodePicEditor({ initialZoom }: { initialZoom: number }) {
 const root = document.querySelector('#view-editor-root');
 if (root) {
   const props = JSON.parse(root.getAttribute('data-react-props') ?? '{}');
-  ReactDOM.render(<VscodePicEditor {...props} />, root);
+  ReactDOM.render(<VscodeViewEditor {...props} />, root);
 }
