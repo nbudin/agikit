@@ -1,4 +1,4 @@
-import { AGIView, NonMirroredViewCel, ViewCel, ViewLoop } from '../Types/View';
+import { AGIView, NonMirroredViewCel, ViewLoop } from '../Types/View';
 import { encodeUInt16LE } from '../DataEncoding';
 
 function buildHeaderForOptionalBuffers(

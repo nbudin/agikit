@@ -1,4 +1,11 @@
-import { IBMPCjrSound, IBMPCjrToneNote, IBMPCjrToneVoice } from '@agikit/core/dist/Types/Sound';
+import {
+  IBMPCjrNoiseNote,
+  IBMPCjrNoiseVoice,
+  IBMPCjrNoteCommon,
+  IBMPCjrSound,
+  IBMPCjrToneNote,
+  IBMPCjrToneVoice,
+} from '@agikit/core/dist/Types/Sound';
 import { isPresent } from 'ts-is-present';
 
 const NOTE_DURATION_UNITS_PER_SECOND = 60;
@@ -31,14 +38,17 @@ export class SeekEvent extends Event {
   }
 }
 
-export class IBMPCjrToneVoicePlayer {
-  private ctx: AudioContext;
-  private voice: IBMPCjrToneVoice;
-  private currentNoteIndex: number;
-  private nextNoteTime: number | undefined;
+abstract class IBMPCjrVoicePlayer<
+  NoteType extends IBMPCjrNoteCommon,
+  VoiceType extends { notes: NoteType[] }
+> {
+  protected ctx: AudioContext;
+  protected voice: VoiceType;
+  protected currentNoteIndex: number;
+  protected nextNoteTime: number | undefined;
   volume: number;
 
-  constructor(soundPlayer: IBMPCjrSoundPlayer, ctx: AudioContext, voice: IBMPCjrToneVoice) {
+  constructor(soundPlayer: IBMPCjrSoundPlayer, ctx: AudioContext, voice: VoiceType) {
     this.ctx = ctx;
     this.voice = voice;
     this.currentNoteIndex = 0;
@@ -89,15 +99,102 @@ export class IBMPCjrToneVoicePlayer {
     this.nextNoteTime = this.voice.notes[this.currentNoteIndex]?.startTime;
   }
 
-  private scheduleNote(note: IBMPCjrToneNote, startTime: number) {
+  protected abstract scheduleNote(note: NoteType, startTime: number): void;
+}
+
+export class IBMPCjrToneVoicePlayer extends IBMPCjrVoicePlayer<IBMPCjrToneNote, IBMPCjrToneVoice> {
+  private chorus: boolean;
+  private adsr: boolean;
+
+  constructor(
+    soundPlayer: IBMPCjrSoundPlayer,
+    ctx: AudioContext,
+    voice: IBMPCjrToneVoice,
+    chorus: boolean,
+    adsr: boolean,
+  ) {
+    super(soundPlayer, ctx, voice);
+    this.chorus = chorus;
+    this.adsr = adsr;
+  }
+
+  protected scheduleNote(note: IBMPCjrToneNote, startTime: number) {
     if (note.attenuation >= 15) {
       // 15 = don't make a sound
       return;
     }
 
-    const oscillator = this.ctx.createOscillator();
-    oscillator.type = 'square';
-    oscillator.frequency.value = note.frequency;
+    const durationSecs = note.duration / NOTE_DURATION_UNITS_PER_SECOND;
+
+    const oscillator1 = this.ctx.createOscillator();
+    oscillator1.type = 'square';
+    oscillator1.frequency.value = note.frequency;
+
+    // -1 * attenuation = 20 * log10(gain)
+    // (-1 * attenuation) / 20 = log10(gain)
+    // 10 ** ((-1 * attenuation) / 20) = gain
+    const targetGain = 10 ** ((-1 * note.attenuation) / 20) * this.volume;
+    const envelope = this.ctx.createGain();
+    let endTime = startTime + durationSecs;
+    if (this.adsr) {
+      envelope.gain.cancelScheduledValues(startTime);
+      // attack
+      envelope.gain.setValueAtTime(targetGain * 1.1, startTime);
+      // decay
+      envelope.gain.linearRampToValueAtTime(
+        targetGain,
+        durationSecs > 0.1 ? startTime + 0.1 : startTime + durationSecs,
+      );
+      // release
+      envelope.gain.linearRampToValueAtTime(
+        0,
+        startTime + note.duration / NOTE_DURATION_UNITS_PER_SECOND + 0.133,
+      );
+      endTime += 0.133;
+    } else {
+      envelope.gain.value = targetGain;
+    }
+    // envelope.gain.value = targetGain;
+
+    oscillator1.connect(envelope);
+    oscillator1.start(startTime);
+    oscillator1.stop(endTime);
+
+    if (this.chorus) {
+      const oscillator2 = this.ctx.createOscillator();
+      oscillator2.type = 'square';
+      oscillator2.frequency.value = (oscillator1.frequency.value * 1007) / 1000;
+      oscillator2.connect(envelope);
+      oscillator2.start(startTime);
+      oscillator2.stop(endTime);
+    }
+
+    envelope.connect(this.ctx.destination);
+  }
+}
+
+export class IBMPCjrNoiseVoicePlayer extends IBMPCjrVoicePlayer<
+  IBMPCjrNoiseNote,
+  IBMPCjrNoiseVoice
+> {
+  protected scheduleNote(note: IBMPCjrNoiseNote, startTime: number) {
+    if (note.attenuation >= 15) {
+      // 15 = don't make a sound
+      return;
+    }
+
+    const bufferSize = (this.ctx.sampleRate * note.duration) / NOTE_DURATION_UNITS_PER_SECOND;
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+
+    let data = buffer.getChannelData(0); // get data
+
+    // fill the buffer with noise
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    let noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
 
     // -1 * attenuation = 20 * log10(gain)
     // (-1 * attenuation) / 20 = log10(gain)
@@ -105,38 +202,49 @@ export class IBMPCjrToneVoicePlayer {
     const gain = this.ctx.createGain();
     gain.gain.value = 10 ** ((-1 * note.attenuation) / 20) * this.volume;
 
-    oscillator.connect(gain);
+    noise.connect(gain);
     gain.connect(this.ctx.destination);
 
-    oscillator.start(startTime);
-    oscillator.stop(startTime + note.duration / NOTE_DURATION_UNITS_PER_SECOND);
+    noise.start(startTime);
+    noise.stop(startTime + note.duration / NOTE_DURATION_UNITS_PER_SECOND);
   }
 }
+
+export type IBMPCjrSoundPlayerOptions = {
+  chorus?: boolean;
+  adsr?: boolean;
+};
 
 export default class IBMPCjrSoundPlayer extends EventTarget {
   private ctx: AudioContext;
   private sound: IBMPCjrSound;
   private tonePlayers: [IBMPCjrToneVoicePlayer, IBMPCjrToneVoicePlayer, IBMPCjrToneVoicePlayer];
+  private noisePlayer: IBMPCjrNoiseVoicePlayer;
   private _volume: number;
   private timerId: number | undefined;
   private startTime: number | undefined;
   private playheadOffset: number;
+  private chorus: boolean;
+  private adsr: boolean;
   readonly soundLength: number;
   playing: boolean;
 
-  constructor(ctx: AudioContext, sound: IBMPCjrSound) {
+  constructor(ctx: AudioContext, sound: IBMPCjrSound, options?: IBMPCjrSoundPlayerOptions) {
     super();
     this.ctx = ctx;
     this.sound = sound;
     this._volume = 0.05;
     this.playing = false;
     this.playheadOffset = 0;
+    this.chorus = options?.chorus ?? false;
+    this.adsr = options?.adsr ?? false;
 
     this.tonePlayers = [
-      new IBMPCjrToneVoicePlayer(this, ctx, sound.toneVoices[0]),
-      new IBMPCjrToneVoicePlayer(this, ctx, sound.toneVoices[1]),
-      new IBMPCjrToneVoicePlayer(this, ctx, sound.toneVoices[2]),
+      new IBMPCjrToneVoicePlayer(this, ctx, sound.toneVoices[0], this.chorus, this.adsr),
+      new IBMPCjrToneVoicePlayer(this, ctx, sound.toneVoices[1], this.chorus, this.adsr),
+      new IBMPCjrToneVoicePlayer(this, ctx, sound.toneVoices[2], this.chorus, this.adsr),
     ];
+    this.noisePlayer = new IBMPCjrNoiseVoicePlayer(this, ctx, sound.noiseVoice);
 
     this.volume = this._volume; // set initial volume on players
 
@@ -153,6 +261,7 @@ export default class IBMPCjrSoundPlayer extends EventTarget {
   set volume(newVolume: number) {
     this._volume = newVolume;
     this.tonePlayers.forEach((player) => (player.volume = newVolume));
+    this.noisePlayer.volume = newVolume;
   }
 
   play() {
