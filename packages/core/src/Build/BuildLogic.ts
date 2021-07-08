@@ -3,10 +3,32 @@ import { optimizeAST } from '../Extract/Logic/ASTOptimization';
 import { LogicAssembler } from '../Scripting/LogicAssembler';
 import { LogicCompiler } from '../Scripting/LogicCompiler';
 import { LogicScriptASTGenerator } from '../Scripting/LogicScriptASTGenerator';
-import { parseLogicScript } from '../Scripting/LogicScriptParser';
+import { parseLogicScript, parseLogicScriptRaw } from '../Scripting/LogicScriptParser';
 import { encodeLogic, encodeMessages } from '../Scripting/WriteLogic';
 import { WordList } from '../Types/WordList';
 import { ObjectList } from '../Types/ObjectList';
+import { getDiagnosticsForProgram, LogicDiagnostic } from '../Scripting/LogicDiagnostics';
+
+export class LogicCompilerError extends Error {
+  scriptPath: string;
+  diagnostics: LogicDiagnostic[];
+
+  static describeDiagnostic(scriptPath: string, diagnostic: LogicDiagnostic): string {
+    const location = diagnostic.statement.location?.start;
+    const locationSuffix = location ? `:${location.line}:${location.column}` : '';
+    return `${scriptPath}${locationSuffix}: ${diagnostic.message}`;
+  }
+
+  constructor(scriptPath: string, diagnostics: LogicDiagnostic[]) {
+    super(
+      diagnostics
+        .map((diagnostic) => LogicCompilerError.describeDiagnostic(scriptPath, diagnostic))
+        .join('\n'),
+    );
+    this.scriptPath = scriptPath;
+    this.diagnostics = diagnostics;
+  }
+}
 
 export function assembleLogic(
   instructions: LogicInstruction[],
@@ -22,8 +44,14 @@ export function compileLogicScript(
   scriptPath: string,
   wordList: WordList,
   objectList: ObjectList,
-): Buffer {
-  const parseTree = parseLogicScript(sourceCode, scriptPath);
+): [Buffer, LogicDiagnostic[]] {
+  const rawProgram = parseLogicScriptRaw(sourceCode, scriptPath);
+  const diagnostics = getDiagnosticsForProgram(rawProgram);
+  if (diagnostics.some((diagnostic) => diagnostic.severity === 'error')) {
+    throw new LogicCompilerError(scriptPath, diagnostics);
+  }
+
+  const parseTree = parseLogicScript(rawProgram, scriptPath);
   const astGenerator = new LogicScriptASTGenerator(parseTree, wordList, objectList);
   const root = astGenerator.generateASTForLogicScript();
   const graph = optimizeAST(root);
@@ -31,5 +59,5 @@ export function compileLogicScript(
   const { instructions } = compiler.compile();
   const messages = astGenerator.generateMessageArray();
   const logic = assembleLogic(instructions, messages);
-  return logic;
+  return [logic, diagnostics];
 }

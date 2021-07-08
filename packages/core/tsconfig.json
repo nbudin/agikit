@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "composite": true,
     "module": "commonjs",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -10,6 +11,7 @@
     "lib": ["ES2020.Promise", "ES2020"],
     "strictNullChecks": true,
     "outDir": "dist",
+    "rootDir": "src",
     "baseUrl": ".",
     "resolveJsonModule": true,
     "paths": {
@@ -17,5 +19,5 @@
     },
     "declaration": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "src/**/*.json"]
 }

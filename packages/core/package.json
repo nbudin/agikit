@@ -12,8 +12,8 @@
     "url": "https://github.com/nbudin"
   },
   "scripts": {
-    "build": "tsc",
-    "prepare": "tsc",
+    "build": "tsc --build",
+    "prepare": "tsc --build",
     "generate-parsers": "ts-node src/Scripting/generateParsers.ts"
   },
   "dependencies": {

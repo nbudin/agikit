@@ -1,7 +1,11 @@
 {
+  "compilerOptions": {
+    "composite": true
+  },
   "references": [
     { "path": "dev-site" },
-    { "path": "src" }
+    { "path": "src" },
+    { "path": "../core" }
   ],
   "files": []
 }

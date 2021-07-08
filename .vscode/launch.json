@@ -64,8 +64,8 @@
       "program": "${workspaceFolder}/packages/cli/dist/cli.js",
       "args": [
         "build",
-        // "/Users/nbudin/Downloads/AGI Contest 2 Template/src",
-        "extracted/sq2",
+        "/Users/nbudin/src/agikit-project-template",
+        // "extracted/sq2",
         // "extracted/kq1",
       ],
       "preLaunchTask": "npm: build - packages/cli",

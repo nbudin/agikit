@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node-script
+
 import parseArgs, { ParsedArgs } from 'minimist';
 import { buildGame } from './Commands/build';
 import { extractGame } from './Commands/extract';

@@ -25,6 +25,9 @@ const commonConfig = {
         use: [
           {
             loader: 'ts-loader',
+            options: {
+              projectReferences: true,
+            },
           },
         ],
       },

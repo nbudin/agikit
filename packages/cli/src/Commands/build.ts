@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { Resource, ResourceType } from '@agikit/core/dist/Types/Resources';
-import { compileLogicScript } from '@agikit/core/dist/Build/BuildLogic';
+import { compileLogicScript, LogicCompilerError } from '@agikit/core/dist/Build/BuildLogic';
 import { SyntaxErrorWithFilePath as LogicSyntaxError } from '@agikit/core/dist/Scripting/LogicScriptParser';
 import {
   encodeResourceVolumes,
@@ -31,6 +31,9 @@ function processFile<T>(processor: (input: string) => T, filePath: string) {
         }:${error.location.start.column}`,
       );
       process.exit(1);
+    } else if (error instanceof LogicCompilerError) {
+      console.error(error.message);
+      process.exit(1);
     } else {
       throw error;
     }
@@ -48,9 +51,13 @@ function buildResource(
     const scriptPath = path.join(sourceDir, 'logic', `${resourceNumber}.agilogic`);
     if (fs.existsSync(scriptPath)) {
       console.log(`Compiling ${scriptPath}`);
-      const data = processFile(
+      const [data, diagnostics] = processFile(
         (input) => compileLogicScript(input, scriptPath, wordList, objectList),
         scriptPath,
+      );
+
+      diagnostics.forEach((diagnostic) =>
+        console.warn(LogicCompilerError.describeDiagnostic(scriptPath, diagnostic)),
       );
 
       return {

@@ -45,6 +45,11 @@ import {
   BUILT_IN_IDENTIFIERS,
   IdentifierMapping,
 } from '@agikit/core/dist/Scripting/LogicScriptIdentifierMapping';
+import {
+  getDiagnosticsForProgram,
+  LogicDiagnostic,
+} from '@agikit/core/dist/Scripting/LogicDiagnostics';
+import { LogicCompilerError } from '@agikit/core/dist/Build/BuildLogic';
 
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 const parseTrees = new Map<string, LogicScriptParseTree<LogicScriptStatement>>();
@@ -276,6 +281,24 @@ async function refreshTextDocument(uri: URI, contents: string): Promise<void> {
   }
 
   if (statements) {
+    const scriptDiagnostics = getDiagnosticsForProgram(statements);
+    scriptDiagnostics.forEach((scriptDiagnostic) =>
+      diagnostics.push({
+        severity:
+          scriptDiagnostic.severity === 'error'
+            ? DiagnosticSeverity.Error
+            : DiagnosticSeverity.Warning,
+        range: pegJSLocationRangeToVSCodeRange(
+          scriptDiagnostic.statement.location ?? {
+            start: { line: 1, column: 1, offset: 0 },
+            end: { line: 1, column: 1, offset: 0 },
+          },
+        ),
+        message: LogicCompilerError.describeDiagnostic(uri.fsPath, scriptDiagnostic),
+        source: 'agikit',
+      }),
+    );
+
     clearDocumentData(uri);
     const documentDefines: LogicScriptDefine[] = [];
     const documentIncludes: LogicScriptIncludeDirective[] = [];

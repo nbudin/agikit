@@ -29,10 +29,7 @@
 			"group": "build",
 			"problemMatcher": [],
 			"label": "npm: build - packages/cli",
-			"detail": "tsc && add-shebang",
-			"dependsOn": [
-				"npm: build - packages/core"
-			]
+			"detail": "tsc && add-shebang"
 		},
 		{
 			"type": "npm",
@@ -53,10 +50,7 @@
 			"group": "build",
 			"problemMatcher": [],
 			"label": "npm: build - packages/logic-language-server",
-			"detail": "tsc",
-			"dependsOn": [
-				"npm: build - packages/core"
-			]
+			"detail": "tsc"
 		}
 	]
 }

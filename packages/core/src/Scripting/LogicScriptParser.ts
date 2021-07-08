@@ -177,7 +177,8 @@ function preprocessStatement(
   if (statement.type === 'IncludeDirective') {
     const includePath = path.resolve(path.dirname(scriptPath), statement.filename.value);
     const includeSource = fs.readFileSync(includePath, 'utf-8');
-    return preParseLogicScript(includeSource, includePath, identifierMappings);
+    const includeProgram = parseLogicScriptRaw(includeSource, includePath);
+    return preParseLogicScript(includeProgram, includePath, identifierMappings);
   }
 
   if (statement.type === 'DefineDirective') {
@@ -236,15 +237,10 @@ export function parseLogicScriptRaw(
 }
 
 function preParseLogicScript(
-  source: string,
+  rawProgram: LogicScriptProgram<LogicScriptStatement>,
   scriptPath: string,
   identifierMappings: Map<string, IdentifierMapping>,
 ): PreprocessorOutput {
-  const rawProgram: LogicScriptProgram<LogicScriptStatement> = parseLogicScriptRaw(
-    source,
-    scriptPath,
-  );
-
   const preprocessedProgram: LogicScriptProgram<LogicScriptPreprocessedStatement> = flatMap(
     rawProgram,
     (statement) => preprocessStatement(statement, scriptPath, identifierMappings),
@@ -254,11 +250,11 @@ function preParseLogicScript(
 }
 
 export function parseLogicScript(
-  source: string,
+  rawProgram: LogicScriptProgram<LogicScriptStatement>,
   scriptPath: string,
 ): LogicScriptParseTree<LogicScriptPreprocessedStatement> {
   const identifierMappings = new Map<string, IdentifierMapping>(BUILT_IN_IDENTIFIERS);
-  const program = preParseLogicScript(source, scriptPath, identifierMappings);
+  const program = preParseLogicScript(rawProgram, scriptPath, identifierMappings);
   const parseTree = new LogicScriptParseTree(program, identifierMappings);
   const lastStatement = [...parseTree.program]
     .reverse()

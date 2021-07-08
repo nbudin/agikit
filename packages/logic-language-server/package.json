@@ -14,8 +14,8 @@
     "lib"
   ],
   "scripts": {
-    "build": "tsc",
-    "prepare": "tsc",
+    "build": "tsc --build",
+    "prepare": "tsc --build",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {

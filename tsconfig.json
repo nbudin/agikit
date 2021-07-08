@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "composite": true
+  },
+  "references": [
+    { "path": "packages/core" },
+    { "path": "packages/cli" },
+    { "path": "packages/logic-language-server" },
+    { "path": "packages/react-editors" }
+  ],
+  "files": []
+}
