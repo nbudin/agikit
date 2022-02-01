@@ -4,9 +4,6 @@
   "private": false,
   "homepage": "https://github.com/nbudin/agikit",
   "main": "./dist/index.js",
-  "exports": {
-    "./dist/": "./dist/"
-  },
   "author": {
     "name": "Nat Budin",
     "email": "natbudin@gmail.com",
