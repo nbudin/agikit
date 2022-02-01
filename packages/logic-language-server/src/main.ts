@@ -37,6 +37,7 @@ import {
   LogicScriptIncludeDirective,
   LogicScriptProgram,
   PegJSLocationRange,
+  LogicScriptSyntaxError,
 } from '@agikit/core';
 import { URI, Utils } from 'vscode-uri';
 import fs from 'fs';
@@ -259,7 +260,7 @@ async function refreshTextDocument(uri: URI, contents: string): Promise<void> {
   try {
     statements = parseLogicScriptRaw(contents, uri.fsPath);
   } catch (error) {
-    if (error instanceof SyntaxError) {
+    if (error instanceof LogicScriptSyntaxError) {
       let diagnostic: Diagnostic = {
         severity: DiagnosticSeverity.Error,
         range: pegJSLocationRangeToVSCodeRange(error.location),
