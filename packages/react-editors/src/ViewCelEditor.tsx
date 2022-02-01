@@ -59,13 +59,7 @@ export function ViewCelEditor() {
       const renderedCel = renderViewCel(sourceBuffer, cel.transparentColor, EGAPalette);
       return { ...cel, buffer: renderedCel };
     });
-  }, [
-    currentLoopCels,
-    currentLoop,
-    loopNumber,
-    viewWithCommandsApplied,
-    viewWithCurrentBrushStrokeApplied,
-  ]);
+  }, [currentLoopCels, currentLoop, loopNumber, viewWithCurrentBrushStrokeApplied]);
 
   const renderedCel = renderedCels[celNumber];
 
