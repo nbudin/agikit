@@ -1,6 +1,6 @@
 {
   "name": "@agikit/core",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": false,
   "homepage": "https://github.com/nbudin/agikit",
   "main": "./dist/index.js",

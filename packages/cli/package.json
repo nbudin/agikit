@@ -1,6 +1,6 @@
 {
   "name": "@agikit/cli",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Command line tools for using agikit",
   "author": "Nat Budin <natbudin@gmail.com>",
   "homepage": "https://github.com/nbudin/agikit#readme",
@@ -28,7 +28,7 @@
     "url": "https://github.com/nbudin/agikit/issues"
   },
   "dependencies": {
-    "@agikit/core": "^0.6.0",
+    "@agikit/core": "^0.7.0",
     "minimist": "^1.2.5"
   },
   "devDependencies": {
