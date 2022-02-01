@@ -2,15 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { buildPicture } from '@agikit/core';
 import { Buffer } from 'buffer';
 import * as ReactDOM from 'react-dom';
-import { PicEditor } from '@agikit/react-editors/dist/PicEditor';
 import {
+  PicEditor,
   EditingPictureCommand,
   EditingPictureResource,
-} from '@agikit/react-editors/dist/EditingPictureTypes';
-import {
   PicEditorControlContext,
   PicEditorControlContextValue,
-} from '@agikit/react-editors/dist/PicEditorControlContext';
+} from '@agikit/react-editors';
 
 import '../reset.css';
 import '../vscode.css';

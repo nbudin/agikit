@@ -7,7 +7,7 @@ import {
   EditingPictureResource,
   PicDocumentEdit,
   preparePicCommandForEditing,
-} from '@agikit/react-editors/dist/EditingPictureTypes';
+} from '@agikit/react-editors';
 import WebviewCollection from '../WebviewCollection';
 
 interface PicDocumentDelegate {

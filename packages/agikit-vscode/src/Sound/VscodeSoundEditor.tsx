@@ -7,7 +7,7 @@ import '../vscode.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import '@agikit/react-editors/styles/soundeditor.css';
 import { IBMPCjrSound } from '@agikit/core';
-import SoundEditor from '@agikit/react-editors/dist/SoundEditor';
+import { SoundEditor } from '@agikit/react-editors';
 
 // @ts-expect-error
 window.Buffer = Buffer;

@@ -1,56 +1,65 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"label": "Build agikit-vscode",
-			"type": "npm",
-			"script": "webpack",
-			"problemMatcher": "$tsc-watch",
-			"group": "build",
-			"options": {
-				"cwd": "packages/agikit-vscode"
-			},
-			"dependsOn": []
-		},
-		{
-			"label": "Watch agikit-vscode",
-			"type": "npm",
-			"script": "webpack-dev",
-			"problemMatcher": "$tsc-watch",
-			"isBackground": true,
-			"options": {
-				"cwd": "packages/agikit-vscode"
-			}
-		},
-		{
-			"type": "npm",
-			"script": "build",
-			"path": "packages/cli/",
-			"group": "build",
-			"problemMatcher": [],
-			"label": "npm: build - packages/cli",
-			"detail": "tsc && add-shebang"
-		},
-		{
-			"type": "npm",
-			"script": "build",
-			"path": "packages/core/",
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-			"problemMatcher": [],
-			"label": "npm: build - packages/core",
-			"detail": "tsc"
-		},
-		{
-			"type": "npm",
-			"script": "build",
-			"path": "packages/logic-language-server/",
-			"group": "build",
-			"problemMatcher": [],
-			"label": "npm: build - packages/logic-language-server",
-			"detail": "tsc"
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build agikit-vscode",
+      "type": "npm",
+      "script": "webpack",
+      "problemMatcher": "$tsc-watch",
+      "group": "build",
+      "options": {
+        "cwd": "packages/agikit-vscode"
+      },
+      "dependsOn": []
+    },
+    {
+      "label": "Watch agikit-vscode",
+      "type": "npm",
+      "script": "webpack-dev",
+      "problemMatcher": "$tsc-watch",
+      "isBackground": true,
+      "options": {
+        "cwd": "packages/agikit-vscode"
+      }
+    },
+    {
+      "type": "npm",
+      "script": "build",
+      "path": "packages/cli/",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "npm: build - packages/cli",
+      "detail": "tsc && add-shebang"
+    },
+    {
+      "type": "npm",
+      "script": "build",
+      "path": "packages/core/",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "npm: build - packages/core",
+      "detail": "tsc"
+    },
+    {
+      "type": "npm",
+      "script": "build",
+      "path": "packages/logic-language-server/",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "npm: build - packages/logic-language-server",
+      "detail": "tsc"
+    },
+    {
+      "type": "npm",
+      "script": "build",
+      "path": "packages/react-editors/",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "label": "npm: build - packages/react-editors",
+      "detail": "tsc -b"
+    }
+  ]
 }

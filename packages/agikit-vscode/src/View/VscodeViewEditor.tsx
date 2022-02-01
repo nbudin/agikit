@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { buildView } from '@agikit/core';
 import { Buffer } from 'buffer';
 import * as ReactDOM from 'react-dom';
-import { ViewEditor } from '@agikit/react-editors/dist/ViewEditor';
-import { buildNonEditingView, EditingView } from '@agikit/react-editors/dist/EditingViewTypes';
 import {
+  ViewEditor,
+  buildNonEditingView,
+  EditingView,
   ViewEditorControlContext,
   ViewEditorControlContextValue,
-} from '@agikit/react-editors/dist/ViewEditorControlContext';
+} from '@agikit/react-editors';
 
 import '../reset.css';
 import '../vscode.css';

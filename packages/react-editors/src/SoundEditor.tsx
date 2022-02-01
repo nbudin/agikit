@@ -3,7 +3,7 @@ import { IBMPCjrSound } from '@agikit/core';
 import IBMPCjrSoundPlayer, { SeekEvent, TickEvent } from './IBMPCjrSoundPlayer';
 import { NoiseVoiceNotes, ToneVoiceNotes } from './SoundEditorNotes';
 
-export default function SoundEditor({ sound }: { sound: IBMPCjrSound }): JSX.Element {
+export function SoundEditor({ sound }: { sound: IBMPCjrSound }): JSX.Element {
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [timeZoom, setTimeZoom] = useState(3);

@@ -1,14 +1,15 @@
 import * as vscode from 'vscode';
 import escapeHtml from 'escape-html';
 import { readViewResource } from '@agikit/core';
-import { buildEditingView, EditingView } from '@agikit/react-editors/dist/EditingViewTypes';
-import { Disposable, disposeAll } from '../disposable';
-import { randomBytes } from 'crypto';
-import WebviewCollection from '../WebviewCollection';
 import {
   applyViewEditorCommands,
   ViewEditorCommand,
-} from '@agikit/react-editors/dist/ViewEditorCommands';
+  buildEditingView,
+  EditingView,
+} from '@agikit/react-editors';
+import { Disposable, disposeAll } from '../disposable';
+import { randomBytes } from 'crypto';
+import WebviewCollection from '../WebviewCollection';
 import { serializeView } from './ViewSerialization';
 
 interface ViewDocumentDelegate {
