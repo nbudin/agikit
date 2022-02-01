@@ -24,32 +24,24 @@ import {
   LogicScriptParseTree,
   parseLogicScriptRaw,
   buildIdentifierMappingForDefineDirective,
-} from '@agikit/core/dist/Scripting/LogicScriptParser';
-import { URI, Utils } from 'vscode-uri';
-import fs from 'fs';
-import path from 'path';
-import { TextDocument } from 'vscode-languageserver-textdocument';
-import { SyntaxError } from '@agikit/core/dist/Scripting/LogicScriptParser.generated';
-import { agiCommands } from '@agikit/core/dist/Types/AGICommands';
-import {
+  LogicScriptStatement,
+  agiCommands,
+  BUILT_IN_IDENTIFIERS,
+  getDiagnosticsForProgram,
+  IdentifierMapping,
+  LogicCompilerError,
   LogicScriptArgument,
   LogicScriptBooleanExpression,
   LogicScriptDefineDirective,
   LogicScriptIdentifier,
   LogicScriptIncludeDirective,
   LogicScriptProgram,
-  LogicScriptStatement,
   PegJSLocationRange,
-} from '@agikit/core/dist/Scripting/LogicScriptParserTypes';
-import {
-  BUILT_IN_IDENTIFIERS,
-  IdentifierMapping,
-} from '@agikit/core/dist/Scripting/LogicScriptIdentifierMapping';
-import {
-  getDiagnosticsForProgram,
-  LogicDiagnostic,
-} from '@agikit/core/dist/Scripting/LogicDiagnostics';
-import { LogicCompilerError } from '@agikit/core/dist/Build/BuildLogic';
+} from '@agikit/core';
+import { URI, Utils } from 'vscode-uri';
+import fs from 'fs';
+import path from 'path';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 const parseTrees = new Map<string, LogicScriptParseTree<LogicScriptStatement>>();

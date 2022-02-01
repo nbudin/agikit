@@ -5,7 +5,7 @@ import {
   PictureCoordinate,
   PicturePenPlotPoint,
   PicturePenSettings,
-  PictureResource,
+  Picture,
 } from '../Types/Picture';
 
 function encodeCoordinateList(coordinates: PictureCoordinate[]) {
@@ -102,7 +102,7 @@ export function compilePictureCommand(command: PictureCommand): Buffer {
   assertNever(command);
 }
 
-export function buildPicture(pictureResource: PictureResource): Buffer {
+export function buildPicture(pictureResource: Picture): Buffer {
   const compiledCommands = pictureResource.commands.map(compilePictureCommand);
   return Buffer.concat([...compiledCommands, Buffer.from([0xff])]);
 }

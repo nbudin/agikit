@@ -1,10 +1,10 @@
-import { readFileSync } from 'fs';
-import { generateLogicScript } from '@agikit/core/dist/Scripting/LogicScriptGenerator';
 import {
-  parseLogicScript,
   parseLogicScriptRaw,
+  parseLogicScript,
+  generateLogicScript,
   SyntaxErrorWithFilePath,
-} from '@agikit/core/dist/Scripting/LogicScriptParser';
+} from '@agikit/core';
+import { readFileSync } from 'fs';
 
 export function formatLogicScript(inputFilePath: string): void {
   const input = readFileSync(inputFilePath, 'utf-8');

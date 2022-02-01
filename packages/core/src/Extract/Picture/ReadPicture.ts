@@ -1,9 +1,9 @@
 import {
+  Picture,
   PictureCommand,
   PictureCoordinate,
   PictureCornerStep,
   PicturePenPlotPoint,
-  PictureResource,
 } from '../../Types/Picture';
 
 function decodeSignedDisplacementNybble(nybble: number) {
@@ -11,7 +11,7 @@ function decodeSignedDisplacementNybble(nybble: number) {
   return (nybble & 0b111) * sign;
 }
 
-export function readPictureResource(data: Buffer): PictureResource {
+export function readPictureResource(data: Buffer): Picture {
   const commands: PictureCommand[] = [];
   let offset = 0;
   let splatterEnabled = false;

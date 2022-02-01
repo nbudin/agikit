@@ -1,5 +1,5 @@
 import assertNever from 'assert-never';
-import { MirroredViewCel, NonMirroredViewCel, ViewCel } from '@agikit/core/dist/Types/View';
+import { MirroredViewCel, NonMirroredViewCel, ViewCel } from '@agikit/core';
 import {
   EditingMirroredLoop,
   EditingRegularLoop,

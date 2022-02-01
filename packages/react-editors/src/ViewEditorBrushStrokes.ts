@@ -1,4 +1,4 @@
-import { ViewCel } from '@agikit/core/dist/Types/View';
+import { ViewCel } from '@agikit/core';
 import { CursorPosition } from './DrawingCanvas';
 
 export type BrushStroke = {

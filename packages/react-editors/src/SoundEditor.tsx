@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { IBMPCjrSound } from '@agikit/core/dist/Types/Sound';
+import { IBMPCjrSound } from '@agikit/core';
 import IBMPCjrSoundPlayer, { SeekEvent, TickEvent } from './IBMPCjrSoundPlayer';
 import { NoiseVoiceNotes, ToneVoiceNotes } from './SoundEditorNotes';
 

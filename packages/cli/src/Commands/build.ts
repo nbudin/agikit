@@ -1,32 +1,33 @@
 import path from 'path';
 import fs from 'fs';
-import { Resource, ResourceType } from '@agikit/core/dist/Types/Resources';
-import { compileLogicScript, LogicCompilerError } from '@agikit/core/dist/Build/BuildLogic';
-import { SyntaxErrorWithFilePath as LogicSyntaxError } from '@agikit/core/dist/Scripting/LogicScriptParser';
 import {
+  buildObjectList,
+  buildWordsTok,
+  compileLogicScript,
   encodeResourceVolumes,
   encodeV2Resource,
   ExplicitVolumeSpecification,
-  writeV2ResourceFiles,
-} from '@agikit/core/dist/Build/WriteResources';
-import {
+  LogicCompilerError,
+  LogicScriptSyntaxError,
+  ObjectList,
   parseWordList,
-  SyntaxError as WordListSyntaxError,
-} from '@agikit/core/dist/Scripting/WordListParser';
-import { WordList } from '@agikit/core/dist/Types/WordList';
-import { ObjectList } from '@agikit/core/dist/Types/ObjectList';
-import { buildObjectList } from '@agikit/core/dist/Build/BuildObjectList';
-import { buildWordsTok } from '@agikit/core/dist/Build/BuildWordsTok';
+  Resource,
+  ResourceType,
+  SyntaxErrorWithFilePath,
+  WordList,
+  WordListSyntaxError,
+  writeV2ResourceFiles,
+} from '@agikit/core';
 
 function processFile<T>(processor: (input: string) => T, filePath: string) {
   const input = fs.readFileSync(filePath, 'utf-8');
   try {
     return processor(input);
   } catch (error) {
-    if (error instanceof LogicSyntaxError || error instanceof WordListSyntaxError) {
+    if (error instanceof LogicScriptSyntaxError || error instanceof WordListSyntaxError) {
       console.error(error.message);
       console.log(
-        `${error instanceof LogicSyntaxError ? error.filePath : filePath}:${
+        `${error instanceof SyntaxErrorWithFilePath ? error.filePath : filePath}:${
           error.location.start.line
         }:${error.location.start.column}`,
       );

@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import escapeHtml from 'escape-html';
-import { readIBMPCjrSoundResource } from '@agikit/core/dist/Extract/Sound/ReadSound';
-import { IBMPCjrSound } from '@agikit/core/dist/Types/Sound';
+import { readIBMPCjrSoundResource, IBMPCjrSound } from '@agikit/core';
 import { Disposable, disposeAll } from '../disposable';
 import { randomBytes } from 'crypto';
 import WebviewCollection from '../WebviewCollection';

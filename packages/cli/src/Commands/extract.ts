@@ -1,15 +1,18 @@
-import { readV2Resource, readV2ResourceDirs } from '@agikit/core/dist/Extract/ReadResources';
-import { readLogicResource } from '@agikit/core/dist/Extract/Logic/ReadLogic';
-import { mkdirSync, readFileSync, writeFileSync } from 'fs';
-import path from 'path';
-import { WordList } from '@agikit/core/dist/Types/WordList';
-import { readWordsTok, exportWords } from '@agikit/core/dist/Extract/ReadWordsTok';
-import { DirEntry, ResourceType } from '@agikit/core/dist/Types/Resources';
 import {
+  DirEntry,
+  exportWords,
+  generateCodeForLogicProgram,
   generateLogicAsm,
-  generateCodeForLogicResource,
-} from '@agikit/core/dist/Extract/Logic/CodeGeneration';
-import { readObjectList } from '@agikit/core/dist/Extract/ReadObject';
+  readLogicResource,
+  readObjectList,
+  readV2Resource,
+  readV2ResourceDirs,
+  readWordsTok,
+  ResourceType,
+  WordList,
+} from '@agikit/core';
+import { writeFileSync, mkdirSync, readFileSync } from 'fs';
+import path from 'path';
 
 function extractResource(srcDir: string, entry: DirEntry, destDir: string, wordList: WordList) {
   const resource = readV2Resource(srcDir, entry);
@@ -26,7 +29,7 @@ function extractResource(srcDir: string, entry: DirEntry, destDir: string, wordL
       generateLogicAsm(logic, wordList),
     );
 
-    const [code, basicBlockGraph] = generateCodeForLogicResource(logic, wordList);
+    const [code, basicBlockGraph] = generateCodeForLogicProgram(logic, wordList);
     writeFileSync(destPath, code);
     writeFileSync(
       path.join(

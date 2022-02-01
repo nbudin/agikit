@@ -1,5 +1,5 @@
 import { CSSProperties } from 'react';
-import { EGAPalette } from '@agikit/core/dist/ColorPalettes';
+import { EGAPalette } from '@agikit/core';
 
 export function backgroundStylesForColorNumber(
   colorNumber: number | undefined,

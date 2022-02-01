@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import escapeHtml from 'escape-html';
-import { readViewResource } from '@agikit/core/dist/Extract/View/ReadView';
+import { readViewResource } from '@agikit/core';
 import { buildEditingView, EditingView } from '@agikit/react-editors/dist/EditingViewTypes';
 import { Disposable, disposeAll } from '../disposable';
 import { randomBytes } from 'crypto';

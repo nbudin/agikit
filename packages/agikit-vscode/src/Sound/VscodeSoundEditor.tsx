@@ -6,7 +6,7 @@ import '../reset.css';
 import '../vscode.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import '@agikit/react-editors/styles/soundeditor.css';
-import { IBMPCjrSound } from '@agikit/core/dist/Types/Sound';
+import { IBMPCjrSound } from '@agikit/core';
 import SoundEditor from '@agikit/react-editors/dist/SoundEditor';
 
 // @ts-expect-error

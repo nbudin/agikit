@@ -5,7 +5,7 @@ import {
   IBMPCjrSound,
   IBMPCjrToneNote,
   IBMPCjrToneVoice,
-} from '@agikit/core/dist/Types/Sound';
+} from '@agikit/core';
 import { isPresent } from 'ts-is-present';
 
 const NOTE_DURATION_UNITS_PER_SECOND = 60;

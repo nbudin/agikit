@@ -1,7 +1,6 @@
 import React from 'react';
-import { EGAPalette } from '@agikit/core/dist/ColorPalettes';
+import { EGAPalette, PictureCommand, PicturePenSettings } from '@agikit/core';
 import ColorSelector from './ColorSelector';
-import { PictureCommand, PicturePenSettings } from '@agikit/core/dist/Types/Picture';
 import PenSettingsSelector from './PenSettingsSelector';
 
 export const PICTURE_TOOLS = [

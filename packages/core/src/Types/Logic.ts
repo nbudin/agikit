@@ -36,7 +36,7 @@ export type LogicGoto = {
 
 export type LogicInstruction = LogicCommand | LogicCondition | LogicGoto;
 
-export type LogicResource = {
+export type LogicProgram = {
   instructions: LogicInstruction[];
   messages: (string | undefined)[];
 };

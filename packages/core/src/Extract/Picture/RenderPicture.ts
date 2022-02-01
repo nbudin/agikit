@@ -1,6 +1,6 @@
 import { max } from 'lodash';
 import { ColorPalette } from '../../ColorPalettes';
-import { PictureCoordinate, PicturePenSettings, PictureResource } from '../../Types/Picture';
+import { PictureCoordinate, PicturePenSettings, Picture } from '../../Types/Picture';
 
 export type RenderedPicture = {
   visualBuffer: Uint8Array;
@@ -482,7 +482,7 @@ function makeBuffer(fillColor: number, palette: ColorPalette): Uint8Array {
 }
 
 export function renderPicture(
-  picture: PictureResource,
+  picture: Picture,
   palette: ColorPalette,
   startingFrom?: {
     renderedPicture: RenderedPicture;

@@ -49,6 +49,7 @@ export abstract class Graph<
     return node.id;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getEdgeLabel(edge: EdgeType): string {
     return '';
   }

@@ -1,14 +1,11 @@
 import {
-  parseLogicScriptRaw,
-  SyntaxErrorWithFilePath,
-} from '@agikit/core/dist/Scripting/LogicScriptParser';
-import { SyntaxError } from '@agikit/core/dist/Scripting/LogicScriptParser.generated';
-import {
   LogicScriptArgument,
   LogicScriptBooleanExpression,
   LogicScriptStatement,
+  LogicScriptSyntaxError,
+  parseLogicScriptRaw,
   PegJSLocationRange,
-} from '@agikit/core/dist/Scripting/LogicScriptParserTypes';
+} from '@agikit/core';
 import * as vscode from 'vscode';
 
 class LogicSemanticTokensProvider implements vscode.DocumentSemanticTokensProvider {
@@ -39,7 +36,7 @@ class LogicSemanticTokensProvider implements vscode.DocumentSemanticTokensProvid
     try {
       statements = parseLogicScriptRaw(document.getText(), document.fileName);
     } catch (error) {
-      if (error instanceof SyntaxError) {
+      if (error instanceof LogicScriptSyntaxError) {
         tokensBuilder.push(pegLocationToVscodeRange(error.location), 'invalid', []);
       }
       return tokensBuilder.build();

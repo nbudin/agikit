@@ -1,6 +1,5 @@
 import React, { useContext, useMemo, useState } from 'react';
-import { renderViewCel } from '@agikit/core/dist/Extract/View/RenderView';
-import { EGAPalette } from '@agikit/core/dist/ColorPalettes';
+import { renderViewCel, EGAPalette } from '@agikit/core';
 import { ViewCelCanvas } from './ViewCelCanvas';
 import { CursorPosition } from './DrawingCanvas';
 import { BrushStroke } from './ViewEditorBrushStrokes';

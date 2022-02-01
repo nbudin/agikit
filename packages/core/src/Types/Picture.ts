@@ -104,6 +104,6 @@ export type PictureCommand =
   | ChangePenPictureCommand
   | PlotWithPenPictureCommand;
 
-export type PictureResource = {
+export type Picture = {
   commands: PictureCommand[];
 };

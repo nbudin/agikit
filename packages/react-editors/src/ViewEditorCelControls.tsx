@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useState } from 'react';
-import { EGAPalette } from '@agikit/core/dist/ColorPalettes';
+import { EGAPalette } from '@agikit/core';
 import ColorSelector from './ColorSelector';
 import { ViewEditorContext } from './ViewEditorContext';
 import { ViewEditorControlContext } from './ViewEditorControlContext';

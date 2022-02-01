@@ -1,7 +1,6 @@
 import React from 'react';
-import { stylesForColorNumber } from './colorUtils';
 import { usePopoverButton } from './usePopoverButton';
-import { PicturePenSettings } from '@agikit/core/dist/Types/Picture';
+import { PicturePenSettings } from '@agikit/core';
 
 export default function PenSettingsSelector({
   penSettings,

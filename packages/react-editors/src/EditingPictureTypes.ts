@@ -1,4 +1,4 @@
-import { PictureCommand, PictureResource } from '@agikit/core/dist/Types/Picture';
+import { PictureCommand, Picture } from '@agikit/core';
 import assertNever from 'assert-never';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -7,7 +7,7 @@ export type EditingPictureCommand = PictureCommand & {
   enabled: boolean;
 };
 
-export type EditingPictureResource = Omit<PictureResource, 'commands'> & {
+export type EditingPictureResource = Omit<Picture, 'commands'> & {
   commands: EditingPictureCommand[];
 };
 

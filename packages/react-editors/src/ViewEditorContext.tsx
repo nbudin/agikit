@@ -1,5 +1,5 @@
 import React from 'react';
-import { NonMirroredViewCel } from '@agikit/core/dist/Types/View';
+import { NonMirroredViewCel } from '@agikit/core';
 import { EditingView, EditingViewLoop } from './EditingViewTypes';
 
 export type ViewEditorContextValue = {

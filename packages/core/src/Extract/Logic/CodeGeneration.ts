@@ -17,7 +17,7 @@ import {
 } from '../../Scripting/LogicScriptParserTypes';
 import { AGICommandArgType } from '../../Types/AGICommands';
 import {
-  LogicResource,
+  LogicProgram,
   LogicConditionClause,
   LogicCommand,
   LogicInstruction,
@@ -38,7 +38,7 @@ import { generateLabels } from './LogicDisasm';
 import { BUILT_IN_IDENTIFIERS } from '../../Scripting/LogicScriptIdentifierMapping';
 
 export type CodeGenerationContext = {
-  logic: LogicResource;
+  logic: LogicProgram;
   wordList: WordList;
 };
 
@@ -309,7 +309,7 @@ function generateLogicAsmInstructionWithPossibleLabel(
   return lineInstruction;
 }
 
-export function generateLogicMessages(logic: LogicResource): string {
+export function generateLogicMessages(logic: LogicProgram): string {
   const messages = logic.messages.map((message, index) =>
     message == null
       ? undefined
@@ -322,7 +322,7 @@ export function generateLogicMessages(logic: LogicResource): string {
 }
 
 export function generateLogicAsm(
-  logic: LogicResource,
+  logic: LogicProgram,
   wordList: WordList,
   labels?: LogicLabel[],
 ): string {
@@ -692,8 +692,8 @@ export class LogicScriptGenerator {
   }
 }
 
-export function generateCodeForLogicResource(
-  logic: LogicResource,
+export function generateCodeForLogicProgram(
+  logic: LogicProgram,
   wordList: WordList,
 ): [string, BasicBlockGraph] {
   const root = decompileInstructions(logic.instructions);

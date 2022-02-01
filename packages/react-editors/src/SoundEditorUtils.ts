@@ -1,4 +1,4 @@
-import { IBMPCjrNoteCommon, IBMPCjrSound } from '@agikit/core/dist/Types/Sound';
+import { IBMPCjrNoteCommon, IBMPCjrSound } from '@agikit/core';
 
 export function gcd(a: number, b: number) {
   let ca = Math.abs(a);

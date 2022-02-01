@@ -1,6 +1,6 @@
 import { avisDurgan, xorBuffer } from '../../XorEncryption';
 import { AGIVersion } from '../../Types/AGIVersion';
-import { LogicResource } from '../../Types/Logic';
+import { LogicProgram } from '../../Types/Logic';
 import { readInstructions } from './LogicDisasm';
 
 function readMessages(textData: Buffer): (string | undefined)[] {
@@ -41,7 +41,7 @@ function readMessages(textData: Buffer): (string | undefined)[] {
   return messages;
 }
 
-export function readLogicResource(resourceData: Buffer, agiVersion: AGIVersion): LogicResource {
+export function readLogicResource(resourceData: Buffer, agiVersion: AGIVersion): LogicProgram {
   const textOffset = resourceData.readUInt16LE(0);
   const codeData = resourceData.slice(2, textOffset + 2);
   const textData = resourceData.slice(textOffset + 2);

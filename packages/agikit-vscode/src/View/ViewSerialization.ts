@@ -1,4 +1,4 @@
-import { NonMirroredViewCel } from '@agikit/core/dist/Types/View';
+import { NonMirroredViewCel } from '@agikit/core';
 import {
   EditingMirroredLoop,
   EditingRegularLoop,
