@@ -10,7 +10,12 @@
       "options": {
         "cwd": "packages/agikit-vscode"
       },
-      "dependsOn": []
+      "dependsOn": [
+        "npm: build - packages/core",
+        "npm: build - packages/cli",
+        "npm: build - packages/logic-language-server",
+        "npm: build - packages/react-editors"
+      ]
     },
     {
       "label": "Watch agikit-vscode",
@@ -29,7 +34,8 @@
       "group": "build",
       "problemMatcher": [],
       "label": "npm: build - packages/cli",
-      "detail": "tsc && add-shebang"
+      "detail": "tsc && add-shebang",
+      "dependsOn": ["npm: build - packages/core"]
     },
     {
       "type": "npm",
@@ -47,7 +53,8 @@
       "group": "build",
       "problemMatcher": [],
       "label": "npm: build - packages/logic-language-server",
-      "detail": "tsc"
+      "detail": "tsc",
+      "dependsOn": ["npm: build - packages/core"]
     },
     {
       "type": "npm",
@@ -59,7 +66,8 @@
       },
       "problemMatcher": [],
       "label": "npm: build - packages/react-editors",
-      "detail": "tsc -b"
+      "detail": "tsc -b",
+      "dependsOn": ["npm: build - packages/core"]
     }
   ]
 }
