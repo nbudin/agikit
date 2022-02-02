@@ -1,5 +1,9 @@
 import { NonMirroredViewCel } from '@agikit/core';
-import { EditingMirroredLoop, EditingRegularLoop, EditingView } from '@agikit/react-editors';
+import type {
+  EditingMirroredLoop,
+  EditingRegularLoop,
+  EditingView,
+} from '@agikit/react-editors/dist/EditingViewTypes';
 
 export type SerializedNonMirroredViewCel = Omit<NonMirroredViewCel, 'buffer'> & {
   bufferBase64: string;

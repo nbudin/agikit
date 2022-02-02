@@ -75,7 +75,9 @@ const webviewConfig = {
   resolve: {
     ...commonConfig.resolve,
     fallback: {
-      buffer: require.resolve('buffer/'),
+      buffer: require.resolve('buffer'),
+      fs: false,
+      path: require.resolve('path-browserify'),
     },
   },
   plugins: [

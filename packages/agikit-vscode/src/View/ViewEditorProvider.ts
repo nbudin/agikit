@@ -1,12 +1,11 @@
 import * as vscode from 'vscode';
 import escapeHtml from 'escape-html';
 import { readViewResource } from '@agikit/core';
+import { buildEditingView, EditingView } from '@agikit/react-editors/dist/EditingViewTypes';
 import {
   applyViewEditorCommands,
   ViewEditorCommand,
-  buildEditingView,
-  EditingView,
-} from '@agikit/react-editors';
+} from '@agikit/react-editors/dist/ViewEditorCommands';
 import { Disposable, disposeAll } from '../disposable';
 import { randomBytes } from 'crypto';
 import WebviewCollection from '../WebviewCollection';

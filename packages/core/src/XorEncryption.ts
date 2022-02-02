@@ -1,3 +1,5 @@
+import { Buffer } from 'buffer';
+
 export const avisDurgan = Buffer.from('Avis Durgan', 'ascii');
 
 export function xorBuffer(input: Buffer, encryptionKey: Buffer): Buffer {
