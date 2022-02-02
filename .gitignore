@@ -21,3 +21,11 @@ qtagistudio-*
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+/packages/*/.pnp.*
+/packages/*/.yarn/*
+!/packages/*/.yarn/patches
+!/packages/*/.yarn/plugins
+!/packages/*/.yarn/releases
+!/packages/*/.yarn/sdks
+!/packages/*/.yarn/versions

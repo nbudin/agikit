@@ -9,7 +9,7 @@ import {
   ServerOptions,
   TransportKind,
 } from 'vscode-languageclient/node';
-import LogicSemanticTokensProvider from './Logic/logicSemanticTokensProvider';
+import LogicSemanticTokensProvider from './Logic/LogicSemanticTokensProvider';
 import { buildTaskProvider } from './buildTaskProvider';
 import { runWithScummVM } from './runWithScummVM';
 import { PicEditorProvider } from './Pic/PicEditorProvider';
