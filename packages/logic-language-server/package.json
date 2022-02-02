@@ -1,6 +1,6 @@
 {
   "name": "@agikit/logic-language-server",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "Language server for AGI LOGIC scripts",
   "author": "Nat Budin <natbudin@gmail.com>",
   "homepage": "",
@@ -19,7 +19,7 @@
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
-    "@agikit/core": "^0.7.2",
+    "@agikit/core": "^0.7.3",
     "vscode-languageserver": "^7.0.0",
     "vscode-languageserver-textdocument": "^1.0.1",
     "vscode-uri": "^3.0.2"
