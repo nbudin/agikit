@@ -10,12 +10,7 @@
       "options": {
         "cwd": "packages/agikit-vscode"
       },
-      "dependsOn": [
-        "npm: build - packages/core",
-        "npm: build - packages/cli",
-        "npm: build - packages/logic-language-server",
-        "npm: build - packages/react-editors"
-      ]
+      "dependsOn": ["Build all packages"]
     },
     {
       "label": "Watch agikit-vscode",
@@ -28,46 +23,14 @@
       }
     },
     {
-      "type": "npm",
-      "script": "build",
-      "path": "packages/cli/",
-      "group": "build",
+      "type": "shell",
+      "label": "Build all packages",
+      "command": ["yarn", "workspaces", "foreach", "-tvpi", "run", "build"],
       "problemMatcher": [],
-      "label": "npm: build - packages/cli",
-      "detail": "tsc && add-shebang",
-      "dependsOn": ["npm: build - packages/core"]
-    },
-    {
-      "type": "npm",
-      "script": "build",
-      "path": "packages/core/",
-      "group": "build",
-      "problemMatcher": [],
-      "label": "npm: build - packages/core",
-      "detail": "tsc"
-    },
-    {
-      "type": "npm",
-      "script": "build",
-      "path": "packages/logic-language-server/",
-      "group": "build",
-      "problemMatcher": [],
-      "label": "npm: build - packages/logic-language-server",
-      "detail": "tsc",
-      "dependsOn": ["npm: build - packages/core"]
-    },
-    {
-      "type": "npm",
-      "script": "build",
-      "path": "packages/react-editors/",
       "group": {
         "kind": "build",
         "isDefault": true
-      },
-      "problemMatcher": [],
-      "label": "npm: build - packages/react-editors",
-      "detail": "tsc -b",
-      "dependsOn": ["npm: build - packages/core"]
+      }
     }
   ]
 }

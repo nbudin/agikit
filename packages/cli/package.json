@@ -32,11 +32,11 @@
     "minimist": "^1.2.5"
   },
   "devDependencies": {
-    "@types/minimist": "^1.2.1",
-    "@types/node": "^14.14.32",
-    "prettier": "^2.2.1",
+    "@types/minimist": "^1.2.2",
+    "@types/node": "^14.18.10",
+    "prettier": "^2.5.1",
     "shebang-trim": "^1.1.0",
-    "typescript": "^4.2.3"
+    "typescript": "^4.5.5"
   },
   "gitHead": "26eba522edf0c98cfd2a646ded8f4a4ab8e812fc"
 }
