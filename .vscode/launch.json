@@ -8,11 +8,10 @@
       "type": "pwa-node",
       "request": "launch",
       "name": "Launch Extract",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "skipFiles": ["<node_internals>/**"],
       "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "/Users/nbudin/.nodenv/versions/14.15.1/bin/node",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["node"],
       "program": "${workspaceFolder}/packages/cli/dist/cli.js",
       "args": [
         "extract",
@@ -23,7 +22,7 @@
         // "/Users/nbudin/Downloads/AGI Contest 2 Template",
         // "extracted/contest2"
       ],
-      "preLaunchTask": "npm: build - packages/cli",
+      "preLaunchTask": "Build all packages",
       "outFiles": [
         "${workspaceFolder}/packages/cli/dist/**/*.js",
         "${workspaceFolder}/packages/core/dist/**/*.js"
@@ -33,11 +32,10 @@
       "type": "pwa-node",
       "request": "launch",
       "name": "Re-Extract",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "skipFiles": ["<node_internals>/**"],
       "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "/Users/nbudin/.nodenv/versions/14.15.1/bin/node",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["node"],
       "program": "${workspaceFolder}/packages/cli/dist/cli.js",
       "args": [
         "extract",
@@ -46,7 +44,7 @@
         "build/kq1",
         "reextracted/kq1"
       ],
-      "preLaunchTask": "npm: build - packages/cli",
+      "preLaunchTask": "Build all packages",
       "outFiles": [
         "${workspaceFolder}/packages/cli/dist/**/*.js",
         "${workspaceFolder}/packages/core/dist/**/*.js"
@@ -56,19 +54,18 @@
       "type": "pwa-node",
       "request": "launch",
       "name": "Launch Build",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "skipFiles": ["<node_internals>/**"],
       "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "/Users/nbudin/.nodenv/versions/14.15.1/bin/node",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["node"],
       "program": "${workspaceFolder}/packages/cli/dist/cli.js",
       "args": [
         "build",
-        "/Users/nbudin/src/agikit-project-template",
+        "/Users/nbudin/src/agikit-project-template"
         // "extracted/sq2",
         // "extracted/kq1",
       ],
-      "preLaunchTask": "npm: build - packages/cli",
+      "preLaunchTask": "Build all packages",
       "outFiles": [
         "${workspaceFolder}/packages/cli/dist/**/*.js",
         "${workspaceFolder}/packages/core/dist/**/*.js"
@@ -82,9 +79,7 @@
         "${workspaceFolder}/../agikit-project-template",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/agikit-vscode"
       ],
-      "outFiles": [
-        "${workspaceFolder}/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/out/**/*.js"],
       "preLaunchTask": "Build agikit-vscode"
     },
     {
@@ -95,9 +90,7 @@
         "--extensionDevelopmentPath=${workspaceFolder}/packages/agikit-vscode",
         "--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
       ],
-      "outFiles": [
-        "${workspaceFolder}/out/test/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/out/test/**/*.js"],
       "preLaunchTask": "Build agikit-vscode"
     }
   ]

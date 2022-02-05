@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node-script
 
 import parseArgs, { ParsedArgs } from 'minimist';
-import { buildGame } from './Commands/build';
+import { buildProject } from './Commands/build';
 import { extractGame } from './Commands/extract';
 import { formatLogicScript } from './Commands/formatLogic';
 
@@ -10,7 +10,7 @@ const commandRunners: { [cmd: string]: (args: ParsedArgs) => void } = {
     if (args._.length !== 2) {
       console.error(`Usage: ${process.argv[1]} ${process.argv[2]} projectdir`);
     } else {
-      buildGame(args._[1]);
+      buildProject(args._[1]);
     }
   },
   extract: (args: ParsedArgs) => {

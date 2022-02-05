@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "assert-never": "^1.2.1",
+    "filesize": "^8.0.7",
     "lodash": "^4.17.21",
     "ts-is-present": "^1.2.2"
   },

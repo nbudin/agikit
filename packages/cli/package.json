@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@agikit/core": "^0.7.3",
+    "ansi-colors": "^4.1.1",
     "minimist": "^1.2.5"
   },
   "devDependencies": {

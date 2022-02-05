@@ -12,6 +12,7 @@ __metadata:
     "@agikit/core": ^0.7.3
     "@types/minimist": ^1.2.2
     "@types/node": ^14.18.10
+    ansi-colors: ^4.1.1
     minimist: ^1.2.5
     prettier: ^2.5.1
     shebang-trim: ^1.1.0
@@ -32,6 +33,7 @@ __metadata:
     "@typescript-eslint/parser": ^4.33.0
     assert-never: ^1.2.1
     eslint: ^7.32.0
+    filesize: ^8.0.7
     lodash: ^4.17.21
     pegjs: ^0.10.0
     prettier: ^2.5.1
@@ -2502,6 +2504,13 @@ __metadata:
   version: 1.0.0
   resolution: "file-uri-to-path@npm:1.0.0"
   checksum: b648580bdd893a008c92c7ecc96c3ee57a5e7b6c4c18a9a09b44fb5d36d79146f8e442578bc0e173dc027adf3987e254ba1dfd6e3ec998b7c282873010502144
+  languageName: node
+  linkType: hard
+
+"filesize@npm:^8.0.7":
+  version: 8.0.7
+  resolution: "filesize@npm:8.0.7"
+  checksum: 8603d27c5287b984cb100733640645e078f5f5ad65c6d913173e01fb99e09b0747828498fd86647685ccecb69be31f3587b9739ab1e50732116b2374aff4cbf9
   languageName: node
   linkType: hard
 
