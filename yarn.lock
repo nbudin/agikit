@@ -31,7 +31,6 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^4.33.0
     "@typescript-eslint/parser": ^4.33.0
     assert-never: ^1.2.1
-    buffer: ^6.0.3
     eslint: ^7.32.0
     lodash: ^4.17.21
     pegjs: ^0.10.0

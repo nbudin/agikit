@@ -1,6 +1,6 @@
 import { flatMap } from 'lodash';
 import { encodeUInt16LE } from '../DataEncoding';
-import { avisDurgan, xorBuffer } from '../XorEncryption';
+import { getXorEncryptionKey, xorBuffer } from '../XorEncryption';
 
 export function encodeMessages(messageArray: (string | undefined)[]): Buffer {
   const messageBuffers: Buffer[] = [];
@@ -14,7 +14,7 @@ export function encodeMessages(messageArray: (string | undefined)[]): Buffer {
     }
   }
 
-  const textSection = xorBuffer(Buffer.concat(messageBuffers), avisDurgan);
+  const textSection = xorBuffer(Buffer.concat(messageBuffers), getXorEncryptionKey());
   const messageHeaderLength = 3 + messageArray.length * 2;
 
   const messageOffsets: number[] = [];

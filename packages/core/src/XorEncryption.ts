@@ -1,6 +1,6 @@
-import { Buffer } from 'buffer';
-
-export const avisDurgan = Buffer.from('Avis Durgan', 'ascii');
+export function getXorEncryptionKey(): Buffer {
+  return Buffer.from('Avis Durgan', 'ascii');
+}
 
 export function xorBuffer(input: Buffer, encryptionKey: Buffer): Buffer {
   const output = Buffer.alloc(input.byteLength);

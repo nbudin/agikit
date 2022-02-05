@@ -1,8 +1,8 @@
 import { ObjectList, ObjectListEntry } from '../Types/ObjectList';
-import { avisDurgan, xorBuffer } from '../XorEncryption';
+import { getXorEncryptionKey, xorBuffer } from '../XorEncryption';
 
 export function readObjectList(objectData: Buffer): ObjectList {
-  const decryptedData = xorBuffer(objectData, avisDurgan);
+  const decryptedData = xorBuffer(objectData, getXorEncryptionKey());
   const objectNamesOffset = decryptedData.readUInt16LE(0);
   const maxAnimatedObjects = decryptedData.readUInt8(2);
   const objects: ObjectListEntry[] = [];

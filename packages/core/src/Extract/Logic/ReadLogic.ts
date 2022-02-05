@@ -1,4 +1,4 @@
-import { avisDurgan, xorBuffer } from '../../XorEncryption';
+import { getXorEncryptionKey, xorBuffer } from '../../XorEncryption';
 import { AGIVersion } from '../../Types/AGIVersion';
 import { LogicProgram } from '../../Types/Logic';
 import { readInstructions } from './LogicDisasm';
@@ -9,7 +9,10 @@ function readMessages(textData: Buffer): (string | undefined)[] {
   // const endOfMessages = textData.readUInt16LE(1);
   const messageHeaderLength = 3 + messageCount * 2;
   const messages: (string | undefined)[] = [];
-  const decryptedMessageSection = xorBuffer(textData.slice(messageHeaderLength), avisDurgan);
+  const decryptedMessageSection = xorBuffer(
+    textData.slice(messageHeaderLength),
+    getXorEncryptionKey(),
+  );
   const decryptedTextData = Buffer.concat([
     textData.slice(0, messageHeaderLength),
     decryptedMessageSection,

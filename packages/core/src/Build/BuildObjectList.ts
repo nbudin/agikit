@@ -1,5 +1,5 @@
 import { flatMap } from 'lodash';
-import { avisDurgan, xorBuffer } from '../XorEncryption';
+import { getXorEncryptionKey, xorBuffer } from '../XorEncryption';
 import { ObjectList } from '../Types/ObjectList';
 import { encodeUInt16LE } from '../DataEncoding';
 
@@ -16,5 +16,5 @@ export function buildObjectList(objectList: ObjectList): Buffer {
     Buffer.from([...encodeUInt16LE(headerLength), objectList.maxAnimatedObjects, ...objectHeaders]),
     ...objectNames,
   ]);
-  return xorBuffer(cleartextObjectList, avisDurgan);
+  return xorBuffer(cleartextObjectList, getXorEncryptionKey());
 }
