@@ -10,9 +10,11 @@ __metadata:
   resolution: "@agikit/cli@workspace:packages/cli"
   dependencies:
     "@agikit/core": ^0.7.3
+    "@types/color-support": ^1.1.1
     "@types/minimist": ^1.2.2
     "@types/node": ^14.18.10
     ansi-colors: ^4.1.1
+    color-support: ^1.1.3
     minimist: ^1.2.5
     prettier: ^2.5.1
     shebang-trim: ^1.1.0
@@ -259,6 +261,15 @@ __metadata:
   dependencies:
     "@types/node": "*"
   checksum: bfcadb042a41b124c4e3de4925e3be6d35b78f93f27c4535d5ff86980dc0f8bc407ed99b9b54528952dc62834d5a779392f7a12c2947dd19330eb05a6bcae15a
+  languageName: node
+  linkType: hard
+
+"@types/color-support@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "@types/color-support@npm:1.1.1"
+  dependencies:
+    "@types/node": "*"
+  checksum: 5642b7bf647d0df26246e6acd518386fc957f7ad8cde2019122791fff27bc111ed895b0dcc83612db05b290ad867b8ca36c1b3b7c4baf79cbf5f55d758470044
   languageName: node
   linkType: hard
 
@@ -640,6 +651,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vscode/debugadapter@npm:^1.53.0":
+  version: 1.53.0
+  resolution: "@vscode/debugadapter@npm:1.53.0"
+  dependencies:
+    "@vscode/debugprotocol": 1.53.0
+    mkdirp: ^1.0.4
+  checksum: 1e65f6a6a00d3972febdcc161a625923014ef857c16521a492e0c9e1d3d86c71b2082dea82c60dd45e4f5cbfb475b543bc82380b4cd306b42b8d66a334c8bca1
+  languageName: node
+  linkType: hard
+
+"@vscode/debugprotocol@npm:1.53.0, @vscode/debugprotocol@npm:^1.53.0":
+  version: 1.53.0
+  resolution: "@vscode/debugprotocol@npm:1.53.0"
+  checksum: 8f862ebb400f7efc8e9dba10a1ee9f7b2d4bc8dd0c7ea57cebcff0e1694da1cbd8da23adc2477acb11f42a884ee5ac12eeabab39097f8898d6d5ef4eba1e5883
+  languageName: node
+  linkType: hard
+
 "@webassemblyjs/ast@npm:1.11.1":
   version: 1.11.1
   resolution: "@webassemblyjs/ast@npm:1.11.1"
@@ -941,7 +969,11 @@ __metadata:
     "@types/vscode": ^1.63.2
     "@typescript-eslint/eslint-plugin": ^4.33.0
     "@typescript-eslint/parser": ^4.33.0
+    "@vscode/debugadapter": ^1.53.0
+    "@vscode/debugprotocol": ^1.53.0
+    ansi-colors: ^4.1.1
     assert-never: ^1.2.1
+    await-notify: ^1.0.1
     bootstrap-icons: ^1.8.0
     buffer: ^6.0.3
     css-loader: ^5.2.7
@@ -957,8 +989,8 @@ __metadata:
     react-cool-onclickoutside: ^1.7.0
     react-dom: ^17.0.2
     react-popper: ^2.2.5
-    shebang-loader: ^0.0.1
     style-loader: ^2.0.0
+    ts-is-present: ^1.2.2
     ts-loader: ^8.3.0
     typescript: ^4.5.5
     uuid: ^8.3.2
@@ -1185,6 +1217,13 @@ __metadata:
   dependencies:
     lodash: ^4.17.14
   checksum: 5e5561ff8fca807e88738533d620488ac03a5c43fce6c937451f7e35f943d33ad06c24af3f681a48cca3d2b0002b3118faff0a128dc89438a9bf0226f712c499
+  languageName: node
+  linkType: hard
+
+"await-notify@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "await-notify@npm:1.0.1"
+  checksum: 0082de3c89ea45c00c0154f3dba4f527bdca72799a2feeb6c6714b4ed49448ca62718dcb45238d008b5cad6b7306754afaed222d880719d70484619600bb65ea
   languageName: node
   linkType: hard
 
@@ -1600,7 +1639,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"color-support@npm:^1.1.2":
+"color-support@npm:^1.1.2, color-support@npm:^1.1.3":
   version: 1.1.3
   resolution: "color-support@npm:1.1.3"
   bin:
@@ -5069,13 +5108,6 @@ __metadata:
   dependencies:
     shebang-regex: ^3.0.0
   checksum: 6b52fe87271c12968f6a054e60f6bde5f0f3d2db483a1e5c3e12d657c488a15474121a1d55cd958f6df026a54374ec38a4a963988c213b7570e1d51575cea7fa
-  languageName: node
-  linkType: hard
-
-"shebang-loader@npm:^0.0.1":
-  version: 0.0.1
-  resolution: "shebang-loader@npm:0.0.1"
-  checksum: fede54cb390e0a5b8c475ab9bdf6ffd413f7c7791d4850675ad13b4cb718ccf9d13fe5ae00a13b2f442afedc610b28aea1f6708883966f95f74a6e177679f27e
   languageName: node
   linkType: hard
 

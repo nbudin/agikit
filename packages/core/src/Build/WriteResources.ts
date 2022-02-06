@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { DirEntry, Resource, ResourceDir, ResourceType } from '../Types/Resources';
 import filesize from 'filesize';
+import { Logger } from '..';
 
 // const MAX_VOLUME_SIZE = 0xfffff;
 const MAX_VOLUME_SIZE = 144 * 1024; // for testing purposes
@@ -109,7 +110,7 @@ export function writeV2Dir(entries: (DirEntry | undefined)[]): Buffer {
 export function writeV2DirFiles(
   outputPath: string,
   resourceDir: ResourceDir,
-  log: (message: string) => void,
+  logger: Logger,
 ): void {
   (
     [
@@ -121,7 +122,7 @@ export function writeV2DirFiles(
   ).forEach(([fileName, entries]) => {
     const filePath = path.join(outputPath, fileName);
     const data = writeV2Dir(entries);
-    log(`Writing ${fileName} (${filesize(data.byteLength, { base: 2 })})`);
+    logger.log(`Writing ${fileName} (${filesize(data.byteLength, { base: 2 })})`);
     fs.writeFileSync(filePath, data);
   });
 }
@@ -129,7 +130,7 @@ export function writeV2DirFiles(
 export function writeV2ResourceFiles(
   outputPath: string,
   resourceVolumes: (EncodedResource[] | undefined)[],
-  log: (message: string) => void,
+  logger: Logger,
 ): void {
   const resourceData: Buffer[] = [];
   const dirEntries: DirEntry[] = [];
@@ -145,10 +146,10 @@ export function writeV2ResourceFiles(
 
   const resourceDir = buildResourceDir(dirEntries);
 
-  writeV2DirFiles(outputPath, resourceDir, log);
+  writeV2DirFiles(outputPath, resourceDir, logger);
   resourceData.forEach((data, volumeNumber) => {
     const filePath = path.join(outputPath, `VOL.${volumeNumber}`);
-    log(`Writing VOL.${volumeNumber} (${filesize(data.byteLength, { base: 2 })})`);
+    logger.log(`Writing VOL.${volumeNumber} (${filesize(data.byteLength, { base: 2 })})`);
     fs.writeFileSync(filePath, data);
   });
 }

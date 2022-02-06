@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { buildPicture } from '@agikit/core';
+import { buildPicture, buildPictureJSON, DefaultProjectConfig } from '@agikit/core';
 import { Buffer } from 'buffer';
 import * as ReactDOM from 'react-dom';
 import {
@@ -28,6 +28,7 @@ function VscodePicEditor() {
   });
   const [editable, setEditable] = useState(false);
   const [resolveConfirm, setResolveConfirm] = useState<(result: boolean) => void | undefined>();
+  const [projectConfig, setProjectConfig] = useState(DefaultProjectConfig);
   const controlContextValue = useMemo<PicEditorControlContextValue>(
     () => ({
       confirm: (message) => {
@@ -58,6 +59,7 @@ function VscodePicEditor() {
           })),
         }));
       },
+      setProjectConfig,
     }),
     [resolveConfirm],
   );
@@ -68,6 +70,7 @@ function VscodePicEditor() {
       switch (type) {
         case 'init': {
           setEditable(body.editable);
+          setProjectConfig(body.projectConfig ?? DefaultProjectConfig);
           if (body.untitled) {
             setPictureResource({ commands: [] });
             return;
@@ -93,8 +96,15 @@ function VscodePicEditor() {
           vscode.postMessage({
             type: 'response',
             requestId,
-            body: Array.from(buildPicture(pictureResource)),
+            body: buildPictureJSON({
+              commands: pictureResource.commands.map(({ uuid, ...command }) => command),
+            }),
           });
+          return;
+        }
+        case 'setProjectConfig': {
+          const newConfig = body.content;
+          setProjectConfig(newConfig);
           return;
         }
       }

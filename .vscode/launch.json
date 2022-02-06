@@ -12,6 +12,7 @@
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "yarn",
       "runtimeArgs": ["node"],
+      "console": "integratedTerminal",
       "program": "${workspaceFolder}/packages/cli/dist/cli.js",
       "args": [
         "extract",
@@ -36,6 +37,7 @@
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "yarn",
       "runtimeArgs": ["node"],
+      "console": "integratedTerminal",
       "program": "${workspaceFolder}/packages/cli/dist/cli.js",
       "args": [
         "extract",
@@ -58,6 +60,7 @@
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "yarn",
       "runtimeArgs": ["node"],
+      "console": "integratedTerminal",
       "program": "${workspaceFolder}/packages/cli/dist/cli.js",
       "args": [
         "build",

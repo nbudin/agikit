@@ -11,10 +11,12 @@ import {
 } from 'vscode-languageclient/node';
 import LogicSemanticTokensProvider from './Logic/LogicSemanticTokensProvider';
 import { buildTaskProvider } from './buildTaskProvider';
-import { runWithScummVM } from './runWithScummVM';
+import { ScummVMDebugAdapterFactory, ScummVMDebugConfigurationProvider } from './ScummVMDebugger';
 import { PicEditorProvider } from './Pic/PicEditorProvider';
 import { ViewEditorProvider } from './View/ViewEditorProvider';
 import { SoundEditorProvider } from './Sound/SoundEditorProvider';
+import { isPresent } from 'ts-is-present';
+import { ProjectConfigWatcher } from './ProjectConfigWatcher';
 
 let client: LanguageClient;
 
@@ -25,10 +27,31 @@ const AUTODETECT_SCUMMVM_PATHS = [
   '/usr/local/bin/scummvm',
 ];
 
-export function activate(context: vscode.ExtensionContext) {
-  const logicSemanticTokensProvider = new LogicSemanticTokensProvider();
+async function findProjectConfigUri(): Promise<vscode.Uri | undefined> {
+  const possibleProjectConfigUris =
+    vscode.workspace.workspaceFolders?.map((folder) =>
+      vscode.Uri.joinPath(folder.uri, 'agikit-project.json'),
+    ) ?? [];
 
+  const firstFoundProjectConfigUri = (
+    await Promise.all(
+      possibleProjectConfigUris.map((uri) =>
+        vscode.workspace.fs.stat(uri).then(
+          () => uri,
+          () => undefined,
+        ),
+      ),
+    )
+  ).find(isPresent);
+
+  return firstFoundProjectConfigUri;
+}
+
+export async function activate(context: vscode.ExtensionContext) {
   const configuration = vscode.workspace.getConfiguration();
+  const logicSemanticTokensProvider = new LogicSemanticTokensProvider();
+  const projectConfigWatcher = new ProjectConfigWatcher();
+
   if (!configuration.get('agikit.scummvmPath')) {
     const autodetectedPath = AUTODETECT_SCUMMVM_PATHS.find((autoPath) => fs.existsSync(autoPath));
     if (autodetectedPath) {
@@ -48,16 +71,21 @@ export function activate(context: vscode.ExtensionContext) {
     ),
   );
 
-  context.subscriptions.push(
-    vscode.commands.registerCommand('agikit.runWithScummVM', () => runWithScummVM(configuration)),
-  );
-
-  context.subscriptions.push(PicEditorProvider.register(context));
+  context.subscriptions.push(PicEditorProvider.register(context, projectConfigWatcher));
   context.subscriptions.push(ViewEditorProvider.register(context));
   context.subscriptions.push(SoundEditorProvider.register(context));
 
   context.subscriptions.push(
-    vscode.tasks.registerTaskProvider('agikit', buildTaskProvider(context)),
+    vscode.tasks.registerTaskProvider('agikit-build', buildTaskProvider(context)),
+  );
+
+  vscode.debug.registerDebugConfigurationProvider(
+    'agikit-scummvm',
+    new ScummVMDebugConfigurationProvider(),
+  );
+  vscode.debug.registerDebugAdapterDescriptorFactory(
+    'agikit-scummvm',
+    new ScummVMDebugAdapterFactory(),
   );
 
   let serverModule = context.asAbsolutePath(path.join('dist', 'startServer.js'));

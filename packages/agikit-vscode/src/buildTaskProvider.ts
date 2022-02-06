@@ -1,7 +1,40 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as child_process from 'child_process';
-import { ChildProcess } from 'node:child_process';
+import { Logger, Project, ProjectBuilder } from '@agikit/core';
+import { bgGreenBright, bgRedBright, bgYellowBright, black } from 'ansi-colors';
+
+class PseudoterminalLogger extends Logger {
+  pty: vscode.Pseudoterminal;
+  openEmitter: vscode.EventEmitter<void>;
+  writeEmitter: vscode.EventEmitter<string>;
+  closeEmitter: vscode.EventEmitter<number>;
+
+  constructor() {
+    super();
+    this.openEmitter = new vscode.EventEmitter<void>();
+    this.writeEmitter = new vscode.EventEmitter<string>();
+    this.closeEmitter = new vscode.EventEmitter<number>();
+    this.pty = {
+      open: () => {
+        this.openEmitter.fire();
+      },
+      close: () => {},
+      onDidWrite: this.writeEmitter.event,
+      onDidClose: this.closeEmitter.event,
+    };
+  }
+
+  error(message: string): void {
+    this.writeEmitter.fire(`${bgRedBright(black('[ERROR]'))} ${message}\r\n`);
+  }
+
+  warn(message: string): void {
+    this.writeEmitter.fire(`${bgYellowBright(black('[WARN]'))}  ${message}\r\n`);
+  }
+
+  log(message: string): void {
+    this.writeEmitter.fire(`${bgGreenBright(black('[INFO]'))}  ${message}\r\n`);
+  }
+}
 
 export function buildTaskProvider(
   context: vscode.ExtensionContext,
@@ -13,40 +46,32 @@ export function buildTaskProvider(
       workspaceFolders.forEach((workspaceFolder) => {
         const buildTask = new vscode.Task(
           {
-            type: 'agikit',
+            type: 'agikit-build',
           },
           vscode.TaskScope.Workspace,
           'Build AGI game',
           'agikit',
           new vscode.CustomExecution(async (_resolvedDefinition) => {
-            let cp: ChildProcess;
-            const writeEmitter = new vscode.EventEmitter<string>();
-            const closeEmitter = new vscode.EventEmitter<void | number>();
-            const pty: vscode.Pseudoterminal = {
-              open: () => {
-                const cliPath = context.asAbsolutePath(path.join('dist', 'startCli.js'));
-                cp = child_process.fork(cliPath, ['build', '.'], {
-                  cwd: workspaceFolder.uri.fsPath,
-                  stdio: 'pipe',
-                  detached: true,
-                });
-                cp.on('close', (code) => {
-                  closeEmitter.fire(code ?? void 0);
-                });
-                cp.stdout?.on('data', (chunk) => {
-                  writeEmitter.fire(chunk.toString().replace(/(?<!\r)\n/gm, '\r\n'));
-                });
-                cp.stderr?.on('data', (chunk) => {
-                  writeEmitter.fire(chunk.toString().replace(/(?<!\r)\n/gm, '\r\n'));
-                });
-              },
-              close: () => {
-                cp.kill();
-              },
-              onDidWrite: writeEmitter.event,
-              onDidClose: closeEmitter.event,
-            };
-            return pty;
+            const logger = new PseudoterminalLogger();
+            const builder = new ProjectBuilder(new Project(workspaceFolder.uri.fsPath), logger);
+
+            logger.openEmitter.event(() => {
+              logger.log(`Starting builder for ${builder.project.basePath}`);
+              try {
+                builder.buildProject();
+                logger.log(`Build complete`);
+                logger.closeEmitter.fire(0);
+              } catch (error) {
+                if (error instanceof Error) {
+                  logger.error(error.message);
+                } else {
+                  logger.error(`Build failed: ${error}`);
+                }
+                logger.closeEmitter.fire(1);
+              }
+            });
+
+            return logger.pty;
           }),
         );
         buildTask.group = vscode.TaskGroup.Build;

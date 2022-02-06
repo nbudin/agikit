@@ -24,6 +24,55 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "debuggers": [
+      {
+        "type": "agikit-scummvm",
+        "label": "Run with ScummVM",
+        "languages": [
+          "agilogic"
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "projectPath"
+            ],
+            "properties": {
+              "projectPath": {
+                "type": "string",
+                "description": "The root path for an agikit project.",
+                "default": "${workspaceFolder}"
+              },
+              "scummvmPath": {
+                "type": "string",
+                "description": "The path to the ScummVM executable."
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "agikit-scummvm",
+            "request": "launch",
+            "name": "Run AGI project with ScummVM",
+            "projectPath": "${workspaceFolder}",
+            "preLaunchTask": "${defaultBuildTask}"
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "agikit: Run with ScummVM",
+            "description": "A new configuration for running an AGI project with ScummVM",
+            "body": {
+              "type": "agikit-scummvm",
+              "request": "launch",
+              "name": "${2:Run with ScummVM}",
+              "projectPath": "${workspaceFolder}",
+              "preLaunchTask": "${defaultBuildTask}"
+            }
+          }
+        ]
+      }
+    ],
     "taskDefinitions": [
       {
         "type": "agikit-build"
@@ -131,6 +180,10 @@
     "@agikit/logic-language-server": "^0.7.3",
     "@agikit/react-editors": "^0.7.3",
     "@popperjs/core": "^2.11.2",
+    "@vscode/debugadapter": "^1.53.0",
+    "@vscode/debugprotocol": "^1.53.0",
+    "ansi-colors": "^4.1.1",
+    "await-notify": "^1.0.1",
     "bootstrap-icons": "^1.8.0",
     "buffer": "^6.0.3",
     "escape-html": "^1.0.3",
@@ -139,6 +192,7 @@
     "react-cool-onclickoutside": "^1.7.0",
     "react-dom": "^17.0.2",
     "react-popper": "^2.2.5",
+    "ts-is-present": "^1.2.2",
     "uuid": "^8.3.2",
     "vscode-languageclient": "^7.0.0",
     "vscode-languageserver": "^7.0.0",
@@ -165,7 +219,6 @@
     "mini-css-extract-plugin": "^2.5.3",
     "mocha": "^8.4.0",
     "prettier": "^2.5.1",
-    "shebang-loader": "^0.0.1",
     "style-loader": "^2.0.0",
     "ts-loader": "^8.3.0",
     "typescript": "^4.5.5",

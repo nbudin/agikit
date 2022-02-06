@@ -13,6 +13,9 @@ const commonConfig = {
     filename: '[name].js',
     devtoolModuleFilenameTemplate: '../[resource-path]',
   },
+  cache: {
+    type: 'filesystem',
+  },
   devtool: 'source-map',
   resolve: {
     extensions: ['.ts', '.js', '.tsx', '.jsx'],
@@ -55,7 +58,6 @@ const nodeConfig = {
 
   entry: {
     extension: './src/extension.ts',
-    startCli: './src/startCli.ts',
     startServer: './src/startServer.ts',
   },
   externals: {

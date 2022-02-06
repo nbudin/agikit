@@ -1,3 +1,4 @@
+import { ProjectConfig } from '@agikit/core';
 import React from 'react';
 import { EditingPictureCommand } from './EditingPictureTypes';
 
@@ -6,6 +7,7 @@ export type PicEditorControlContextValue = {
   addCommands: (commands: EditingPictureCommand[], afterCommandId: string | undefined) => void;
   deleteCommand: (commandId: string | undefined) => void;
   setCommandsEnabled: (enabled: (command: EditingPictureCommand) => boolean) => void;
+  setProjectConfig: (projectConfig: ProjectConfig) => void;
 };
 
 export const PicEditorControlContext = React.createContext<PicEditorControlContextValue>({
@@ -13,4 +15,5 @@ export const PicEditorControlContext = React.createContext<PicEditorControlConte
   addCommands: () => {},
   deleteCommand: () => {},
   setCommandsEnabled: () => {},
+  setProjectConfig: () => {},
 });

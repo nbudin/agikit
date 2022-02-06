@@ -1,9 +1,14 @@
+import { AGIVersion } from './Types/AGIVersion';
+
 export type ProjectConfig = {
-  agiVersion: '2' | '3';
+  agiVersion: AGIVersion;
 };
 
 export const DefaultProjectConfig: ProjectConfig = {
-  agiVersion: '2',
+  agiVersion: {
+    major: 2,
+    minor: 936,
+  },
 };
 
 export function readProjectConfig(projectConfigData: Buffer): ProjectConfig {

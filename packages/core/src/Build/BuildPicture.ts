@@ -1,5 +1,7 @@
 import assertNever from 'assert-never';
+import { write } from 'fs';
 import { flatMap } from 'lodash';
+import { BitstreamWriter } from '../Compression/Bitstreams';
 import {
   PictureCommand,
   PictureCoordinate,
@@ -55,54 +57,50 @@ function encodePenPlotPoints(splatterEnabled: boolean, points: PicturePenPlotPoi
   });
 }
 
-export function compilePictureCommand(command: PictureCommand): Buffer {
+export function compilePictureCommand(
+  command: PictureCommand,
+  writer: BitstreamWriter,
+  compressColorNumbers: boolean,
+): void {
   let splatterEnabled = false;
 
+  const writeBytes = (bytes: number[]) => {
+    for (const byte of bytes) {
+      writer.writeCode(byte, 8);
+    }
+  };
+
+  writer.writeCode(command.opcode, 8);
+
   if (command.type === 'DisablePictureDraw' || command.type === 'DisablePriorityDraw') {
-    return Buffer.from([command.opcode]);
-  }
-
-  if (command.type === 'SetPictureColor' || command.type === 'SetPriorityColor') {
-    return Buffer.from([command.opcode, command.colorNumber]);
-  }
-
-  if (command.type === 'DrawXCorner' || command.type === 'DrawYCorner') {
-    return Buffer.from([
-      command.opcode,
-      ...encodeCoordinateList([command.startPosition]),
-      ...command.steps.map((step) => step.position),
-    ]);
-  }
-
-  if (command.type === 'AbsoluteLine') {
-    return Buffer.from([command.opcode, ...encodeCoordinateList(command.points)]);
-  }
-
-  if (command.type === 'RelativeLine') {
-    return Buffer.from([
-      command.opcode,
-      ...encodeCoordinateList([command.startPosition]),
-      ...encodeDisplacementList(command.relativePoints),
-    ]);
-  }
-
-  if (command.type === 'Fill') {
-    return Buffer.from([command.opcode, ...encodeCoordinateList(command.startPositions)]);
-  }
-
-  if (command.type === 'ChangePen') {
+    // no parameters for these command types
+  } else if (command.type === 'SetPictureColor' || command.type === 'SetPriorityColor') {
+    writer.writeCode(command.colorNumber, compressColorNumbers ? 4 : 8);
+  } else if (command.type === 'DrawXCorner' || command.type === 'DrawYCorner') {
+    writeBytes(encodeCoordinateList([command.startPosition]));
+    writeBytes(command.steps.map((step) => step.position));
+  } else if (command.type === 'AbsoluteLine') {
+    writeBytes(encodeCoordinateList(command.points));
+  } else if (command.type === 'RelativeLine') {
+    writeBytes(encodeCoordinateList([command.startPosition]));
+    writeBytes(encodeDisplacementList(command.relativePoints));
+  } else if (command.type === 'Fill') {
+    writeBytes(encodeCoordinateList(command.startPositions));
+  } else if (command.type === 'ChangePen') {
     splatterEnabled = command.settings.splatter;
-    return Buffer.from([command.opcode, encodePenSettings(command.settings)]);
+    writeBytes([encodePenSettings(command.settings)]);
+  } else if (command.type === 'PlotWithPen') {
+    writeBytes(encodePenPlotPoints(splatterEnabled, command.points));
+  } else {
+    assertNever(command);
   }
-
-  if (command.type === 'PlotWithPen') {
-    return Buffer.from([command.opcode, ...encodePenPlotPoints(splatterEnabled, command.points)]);
-  }
-
-  assertNever(command);
 }
 
-export function buildPicture(pictureResource: Picture): Buffer {
-  const compiledCommands = pictureResource.commands.map(compilePictureCommand);
-  return Buffer.concat([...compiledCommands, Buffer.from([0xff])]);
+export function buildPicture(pictureResource: Picture, compressColorNumbers: boolean): Buffer {
+  const writer = new BitstreamWriter();
+  for (const command of pictureResource.commands) {
+    compilePictureCommand(command, writer, compressColorNumbers);
+  }
+  writer.writeCode(0xff, 8);
+  return writer.finish();
 }

@@ -17,11 +17,13 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import './dev-site.css';
 import '../styles/common.css';
 import '../styles/piceditor.css';
+import { DefaultProjectConfig } from '@agikit/core';
 
 // @ts-expect-error
 window.Buffer = Buffer;
 
 const DevPicEditor = () => {
+  const [projectConfig, setProjectConfig] = useState(DefaultProjectConfig);
   const [pictureResource, setPictureResource] = useState<EditingPictureResource>({
     commands: [],
   });
@@ -69,6 +71,7 @@ const DevPicEditor = () => {
           })),
         }));
       },
+      setProjectConfig,
     }),
     [],
   );

@@ -1,5 +1,12 @@
 import * as vscode from 'vscode';
-import { readPictureResource } from '@agikit/core';
+import {
+  Picture,
+  PictureJSON,
+  ProjectConfig,
+  readPictureJSON,
+  readPictureResource,
+  readProjectConfig,
+} from '@agikit/core';
 import { Disposable, disposeAll } from '../disposable';
 import { randomBytes } from 'crypto';
 import {
@@ -9,16 +16,27 @@ import {
   preparePicCommandForEditing,
 } from '@agikit/react-editors/dist/EditingPictureTypes';
 import WebviewCollection from '../WebviewCollection';
+import { ProjectConfigWatcher } from '../ProjectConfigWatcher';
 
 interface PicDocumentDelegate {
-  getFileData(): Promise<Uint8Array>;
+  getFileData(): Promise<PictureJSON>;
 }
 
-function readDocumentForEditing(content: Buffer): EditingPictureResource {
-  const resource = readPictureResource(content);
+function readDocumentForEditing(
+  content: Buffer,
+  compressColorNumbers: boolean,
+): EditingPictureResource {
+  let picture: Picture;
+
+  try {
+    picture = readPictureJSON(JSON.parse(content.toString('utf-8')));
+  } catch (error) {
+    picture = readPictureResource(content, compressColorNumbers);
+  }
+
   return {
-    ...resource,
-    commands: resource.commands.map(preparePicCommandForEditing),
+    ...picture,
+    commands: picture.commands.map(preparePicCommandForEditing),
   };
 }
 
@@ -28,16 +46,18 @@ export class PicEditorDocument extends Disposable implements vscode.CustomDocume
   private _resource: EditingPictureResource;
   private _edits: Array<PicDocumentEdit> = [];
   private _savedEdits: Array<PicDocumentEdit> = [];
+  private _projectConfigWatcher: ProjectConfigWatcher;
 
   static async create(
     uri: vscode.Uri,
     backupId: string | undefined,
     delegate: PicDocumentDelegate,
+    projectConfigWatcher: ProjectConfigWatcher,
   ): Promise<PicEditorDocument> {
     // If we have a backup, read that. Otherwise read the resource from the workspace
     const dataFile = typeof backupId === 'string' ? vscode.Uri.parse(backupId) : uri;
     const data = await this.readFile(dataFile);
-    return new PicEditorDocument(uri, data, delegate);
+    return new PicEditorDocument(uri, data, delegate, projectConfigWatcher);
   }
 
   private static async readFile(uri: vscode.Uri): Promise<Buffer> {
@@ -47,11 +67,20 @@ export class PicEditorDocument extends Disposable implements vscode.CustomDocume
     return Buffer.from(await vscode.workspace.fs.readFile(uri));
   }
 
-  private constructor(uri: vscode.Uri, initialContent: Buffer, delegate: PicDocumentDelegate) {
+  private constructor(
+    uri: vscode.Uri,
+    initialContent: Buffer,
+    delegate: PicDocumentDelegate,
+    projectConfigWatcher: ProjectConfigWatcher,
+  ) {
     super();
 
     this._uri = uri;
-    this._resource = readDocumentForEditing(initialContent);
+    this._projectConfigWatcher = projectConfigWatcher;
+    this._resource = readDocumentForEditing(
+      initialContent,
+      this._projectConfigWatcher.projectConfig.agiVersion.major >= 3,
+    );
     this._delegate = delegate;
   }
 
@@ -138,12 +167,18 @@ export class PicEditorDocument extends Disposable implements vscode.CustomDocume
     if (cancellation.isCancellationRequested) {
       return;
     }
-    await vscode.workspace.fs.writeFile(targetResource, fileData);
+    await vscode.workspace.fs.writeFile(
+      targetResource,
+      Buffer.from(JSON.stringify(fileData, null, 2), 'utf-8'),
+    );
   }
 
   async revert(_cancellation: vscode.CancellationToken): Promise<void> {
     const diskContent = await PicEditorDocument.readFile(this.uri);
-    this._resource = readDocumentForEditing(diskContent);
+    this._resource = readDocumentForEditing(
+      diskContent,
+      this._projectConfigWatcher.projectConfig.agiVersion.major >= 3,
+    );
     this._edits = this._savedEdits;
     this._onDidChangeDocument.fire({
       content: applyEditsToResource(this._resource, this._edits),
@@ -173,8 +208,12 @@ export class PicEditorProvider implements vscode.CustomEditorProvider<PicEditorD
   private static newPicFileId = 1;
   private static readonly viewType = 'agikit.picEditor';
   private readonly webviews = new WebviewCollection();
+  private readonly projectConfigWatcher: ProjectConfigWatcher;
 
-  public static register(context: vscode.ExtensionContext): vscode.Disposable {
+  public static register(
+    context: vscode.ExtensionContext,
+    projectConfigWatcher: ProjectConfigWatcher,
+  ): vscode.Disposable {
     vscode.commands.registerCommand('agikit.picEditor.new', () => {
       const workspaceFolders = vscode.workspace.workspaceFolders;
       if (!workspaceFolders) {
@@ -194,7 +233,7 @@ export class PicEditorProvider implements vscode.CustomEditorProvider<PicEditorD
 
     return vscode.window.registerCustomEditorProvider(
       PicEditorProvider.viewType,
-      new PicEditorProvider(context),
+      new PicEditorProvider(context, projectConfigWatcher),
       {
         // For this demo extension, we enable `retainContextWhenHidden` which keeps the
         // webview alive even when it is not visible. You should avoid using this setting
@@ -212,7 +251,12 @@ export class PicEditorProvider implements vscode.CustomEditorProvider<PicEditorD
   >();
   public readonly onDidChangeCustomDocument = this._onDidChangeCustomDocument.event;
 
-  constructor(private readonly _context: vscode.ExtensionContext) {}
+  constructor(
+    private readonly _context: vscode.ExtensionContext,
+    projectConfigWatcher: ProjectConfigWatcher,
+  ) {
+    this.projectConfigWatcher = projectConfigWatcher;
+  }
 
   public saveCustomDocument(
     document: PicEditorDocument,
@@ -249,17 +293,26 @@ export class PicEditorProvider implements vscode.CustomEditorProvider<PicEditorD
     openContext: vscode.CustomDocumentOpenContext,
     token: vscode.CancellationToken,
   ) {
-    const document: PicEditorDocument = await PicEditorDocument.create(uri, openContext.backupId, {
-      getFileData: async () => {
-        const webviewsForDocument = Array.from(this.webviews.get(document.uri));
-        if (!webviewsForDocument.length) {
-          throw new Error('Could not find webview to save for');
-        }
-        const panel = webviewsForDocument[0];
-        const response = await this.postMessageWithResponse<number[]>(panel, 'getFileData', {});
-        return new Uint8Array(response);
+    const document: PicEditorDocument = await PicEditorDocument.create(
+      uri,
+      openContext.backupId,
+      {
+        getFileData: async () => {
+          const webviewsForDocument = Array.from(this.webviews.get(document.uri));
+          if (!webviewsForDocument.length) {
+            throw new Error('Could not find webview to save for');
+          }
+          const panel = webviewsForDocument[0];
+          const response = await this.postMessageWithResponse<PictureJSON>(
+            panel,
+            'getFileData',
+            {},
+          );
+          return response;
+        },
       },
-    });
+      this.projectConfigWatcher,
+    );
 
     const listeners: vscode.Disposable[] = [];
 
@@ -306,6 +359,10 @@ export class PicEditorProvider implements vscode.CustomEditorProvider<PicEditorD
 
     webviewPanel.webview.onDidReceiveMessage((e) => this.onMessage(document, e));
 
+    this.projectConfigWatcher.onChange.event(({ projectConfig }) =>
+      this.postMessage(webviewPanel, 'setProjectConfig', projectConfig),
+    );
+
     // Wait for the webview to be properly ready before we init
     webviewPanel.webview.onDidReceiveMessage((e) => {
       if (e.type === 'ready') {
@@ -313,6 +370,7 @@ export class PicEditorProvider implements vscode.CustomEditorProvider<PicEditorD
           this.postMessage(webviewPanel, 'init', {
             untitled: true,
             editable: true,
+            projectConfig: this.projectConfigWatcher.projectConfig,
           });
         } else {
           const editable = vscode.workspace.fs.isWritableFileSystem(document.uri.scheme);
@@ -320,6 +378,7 @@ export class PicEditorProvider implements vscode.CustomEditorProvider<PicEditorD
           this.postMessage(webviewPanel, 'init', {
             resource: document.resource,
             editable,
+            projectConfig: this.projectConfigWatcher.projectConfig,
           });
         }
       } else if (e.type === 'confirm') {

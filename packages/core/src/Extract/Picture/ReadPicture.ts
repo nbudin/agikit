@@ -1,6 +1,8 @@
+import { BitstreamReader } from '../../Compression/Bitstreams';
 import {
   Picture,
   PictureCommand,
+  PictureCommandOpcodes,
   PictureCoordinate,
   PictureCornerStep,
   PicturePenPlotPoint,
@@ -11,20 +13,14 @@ function decodeSignedDisplacementNybble(nybble: number) {
   return (nybble & 0b111) * sign;
 }
 
-export function readPictureResource(data: Buffer): Picture {
+export function readPictureResource(data: Buffer, compressColorNumbers: boolean): Picture {
+  const reader = new BitstreamReader(data);
   const commands: PictureCommand[] = [];
-  let offset = 0;
   let splatterEnabled = false;
 
-  const consumeUInt8 = () => {
-    const value = data.readUInt8(offset);
-    offset += 1;
-    return value;
-  };
-
   const consumeCoordinates = () => {
-    const x = consumeUInt8();
-    const y = consumeUInt8();
+    const x = reader.readCode(8);
+    const y = reader.readCode(8);
     return { x, y };
   };
 
@@ -33,9 +29,9 @@ export function readPictureResource(data: Buffer): Picture {
     let axis = startAxis;
     let currentByte: number;
     do {
-      currentByte = data.readUInt8(offset);
+      currentByte = reader.peekCode(8);
       if (currentByte < 0xf0) {
-        offset += 1;
+        reader.seekBits(8);
         steps.push({
           axis,
           position: currentByte,
@@ -50,10 +46,10 @@ export function readPictureResource(data: Buffer): Picture {
     const points: PictureCoordinate[] = [];
     let currentByte: number;
     do {
-      currentByte = data.readUInt8(offset);
+      currentByte = reader.peekCode(8);
       if (currentByte < 0xf0) {
-        offset += 1;
-        points.push({ x: currentByte, y: consumeUInt8() });
+        reader.seekBits(8);
+        points.push({ x: currentByte, y: reader.readCode(8) });
       }
     } while (currentByte < 0xf0);
     return points;
@@ -63,9 +59,9 @@ export function readPictureResource(data: Buffer): Picture {
     const points: PictureCoordinate[] = [];
     let currentByte: number;
     do {
-      currentByte = data.readUInt8(offset);
+      currentByte = reader.peekCode(8);
       if (currentByte < 0xf0) {
-        offset += 1;
+        reader.seekBits(8);
         const xNybble = (currentByte & 0xf0) >> 4;
         const yNybble = currentByte & 0x0f;
         points.push({
@@ -81,16 +77,16 @@ export function readPictureResource(data: Buffer): Picture {
     const plotPoints: PicturePenPlotPoint[] = [];
     let currentByte: number;
     do {
-      currentByte = data.readUInt8(offset);
+      currentByte = reader.peekCode(8);
       if (currentByte < 0xf0) {
-        offset += 1;
+        reader.seekBits(8);
 
         if (splatterEnabled) {
           const texture = currentByte;
           const position = consumeCoordinates();
           plotPoints.push({ texture, position });
         } else {
-          const y = consumeUInt8();
+          const y = reader.readCode(8);
           plotPoints.push({ texture: undefined, position: { x: currentByte, y } });
         }
       }
@@ -98,32 +94,32 @@ export function readPictureResource(data: Buffer): Picture {
     return plotPoints;
   };
 
-  while (offset < data.byteLength) {
-    const opcode = consumeUInt8();
+  while (!reader.done()) {
+    const opcode = reader.readCode(8);
 
-    if (opcode === 0xf0) {
+    if (opcode === PictureCommandOpcodes.SetPictureColor) {
       commands.push({
         opcode,
         type: 'SetPictureColor',
-        colorNumber: consumeUInt8(),
+        colorNumber: reader.readCode(compressColorNumbers ? 4 : 8),
       });
-    } else if (opcode === 0xf1) {
+    } else if (opcode === PictureCommandOpcodes.DisablePictureDraw) {
       commands.push({
         opcode,
         type: 'DisablePictureDraw',
       });
-    } else if (opcode === 0xf2) {
+    } else if (opcode === PictureCommandOpcodes.SetPriorityColor) {
       commands.push({
         opcode,
         type: 'SetPriorityColor',
-        colorNumber: consumeUInt8(),
+        colorNumber: reader.readCode(compressColorNumbers ? 4 : 8),
       });
-    } else if (opcode === 0xf3) {
+    } else if (opcode === PictureCommandOpcodes.DisablePriorityDraw) {
       commands.push({
         opcode,
         type: 'DisablePriorityDraw',
       });
-    } else if (opcode === 0xf4) {
+    } else if (opcode === PictureCommandOpcodes.DrawYCorner) {
       const startPosition = consumeCoordinates();
       const steps = consumeCornerSteps('y');
       commands.push({
@@ -132,7 +128,7 @@ export function readPictureResource(data: Buffer): Picture {
         startPosition,
         steps,
       });
-    } else if (opcode === 0xf5) {
+    } else if (opcode === PictureCommandOpcodes.DrawXCorner) {
       const startPosition = consumeCoordinates();
       const steps = consumeCornerSteps('x');
       commands.push({
@@ -141,14 +137,14 @@ export function readPictureResource(data: Buffer): Picture {
         startPosition,
         steps,
       });
-    } else if (opcode === 0xf6) {
+    } else if (opcode === PictureCommandOpcodes.AbsoluteLine) {
       const points = consumeAbsoluteCoordinateArray();
       commands.push({
         opcode,
         type: 'AbsoluteLine',
         points,
       });
-    } else if (opcode === 0xf7) {
+    } else if (opcode === PictureCommandOpcodes.RelativeLine) {
       const startPosition = consumeCoordinates();
       const relativePoints = consumeRelativeCoordinateArray();
       commands.push({
@@ -157,15 +153,15 @@ export function readPictureResource(data: Buffer): Picture {
         startPosition,
         relativePoints,
       });
-    } else if (opcode === 0xf8) {
+    } else if (opcode === PictureCommandOpcodes.Fill) {
       const startPositions = consumeAbsoluteCoordinateArray();
       commands.push({
         opcode,
         type: 'Fill',
         startPositions,
       });
-    } else if (opcode === 0xf9) {
-      const settingsByte = consumeUInt8();
+    } else if (opcode === PictureCommandOpcodes.ChangePen) {
+      const settingsByte = reader.readCode(8);
       splatterEnabled = (0b100000 & settingsByte) === 0b100000;
       commands.push({
         opcode,
@@ -176,7 +172,7 @@ export function readPictureResource(data: Buffer): Picture {
           size: 0b111 & settingsByte,
         },
       });
-    } else if (opcode === 0xfa) {
+    } else if (opcode === PictureCommandOpcodes.PlotWithPen) {
       const points = consumePenPlotPoints();
       commands.push({
         opcode,
@@ -186,7 +182,9 @@ export function readPictureResource(data: Buffer): Picture {
     } else if (opcode === 0xff) {
       // skip it, it's a no-op
     } else {
-      throw new Error(`Unknown picture opcode ${opcode.toString(16)} at offset ${offset}`);
+      throw new Error(
+        `Unknown picture opcode ${opcode.toString(16)} at offset ${reader.byteOffset}`,
+      );
     }
   }
 
