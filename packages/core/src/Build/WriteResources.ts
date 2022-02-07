@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { DirEntry, Resource, ResourceDir, ResourceType } from '../Types/Resources';
 import filesize from 'filesize';
-import { Logger } from '..';
+import { agiLzwCompress, Logger } from '..';
 
 // const MAX_VOLUME_SIZE = 0xfffff;
 const MAX_VOLUME_SIZE = 144 * 1024; // for testing purposes
@@ -20,7 +20,28 @@ export function encodeV2Resource(volumeNumber: number, resource: Resource): Enco
   return { ...resource, encodedData: Buffer.concat([resourceHeader, resource.data]) };
 }
 
-export function writeV2Volume(
+export function encodeV3Resource(volumeNumber: number, resource: Resource): EncodedResource {
+  const compressedData = agiLzwCompress(resource.data);
+  const storeCompressed =
+    resource.type !== ResourceType.PIC && compressedData.byteLength < resource.data.byteLength;
+
+  const resourceHeader = Buffer.alloc(7);
+  resourceHeader.writeUInt16BE(0x1234, 0);
+  // high-order bit of the volume number is used to flag whether or not it's a PIC
+  resourceHeader.writeUInt8(volumeNumber | (resource.type === ResourceType.PIC ? 0x80 : 0), 2);
+  resourceHeader.writeUInt16LE(resource.data.byteLength, 3);
+  resourceHeader.writeUInt16LE(
+    storeCompressed ? compressedData.byteLength : resource.data.byteLength,
+    5,
+  );
+
+  return {
+    ...resource,
+    encodedData: Buffer.concat([resourceHeader, storeCompressed ? compressedData : resource.data]),
+  };
+}
+
+export function writeVolume(
   volumeNumber: number,
   resources: EncodedResource[],
 ): [Buffer, DirEntry[]] {
@@ -127,6 +148,31 @@ export function writeV2DirFiles(
   });
 }
 
+export function writeV3DirFile(
+  outputPath: string,
+  gameId: string,
+  resourceDir: ResourceDir,
+  logger: Logger,
+): void {
+  const dirHeader = Buffer.alloc(8);
+  const dirBlocks: Buffer[] = [];
+  let offset = 8;
+
+  ([resourceDir.LOGIC, resourceDir.PIC, resourceDir.VIEW, resourceDir.SOUND] as const).forEach(
+    (entries, index) => {
+      dirHeader.writeUInt16LE(offset, index * 2);
+      const block = writeV2Dir(entries);
+      offset += block.byteLength;
+      dirBlocks.push(block);
+    },
+  );
+
+  const data = Buffer.concat([dirHeader, ...dirBlocks]);
+  logger.log(`Writing ${gameId}DIR (${filesize(data.byteLength, { base: 2 })})`);
+  const filePath = path.join(outputPath, `${gameId}DIR`);
+  fs.writeFileSync(filePath, data);
+}
+
 export function writeV2ResourceFiles(
   outputPath: string,
   resourceVolumes: (EncodedResource[] | undefined)[],
@@ -139,7 +185,7 @@ export function writeV2ResourceFiles(
     if (resources == null) {
       return;
     }
-    const [volumeData, volumeDirEntries] = writeV2Volume(volumeNumber, resources);
+    const [volumeData, volumeDirEntries] = writeVolume(volumeNumber, resources);
     resourceData.push(volumeData);
     dirEntries.push(...volumeDirEntries);
   });
@@ -150,6 +196,34 @@ export function writeV2ResourceFiles(
   resourceData.forEach((data, volumeNumber) => {
     const filePath = path.join(outputPath, `VOL.${volumeNumber}`);
     logger.log(`Writing VOL.${volumeNumber} (${filesize(data.byteLength, { base: 2 })})`);
+    fs.writeFileSync(filePath, data);
+  });
+}
+
+export function writeV3ResourceFiles(
+  outputPath: string,
+  gameId: string,
+  resourceVolumes: (EncodedResource[] | undefined)[],
+  logger: Logger,
+) {
+  const resourceData: Buffer[] = [];
+  const dirEntries: DirEntry[] = [];
+
+  resourceVolumes.forEach((resources, volumeNumber) => {
+    if (resources == null) {
+      return;
+    }
+    const [volumeData, volumeDirEntries] = writeVolume(volumeNumber, resources);
+    resourceData.push(volumeData);
+    dirEntries.push(...volumeDirEntries);
+  });
+
+  const resourceDir = buildResourceDir(dirEntries);
+
+  writeV3DirFile(outputPath, gameId, resourceDir, logger);
+  resourceData.forEach((data, volumeNumber) => {
+    const filePath = path.join(outputPath, `${gameId}VOL.${volumeNumber}`);
+    logger.log(`Writing ${gameId}VOL.${volumeNumber} (${filesize(data.byteLength, { base: 2 })})`);
     fs.writeFileSync(filePath, data);
   });
 }

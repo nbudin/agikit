@@ -11,6 +11,7 @@ import {
   TerminatedEvent,
 } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
+import { Project } from '@agikit/core';
 
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
   /** An absolute path to the agikit project to debug. */
@@ -89,11 +90,12 @@ class ScummVMDebugSession extends LoggingDebugSession {
     }
 
     const buildPath = path.join(args.projectPath, 'build');
+    const gameId = 'agi-fanmade';
 
     this.sendEvent(
-      new OutputEvent(`Starting ScummVM: "${scummvmPath}" -p "${buildPath}" agi-fanmade`),
+      new OutputEvent(`Starting ScummVM: "${scummvmPath}" -p "${buildPath}" ${gameId}`),
     );
-    this.process = child_process.spawn(scummvmPath, ['-p', buildPath, 'agi-fanmade'], {
+    this.process = child_process.spawn(scummvmPath, ['-p', buildPath, gameId], {
       stdio: 'pipe',
       detached: true,
     });
@@ -105,10 +107,6 @@ class ScummVMDebugSession extends LoggingDebugSession {
       this.sendEvent(new OutputEvent(chunk));
     });
 
-    this.process.on('message', (message) => {
-      this.sendEvent(new OutputEvent(message.toString(), 'info'));
-    });
-
     this.process.on('exit', (code) => {
       this.sendEvent(new ExitedEvent(code ?? 0));
       this.sendEvent(new TerminatedEvent());
@@ -116,10 +114,6 @@ class ScummVMDebugSession extends LoggingDebugSession {
 
     this.process.on('error', (err) => {
       this.sendEvent(new OutputEvent(err.message, 'error'));
-    });
-
-    this.process.on('disconnect', () => {
-      this.sendEvent(new TerminatedEvent());
     });
 
     response.success = true;

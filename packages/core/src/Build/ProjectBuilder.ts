@@ -19,6 +19,8 @@ import {
   readPictureJSON,
   Logger,
   ConsoleLogger,
+  writeV3ResourceFiles,
+  encodeV3Resource,
 } from '..';
 import { compileLogicScript, LogicCompilerError } from './BuildLogic';
 import fileSize from 'filesize';
@@ -151,19 +153,26 @@ export class ProjectBuilder {
       }
     }
 
-    // if (this.project.config.agiVersion.major === 2) {
-    writeV2ResourceFiles(
-      destinationPath,
-      encodeResourceVolumes(resources, encodeV2Resource, this.project.readExplicitVolumeConfig()),
-      this.logger,
-    );
-    // } else {
-    //   throw new Error(
-    //     `Unknown AGI version ${JSON.stringify(this.project.config.agiVersion)} in ${
-    //       this.project.projectConfigPath
-    //     }`,
-    //   );
-    // }
+    if (this.project.config.agiVersion.major === 2) {
+      writeV2ResourceFiles(
+        destinationPath,
+        encodeResourceVolumes(resources, encodeV2Resource, this.project.readExplicitVolumeConfig()),
+        this.logger,
+      );
+    } else if (this.project.config.agiVersion.major === 3) {
+      writeV3ResourceFiles(
+        destinationPath,
+        this.project.config.gameId,
+        encodeResourceVolumes(resources, encodeV3Resource, this.project.readExplicitVolumeConfig()),
+        this.logger,
+      );
+    } else {
+      throw new Error(
+        `Unknown AGI version ${JSON.stringify(this.project.config.agiVersion)} in ${
+          this.project.projectConfigPath
+        }`,
+      );
+    }
 
     const wordsTokData = buildWordsTok(wordList);
     this.logger.log(`Writing WORDS.TOK (${fileSize(wordsTokData.byteLength, { base: 2 })})`);

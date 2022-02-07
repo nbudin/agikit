@@ -2,6 +2,7 @@ import { AGIVersion } from './Types/AGIVersion';
 
 export type ProjectConfig = {
   agiVersion: AGIVersion;
+  gameId: string;
 };
 
 export const DefaultProjectConfig: ProjectConfig = {
@@ -9,6 +10,7 @@ export const DefaultProjectConfig: ProjectConfig = {
     major: 2,
     minor: 936,
   },
+  gameId: 'AGI',
 };
 
 export function readProjectConfig(projectConfigData: Buffer): ProjectConfig {
