@@ -9,6 +9,7 @@ export * from './Build/WriteResources';
 export * from './ColorPalettes';
 export * from './Compression/Bitstreams';
 export * from './Compression/LZW';
+export * from './Extract/DetectGame';
 export * from './Extract/GameExtractor';
 export * from './Extract/Logic/CodeGeneration';
 export * from './Extract/Logic/ReadLogic';

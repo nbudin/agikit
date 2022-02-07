@@ -8,9 +8,11 @@ export class Project {
   basePath: string;
   config: ProjectConfig;
 
-  constructor(basePath: string) {
+  constructor(basePath: string, config?: ProjectConfig) {
     this.basePath = basePath;
-    if (existsSync(this.projectConfigPath)) {
+    if (config != null) {
+      this.config = config;
+    } else if (existsSync(this.projectConfigPath)) {
       this.config = readProjectConfig(readFileSync(this.projectConfigPath));
     } else {
       this.config = DefaultProjectConfig;

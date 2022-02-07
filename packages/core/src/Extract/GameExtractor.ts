@@ -14,6 +14,8 @@ import {
   readPictureResource,
   readV2Resource,
   readV2ResourceDirs,
+  readV3Resource,
+  readV3ResourceDir,
   readWordsTok,
   ResourceType,
   WordList,
@@ -31,9 +33,18 @@ export class GameExtractor {
   }
 
   extractGame(): void {
+    this.logger.log(`Extracting ${this.srcDir} to ${this.project.basePath}`);
+    this.logger.log(
+      `Using AGI version ${this.project.config.agiVersion.major}.${this.project.config.agiVersion.minor}`,
+    );
+    this.logger.log(`Game ID: ${this.project.config.gameId}`);
+
     const destDir = path.join(this.project.basePath, 'src');
 
-    const resourceDir = readV2ResourceDirs(this.srcDir);
+    const resourceDir =
+      this.project.config.agiVersion.major >= 3
+        ? readV3ResourceDir(this.srcDir, this.project.config.gameId)
+        : readV2ResourceDirs(this.srcDir);
     mkdirSync(destDir, { recursive: true });
     const warningResources: DirEntry[] = [];
 
@@ -79,7 +90,11 @@ export class GameExtractor {
   }
 
   extractResource(entry: DirEntry, destDir: string, wordList: WordList) {
-    const resource = readV2Resource(this.srcDir, entry);
+    const resource =
+      this.project.config.agiVersion.major >= 3
+        ? readV3Resource(this.srcDir, entry, this.project.config.gameId)
+        : readV2Resource(this.srcDir, entry);
+
     const destPath = path.join(
       destDir,
       entry.resourceType.toLowerCase(),
@@ -87,7 +102,7 @@ export class GameExtractor {
     );
 
     if (entry.resourceType === ResourceType.LOGIC) {
-      const logic = readLogicResource(resource.data, { major: 3, minor: 9999 });
+      const logic = readLogicResource(resource.data, this.project.config.agiVersion);
       writeFileSync(
         path.join(destDir, entry.resourceType.toLowerCase(), `${entry.resourceNumber}.agiasm`),
         generateLogicAsm(logic, wordList),

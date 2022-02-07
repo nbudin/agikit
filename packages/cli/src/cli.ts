@@ -17,7 +17,7 @@ const commandRunners: { [cmd: string]: (args: ParsedArgs) => void } = {
     if (args._.length !== 3) {
       console.error(`Usage: ${process.argv[1]} ${process.argv[2]} srcdir destdir`);
     } else {
-      extractGame(args._[1], args._[2], { major: 2, minor: 915 });
+      extractGame(args._[1], args._[2]);
     }
   },
   formatLogic: (args: ParsedArgs) => {
