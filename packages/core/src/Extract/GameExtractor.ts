@@ -27,17 +27,24 @@ export type ResourceToExtract = {
   resourceNumber: number;
 };
 
+export type ExtractorConfig = {
+  decompilerDebug?: boolean;
+  onlyResources?: ResourceToExtract[];
+};
+
 export class GameExtractor {
   srcDir: string;
   project: Project;
   logger: Logger;
+  options?: ExtractorConfig;
   only?: ResourceToExtract[];
 
-  constructor(srcDir: string, project: Project, logger?: Logger, only?: ResourceToExtract[]) {
+  constructor(srcDir: string, project: Project, logger?: Logger, options?: ExtractorConfig) {
     this.srcDir = srcDir;
     this.project = project;
     this.logger = logger ?? new ConsoleLogger();
-    this.only = only;
+    this.only = options?.onlyResources;
+    this.options = options;
   }
 
   extractGame(): void {
@@ -121,37 +128,41 @@ export class GameExtractor {
 
     if (entry.resourceType === ResourceType.LOGIC) {
       const logic = readLogicResource(resource.data, this.project.config.agiVersion);
-      writeFileSync(
-        path.join(destDir, entry.resourceType.toLowerCase(), `${entry.resourceNumber}.agiasm`),
-        generateLogicAsm(logic, wordList),
-      );
+      if (this.options?.decompilerDebug) {
+        writeFileSync(
+          path.join(destDir, entry.resourceType.toLowerCase(), `${entry.resourceNumber}.agiasm`),
+          generateLogicAsm(logic, wordList),
+        );
+      }
 
       const [code, basicBlockGraph] = generateCodeForLogicProgram(logic, wordList);
       writeFileSync(destPath, code);
-      writeFileSync(
-        path.join(
-          destDir,
-          entry.resourceType.toLowerCase(),
-          `${entry.resourceNumber}.controlFlowGraph.dot`,
-        ),
-        basicBlockGraph.generateGraphviz(),
-      );
-      writeFileSync(
-        path.join(
-          destDir,
-          entry.resourceType.toLowerCase(),
-          `${entry.resourceNumber}.dominatorTree.dot`,
-        ),
-        basicBlockGraph.buildDominatorTree().generateGraphviz(),
-      );
-      writeFileSync(
-        path.join(
-          destDir,
-          entry.resourceType.toLowerCase(),
-          `${entry.resourceNumber}.postDominatorTree.dot`,
-        ),
-        basicBlockGraph.buildPostDominatorTree().generateGraphviz(),
-      );
+      if (this.options?.decompilerDebug) {
+        writeFileSync(
+          path.join(
+            destDir,
+            entry.resourceType.toLowerCase(),
+            `${entry.resourceNumber}.controlFlowGraph.dot`,
+          ),
+          basicBlockGraph.generateGraphviz(),
+        );
+        writeFileSync(
+          path.join(
+            destDir,
+            entry.resourceType.toLowerCase(),
+            `${entry.resourceNumber}.dominatorTree.dot`,
+          ),
+          basicBlockGraph.buildDominatorTree().generateGraphviz(),
+        );
+        writeFileSync(
+          path.join(
+            destDir,
+            entry.resourceType.toLowerCase(),
+            `${entry.resourceNumber}.postDominatorTree.dot`,
+          ),
+          basicBlockGraph.buildPostDominatorTree().generateGraphviz(),
+        );
+      }
     } else if (entry.resourceType === ResourceType.PIC) {
       const picture = readPictureResource(resource.data, this.project.config.agiVersion.major >= 3);
       const json = JSON.stringify(buildPictureJSON(picture), null, 2);

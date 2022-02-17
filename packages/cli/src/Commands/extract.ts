@@ -1,18 +1,11 @@
-import {
-  AGIVersion,
-  detectGame,
-  GameExtractor,
-  Project,
-  ProjectConfig,
-  ResourceToExtract,
-} from '@agikit/core';
+import { detectGame, ExtractorConfig, GameExtractor, ProjectConfig } from '@agikit/core';
 import { CLILogger } from '../CLILogger';
 
 export function extractGame(
   srcDir: string,
   destRoot: string,
   projectConfig?: ProjectConfig,
-  only?: ResourceToExtract[],
+  options?: ExtractorConfig,
 ): void {
   const project = detectGame(srcDir);
   if (projectConfig) {
@@ -20,6 +13,6 @@ export function extractGame(
   }
   project.basePath = destRoot;
 
-  const extractor = new GameExtractor(srcDir, project, new CLILogger(), only);
+  const extractor = new GameExtractor(srcDir, project, new CLILogger(), options);
   extractor.extractGame();
 }

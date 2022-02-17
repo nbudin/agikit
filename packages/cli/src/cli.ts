@@ -32,7 +32,7 @@ const commandRunners: { [cmd: string]: (args: ParsedArgs) => void } = {
   extract: (args: ParsedArgs) => {
     if (args._.length !== 3) {
       console.error(
-        `Usage: ${process.argv[1]} ${process.argv[2]} srcdir destdir [-l logicnumber] [-v viewnumber] [-p picnumber] [-s soundnumber]...`,
+        `Usage: ${process.argv[1]} ${process.argv[2]} srcdir destdir [-d] [-l logicnumber] [-v viewnumber] [-p picnumber] [-s soundnumber]...`,
       );
     } else {
       const only: ResourceToExtract[] = [
@@ -42,7 +42,10 @@ const commandRunners: { [cmd: string]: (args: ParsedArgs) => void } = {
         ...parseResourcesToExtract(ResourceType.SOUND, args.s),
       ];
 
-      extractGame(args._[1], args._[2], undefined, only.length > 0 ? only : undefined);
+      extractGame(args._[1], args._[2], undefined, {
+        decompilerDebug: args.d,
+        onlyResources: only.length > 0 ? only : undefined,
+      });
     }
   },
   formatLogic: (args: ParsedArgs) => {
@@ -54,7 +57,7 @@ const commandRunners: { [cmd: string]: (args: ParsedArgs) => void } = {
   },
 };
 
-const args = parseArgs(process.argv.slice(2));
+const args = parseArgs(process.argv.slice(2), { boolean: 'd' });
 const command = args._[0];
 
 if (!command) {
