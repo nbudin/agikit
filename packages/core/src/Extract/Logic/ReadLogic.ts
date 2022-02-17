@@ -3,16 +3,15 @@ import { AGIVersion } from '../../Types/AGIVersion';
 import { LogicProgram } from '../../Types/Logic';
 import { readInstructions } from './LogicDisasm';
 
-function readMessages(textData: Buffer): (string | undefined)[] {
+function readMessages(textData: Buffer, agiVersion: AGIVersion): (string | undefined)[] {
   const messageCount = textData.readUInt8(0);
   // why do they even have this in the format?
   // const endOfMessages = textData.readUInt16LE(1);
   const messageHeaderLength = 3 + messageCount * 2;
   const messages: (string | undefined)[] = [];
-  const decryptedMessageSection = xorBuffer(
-    textData.slice(messageHeaderLength),
-    getXorEncryptionKey(),
-  );
+  const messageSection = textData.slice(messageHeaderLength);
+  const decryptedMessageSection =
+    agiVersion.major === 2 ? xorBuffer(messageSection, getXorEncryptionKey()) : messageSection;
   const decryptedTextData = Buffer.concat([
     textData.slice(0, messageHeaderLength),
     decryptedMessageSection,
@@ -51,6 +50,6 @@ export function readLogicResource(resourceData: Buffer, agiVersion: AGIVersion):
 
   return {
     instructions: readInstructions(codeData, agiVersion),
-    messages: readMessages(textData),
+    messages: readMessages(textData, agiVersion),
   };
 }

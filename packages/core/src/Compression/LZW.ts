@@ -147,7 +147,6 @@ export function agiLzwDecompress(compressed: Buffer): Buffer {
         if (code === dictionary.size) {
           entry = word + word[0];
         } else {
-          debugger;
           throw new Error(
             `LZW decompression error: received code ${code} but was expecting ${dictionary.size}`,
           );

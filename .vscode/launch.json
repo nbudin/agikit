@@ -23,9 +23,6 @@
         // "extracted/contest2"
         "/Users/nbudin/Gold Rush",
         "extracted/goldrush"
-        // "-v",
-        // "15"
-        // "2"
       ],
       "preLaunchTask": "Build all packages",
       "outFiles": [
