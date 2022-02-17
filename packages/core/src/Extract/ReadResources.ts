@@ -119,7 +119,7 @@ export function readV3Resource(gamePath: string, dirEntry: DirEntry, gameId: str
   const uncompressedLength = volData.readUInt16LE(dirEntry.offset + 3);
   const compressedLength = volData.readUInt16LE(dirEntry.offset + 5);
 
-  const rawData = volData.slice(dirEntry.offset + 7, dirEntry.offset + compressedLength);
+  const rawData = volData.slice(dirEntry.offset + 7, dirEntry.offset + 7 + compressedLength);
   const data =
     isPic || uncompressedLength === compressedLength ? rawData : agiLzwDecompress(rawData);
 

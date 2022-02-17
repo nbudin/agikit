@@ -41,6 +41,7 @@ export function readInstructions(codeData: Buffer, agiVersion: AGIVersion): Logi
           const testCommand = getTestCommand(testOpcode);
           const args: number[] = [];
           if (!testCommand) {
+            debugger;
             throw new Error(`Invalid test opcode ${testOpcode} at ${offset}`);
           }
 

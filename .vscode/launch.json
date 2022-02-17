@@ -10,8 +10,7 @@
       "name": "Launch Extract",
       "skipFiles": ["<node_internals>/**"],
       "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "yarn",
-      "runtimeArgs": ["node"],
+      "runtimeArgs": ["-r", "${workspaceFolder}/.pnp.cjs"],
       "console": "integratedTerminal",
       "program": "${workspaceFolder}/packages/cli/dist/cli.js",
       "args": [
@@ -23,12 +22,17 @@
         // "/Users/nbudin/Downloads/AGI Contest 2 Template",
         // "extracted/contest2"
         "/Users/nbudin/Gold Rush",
-        "extracted/gr"
+        "extracted/goldrush"
+        // "-v",
+        // "15"
+        // "2"
       ],
       "preLaunchTask": "Build all packages",
       "outFiles": [
         "${workspaceFolder}/packages/cli/dist/**/*.js",
-        "${workspaceFolder}/packages/core/dist/**/*.js"
+        "${workspaceFolder}/packages/cli/dist/**/*.js.map",
+        "${workspaceFolder}/packages/core/dist/**/*.js",
+        "${workspaceFolder}/packages/core/dist/**/*.js.map"
       ]
     },
     {

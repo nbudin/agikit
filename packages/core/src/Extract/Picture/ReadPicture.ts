@@ -1,4 +1,4 @@
-import { BitstreamReader } from '../../Compression/Bitstreams';
+import { PicBitstreamReader } from '../../Compression/Bitstreams';
 import {
   Picture,
   PictureCommand,
@@ -14,7 +14,7 @@ function decodeSignedDisplacementNybble(nybble: number) {
 }
 
 export function readPictureResource(data: Buffer, compressColorNumbers: boolean): Picture {
-  const reader = new BitstreamReader(data);
+  const reader = new PicBitstreamReader(data);
   const commands: PictureCommand[] = [];
   let splatterEnabled = false;
 
@@ -180,10 +180,11 @@ export function readPictureResource(data: Buffer, compressColorNumbers: boolean)
         points,
       });
     } else if (opcode === 0xff) {
-      // skip it, it's a no-op
+      // explicit end of the picture commands
+      break;
     } else {
       throw new Error(
-        `Unknown picture opcode ${opcode.toString(16)} at offset ${reader.byteOffset}`,
+        `Unknown picture opcode 0x${opcode.toString(16)} at offset ${reader.byteOffset}`,
       );
     }
   }

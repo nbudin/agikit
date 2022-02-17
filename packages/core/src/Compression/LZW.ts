@@ -1,7 +1,8 @@
 // Adapted from https://rosettacode.org/wiki/LZW_compression#ES6_Version
+// http://agiwiki.sierrahelp.com/index.php?title=AGIv3_Resource_Extractor_(XV3)
 // and https://github.com/astronautlabs/bitstream
 
-import { BitstreamReader, BitstreamWriter } from './Bitstreams';
+import { LZWBitstreamReader, LZWBitstreamWriter } from './Bitstreams';
 
 const START_OVER_CODE = 256;
 const END_RESOURCE_CODE = 257;
@@ -54,12 +55,12 @@ class CompressionDictionary extends LZWDictionary<string, number> {
   }
 
   get codeLength() {
-    return Math.ceil(Math.log2(this.size));
+    return Math.min(Math.ceil(Math.log2(this.size + 1)), 11);
   }
 }
 
 export function agiLzwCompress(uncompressed: Buffer): Buffer {
-  const writer = new BitstreamWriter();
+  const writer = new LZWBitstreamWriter();
   let dictionary = new CompressionDictionary();
 
   let word = '';
@@ -104,7 +105,7 @@ class DecompressionDictionary extends LZWDictionary<number, string> {
       this.mapping.set(i, String.fromCharCode(i));
     }
 
-    this.size = 258;
+    this.size = 257;
   }
 
   add(word: string) {
@@ -112,15 +113,15 @@ class DecompressionDictionary extends LZWDictionary<number, string> {
   }
 
   get codeLength() {
-    return Math.ceil(Math.log2(this.size + 1));
+    return Math.min(Math.ceil(Math.log2(this.size + 1)), 11);
   }
 }
 
 export function agiLzwDecompress(compressed: Buffer): Buffer {
   let dictionary = new DecompressionDictionary();
-  const reader = new BitstreamReader(compressed);
+  const reader = new LZWBitstreamReader(compressed);
 
-  let word = String.fromCharCode(reader.readCode(dictionary.codeLength));
+  let word = dictionary.get(reader.readCode(dictionary.codeLength)) ?? '';
   let result = word;
   let entry = '';
 
@@ -134,15 +135,19 @@ export function agiLzwDecompress(compressed: Buffer): Buffer {
 
     if (code === START_OVER_CODE) {
       dictionary = new DecompressionDictionary();
-      word = String.fromCharCode(reader.readCode(dictionary.codeLength));
+      word = dictionary.get(reader.readCode(dictionary.codeLength)) ?? '';
+      dictionary.add(word);
+      result += word;
     } else {
       const dictionaryWord = dictionary.get(code);
+
       if (dictionaryWord != null) {
         entry = dictionaryWord;
       } else {
         if (code === dictionary.size) {
           entry = word + word[0];
         } else {
+          debugger;
           throw new Error(
             `LZW decompression error: received code ${code} but was expecting ${dictionary.size}`,
           );
@@ -150,8 +155,7 @@ export function agiLzwDecompress(compressed: Buffer): Buffer {
       }
 
       result += entry;
-      dictionary.add(word + entry[0]);
-
+      dictionary.add(`${word}${entry[0]}`);
       word = entry;
     }
   }

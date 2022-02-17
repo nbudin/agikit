@@ -1,4 +1,7 @@
-export class BitstreamReader {
+// Adapted from Lance Ewing's XV3
+// http://agiwiki.sierrahelp.com/index.php?title=AGIv3_Resource_Extractor_(XV3)
+
+export class PicBitstreamReader {
   bitstream: Buffer;
   bitOffset: number;
 
@@ -45,7 +48,56 @@ export class BitstreamReader {
   }
 }
 
-export class BitstreamWriter {
+export class LZWBitstreamReader {
+  bitstream: Buffer;
+  bitOffset: number;
+  inputBitBuffer: number;
+  inputBitCount: number;
+  bitstreamBitLength: number;
+
+  constructor(bitstream: Buffer) {
+    this.bitstream = bitstream;
+    this.inputBitBuffer = 0;
+    this.bitOffset = 0;
+    this.inputBitCount = 0;
+    this.bitstreamBitLength = this.bitstream.byteLength * 8;
+  }
+
+  get byteOffset() {
+    return Math.floor(this.bitOffset / 8);
+  }
+
+  readCode(bitLength: number) {
+    while (this.inputBitCount <= 24 && this.bitOffset < this.bitstreamBitLength) {
+      const byte = this.bitstream.readUInt8(Math.floor(this.bitOffset / 8));
+      this.inputBitBuffer |= byte << this.inputBitCount;
+      this.bitOffset += 8;
+      this.inputBitCount += 8;
+    }
+
+    const code = (this.inputBitBuffer & 0x7fff) % (1 << bitLength);
+    this.inputBitBuffer = this.inputBitBuffer >>> bitLength;
+    this.inputBitCount -= bitLength;
+
+    return code;
+  }
+
+  peekCode(bitLength: number) {
+    const code = this.readCode(bitLength);
+    this.bitOffset -= bitLength;
+    return code;
+  }
+
+  seekBits(bits: number) {
+    this.bitOffset += bits;
+  }
+
+  done() {
+    return this.byteOffset > this.bitstream.byteLength;
+  }
+}
+
+export class PicBitstreamWriter {
   currentByte = 0;
   currentByteOffset = 0;
   bytes: number[] = [];
@@ -69,12 +121,12 @@ export class BitstreamWriter {
     let remainingBits = bitLength;
     while (remainingBits > 0) {
       const shift = 8 - this.currentByteOffset - remainingBits;
-      const contribution = shift >= 0 ? workingCode << shift : workingCode >> -shift;
+      const contribution = shift >= 0 ? workingCode << shift : workingCode >>> -shift;
       const writtenLength = shift >= 0 ? remainingBits : 8 - this.currentByteOffset;
 
       this.currentByte |= contribution;
       this.currentByteOffset += writtenLength;
-      workingCode -= shift >= 0 ? contribution >> shift : contribution << -shift;
+      workingCode -= shift >= 0 ? contribution >>> shift : contribution << -shift;
       remainingBits -= writtenLength;
 
       if (this.currentByteOffset === 8) {
@@ -82,4 +134,8 @@ export class BitstreamWriter {
       }
     }
   }
+}
+
+export class LZWBitstreamWriter extends PicBitstreamWriter {
+  // TODO actually implement this once I have the bitstream reader fully working
 }

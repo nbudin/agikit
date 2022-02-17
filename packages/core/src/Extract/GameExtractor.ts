@@ -5,6 +5,7 @@ import {
   ConsoleLogger,
   DirEntry,
   exportWords,
+  formatVersionNumber,
   generateCodeForLogicProgram,
   generateLogicAsm,
   Logger,
@@ -21,22 +22,27 @@ import {
   WordList,
 } from '..';
 
+export type ResourceToExtract = {
+  resourceType: ResourceType;
+  resourceNumber: number;
+};
+
 export class GameExtractor {
   srcDir: string;
   project: Project;
   logger: Logger;
+  only?: ResourceToExtract[];
 
-  constructor(srcDir: string, project: Project, logger?: Logger) {
+  constructor(srcDir: string, project: Project, logger?: Logger, only?: ResourceToExtract[]) {
     this.srcDir = srcDir;
     this.project = project;
     this.logger = logger ?? new ConsoleLogger();
+    this.only = only;
   }
 
   extractGame(): void {
     this.logger.log(`Extracting ${this.srcDir} to ${this.project.basePath}`);
-    this.logger.log(
-      `Using AGI version ${this.project.config.agiVersion.major}.${this.project.config.agiVersion.minor}`,
-    );
+    this.logger.log(`Using AGI version ${formatVersionNumber(this.project.config.agiVersion)}`);
     this.logger.log(`Game ID: ${this.project.config.gameId}`);
 
     const destDir = path.join(this.project.basePath, 'src');
@@ -66,6 +72,18 @@ export class GameExtractor {
         recursive: true,
       });
       for (const entry of resourceDir[resourceType]) {
+        if (
+          entry != null &&
+          this.only != null &&
+          !this.only.some(
+            (resourceToExtract) =>
+              resourceToExtract.resourceNumber === entry.resourceNumber &&
+              resourceToExtract.resourceType === entry.resourceType,
+          )
+        ) {
+          continue;
+        }
+
         if (entry != null) {
           this.logger.log(
             `Extracting ${resourceType} ${entry.resourceNumber} from volume ${entry.volumeNumber}`,

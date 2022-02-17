@@ -1,7 +1,6 @@
 import assertNever from 'assert-never';
-import { write } from 'fs';
 import { flatMap } from 'lodash';
-import { BitstreamWriter } from '../Compression/Bitstreams';
+import { PicBitstreamWriter } from '../Compression/Bitstreams';
 import {
   PictureCommand,
   PictureCoordinate,
@@ -59,7 +58,7 @@ function encodePenPlotPoints(splatterEnabled: boolean, points: PicturePenPlotPoi
 
 export function compilePictureCommand(
   command: PictureCommand,
-  writer: BitstreamWriter,
+  writer: PicBitstreamWriter,
   compressColorNumbers: boolean,
 ): void {
   let splatterEnabled = false;
@@ -97,7 +96,7 @@ export function compilePictureCommand(
 }
 
 export function buildPicture(pictureResource: Picture, compressColorNumbers: boolean): Buffer {
-  const writer = new BitstreamWriter();
+  const writer = new PicBitstreamWriter();
   for (const command of pictureResource.commands) {
     compilePictureCommand(command, writer, compressColorNumbers);
   }

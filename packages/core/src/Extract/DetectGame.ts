@@ -34,7 +34,7 @@ export function detectGame(path: string): Project {
   }
 
   return new Project(path, {
-    agiVersion: { major: 3, minor: 2.149 },
+    agiVersion: { major: 3, minor: 2149 },
     gameId: v3GameID,
   });
 }
