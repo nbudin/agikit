@@ -23,6 +23,7 @@ export function readDirData(dirData: Buffer, resourceType: ResourceType): (DirEn
   const entries: (DirEntry | undefined)[] = [];
   let index = 0;
   let resourceNumber = 0;
+
   while (index < dirData.byteLength) {
     const entryData = readDirEntry(dirData, index);
     index += 3;
@@ -77,7 +78,7 @@ export function readV3ResourceDir(gamePath: string, gameId: string): ResourceDir
     LOGIC: readDirData(dirData.slice(logicStart, picStart), ResourceType.LOGIC),
     PIC: readDirData(dirData.slice(picStart, viewStart), ResourceType.PIC),
     VIEW: readDirData(dirData.slice(viewStart, soundStart), ResourceType.VIEW),
-    SOUND: readDirData(dirData.slice(viewStart), ResourceType.SOUND),
+    SOUND: readDirData(dirData.slice(soundStart), ResourceType.SOUND),
   };
 }
 

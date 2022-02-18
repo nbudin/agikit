@@ -1,5 +1,5 @@
 import { readdirSync } from 'fs';
-import { Project, ProjectConfig } from '..';
+import { Project } from '..';
 
 export function detectGame(path: string): Project {
   const filenames = new Set(readdirSync(path).map((filename) => filename.toUpperCase()));
