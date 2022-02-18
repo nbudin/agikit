@@ -13,17 +13,7 @@
       "runtimeArgs": ["-r", "${workspaceFolder}/.pnp.cjs"],
       "console": "integratedTerminal",
       "program": "${workspaceFolder}/packages/cli/dist/cli.js",
-      "args": [
-        "extract",
-        // "/Users/nbudin/Downloads/Space Quest 2",
-        // "extracted/sq2"
-        // "/Users/nbudin/Downloads/King's Quest 1 (AGI, DOS)",
-        // "extracted/kq1"
-        // "/Users/nbudin/Downloads/AGI Contest 2 Template",
-        // "extracted/contest2"
-        "/Users/nbudin/Gold Rush",
-        "extracted/goldrush"
-      ],
+      "args": ["extract", "/Users/nbudin/Downloads/Operation - Recon", "extracted/oprecon"],
       "preLaunchTask": "Build all packages",
       "outFiles": [
         "${workspaceFolder}/packages/cli/dist/**/*.js",
@@ -42,13 +32,7 @@
       "runtimeArgs": ["node"],
       "console": "integratedTerminal",
       "program": "${workspaceFolder}/packages/cli/dist/cli.js",
-      "args": [
-        "extract",
-        // "build/contest2",
-        // "reextracted/contest2"
-        "build/kq1",
-        "reextracted/kq1"
-      ],
+      "args": ["extract", "build/kq1", "reextracted/kq1"],
       "preLaunchTask": "Build all packages",
       "outFiles": [
         "${workspaceFolder}/packages/cli/dist/**/*.js",
@@ -65,12 +49,7 @@
       "runtimeArgs": ["node"],
       "console": "integratedTerminal",
       "program": "${workspaceFolder}/packages/cli/dist/cli.js",
-      "args": [
-        "build",
-        "/Users/nbudin/src/agikit-project-template"
-        // "extracted/sq2",
-        // "extracted/kq1",
-      ],
+      "args": ["build", "/Users/nbudin/src/agikit-project-template"],
       "preLaunchTask": "Build all packages",
       "outFiles": [
         "${workspaceFolder}/packages/cli/dist/**/*.js",
@@ -98,6 +77,26 @@
       ],
       "outFiles": ["${workspaceFolder}/out/test/**/*.js"],
       "preLaunchTask": "Build agikit-vscode"
+    },
+    {
+      "type": "node",
+      "name": "vscode-jest-tests.v2",
+      "request": "launch",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "disableOptimisticBPs": true,
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "yarn",
+      "args": [
+        "run",
+        "jest",
+        "--runInBand",
+        "--watchAll=false",
+        "--testNamePattern",
+        "${jest.testNamePattern}",
+        "--runTestsByPath",
+        "${jest.testFile}"
+      ]
     }
   ]
 }

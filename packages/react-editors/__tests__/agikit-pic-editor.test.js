@@ -3,5 +3,5 @@
 const agikitPicEditor = require('..');
 
 describe('agikit-pic-editor', () => {
-  it('needs tests');
+  it.todo('needs tests');
 });

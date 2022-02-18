@@ -6,7 +6,8 @@
   "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
   "typescript.tsdk": ".yarn/sdks/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
-  "workbench.colorTheme": "Oldschool Theme (QBasic)",
-  "editor.fontFamily": "PxPlus IBM VGA9, Menlo, Monaco, 'Courier New', monospace"
-  "editor.fontSize": 17,
+  "workbench.colorTheme": "Tomorrow Night Blue",
+  "jest.jestCommandLine": "yarn run jest"
+  // "editor.fontFamily": "PxPlus IBM CGA, Menlo, Monaco, 'Courier New', monospace"
+  // "editor.fontSize": 12,
 }

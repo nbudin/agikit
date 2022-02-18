@@ -4,10 +4,12 @@
 /extracted
 /build
 /reextracted
+/coverage
 /packages/*/dist
 /packages/*/extracted
 /packages/*/build
 /packages/*/reextracted
+/packages/*/coverage
 /packages/react-editors/dev-site-dist
 /lerna-debug.log
 node_modules
