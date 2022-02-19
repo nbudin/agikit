@@ -22,7 +22,9 @@
     "typescript": "^4.5.5"
   },
   "scripts": {
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "build": "yarn workspaces foreach -tvpi run build",
+    "publish": "yarn workspaces foreach -tvp --exclude agikit-vscode --exclude root npm publish --access=public"
   },
   "lint-staged": {
     "*.{js,css,md}": "yarn run prettier --write"
