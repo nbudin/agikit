@@ -109,7 +109,7 @@ export class GameExtractor {
 
     this.logger.log('Writing project config');
     writeFileSync(
-      path.join(destDir, 'agikit-project.json'),
+      path.join(this.project.basePath, 'agikit-project.json'),
       Buffer.from(JSON.stringify(this.project.config, null, 2), 'utf-8'),
     );
   }
