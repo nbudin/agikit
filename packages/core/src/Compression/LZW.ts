@@ -13,7 +13,7 @@ abstract class LZWDictionary<KeyType, ValueType> {
 
   constructor() {
     // AGI's LZW variant reserves 256 and 257 as "start over" and "end resource"
-    this.size = 258;
+    this.size = 257;
   }
 
   has(key: KeyType) {
@@ -24,7 +24,9 @@ abstract class LZWDictionary<KeyType, ValueType> {
     return this.mapping.get(key);
   }
 
-  abstract get codeLength(): number;
+  get codeLength() {
+    return Math.min(Math.ceil(Math.log2(this.size + 1)), 11);
+  }
 
   isFull() {
     return this.size >= 2047;
@@ -50,12 +52,8 @@ class CompressionDictionary extends LZWDictionary<string, number> {
   }
 
   add(word: string) {
-    this.mapping.set(word, this.size);
     this.size += 1;
-  }
-
-  get codeLength() {
-    return Math.min(Math.ceil(Math.log2(this.size + 1)), 11);
+    this.mapping.set(word, this.size);
   }
 }
 
@@ -64,6 +62,8 @@ export function agiLzwCompress(uncompressed: Buffer): Buffer {
   let dictionary = new CompressionDictionary();
 
   let word = '';
+
+  writer.writeCode(START_OVER_CODE, 9);
 
   for (let i = 0; i < uncompressed.length; i++) {
     const curChar = String.fromCharCode(uncompressed[i]);
@@ -104,16 +104,10 @@ class DecompressionDictionary extends LZWDictionary<number, string> {
     for (let i = 0; i < 256; i++) {
       this.mapping.set(i, String.fromCharCode(i));
     }
-
-    this.size = 257;
   }
 
   add(word: string) {
     this.mapping.set(this.size++, word);
-  }
-
-  get codeLength() {
-    return Math.min(Math.ceil(Math.log2(this.size + 1)), 11);
   }
 }
 

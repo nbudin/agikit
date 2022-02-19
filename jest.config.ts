@@ -3,6 +3,20 @@
  * https://jestjs.io/docs/configuration
  */
 
+import { Config } from '@jest/types';
+
+const projects: Config.InitialProjectOptions[] = [
+  'core',
+  'cli',
+  'react-editors',
+  'logic-language-server',
+].map((packageName) => ({
+  displayName: packageName,
+  rootDir: `packages/${packageName}`,
+  testMatch: ['**/__tests__/**/*.test.[jt]s?(x)'],
+  testPathIgnorePatterns: ['<rootDir>/dist'],
+}));
+
 export default {
   // All imported modules in your tests should be mocked automatically
   // automock: false,
@@ -96,28 +110,7 @@ export default {
   // preset: undefined,
 
   // Run tests from one or more projects
-  projects: [
-    {
-      displayName: 'core',
-      rootDir: 'packages/core',
-      testPathIgnorePatterns: ['<rootDir>/dist'],
-    },
-    {
-      displayName: 'cli',
-      rootDir: 'packages/cli',
-      testPathIgnorePatterns: ['<rootDir>/dist'],
-    },
-    {
-      displayName: 'react-editors',
-      rootDir: 'packages/react-editors',
-      testPathIgnorePatterns: ['<rootDir>/dist'],
-    },
-    {
-      displayName: 'logic-language-server',
-      rootDir: 'packages/logic-language-server',
-      testPathIgnorePatterns: ['<rootDir>/dist'],
-    },
-  ],
+  projects,
 
   // Use this configuration option to add custom reporters to Jest
   // reporters: undefined,
@@ -167,10 +160,7 @@ export default {
   // testLocationInResults: false,
 
   // The glob patterns Jest uses to detect test files
-  // testMatch: [
-  //   "**/__tests__/**/*.[jt]s?(x)",
-  //   "**/?(*.)+(spec|test).[tj]s?(x)"
-  // ],
+  testMatch: ['**/__tests__/**/?(*.)+test.[tj]s?(x)'],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
   // testPathIgnorePatterns: ['/packages/agikit-vscode/', '/dist/'],

@@ -1,11 +1,8 @@
 {
   "compilerOptions": {
     "composite": true,
+    "lib": ["ES2020"]
   },
-  "references": [
-    { "path": "dev-site" },
-    { "path": "src" },
-    { "path": "../core" }
-  ],
+  "references": [{ "path": "dev-site" }, { "path": "src" }, { "path": "../core" }],
   "files": []
 }

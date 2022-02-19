@@ -5,16 +5,6 @@ import {
   PicBitstreamWriter,
 } from '../Bitstreams';
 
-// function showBufferAsBinary(buffer: Buffer) {
-//   const bytes: string[] = [];
-
-//   for (const byte of [...buffer]) {
-//     bytes.push(byte.toString(2).padStart(8, '0'));
-//   }
-
-//   console.log(bytes.join(' '));
-// }
-
 describe('LZW bitstreams', () => {
   it('writes and reads back some codes correctly', () => {
     const codes = [1, 2, 3, 4];
