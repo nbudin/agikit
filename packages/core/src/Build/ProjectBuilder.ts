@@ -21,6 +21,10 @@ import {
   ConsoleLogger,
   writeV3ResourceFiles,
   encodeV3Resource,
+  agiLzwCompress,
+  LogicResource,
+  PicResource,
+  Picture,
 } from '..';
 import { compileLogicScript, LogicCompilerError } from './BuildLogic';
 import fileSize from 'filesize';
@@ -65,48 +69,16 @@ export class ProjectBuilder {
     if (resourceType === ResourceType.LOGIC) {
       const scriptPath = path.join(this.project.sourcePath, 'logic', `${resourceNumber}.agilogic`);
       if (fs.existsSync(scriptPath)) {
-        this.logger.log(`Compiling ${path.relative(this.project.basePath, scriptPath)}`);
-        const [data, diagnostics] = this.processFile(
-          (input) => compileLogicScript(input, scriptPath, wordList, objectList),
-          scriptPath,
-        );
-
-        diagnostics.forEach((diagnostic) =>
-          this.logger.warn(LogicCompilerError.describeDiagnostic(scriptPath, diagnostic)),
-        );
-
-        return {
-          data,
-          number: resourceNumber,
-          type: resourceType,
-        };
+        return this.buildLogic(scriptPath, wordList, objectList, resourceNumber);
       }
     }
 
     if (resourceType === ResourceType.PIC) {
       const picPath = path.join(this.project.sourcePath, 'pic', `${resourceNumber}.agipic`);
       if (fs.existsSync(picPath)) {
-        let data: Buffer;
-
         this.logger.log(`Compiling ${path.relative(this.project.basePath, picPath)}`);
-        try {
-          const jsonData = JSON.parse(fs.readFileSync(picPath, 'utf-8'));
-          data = buildPicture(readPictureJSON(jsonData), this.project.config.agiVersion.major >= 3);
-        } catch (error) {
-          this.logger.warn(
-            `Compilation failed, treating ${path.relative(
-              this.project.basePath,
-              picPath,
-            )} as raw PIC data`,
-          );
-          data = fs.readFileSync(picPath);
-        }
 
-        return {
-          data,
-          number: resourceNumber,
-          type: resourceType,
-        };
+        return this.buildPic(picPath, resourceNumber);
       }
     }
 
@@ -126,6 +98,73 @@ export class ProjectBuilder {
     }
 
     return undefined;
+  }
+
+  private buildPic(picPath: string, resourceNumber: number): PicResource {
+    let pictureResource: Picture;
+    try {
+      const jsonData = JSON.parse(fs.readFileSync(picPath, 'utf-8'));
+      pictureResource = readPictureJSON(jsonData);
+    } catch (error) {
+      this.logger.warn(
+        `Compilation failed, treating ${path.relative(
+          this.project.basePath,
+          picPath,
+        )} as raw PIC data`,
+      );
+      const data = fs.readFileSync(picPath);
+      return {
+        data,
+        number: resourceNumber,
+        type: ResourceType.PIC,
+      };
+    }
+
+    const data = buildPicture(pictureResource, this.project.config.agiVersion.major >= 3);
+
+    return {
+      data,
+      number: resourceNumber,
+      type: ResourceType.PIC,
+    };
+  }
+
+  private buildLogic(
+    scriptPath: string,
+    wordList: WordList,
+    objectList: ObjectList,
+    resourceNumber: number,
+  ): LogicResource {
+    this.logger.log(`Compiling ${path.relative(this.project.basePath, scriptPath)}`);
+    const [data, diagnostics] = this.processFile((input) => {
+      if (this.project.config.agiVersion.major >= 3) {
+        // AGIv3 stores logic resources either compressed or with encrypted messages, but not both
+        // Try compiling unencrypted first and see if compression saves space; if so, use that version
+        const [unencryptedData, diagnostics] = compileLogicScript(
+          input,
+          scriptPath,
+          wordList,
+          objectList,
+          false,
+        );
+        const compressedData = agiLzwCompress(unencryptedData);
+        if (compressedData.byteLength < unencryptedData.byteLength) {
+          return [unencryptedData, diagnostics] as const;
+        }
+      }
+
+      return compileLogicScript(input, scriptPath, wordList, objectList, true);
+    }, scriptPath);
+
+    diagnostics.forEach((diagnostic) =>
+      this.logger.warn(LogicCompilerError.describeDiagnostic(scriptPath, diagnostic)),
+    );
+
+    return {
+      data,
+      number: resourceNumber,
+      type: ResourceType.LOGIC,
+    };
   }
 
   buildProject(): void {

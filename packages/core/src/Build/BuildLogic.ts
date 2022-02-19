@@ -33,9 +33,10 @@ export class LogicCompilerError extends Error {
 export function assembleLogic(
   instructions: LogicInstruction[],
   messages: (string | undefined)[],
+  encryptMessages: boolean,
 ): Buffer {
   const assembler = new LogicAssembler(instructions);
-  const logic = encodeLogic(assembler.assemble(), encodeMessages(messages));
+  const logic = encodeLogic(assembler.assemble(), encodeMessages(messages, encryptMessages));
   return logic;
 }
 
@@ -44,6 +45,7 @@ export function compileLogicScript(
   scriptPath: string,
   wordList: WordList,
   objectList: ObjectList,
+  encryptMessages: boolean,
 ): [Buffer, LogicDiagnostic[]] {
   const rawProgram = parseLogicScriptRaw(sourceCode, scriptPath);
   const diagnostics = getDiagnosticsForProgram(rawProgram);
@@ -58,6 +60,6 @@ export function compileLogicScript(
   const compiler = new LogicCompiler(graph, astGenerator.getLabels());
   const { instructions } = compiler.compile();
   const messages = astGenerator.generateMessageArray();
-  const logic = assembleLogic(instructions, messages);
+  const logic = assembleLogic(instructions, messages, encryptMessages);
   return [logic, diagnostics];
 }
