@@ -2241,10 +2241,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/vscode@npm:^1.63.2":
-  version: 1.63.2
-  resolution: "@types/vscode@npm:1.63.2"
-  checksum: 5b13383121af21e4500ed78885a0b0365bbf154da00901467ae8836d73abd8c4d040fdb1794f1d2a6cfe331ea3a7b0ccdf5eeed0da89965905f09e77093111e9
+"@types/vscode@npm:^1.54.0":
+  version: 1.64.0
+  resolution: "@types/vscode@npm:1.64.0"
+  checksum: 428cfce7f31ebf2d2a82e6ffdc2d903487adecd72147463e7b679d3280532b805e37e69065fbfd66fa144898a8fab86eaf3a0c4ac2861df1135ab41050a6888d
   languageName: node
   linkType: hard
 
@@ -2726,7 +2726,7 @@ __metadata:
     "@types/react": ^17.0.38
     "@types/react-dom": ^17.0.11
     "@types/uuid": ^8.3.4
-    "@types/vscode": ^1.63.2
+    "@types/vscode": ^1.54.0
     "@typescript-eslint/eslint-plugin": ^4.33.0
     "@typescript-eslint/parser": ^4.33.0
     "@vscode/debugadapter": ^1.53.0
