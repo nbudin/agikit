@@ -41,10 +41,13 @@ To auto-format a LOGIC script:
 
 ## Current status
 
-agikit is very, very early stage right now. As of this writing (version 0.5.0), it can decompile and compile
-King's Quest I, Space Quest II, and the agikit template project successfully. It possibly works with other
-games too, but I haven't tested it on everything yet.
+agikit is early stage right now. As of this writing (version 0.8.0), it can decompile and compile
+King's Quest I, Space Quest II, Operation: RECON, Gold Rush, Manhunter: New York, and the agikit template project
+successfully. It possibly works with other games too, but I haven't tested it on everything yet.
 
 Known limitations:
 
-- Only supports AGI version 2 for now
+- SOUND editing is incomplete and only supports IBM PCjr SOUND resources
+- Not yet compatible with WinAGI projects
+- There are some missing features in the LOGIC language:
+  - `]` as a comment character
