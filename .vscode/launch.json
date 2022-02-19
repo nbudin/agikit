@@ -49,7 +49,11 @@
       "runtimeArgs": ["node"],
       "console": "integratedTerminal",
       "program": "${workspaceFolder}/packages/cli/dist/cli.js",
-      "args": ["build", "/Users/nbudin/src/agikit-project-template"],
+      "args": [
+        "build",
+        // "/Users/nbudin/src/agikit-project-template"
+        "extracted/oprecon"
+      ],
       "preLaunchTask": "Build all packages",
       "outFiles": [
         "${workspaceFolder}/packages/cli/dist/**/*.js",
@@ -61,7 +65,8 @@
       "type": "extensionHost",
       "request": "launch",
       "args": [
-        "${workspaceFolder}/../agikit-project-template",
+        // "${workspaceFolder}/../agikit-project-template",
+        "${workspaceFolder}/extracted/oprecon",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/agikit-vscode"
       ],
       "outFiles": ["${workspaceFolder}/out/**/*.js"],
