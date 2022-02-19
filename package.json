@@ -1,6 +1,6 @@
 {
   "name": "root",
-  "version": "0.7.3",
+  "version": "0.8.0",
   "private": true,
   "devDependencies": {
     "@babel/core": "^7.17.5",
@@ -31,5 +31,6 @@
     "packages": [
       "packages/*"
     ]
-  }
+  },
+  "packageManager": "yarn@3.2.0-rc.16"
 }

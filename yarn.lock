@@ -2,14 +2,14 @@
 # Manual changes might be lost - proceed with caution!
 
 __metadata:
-  version: 5
+  version: 6
   cacheKey: 8
 
-"@agikit/cli@^0.7.3, @agikit/cli@workspace:packages/cli":
+"@agikit/cli@^0.8.0, @agikit/cli@workspace:packages/cli":
   version: 0.0.0-use.local
   resolution: "@agikit/cli@workspace:packages/cli"
   dependencies:
-    "@agikit/core": ^0.7.3
+    "@agikit/core": ^0.8.0
     "@types/color-support": ^1.1.1
     "@types/jest": ^27.4.0
     "@types/minimist": ^1.2.2
@@ -26,7 +26,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@agikit/core@^0.7.3, @agikit/core@workspace:packages/core":
+"@agikit/core@^0.8.0, @agikit/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@agikit/core@workspace:packages/core"
   dependencies:
@@ -56,7 +56,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@agikit/logic-language-server@^0.7.3, @agikit/logic-language-server@workspace:packages/logic-language-server":
+"@agikit/core@npm:^0.7.3":
+  version: 0.7.3
+  resolution: "@agikit/core@npm:0.7.3"
+  dependencies:
+    assert-never: ^1.2.1
+    lodash: ^4.17.20
+    ts-is-present: ^1.2.1
+  checksum: 0f2ebfd856dca4049f88bc9dcdbce4dbeb1af18a4f8f2f2aeb9a10db669757ad8fe9d30bba7ffc999e350cca6796aacaa53aa36280670c30732bba7598817e4b
+  languageName: node
+  linkType: hard
+
+"@agikit/logic-language-server@^0.8.0, @agikit/logic-language-server@workspace:packages/logic-language-server":
   version: 0.0.0-use.local
   resolution: "@agikit/logic-language-server@workspace:packages/logic-language-server"
   dependencies:
@@ -2670,7 +2681,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"acorn@npm:^8.2.4, acorn@npm:^8.4.1":
+"acorn@npm:^8.2.4, acorn@npm:^8.4.1, acorn@npm:^8.5.0":
   version: 8.7.0
   resolution: "acorn@npm:8.7.0"
   bin:
@@ -2713,9 +2724,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "agikit-vscode@workspace:packages/agikit-vscode"
   dependencies:
-    "@agikit/cli": ^0.7.3
+    "@agikit/cli": ^0.8.0
     "@agikit/core": ^0.7.3
-    "@agikit/logic-language-server": ^0.7.3
+    "@agikit/logic-language-server": ^0.8.0
     "@agikit/react-editors": ^0.7.3
     "@popperjs/core": ^2.11.2
     "@types/escape-html": ^1.0.1
@@ -6694,7 +6705,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:^4.17.14, lodash@npm:^4.17.21, lodash@npm:^4.7.0":
+"lodash@npm:^4.17.14, lodash@npm:^4.17.20, lodash@npm:^4.17.21, lodash@npm:^4.7.0":
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
   checksum: eb835a2e51d381e561e508ce932ea50a8e5a68f4ebdd771ea240d3048244a8d13658acbd502cd4829768c56f2e16bdd4340b9ea141297d472517b83868e677f7
@@ -9076,7 +9087,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-is-present@npm:^1.2.2":
+"ts-is-present@npm:^1.2.1, ts-is-present@npm:^1.2.2":
   version: 1.2.2
   resolution: "ts-is-present@npm:1.2.2"
   checksum: 3620ecf48219d0dd108e493260a207f4733d8e39a18dffec23c7ed2b1ef2aba7158d0dfafe36f3f27d0092472535a5e474ce04ade54e972e64b2b6329d20ab0b
@@ -9258,11 +9269,11 @@ __metadata:
 
 "typescript@patch:typescript@^4.5.5#~builtin<compat/typescript>":
   version: 4.5.5
-  resolution: "typescript@patch:typescript@npm%3A4.5.5#~builtin<compat/typescript>::version=4.5.5&hash=493e53"
+  resolution: "typescript@patch:typescript@npm%3A4.5.5#~builtin<compat/typescript>::version=4.5.5&hash=bda367"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: c05c318d79c690f101d7ffb34cd6c7d6bbd884d3af9cefe7749ad0cd6be43c7082f098280982ca945dcba23fde34a08fed9602bb26540936baf8c0520727d3ba
+  checksum: 858c61fa63f7274ca4aaaffeced854d550bf416cff6e558c4884041b3311fb662f476f167cf5c9f8680c607239797e26a2ee0bcc6467fbc05bfcb218e1c6c671
   languageName: node
   linkType: hard
 
