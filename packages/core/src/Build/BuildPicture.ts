@@ -31,7 +31,7 @@ function encodeDisplacementList(displacements: PictureCoordinate[]) {
 }
 
 function encodePenSettings(settings: PicturePenSettings) {
-  if (settings.size > 7 || settings.size < 1) {
+  if (settings.size > 7 || settings.size < 0) {
     throw new Error(`Invalid pen size ${settings.size} (valid sizes are 0 through 7)`);
   }
 
