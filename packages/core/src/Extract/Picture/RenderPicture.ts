@@ -386,6 +386,20 @@ function setPixelColor(
   palette: ColorPalette,
 ) {
   const startOffset = (position.x + position.y * 160) * 4;
+  if (startOffset >= buffer.byteLength - 4 || startOffset < 0) {
+    console.warn(
+      `Attempted to set pixel at out-of-bounds position ${position.x}, ${position.y} to color ${color}`,
+    );
+    return;
+  }
+
+  if (color > palette.colors.length) {
+    console.warn(
+      `Attempted to set pixel at ${position.x}, ${position.y} to unknown color ${color}`,
+    );
+    return;
+  }
+
   buffer.set(palette.colors[color], startOffset);
 }
 
