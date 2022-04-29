@@ -1,6 +1,6 @@
 {
   "name": "root",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "private": true,
   "devDependencies": {
     "@babel/core": "^7.17.5",
@@ -24,7 +24,7 @@
   "scripts": {
     "prepare": "husky install",
     "build": "yarn workspaces foreach -tvpi run build",
-    "publish": "yarn workspaces foreach -tvp --exclude agikit-vscode --exclude root npm publish --access=public"
+    "publish": "yarn workspaces foreach -tvp --exclude agikit-vscode --exclude root npm publish --access=public && cd packages/agikit-vscode && vsce publish"
   },
   "lint-staged": {
     "*.{js,css,md}": "yarn run prettier --write"
