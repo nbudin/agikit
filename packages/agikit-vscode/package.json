@@ -175,10 +175,10 @@
     "test": "node ./out/test/runTest.js"
   },
   "dependencies": {
-    "@agikit/cli": "^0.8.0",
+    "@agikit/cli": "^0.8.1",
     "@agikit/core": "^0.8.0",
-    "@agikit/logic-language-server": "^0.8.0",
-    "@agikit/react-editors": "^0.8.0",
+    "@agikit/logic-language-server": "^0.8.1",
+    "@agikit/react-editors": "^0.8.1",
     "@popperjs/core": "^2.11.2",
     "@vscode/debugadapter": "^1.53.0",
     "@vscode/debugprotocol": "^1.53.0",

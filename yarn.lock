@@ -5,7 +5,7 @@ __metadata:
   version: 6
   cacheKey: 8
 
-"@agikit/cli@^0.8.0, @agikit/cli@workspace:packages/cli":
+"@agikit/cli@^0.8.1, @agikit/cli@workspace:packages/cli":
   version: 0.0.0-use.local
   resolution: "@agikit/cli@workspace:packages/cli"
   dependencies:
@@ -56,7 +56,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@agikit/logic-language-server@^0.8.0, @agikit/logic-language-server@workspace:packages/logic-language-server":
+"@agikit/logic-language-server@^0.8.1, @agikit/logic-language-server@workspace:packages/logic-language-server":
   version: 0.0.0-use.local
   resolution: "@agikit/logic-language-server@workspace:packages/logic-language-server"
   dependencies:
@@ -71,7 +71,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@agikit/react-editors@^0.8.0, @agikit/react-editors@workspace:packages/react-editors":
+"@agikit/react-editors@^0.8.1, @agikit/react-editors@workspace:packages/react-editors":
   version: 0.0.0-use.local
   resolution: "@agikit/react-editors@workspace:packages/react-editors"
   dependencies:
@@ -2713,10 +2713,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "agikit-vscode@workspace:packages/agikit-vscode"
   dependencies:
-    "@agikit/cli": ^0.8.0
+    "@agikit/cli": ^0.8.1
     "@agikit/core": ^0.8.0
-    "@agikit/logic-language-server": ^0.8.0
-    "@agikit/react-editors": ^0.8.0
+    "@agikit/logic-language-server": ^0.8.1
+    "@agikit/react-editors": ^0.8.1
     "@popperjs/core": ^2.11.2
     "@types/escape-html": ^1.0.1
     "@types/glob": ^7.2.0
