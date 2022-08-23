@@ -1,4 +1,4 @@
-import { LogicScriptPreprocessedStatement } from './LogicScriptParser';
+import { LogicScriptParseTree, LogicScriptPreprocessedStatement } from './LogicScriptParser';
 import {
   LogicScriptCommandCall,
   LogicScriptComment,
@@ -15,8 +15,9 @@ export type LogicScriptPrimitiveStatement =
   | LogicScriptComment
   | LogicScriptMessageDirective;
 
-function simplifyLogicScriptStatement(
+export function simplifyLogicScriptStatement(
   statement: LogicScriptPreprocessedStatement,
+  parseTree: LogicScriptParseTree<LogicScriptPreprocessedStatement>,
 ): LogicScriptPrimitiveStatement {
   if (statement.type === 'UnaryOperationStatement') {
     const replacementStatement: LogicScriptCommandCall = {
@@ -28,9 +29,15 @@ function simplifyLogicScriptStatement(
   }
 
   if (statement.type === 'ValueAssignmentStatement') {
+    const valueType =
+      statement.value.type === 'Literal'
+        ? 'Literal'
+        : parseTree.identifiers.get(statement.value.name)?.identifierType === 'constant'
+        ? 'Literal'
+        : 'Identifier';
     const replacementStatement: LogicScriptCommandCall = {
       type: 'CommandCall',
-      commandName: statement.value.type === 'Literal' ? 'assignn' : 'assignv',
+      commandName: valueType === 'Literal' ? 'assignn' : 'assignv',
       argumentList: [statement.assignee, statement.value],
     };
     return replacementStatement;
@@ -84,8 +91,12 @@ function simplifyLogicScriptStatement(
   if (statement.type === 'IfStatement') {
     return {
       ...statement,
-      thenStatements: statement.thenStatements.map((s) => simplifyLogicScriptStatement(s)),
-      elseStatements: statement.elseStatements.map((s) => simplifyLogicScriptStatement(s)),
+      thenStatements: statement.thenStatements.map((s) =>
+        simplifyLogicScriptStatement(s, parseTree),
+      ),
+      elseStatements: statement.elseStatements.map((s) =>
+        simplifyLogicScriptStatement(s, parseTree),
+      ),
     };
   }
 
@@ -93,7 +104,7 @@ function simplifyLogicScriptStatement(
 }
 
 export function simplifyLogicScriptProgram(
-  program: LogicScriptProgram<LogicScriptPreprocessedStatement>,
+  parseTree: LogicScriptParseTree<LogicScriptPreprocessedStatement>,
 ): LogicScriptProgram<LogicScriptPrimitiveStatement> {
-  return program.map((statement) => simplifyLogicScriptStatement(statement));
+  return parseTree.program.map((statement) => simplifyLogicScriptStatement(statement, parseTree));
 }

@@ -57,7 +57,7 @@ export class LogicScriptASTGenerator {
     objectList: ObjectList,
   ) {
     this.parseTree = new LogicScriptParseTree(
-      simplifyLogicScriptProgram(parseTree.program),
+      simplifyLogicScriptProgram(parseTree),
       parseTree.identifiers,
     );
     this.wordList = wordList;

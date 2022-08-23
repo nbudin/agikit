@@ -25,9 +25,8 @@ export type LogicScriptStatementVisitor<StatementType extends LogicScriptStateme
   stack: LogicScriptStatementStack<StatementType>,
 ) => boolean;
 
-export type LogicScriptStatementStack<
-  StatementType extends LogicScriptStatement
-> = StatementType[][];
+export type LogicScriptStatementStack<StatementType extends LogicScriptStatement> =
+  StatementType[][];
 
 export type LogicScriptPreprocessedStatement =
   | Exclude<
