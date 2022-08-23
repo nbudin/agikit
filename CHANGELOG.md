@@ -1,3 +1,7 @@
+# Version 0.8.1 - August 23, 2022
+
+- Bug fix: emit assignn instruction when assigning a #define that points at a literal value (#3)
+
 # Version 0.8.0 - February 19, 2022
 
 - AGIv3 extraction and build support
