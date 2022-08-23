@@ -5,7 +5,7 @@ __metadata:
   version: 6
   cacheKey: 8
 
-"@agikit/cli@^0.8.1, @agikit/cli@workspace:packages/cli":
+"@agikit/cli@^0.8.2, @agikit/cli@workspace:packages/cli":
   version: 0.0.0-use.local
   resolution: "@agikit/cli@workspace:packages/cli"
   dependencies:
@@ -2713,7 +2713,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "agikit-vscode@workspace:packages/agikit-vscode"
   dependencies:
-    "@agikit/cli": ^0.8.1
+    "@agikit/cli": ^0.8.2
     "@agikit/core": ^0.8.0
     "@agikit/logic-language-server": ^0.8.1
     "@agikit/react-editors": ^0.8.2
