@@ -1,0 +1,4 @@
+undecided:
+  - root
+  - "@agikit/core"
+  - "@agikit/react-editors"

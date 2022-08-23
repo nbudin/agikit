@@ -71,7 +71,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@agikit/react-editors@^0.8.1, @agikit/react-editors@workspace:packages/react-editors":
+"@agikit/react-editors@^0.8.2, @agikit/react-editors@workspace:packages/react-editors":
   version: 0.0.0-use.local
   resolution: "@agikit/react-editors@workspace:packages/react-editors"
   dependencies:
@@ -2716,7 +2716,7 @@ __metadata:
     "@agikit/cli": ^0.8.1
     "@agikit/core": ^0.8.0
     "@agikit/logic-language-server": ^0.8.1
-    "@agikit/react-editors": ^0.8.1
+    "@agikit/react-editors": ^0.8.2
     "@popperjs/core": ^2.11.2
     "@types/escape-html": ^1.0.1
     "@types/glob": ^7.2.0
