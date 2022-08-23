@@ -1,0 +1,7 @@
+releases:
+  "@agikit/cli": patch
+  "@agikit/core": patch
+  "@agikit/logic-language-server": patch
+  "@agikit/react-editors": patch
+  agikit-vscode: patch
+  root: patch

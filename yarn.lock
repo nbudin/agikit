@@ -9,7 +9,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@agikit/cli@workspace:packages/cli"
   dependencies:
-    "@agikit/core": ^0.8.0
+    "@agikit/core": ^0.8.2
     "@types/color-support": ^1.1.1
     "@types/jest": ^27.4.0
     "@types/minimist": ^1.2.2
@@ -26,7 +26,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@agikit/core@^0.8.0, @agikit/core@workspace:packages/core":
+"@agikit/core@^0.8.2, @agikit/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@agikit/core@workspace:packages/core"
   dependencies:
@@ -56,11 +56,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@agikit/logic-language-server@^0.8.1, @agikit/logic-language-server@workspace:packages/logic-language-server":
+"@agikit/logic-language-server@^0.8.3, @agikit/logic-language-server@workspace:packages/logic-language-server":
   version: 0.0.0-use.local
   resolution: "@agikit/logic-language-server@workspace:packages/logic-language-server"
   dependencies:
-    "@agikit/core": ^0.8.0
+    "@agikit/core": ^0.8.2
     "@types/lodash": ^4.14.178
     "@types/node": ^14.18.10
     prettier: ^2.5.1
@@ -75,7 +75,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@agikit/react-editors@workspace:packages/react-editors"
   dependencies:
-    "@agikit/core": ^0.8.0
+    "@agikit/core": ^0.8.2
     "@popperjs/core": ^2.11.2
     "@types/lodash": ^4.14.178
     "@types/offscreencanvas": ^2019.6.4
@@ -2714,8 +2714,8 @@ __metadata:
   resolution: "agikit-vscode@workspace:packages/agikit-vscode"
   dependencies:
     "@agikit/cli": ^0.8.2
-    "@agikit/core": ^0.8.0
-    "@agikit/logic-language-server": ^0.8.1
+    "@agikit/core": ^0.8.2
+    "@agikit/logic-language-server": ^0.8.3
     "@agikit/react-editors": ^0.8.2
     "@popperjs/core": ^2.11.2
     "@types/escape-html": ^1.0.1
