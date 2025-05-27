@@ -34,5 +34,5 @@
       "packages/*"
     ]
   },
-  "packageManager": "yarn@3.2.0-rc.16"
+  "packageManager": "yarn@4.9.1"
 }

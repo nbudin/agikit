@@ -31,3 +31,8 @@ qtagistudio-*
 !/packages/*/.yarn/releases
 !/packages/*/.yarn/sdks
 !/packages/*/.yarn/versions
+
+
+# Added by cargo
+
+/target
