@@ -10,6 +10,7 @@ version = "0.1.0"
 name = "agikit-core"
 version = "0.1.0"
 dependencies = [
+ "bitfield-struct",
  "nodejs-sys",
  "serde",
  "tsify",
@@ -47,6 +48,17 @@ dependencies = [
  "shlex",
  "syn",
  "which",
+]
+
+[[package]]
+name = "bitfield-struct"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d3ca019570363e800b05ad4fd890734f28ac7b72f563ad8a35079efb793616f8"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

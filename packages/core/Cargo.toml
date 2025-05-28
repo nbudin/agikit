@@ -7,6 +7,7 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+bitfield-struct = "0.11.0"
 nodejs-sys = "0.15.0"
 serde = "1.0.219"
 tsify = { version = "0.5.5", features = ["js"] }
