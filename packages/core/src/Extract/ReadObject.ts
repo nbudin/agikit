@@ -1,5 +1,5 @@
 import { ObjectList, ObjectListEntry } from '../Types/ObjectList';
-import { getXorEncryptionKey, xorBuffer } from '../XorEncryption';
+import { getXorEncryptionKey, xorBuffer } from 'agikit_core';
 
 export function readObjectList(objectData: Buffer): ObjectList {
   const decryptedData = xorBuffer(objectData, getXorEncryptionKey());

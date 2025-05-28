@@ -1,6 +1,6 @@
 import { flatMap } from 'lodash';
 import { encodeUInt16LE } from '../DataEncoding';
-import { getXorEncryptionKey, xorBuffer } from '../XorEncryption';
+import { getXorEncryptionKey, xorBuffer } from 'agikit_core';
 
 export function encodeMessages(messageArray: (string | undefined)[], encrypt: boolean): Buffer {
   const messageBuffers: Buffer[] = [];

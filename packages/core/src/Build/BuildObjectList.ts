@@ -1,5 +1,5 @@
 import { flatMap } from 'lodash';
-import { getXorEncryptionKey, xorBuffer } from '../XorEncryption';
+import { getXorEncryptionKey, xorBuffer } from 'agikit_core';
 import { ObjectList } from '../Types/ObjectList';
 import { encodeUInt16LE } from '../DataEncoding';
 

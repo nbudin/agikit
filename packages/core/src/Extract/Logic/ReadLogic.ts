@@ -1,4 +1,4 @@
-import { getXorEncryptionKey, xorBuffer } from '../../XorEncryption';
+import { getXorEncryptionKey, xorBuffer } from 'agikit_core';
 import { AGIVersion } from '../../Types/AGIVersion';
 import { LogicProgram } from '../../Types/Logic';
 import { readInstructions } from './LogicDisasm';
