@@ -56,7 +56,26 @@ impl<'a> HeterogeneousDataReader<'a> {
         Ok(string)
     }
 
+    pub fn iter_bytes<'i: 'a>(self) -> HeterogeneousDataReaderBytesIterator<'i>
+    where
+        'a: 'i,
+    {
+        HeterogeneousDataReaderBytesIterator { reader: self }
+    }
+
     pub fn consume_remaining(self) -> Vec<u8> {
         self.data.collect()
+    }
+}
+
+pub struct HeterogeneousDataReaderBytesIterator<'a> {
+    reader: HeterogeneousDataReader<'a>,
+}
+
+impl Iterator for HeterogeneousDataReaderBytesIterator<'_> {
+    type Item = u8;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.reader.next_u8().ok()
     }
 }

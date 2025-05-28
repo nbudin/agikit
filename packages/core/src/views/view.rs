@@ -3,6 +3,7 @@ use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::js_sys::Uint8Array;
 
 use crate::{
+    color_palettes::ColorPalette,
     data_encoding::{DecodingError, HeterogeneousDataReader},
     wasm_utils::Buffer,
 };
@@ -77,6 +78,89 @@ struct RLEColorByte {
     count: u8,
     #[bits(4)]
     color: u8,
+}
+
+pub struct ViewRLEDataIterator<'a> {
+    input: &'a mut dyn Iterator<Item = u8>,
+    current_color: u8,
+    counter: usize,
+}
+
+impl<'a> ViewRLEDataIterator<'a> {
+    pub fn new(input: &'a mut dyn Iterator<Item = u8>) -> Self {
+        ViewRLEDataIterator {
+            input,
+            current_color: 0,
+            counter: 0,
+        }
+    }
+}
+
+impl<'a> Iterator for ViewRLEDataIterator<'a> {
+    type Item = u8;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.counter == 0 {
+            let byte = self.input.next()?;
+            if byte == 0 {
+                return None;
+            }
+
+            let rle_byte = RLEColorByte::from_bits(byte);
+            self.current_color = rle_byte.color();
+            self.counter = rle_byte.count() as usize;
+        }
+
+        if self.counter == 0 {
+            return None;
+        }
+
+        self.counter -= 1;
+
+        Some(self.current_color)
+    }
+}
+
+pub struct ViewCelPixelsIterator<'a> {
+    data: &'a [u8],
+    is_mirrored: bool,
+    width: u8,
+    height: u8,
+    index: usize,
+}
+
+impl<'a> ViewCelPixelsIterator<'a> {
+    pub fn new(data: &'a [u8], is_mirrored: bool, width: u8, height: u8) -> Self {
+        ViewCelPixelsIterator {
+            data,
+            is_mirrored,
+            width,
+            height,
+            index: 0,
+        }
+    }
+}
+
+impl<'a> Iterator for ViewCelPixelsIterator<'a> {
+    type Item = u8;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index >= self.width as usize * self.height as usize {
+            return None;
+        }
+
+        let offset = if self.is_mirrored {
+            let row = self.index / self.width as usize;
+            let col = self.width as usize - 1 - (self.index % self.width as usize);
+            row * self.width as usize + col
+        } else {
+            self.index
+        };
+
+        self.index += 1;
+
+        Some(self.data[offset])
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -157,21 +241,8 @@ impl AGIView {
                 } else {
                     let pixel_count = width as usize * height as usize;
                     let mut pixels = Vec::with_capacity(pixel_count);
-
-                    loop {
-                        if pixels.len() >= pixel_count {
-                            break;
-                        }
-                        let byte = cel_reader.next_u8()?;
-                        if byte > 0 {
-                            let byte = RLEColorByte::from_bits(byte);
-                            for _ in 0..byte.count() {
-                                pixels.push(byte.color());
-                            }
-                        } else {
-                            break;
-                        }
-                    }
+                    let mut bytes_iterator = cel_reader.iter_bytes();
+                    pixels.extend(ViewRLEDataIterator::new(&mut bytes_iterator).take(pixel_count));
 
                     if pixels.len() < pixel_count {
                         let remaining = pixel_count - pixels.len();
@@ -202,6 +273,76 @@ impl AGIView {
         // Placeholder for actual implementation
         Ok(AGIView { description, loops })
     }
+
+    pub fn get_cel(&self, loop_number: u8, cel_number: u8) -> Option<&ViewCel> {
+        self.loops
+            .get(loop_number as usize)
+            .and_then(|loop_| loop_.cels.get(cel_number as usize))
+    }
+
+    pub fn get_cel_data<'a>(&'a self, cel: &'a ViewCel) -> (&'a [u8], bool) {
+        let data = match &cel.data {
+            ViewCelData::NonMirrored(data) => &data.data,
+            ViewCelData::Mirrored(mirrored_data) => self
+                .loops
+                .get(mirrored_data.loop_number as usize)
+                .and_then(|loop_| loop_.cels.get(cel.cel_number as usize))
+                .and_then(|cel| {
+                    if let ViewCelData::NonMirrored(data) = &cel.data {
+                        Some(&data.data)
+                    } else {
+                        None
+                    }
+                })
+                .unwrap(),
+        };
+        (data.as_slice(), cel.is_mirrored())
+    }
+
+    pub fn render_cel(
+        &self,
+        loop_number: u8,
+        cel_number: u8,
+        color_palette: &ColorPalette,
+    ) -> Option<Vec<u8>> {
+        let cel = self.get_cel(loop_number, cel_number)?;
+        let (data, is_mirrored) = self.get_cel_data(cel);
+
+        Some(render_view_cel(
+            ViewCelPixelsIterator::new(data, is_mirrored, cel.width, cel.height),
+            cel.transparent_color,
+            color_palette,
+        ))
+    }
+}
+
+pub fn render_view_cel(
+    data: impl Iterator<Item = u8>,
+    transparent_color: u8,
+    color_palette: &ColorPalette,
+) -> Vec<u8> {
+    data.flat_map(|color| {
+        if color == transparent_color {
+            [0, 0, 0, 0] // Transparent pixel
+        } else {
+            let rgb_color = color_palette.colors[color as usize];
+            rgb_color
+        }
+    })
+    .collect()
+}
+
+#[wasm_bindgen(js_name = "renderViewCel")]
+pub fn render_view_cel_from_arrays(
+    source_buffer: Uint8Array,
+    transparent_color: u8,
+    color_palette: &ColorPalette,
+) -> Result<Uint8Array, JsValue> {
+    let data_vec = source_buffer.to_vec();
+    let rendered_data = render_view_cel(data_vec.iter().copied(), transparent_color, color_palette);
+    let array_buffer = Uint8Array::new_with_length(rendered_data.len() as u32);
+    array_buffer.copy_from(&rendered_data);
+    Ok(array_buffer)
 }
 
 #[wasm_bindgen(js_name = "readViewResource")]

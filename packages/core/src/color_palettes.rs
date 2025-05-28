@@ -8,7 +8,7 @@ pub type Color = [u8; 4];
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct ColorPalette {
     pub name: String,
-    #[tsify(type = "number[][]")]
+    #[tsify(type = "[number, number, number, number][]")]
     pub colors: [Color; 16],
 }
 

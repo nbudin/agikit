@@ -1,5 +1,5 @@
+import { ColorPalette } from 'agikit_core';
 import { max } from 'lodash';
-import { ColorPalette } from '../../ColorPalettes';
 import { PictureCoordinate, PicturePenSettings, Picture } from '../../Types/Picture';
 
 export type RenderedPicture = {

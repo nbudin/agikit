@@ -1,4 +1,4 @@
-import { ColorPalette } from '../../ColorPalettes';
+import { ColorPalette } from 'agikit_core';
 
 export function renderViewCel(
   sourceBuffer: Uint8Array,

@@ -1,3 +1,8 @@
+import { ColorPalette, egaPalette } from 'agikit_core';
+
+export const EGAPalette: ColorPalette = egaPalette();
+export * from 'agikit_core';
+
 export * from './Build/BuildLogic';
 export * from './Build/BuildObjectList';
 export * from './Build/BuildPicture';
@@ -6,7 +11,6 @@ export * from './Build/BuildView';
 export * from './Build/BuildWordsTok';
 export * from './Build/ProjectBuilder';
 export * from './Build/WriteResources';
-export * from './ColorPalettes';
 export * from './Compression/Bitstreams';
 export * from './Compression/LZW';
 export * from './Extract/DetectGame';
@@ -20,8 +24,6 @@ export * from './Extract/ReadObject';
 export * from './Extract/ReadResources';
 export * from './Extract/ReadWordsTok';
 export * from './Extract/Sound/ReadSound';
-export * from './Extract/View/ReadView';
-export * from './Extract/View/RenderView';
 export * from './Logger';
 export * from './Project';
 export * from './ProjectConfig';
@@ -41,5 +43,4 @@ export * from './Types/ObjectList';
 export * from './Types/Picture';
 export * from './Types/Resources';
 export * from './Types/Sound';
-export * from './Types/View';
 export * from './Types/WordList';

@@ -9,10 +9,10 @@
     "url": "https://github.com/nbudin"
   },
   "scripts": {
-    "build": "tsc --build",
-    "prepare": "tsc --build",
+    "build": "wasm-pack build --target nodejs && tsc --build",
+    "prepare": "wasm-pack build --target nodejs && tsc --build",
     "generate-parsers": "ts-node src/Scripting/generateParsers.ts",
-    "test": "jest"
+    "test": "cargo test && jest"
   },
   "dependencies": {
     "assert-never": "^1.2.1",
