@@ -32,17 +32,15 @@ impl<'a> Iterator for ViewRLEDecoder<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         if self.counter == 0 {
             let byte = self.input.next()?;
+            eprintln!("Decoding byte: {:02x}", byte);
             if byte == 0 {
                 return None;
             }
 
             let rle_byte = RLEColorByte::from_bits(byte);
+            eprintln!("RLE byte: {:?}", rle_byte);
             self.current_color = rle_byte.color();
             self.counter = rle_byte.count() as usize;
-        }
-
-        if self.counter == 0 {
-            return None;
         }
 
         self.counter -= 1;
@@ -51,19 +49,19 @@ impl<'a> Iterator for ViewRLEDecoder<'a> {
     }
 }
 
-pub struct ViewRLEEncoder<'a> {
-    input: Peekable<&'a mut dyn Iterator<Item = u8>>,
+pub struct ViewRLEEncoder<'a, Data: Iterator<Item = u8> + 'a> {
+    input: Peekable<&'a mut Data>,
 }
 
-impl<'a> ViewRLEEncoder<'a> {
-    pub fn new(input: &'a mut dyn Iterator<Item = u8>) -> Self {
+impl<'a, Data: Iterator<Item = u8> + 'a> ViewRLEEncoder<'a, Data> {
+    pub fn new(input: &'a mut Data) -> Self {
         ViewRLEEncoder {
             input: input.peekable(),
         }
     }
 }
 
-impl Iterator for ViewRLEEncoder<'_> {
+impl<Data: Iterator<Item = u8>> Iterator for ViewRLEEncoder<'_, Data> {
     type Item = u8;
 
     fn next(&mut self) -> Option<Self::Item> {

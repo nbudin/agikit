@@ -11,8 +11,8 @@ pub trait Encode {
     fn encode(&self, options: Self::Options) -> Result<Vec<u8>, EncodingError>;
 }
 
-pub trait Decode {
-    type Options;
+pub trait Decode<'opt> {
+    type Options: 'opt;
 
     fn decode<'a, Data: Iterator<Item = u8> + 'a>(
         data: &'a mut Data,
@@ -22,5 +22,5 @@ pub trait Decode {
         Self: Sized;
 }
 
-pub trait Resource: Encode + Decode {}
-impl<T> Resource for T where T: Encode + Decode {}
+pub trait Resource<'dec>: Encode + Decode<'dec> {}
+impl<'dec, T> Resource<'dec> for T where T: Encode + Decode<'dec> {}

@@ -30,8 +30,14 @@ impl Encode for ViewCel {
         let mut data_iterator = data.iter().copied();
         let encoder = ViewRLEEncoder::new(&mut data_iterator);
         encoded.extend(encoder);
-
         encoded.push(0);
+
+        eprintln!(
+            "Cel {} encoded with length {}",
+            self.cel_number,
+            encoded.len()
+        );
+
         Ok(encoded)
     }
 }
@@ -55,6 +61,8 @@ impl Encode for ViewLoop {
                 },
             )
             .1;
+
+        eprintln!("Loop {} Cel offsets: {:?}", self.loop_number, cel_offsets);
 
         Ok(std::iter::once(self.cels.len() as u8)
             .chain(cel_offsets.iter().flat_map(|&offset| offset.to_le_bytes()))
@@ -94,13 +102,13 @@ impl Encode for AGIView {
                     return None;
                 }
 
+                let loop_number_if_mirrored = mirror_destination_loop_numbers
+                    .get(&loop_.loop_number)
+                    .map(|_| loop_.loop_number);
+
                 Some(
                     loop_
-                        .encode(
-                            mirror_destination_loop_numbers
-                                .get(&loop_.loop_number)
-                                .copied(),
-                        )
+                        .encode(loop_number_if_mirrored)
                         .map(|encoded| (loop_.loop_number, encoded)),
                 )
             })

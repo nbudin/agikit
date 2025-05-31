@@ -4,23 +4,23 @@ use web_sys::js_sys::Uint8Array;
 
 use crate::{color_palettes::ColorPalette, wasm_utils::Buffer};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NonMirroredViewCelData {
     pub data: Vec<u8>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MirroredViewCelData {
     pub loop_number: u8,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ViewCelData {
     NonMirrored(NonMirroredViewCelData),
     Mirrored(MirroredViewCelData),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[wasm_bindgen]
 pub struct ViewCel {
     #[wasm_bindgen(js_name = "celNumber")]

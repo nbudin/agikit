@@ -5,7 +5,7 @@ use crate::{color_palettes::ColorPalette, resource::Decode, wasm_utils::Buffer};
 
 use super::cel::{render_view_cel, ViewCel, ViewCelData, ViewCelHandle, ViewCelPixelsIterator};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[wasm_bindgen]
 pub struct ViewLoop {
     #[wasm_bindgen(js_name = "loopNumber")]
@@ -14,7 +14,7 @@ pub struct ViewLoop {
     pub cels: Vec<ViewCel>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[wasm_bindgen]
 pub struct AGIView {
     #[wasm_bindgen(getter_with_clone)]
@@ -119,6 +119,8 @@ mod tests {
         }
 
         let encoded = view.encode(()).unwrap();
+        let redecoded = AGIView::decode(&mut encoded.iter().copied(), ()).unwrap();
+        assert_eq!(view, redecoded);
         assert_eq!(VIEW_DATA[0..30], encoded.as_slice()[0..30]);
     }
 }

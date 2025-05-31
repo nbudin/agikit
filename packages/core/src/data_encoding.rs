@@ -1,4 +1,4 @@
-use std::{iter::Copied, marker::PhantomData};
+use std::{fmt::Debug, iter::Copied, marker::PhantomData};
 
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -23,6 +23,15 @@ pub struct HeterogeneousDataReader<'a, Data: Iterator<Item = u8> + 'a> {
     _phantom: PhantomData<&'a ()>,
 }
 
+impl<'a, Data: Iterator<Item = u8> + 'a> Debug for HeterogeneousDataReader<'a, Data> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("HeterogeneousDataReader")
+            .field("offset", &self.offset)
+            .field("data", &std::any::type_name::<Data>())
+            .finish()
+    }
+}
+
 impl<'a> HeterogeneousDataReader<'a, Copied<std::slice::Iter<'a, u8>>> {
     pub fn from_slice(data: &'a [u8]) -> Self {
         HeterogeneousDataReader {
@@ -33,7 +42,7 @@ impl<'a> HeterogeneousDataReader<'a, Copied<std::slice::Iter<'a, u8>>> {
     }
 
     pub fn from_offset(data: &'a [u8], offset: usize) -> Self {
-        let iterator = data.split_at(offset).1.iter().copied();
+        let iterator = data[offset..].iter().copied();
         HeterogeneousDataReader {
             data: Box::new(iterator),
             offset,
@@ -90,10 +99,20 @@ pub struct HeterogeneousDataReaderBytesIterator<'a, Data: Iterator<Item = u8> + 
     reader: HeterogeneousDataReader<'a, Data>,
 }
 
+impl<'a, Data: Iterator<Item = u8> + 'a> Debug for HeterogeneousDataReaderBytesIterator<'a, Data> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("HeterogeneousDataReaderBytesIterator")
+            .field("reader", &self.reader)
+            .finish()
+    }
+}
+
 impl<Data: Iterator<Item = u8>> Iterator for HeterogeneousDataReaderBytesIterator<'_, Data> {
     type Item = u8;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.reader.next_u8().ok()
+        let byte = self.reader.next_u8();
+        eprintln!("Reading byte: {:?}", byte);
+        byte.ok()
     }
 }
