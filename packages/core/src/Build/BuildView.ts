@@ -1,4 +1,4 @@
-import { AGIView, NonMirroredViewCel, ViewLoop } from '../Types/View';
+import { AGIView, ViewCel, ViewLoop } from 'agikit_core';
 import { encodeUInt16LE } from '../DataEncoding';
 
 function buildHeaderForOptionalBuffers(
@@ -38,7 +38,7 @@ function concatOptionalBuffers(buffers: (Buffer | undefined)[]): Buffer {
   return Buffer.concat(definedBuffers);
 }
 
-function encodeCel(cel: NonMirroredViewCel, mirrorSourceLoopNumber: number | undefined): Buffer {
+function encodeCel(cel: ViewCel, mirrorSourceLoopNumber: number | undefined): Buffer {
   let transparencyMirroringByte = cel.transparentColor & 0x0f;
   if (mirrorSourceLoopNumber != null) {
     transparencyMirroringByte += 0b10000000;
@@ -51,7 +51,7 @@ function encodeCel(cel: NonMirroredViewCel, mirrorSourceLoopNumber: number | und
     let runLength = 0;
     for (let x = 0; x < cel.width; x++) {
       const offset = x + y * cel.width;
-      const pixelColor = cel.buffer[offset];
+      const pixelColor = cel.buffer![offset];
 
       if (lastPixelColor == null) {
         lastPixelColor = pixelColor;

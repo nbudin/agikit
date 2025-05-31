@@ -1,3 +1,5 @@
+use std::{iter::Copied, marker::PhantomData};
+
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[wasm_bindgen(js_name = encodeUInt16LE)]
@@ -15,14 +17,19 @@ pub enum DecodingError {
     UnexpectedEndOfData,
 }
 
-pub struct HeterogeneousDataReader<'a> {
-    data: Box<dyn Iterator<Item = u8> + 'a>,
+pub struct HeterogeneousDataReader<'a, Data: Iterator<Item = u8> + 'a> {
+    data: Box<Data>,
     pub offset: usize,
+    _phantom: PhantomData<&'a ()>,
 }
 
-impl<'a> HeterogeneousDataReader<'a> {
-    pub fn new(data: Box<dyn Iterator<Item = u8> + 'a>) -> Self {
-        HeterogeneousDataReader { data, offset: 0 }
+impl<'a> HeterogeneousDataReader<'a, Copied<std::slice::Iter<'a, u8>>> {
+    pub fn from_slice(data: &'a [u8]) -> Self {
+        HeterogeneousDataReader {
+            data: Box::new(data.iter().copied()),
+            offset: 0,
+            _phantom: PhantomData,
+        }
     }
 
     pub fn from_offset(data: &'a [u8], offset: usize) -> Self {
@@ -30,6 +37,17 @@ impl<'a> HeterogeneousDataReader<'a> {
         HeterogeneousDataReader {
             data: Box::new(iterator),
             offset,
+            _phantom: PhantomData,
+        }
+    }
+}
+
+impl<'a, Data: Iterator<Item = u8>> HeterogeneousDataReader<'a, Data> {
+    pub fn new(data: Data) -> Self {
+        HeterogeneousDataReader {
+            data: Box::new(data),
+            offset: 0,
+            _phantom: PhantomData,
         }
     }
 
@@ -56,7 +74,7 @@ impl<'a> HeterogeneousDataReader<'a> {
         Ok(string)
     }
 
-    pub fn iter_bytes<'i: 'a>(self) -> HeterogeneousDataReaderBytesIterator<'i>
+    pub fn iter_bytes<'i: 'a>(self) -> HeterogeneousDataReaderBytesIterator<'i, Data>
     where
         'a: 'i,
     {
@@ -68,11 +86,11 @@ impl<'a> HeterogeneousDataReader<'a> {
     }
 }
 
-pub struct HeterogeneousDataReaderBytesIterator<'a> {
-    reader: HeterogeneousDataReader<'a>,
+pub struct HeterogeneousDataReaderBytesIterator<'a, Data: Iterator<Item = u8> + 'a> {
+    reader: HeterogeneousDataReader<'a, Data>,
 }
 
-impl Iterator for HeterogeneousDataReaderBytesIterator<'_> {
+impl<Data: Iterator<Item = u8>> Iterator for HeterogeneousDataReaderBytesIterator<'_, Data> {
     type Item = u8;
 
     fn next(&mut self) -> Option<Self::Item> {
