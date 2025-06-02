@@ -1,7 +1,8 @@
 use crate::{
-    data_encoding::{DecodingError, HeterogeneousDataReader},
-    resource::Decode,
+    data_encoding::ReadHeterogeneousData,
+    resource::{Decode, DecodingError},
 };
+use std::io::SeekFrom;
 
 use super::{
     cel::{
@@ -20,16 +21,18 @@ pub struct ViewCelDecodeOptions {
 impl Decode<'_> for ViewCel {
     type Options = ViewCelDecodeOptions;
 
-    fn decode<'a, Data: Iterator<Item = u8> + 'a>(
+    fn decode<'a, Data: ReadHeterogeneousData>(
         data: &mut Data,
         options: Self::Options,
     ) -> Result<Self, DecodingError> {
-        let mut cel_reader = HeterogeneousDataReader::new(data);
-
-        let width = cel_reader.next_u8()?;
-        let height = cel_reader.next_u8()?;
-        let transparency_mirroring_byte =
-            TransparencyMirroringByte::from_bits(cel_reader.next_u8()?);
+        let cel_offset = data.stream_position()?;
+        eprintln!(
+            "Decode: Loop {} Cel {} Offset: {:02x}",
+            options.cel_number, options.loop_number, cel_offset
+        );
+        let width = data.read_u8()?;
+        let height = data.read_u8()?;
+        let transparency_mirroring_byte = TransparencyMirroringByte::from_bits(data.read_u8()?);
 
         let data = if transparency_mirroring_byte.is_mirrored()
             && transparency_mirroring_byte.mirrored_from_loop_number() != options.loop_number
@@ -39,12 +42,17 @@ impl Decode<'_> for ViewCel {
         } else {
             let pixel_count = width as usize * height as usize;
             let mut pixels = Vec::with_capacity(pixel_count);
-            let mut bytes_iterator = cel_reader.iter_bytes();
-            eprintln!(
-                "Decode: Cel {} Loop {} Pixel count: {} Bytes iterator: {:?}",
-                options.cel_number, options.loop_number, pixel_count, bytes_iterator
+            let mut bytes_iterator = data.clone().bytes().map(|b| b.unwrap_or(0));
+            eprintln!("Decode: Pixel count: {}", pixel_count);
+            pixels.extend(
+                ViewRLEDecoder::new(
+                    &mut bytes_iterator,
+                    width.into(),
+                    height.into(),
+                    transparency_mirroring_byte.transparent_color(),
+                )
+                .take(pixel_count),
             );
-            pixels.extend(ViewRLEDecoder::new(&mut bytes_iterator).take(pixel_count));
 
             if pixels.len() < pixel_count {
                 let remaining = pixel_count - pixels.len();
@@ -74,33 +82,34 @@ pub struct ViewLoopDecodeOptions {
 impl Decode<'_> for ViewLoop {
     type Options = ViewLoopDecodeOptions;
 
-    fn decode<'a, Data: Iterator<Item = u8> + 'a>(
+    fn decode<'a, Data: ReadHeterogeneousData>(
         data: &'a mut Data,
         options: Self::Options,
     ) -> Result<Self, DecodingError> {
-        let mut loop_reader = HeterogeneousDataReader::new(data);
-        let cel_count = loop_reader.next_u8()?;
+        let loop_offset = data.stream_position()?;
+        let cel_count = data.read_u8()?;
         let mut cels = Vec::with_capacity(cel_count as usize);
         let mut cel_offsets = Vec::with_capacity(cel_count as usize);
         for _ in 0..cel_count {
-            cel_offsets.push(loop_reader.next_u16_le()?);
+            cel_offsets.push(data.read_u16_le()?);
         }
 
-        let rest = loop_reader.consume_remaining();
-
         eprintln!(
-            "Decode: Loop {} Cel offsets: {:?}",
-            options.loop_number, cel_offsets
+            "Decode: Loop {} Offset: {} Cel offsets: [{}]",
+            options.loop_number,
+            loop_offset,
+            cel_offsets
+                .iter()
+                .map(|&o| format!("{:02x}", o + loop_offset as u16))
+                .collect::<Vec<_>>()
+                .join(", ")
         );
 
         for (cel_number, &cel_offset) in cel_offsets.iter().enumerate() {
-            let cel_reader = HeterogeneousDataReader::from_offset(
-                &rest,
-                cel_offset as usize - (1 + cel_count as usize * 2),
-            );
+            data.seek(SeekFrom::Start(loop_offset + cel_offset as u64))?;
 
             let cel = ViewCel::decode(
-                &mut cel_reader.iter_bytes(),
+                data,
                 ViewCelDecodeOptions {
                     loop_number: options.loop_number,
                     cel_number: cel_number as u8,
@@ -120,43 +129,34 @@ impl Decode<'_> for ViewLoop {
 impl Decode<'_> for AGIView {
     type Options = ();
 
-    fn decode<'a, Data: Iterator<Item = u8> + 'a>(
+    fn decode<'a, Data: ReadHeterogeneousData>(
         data: &'a mut Data,
         _: Self::Options,
     ) -> Result<Self, DecodingError> {
-        let mut data = HeterogeneousDataReader::new(data);
-
         // AGI Spec says the purpose of the first 2 bytes is unknown :/
         // http://agiwiki.sierrahelp.com/index.php?title=AGI_Specifications:_Chapter_8_-_View_Resources#ss8.1
-        data.next_u8()?;
-        data.next_u8()?;
+        data.read_u8()?;
+        data.read_u8()?;
 
-        let loop_count = data.next_u8()?;
+        let loop_count = data.read_u8()?;
         let mut loops = Vec::with_capacity(loop_count as usize);
-        let description_offset = data.next_u16_le()?;
+        let description_offset = data.read_u16_le()?;
         let mut loop_offsets = Vec::with_capacity(loop_count as usize);
         for _ in 0..loop_count {
-            loop_offsets.push(data.next_u16_le()?);
+            loop_offsets.push(data.read_u16_le()?);
         }
 
-        let header_length = data.offset;
-        let rest = data.consume_remaining();
-
         let description = if description_offset > 0 {
-            let mut description_reader = HeterogeneousDataReader::from_offset(
-                &rest,
-                description_offset as usize - header_length,
-            );
-            Some(description_reader.next_null_terminated_string()?)
+            data.seek(SeekFrom::Start(description_offset as u64))?;
+            Some(data.read_null_terminated_string()?)
         } else {
             None
         };
 
         for (loop_number, &loop_offset) in loop_offsets.iter().enumerate() {
+            data.seek(SeekFrom::Start(loop_offset as u64))?;
             let loop_ = ViewLoop::decode(
-                &mut rest.as_slice()[(loop_offset as usize - header_length)..]
-                    .iter()
-                    .copied(),
+                data,
                 ViewLoopDecodeOptions {
                     loop_number: loop_number as u8,
                 },

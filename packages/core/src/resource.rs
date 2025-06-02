@@ -1,6 +1,17 @@
-use crate::data_encoding::DecodingError;
+use crate::data_encoding::ReadHeterogeneousData;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
+pub enum DecodingError {
+    IoError(std::io::Error),
+}
+
+impl From<std::io::Error> for DecodingError {
+    fn from(error: std::io::Error) -> Self {
+        DecodingError::IoError(error)
+    }
+}
+
+#[derive(Debug)]
 pub enum EncodingError {
     InvalidOptions(String),
 }
@@ -14,7 +25,7 @@ pub trait Encode {
 pub trait Decode<'opt> {
     type Options: 'opt;
 
-    fn decode<'a, Data: Iterator<Item = u8> + 'a>(
+    fn decode<'a, Data: ReadHeterogeneousData>(
         data: &'a mut Data,
         options: Self::Options,
     ) -> Result<Self, DecodingError>

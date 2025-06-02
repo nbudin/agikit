@@ -1,3 +1,5 @@
+use std::io::Cursor;
+
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::js_sys::Uint8Array;
 
@@ -77,12 +79,14 @@ impl AGIView {
 pub fn read_view_resource(data: Buffer) -> Result<AGIView, JsValue> {
     let data_array = Uint8Array::new(&data);
     let data_vec = data_array.to_vec();
-    AGIView::decode(&mut data_vec.iter().copied(), ())
+    AGIView::decode(&mut Cursor::new(data_vec), ())
         .map_err(|e| JsValue::from_str(format!("{:?}", e).as_str()))
 }
 
 #[cfg(test)]
 mod tests {
+    use std::io::Cursor;
+
     use crate::resource::{Decode, Encode};
 
     use super::*;
@@ -92,7 +96,7 @@ mod tests {
 
     #[test]
     fn smoke_test() {
-        let view = AGIView::decode(&mut VIEW_DATA.iter().copied(), ()).unwrap();
+        let view = AGIView::decode(&mut Cursor::new(VIEW_DATA), ()).unwrap();
         assert_eq!(view.loops.len(), 4);
         assert_eq!(view.loops[0].cels.len(), 8);
         for cel in &view.loops[0].cels {
@@ -119,7 +123,7 @@ mod tests {
         }
 
         let encoded = view.encode(()).unwrap();
-        let redecoded = AGIView::decode(&mut encoded.iter().copied(), ()).unwrap();
+        let redecoded = AGIView::decode(&mut Cursor::new(encoded.clone()), ()).unwrap();
         assert_eq!(view, redecoded);
         assert_eq!(VIEW_DATA[0..30], encoded.as_slice()[0..30]);
     }

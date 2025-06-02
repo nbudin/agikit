@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use crate::resource::{Encode, EncodingError};
+use crate::{
+    resource::{Encode, EncodingError},
+    views::cel::ViewCelPixelsIterator,
+};
 
 use super::{
     cel::{NonMirroredViewCelData, TransparencyMirroringByte, ViewCel, ViewCelData},
@@ -28,9 +31,30 @@ impl Encode for ViewCel {
         encoded.push(transparency_mirroring_byte.into_bits());
 
         let mut data_iterator = data.iter().copied();
-        let encoder = ViewRLEEncoder::new(&mut data_iterator);
-        encoded.extend(encoder);
-        encoded.push(0);
+        let encoder = ViewRLEEncoder::new(
+            &mut data_iterator,
+            self.width as usize,
+            self.height as usize,
+            self.transparent_color,
+        );
+        let encoded_data = encoder.collect::<Vec<u8>>();
+
+        let mut mirrored_iterator =
+            ViewCelPixelsIterator::new(&data, true, self.width, self.height);
+        let mirrored_encoder = ViewRLEEncoder::new(
+            &mut mirrored_iterator,
+            self.width as usize,
+            self.height as usize,
+            self.transparent_color,
+        );
+        let mirrored_count = mirrored_encoder.count();
+        let target_byte_count = encoded_data.len().max(mirrored_count);
+        let pad_bytes = target_byte_count.saturating_sub(encoded_data.len());
+
+        encoded.extend(encoded_data.iter().copied());
+        if pad_bytes > 0 {
+            encoded.extend(std::iter::repeat(0).take(pad_bytes));
+        }
 
         eprintln!(
             "Cel {} encoded with length {}",
