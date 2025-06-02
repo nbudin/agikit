@@ -39,6 +39,8 @@ impl Encode for ViewCel {
         );
         let encoded_data = encoder.collect::<Vec<u8>>();
 
+        // Per AGI spec, the cel has to have the same length regardless of if it's mirrored or not.  Therefore, we
+        // encode it a second time mirrored, and if the mirrored version is longer, we zero-pad the original data.
         let mut mirrored_iterator =
             ViewCelPixelsIterator::new(&data, true, self.width, self.height);
         let mirrored_encoder = ViewRLEEncoder::new(
@@ -55,12 +57,6 @@ impl Encode for ViewCel {
         if pad_bytes > 0 {
             encoded.extend(std::iter::repeat(0).take(pad_bytes));
         }
-
-        eprintln!(
-            "Cel {} encoded with length {}",
-            self.cel_number,
-            encoded.len()
-        );
 
         Ok(encoded)
     }
@@ -245,7 +241,7 @@ mod tests {
                 2,    // width
                 2,    // height
                 0x0f, // transparency mirroring byte (transparent color 0, not mirrored)
-                0x11, 0x21, 0x31, 0x41, 0 // RLE encoded data for [1, 2, 3, 4]
+                0x11, 0x21, 0, 0x31, 0x41, 0 // RLE encoded data for [1, 2, 3, 4]
             ]
         );
     }

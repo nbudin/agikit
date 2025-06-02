@@ -10,6 +10,7 @@ struct RLEColorByte {
     color: u8,
 }
 
+#[derive(Debug)]
 enum ViewRLEDecoderState {
     Start,
     OutputColor { color: u8, count: usize },
@@ -116,6 +117,13 @@ impl<'a> Iterator for ViewRLEDecoder<'a> {
     }
 }
 
+#[derive(Debug)]
+enum ViewRLEEncoderState {
+    Start,
+    ReachedLineEnd,
+    Done,
+}
+
 pub struct ViewRLEEncoder<'a, Data: Iterator<Item = u8> + 'a> {
     input: Peekable<&'a mut Data>,
     width: usize,
@@ -123,8 +131,7 @@ pub struct ViewRLEEncoder<'a, Data: Iterator<Item = u8> + 'a> {
     x: usize,
     y: usize,
     transparent_color: u8,
-    reached_end: bool,
-    pending_eol_byte: bool,
+    state: ViewRLEEncoderState,
 }
 
 impl<'a, Data: Iterator<Item = u8> + 'a> ViewRLEEncoder<'a, Data> {
@@ -136,8 +143,7 @@ impl<'a, Data: Iterator<Item = u8> + 'a> ViewRLEEncoder<'a, Data> {
             transparent_color,
             x: 0,
             y: 0,
-            reached_end: false,
-            pending_eol_byte: false,
+            state: ViewRLEEncoderState::Start,
         }
     }
 
@@ -154,49 +160,59 @@ impl<Data: Iterator<Item = u8>> Iterator for ViewRLEEncoder<'_, Data> {
     type Item = u8;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.reached_end {
-            return None;
-        }
+        eprintln!(
+            "RLE Encoder: x={}, y={}, state={:?}",
+            self.x, self.y, self.state
+        );
+        match self.state {
+            ViewRLEEncoderState::Start => {
+                let Some(color) = self.input.next() else {
+                    self.state = ViewRLEEncoderState::Done;
+                    return Some(0);
+                };
 
-        if self.pending_eol_byte {
-            self.pending_eol_byte = false;
-            return Some(0);
-        }
+                self.advance();
 
-        let Some(color) = self.input.next() else {
-            self.reached_end = true;
-            return Some(0);
-        };
+                let mut count: u8 = 1;
 
-        self.advance();
+                loop {
+                    let next_color = self.input.peek();
+                    if next_color.is_none()
+                        || next_color.unwrap() != &color
+                        || count == 15
+                        || self.x == 0
+                    {
+                        break;
+                    }
+                    self.advance();
+                    self.input.next();
+                    count += 1;
+                }
 
-        let mut count: u8 = 1;
+                eprintln!("RLE Encoder: color={}, count={}", color, count);
 
-        loop {
-            let next_color = self.input.peek();
-            if next_color.is_none() || next_color.unwrap() != &color || count == 15 || self.x == 0 {
-                break;
+                if self.x == 0 {
+                    self.state = ViewRLEEncoderState::ReachedLineEnd;
+
+                    if color == self.transparent_color {
+                        // Skip returning the RLE data for transparent colors
+                        return self.next();
+                    }
+                }
+
+                let rle_byte = RLEColorByte::new().with_count(count).with_color(color);
+                return Some(rle_byte.into_bits());
             }
-            self.advance();
-            self.input.next();
-            count += 1;
-        }
-
-        if self.x == 0 {
-            if self.y >= self.height {
-                self.reached_end = true;
-                return Some(0);
+            ViewRLEEncoderState::ReachedLineEnd => {
+                self.state = if self.y < self.height {
+                    ViewRLEEncoderState::Start
+                } else {
+                    ViewRLEEncoderState::Done
+                };
+                Some(0)
             }
-
-            if count == 0 || color == self.transparent_color {
-                return Some(0);
-            } else {
-                self.pending_eol_byte = true;
-            }
+            ViewRLEEncoderState::Done => None,
         }
-
-        let rle_byte = RLEColorByte::new().with_count(count).with_color(color);
-        return Some(rle_byte.into_bits());
     }
 }
 
