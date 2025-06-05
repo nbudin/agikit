@@ -22,7 +22,7 @@ import {
   LogicCommand,
   LogicInstruction,
 } from '../../Types/Logic';
-import { WordList } from '../../Types/WordList';
+import { WordList } from 'agikit_core';
 import { optimizeAST } from './ASTOptimization';
 import {
   BasicBlock,

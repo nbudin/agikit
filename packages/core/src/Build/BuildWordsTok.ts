@@ -1,6 +1,6 @@
 import { flatMap } from 'lodash';
-import { encodeUInt16BE } from '../DataEncoding';
-import { WordList } from '../Types/WordList';
+import { encodeUInt16BE } from 'agikit_core';
+import { WordList } from 'agikit_core';
 
 const LETTERS = Array.from({ length: 26 }, (_, index) =>
   String.fromCharCode('A'.charCodeAt(0) + index),

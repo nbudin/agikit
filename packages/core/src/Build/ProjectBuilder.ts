@@ -3,7 +3,6 @@ import path from 'path';
 import { Project } from '../Project';
 import {
   LogicScriptSyntaxError,
-  WordListSyntaxError,
   SyntaxErrorWithFilePath,
   ObjectList,
   Resource,
@@ -28,6 +27,7 @@ import {
 } from '..';
 import { compileLogicScript, LogicCompilerError } from './BuildLogic';
 import fileSize from 'filesize';
+import { WordListSyntaxError } from '../errors';
 
 export class ProjectBuilder {
   project: Project;

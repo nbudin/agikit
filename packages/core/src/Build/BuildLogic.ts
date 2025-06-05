@@ -5,7 +5,7 @@ import { LogicCompiler } from '../Scripting/LogicCompiler';
 import { LogicScriptASTGenerator } from '../Scripting/LogicScriptASTGenerator';
 import { parseLogicScript, parseLogicScriptRaw } from '../Scripting/LogicScriptParser';
 import { encodeLogic, encodeMessages } from '../Scripting/WriteLogic';
-import { WordList } from '../Types/WordList';
+import { WordList } from 'agikit_core';
 import { ObjectList } from '../Types/ObjectList';
 import { getDiagnosticsForProgram, LogicDiagnostic } from '../Scripting/LogicDiagnostics';
 

@@ -17,7 +17,7 @@ import {
   LogicScriptLiteral,
   LogicScriptTestCall,
 } from './LogicScriptParserTypes';
-import { WordList } from '../Types/WordList';
+import { WordList } from 'agikit_core';
 import { flatMap, max } from 'lodash';
 import assertNever from 'assert-never';
 import { LogicConditionClause, LogicTest } from '../Types/Logic';

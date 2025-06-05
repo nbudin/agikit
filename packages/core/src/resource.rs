@@ -14,6 +14,7 @@ impl From<std::io::Error> for DecodingError {
 #[derive(Debug)]
 pub enum EncodingError {
     InvalidOptions(String),
+    UnencodableData(String),
 }
 
 pub trait Encode {

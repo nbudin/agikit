@@ -1,0 +1,44 @@
+0: a all an another at for from i in inside into is it me now of off out some that the these this those through to under up will with you
+1: anyword
+2: quit
+3: restart
+4: restore
+5: save
+6: game
+7: pause
+8: help
+9: slow
+10: normal
+11: fast
+12: fastest
+13: speed
+14: y yes
+15: n no
+16: on
+18: clock
+19: inv inventory
+20: examine look
+21: get
+22: use
+30: "test object"
+31: die
+1000: sp
+1001: tp
+1002: pos position
+1003: object
+1004: flag
+1005: mem
+1006: pri priority
+1007: var
+1010: reset
+1011: set
+1012: show
+1013: trace
+1014: debug
+1015: room
+1016: drop
+1017: gimme
+1018: release
+1019: hide
+1020: coords
+9999: rol
