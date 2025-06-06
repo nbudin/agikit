@@ -87,30 +87,31 @@ impl Encode for WordList {
         }
 
         let mut header: [u8; 52] = [0; 52];
-        let mut data: Vec<u8> = std::iter::once(0)
-            .chain(encode_word("ANYWORD"))
-            .chain(encode_uint16be(1))
-            .collect();
+        let mut data: Vec<u8> = vec![];
         let mut offset = 52 + data.len();
         for (index, letter) in LETTERS.iter().enumerate() {
-            let word_entries = words_entries_by_first_letter.get(&letter);
-            match word_entries {
-                Some(word_entries) => {
-                    let offset_encoded = encode_uint16be(offset as u16);
-                    header[index * 2] = offset_encoded[0];
-                    header[index * 2 + 1] = offset_encoded[1];
+            let Some(word_entries) = words_entries_by_first_letter.get(&letter) else {
+                continue;
+            };
+            if word_entries.is_empty() {
+                continue;
+            }
 
-                    for word_entry in word_entries {
-                        data.extend_from_slice(word_entry);
-                        offset += word_entry.len();
-                    }
-                }
-                None => {
-                    // header is already initialized with zeros
-                }
+            let offset_encoded = encode_uint16be(offset as u16);
+            header[index * 2] = offset_encoded[0];
+            header[index * 2 + 1] = offset_encoded[1];
+
+            for word_entry in word_entries {
+                data.extend_from_slice(word_entry);
+                offset += word_entry.len();
             }
         }
 
-        Ok(header.iter().chain(data.iter().as_ref()).copied().collect())
+        Ok(header
+            .iter()
+            .chain(data.iter().as_ref())
+            .copied()
+            .chain(std::iter::once(0))
+            .collect())
     }
 }
