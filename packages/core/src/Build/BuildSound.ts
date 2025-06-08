@@ -1,4 +1,4 @@
-import { encodeUInt16LE } from '../DataEncoding';
+import { encodeUInt16LE } from 'agikit_core';
 import {
   IBMPCjrNoiseNote,
   IBMPCjrNoiseVoice,

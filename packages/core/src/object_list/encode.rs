@@ -1,9 +1,13 @@
 use std::io::Cursor;
 
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use web_sys::js_sys::Uint8Array;
+
 use crate::{
     data_encoding::WriteHeterogeneousData,
     object_list::ObjectList,
     resource::{Encode, EncodingError},
+    wasm_utils::Buffer,
     xor_encryption::{XorCursor, AGI_ENCRYPTION_KEY},
 };
 
@@ -38,4 +42,14 @@ impl Encode for ObjectList {
 
         Ok(data)
     }
+}
+
+#[wasm_bindgen(js_name = "buildObjectList")]
+pub fn build_object_list(object_list: &ObjectList) -> Result<Buffer, JsValue> {
+    let encoded = object_list
+        .encode(())
+        .map_err(|e| JsValue::from_str(format!("{:?}", e).as_str()))?;
+    let array = Uint8Array::from(encoded.as_slice());
+    let buffer = Buffer::from(array.buffer());
+    Ok(buffer)
 }

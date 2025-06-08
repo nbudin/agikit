@@ -27,7 +27,7 @@ import {
   simplifyLogicScriptProgram,
 } from './LogicScriptPrimitiveTree';
 import { IdentifierMapping } from './LogicScriptIdentifierMapping';
-import { ObjectList } from '../Types/ObjectList';
+import { ObjectList } from 'agikit_core';
 
 const fakeJumpTarget: LogicCommandNode = {
   type: 'command',

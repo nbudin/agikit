@@ -1,5 +1,5 @@
 import { AGIView, ViewCel, ViewLoop } from 'agikit_core';
-import { encodeUInt16LE } from '../DataEncoding';
+import { encodeUInt16LE } from 'agikit_core';
 
 function buildHeaderForOptionalBuffers(
   buffers: (Buffer | undefined)[],

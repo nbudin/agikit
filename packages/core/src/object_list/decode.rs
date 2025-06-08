@@ -1,9 +1,13 @@
-use std::io::{Seek, SeekFrom};
+use std::io::{Cursor, Seek, SeekFrom};
+
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use web_sys::js_sys::Uint8Array;
 
 use crate::{
     data_encoding::ReadHeterogeneousData,
     object_list::{ObjectList, ObjectListEntry},
     resource::{Decode, DecodingError},
+    wasm_utils::Buffer,
     xor_encryption::{XorCursor, AGI_ENCRYPTION_KEY},
 };
 
@@ -45,6 +49,14 @@ where
             max_animated_objects,
         })
     }
+}
+
+#[wasm_bindgen(js_name = "readObjectList")]
+pub fn read_object_list(data: Buffer) -> Result<ObjectList, JsValue> {
+    let data_array = Uint8Array::new(&data);
+    let data_vec = data_array.to_vec();
+    ObjectList::decode(&mut Cursor::new(data_vec), ())
+        .map_err(|e| JsValue::from_str(format!("{:?}", e).as_str()))
 }
 
 #[cfg(test)]

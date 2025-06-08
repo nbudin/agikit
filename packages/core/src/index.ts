@@ -1,10 +1,21 @@
-import { ColorPalette, egaPalette } from 'agikit_core';
+import {
+  ColorPalette,
+  egaPalette,
+  getAGICommands,
+  getAGICommandsByName,
+  getTestCommands,
+  getTestCommandsByName,
+} from 'agikit_core';
 
 export const EGAPalette: ColorPalette = egaPalette();
 export * from 'agikit_core';
 
+export const agiCommands = getAGICommands();
+export const testCommands = getTestCommands();
+export const agiCommandsByName = getAGICommandsByName();
+export const testCommandsByName = getTestCommandsByName();
+
 export * from './Build/BuildLogic';
-export * from './Build/BuildObjectList';
 export * from './Build/BuildPicture';
 export * from './Build/BuildSound';
 export * from './Build/BuildView';
@@ -20,7 +31,6 @@ export * from './Extract/Logic/ReadLogic';
 export * from './Extract/Picture/PictureJSON';
 export * from './Extract/Picture/ReadPicture';
 export * from './Extract/Picture/RenderPicture';
-export * from './Extract/ReadObject';
 export * from './Extract/ReadResources';
 export * from './Extract/Sound/ReadSound';
 export * from './Logger';
@@ -33,10 +43,6 @@ export * from './Scripting/LogicScriptParser';
 export * from './Scripting/LogicScriptParserTypes';
 export { SyntaxError as LogicScriptSyntaxError } from './Scripting/LogicScriptParser.generated';
 export * from './Scripting/LogicScriptParserTypes';
-export * from './Types/AGICommands';
-export * from './Types/AGIVersion';
-export * from './Types/Logic';
-export * from './Types/ObjectList';
 export * from './Types/Picture';
 export * from './Types/Resources';
 export * from './Types/Sound';

@@ -1,0 +1,920 @@
+[
+  {
+    "name": "return",
+    "argTypes": [],
+    "opcode": 0
+  },
+  {
+    "name": "increment",
+    "argTypes": ["Variable"],
+    "opcode": 1
+  },
+  {
+    "name": "decrement",
+    "argTypes": ["Variable"],
+    "opcode": 2
+  },
+  {
+    "name": "assignn",
+    "argTypes": ["Variable", "Number"],
+    "opcode": 3
+  },
+  {
+    "name": "assignv",
+    "argTypes": ["Variable", "Variable"],
+    "opcode": 4
+  },
+  {
+    "name": "addn",
+    "argTypes": ["Variable", "Number"],
+    "opcode": 5
+  },
+  {
+    "name": "addv",
+    "argTypes": ["Variable", "Variable"],
+    "opcode": 6
+  },
+  {
+    "name": "subn",
+    "argTypes": ["Variable", "Number"],
+    "opcode": 7
+  },
+  {
+    "name": "subv",
+    "argTypes": ["Variable", "Variable"],
+    "opcode": 8
+  },
+  {
+    "name": "lindirectv",
+    "argTypes": ["Variable", "Variable"],
+    "opcode": 9
+  },
+  {
+    "name": "rindirect",
+    "argTypes": ["Variable", "Variable"],
+    "opcode": 10
+  },
+  {
+    "name": "lindirectn",
+    "argTypes": ["Variable", "Number"],
+    "opcode": 11
+  },
+  {
+    "name": "set",
+    "argTypes": ["Flag"],
+    "opcode": 12
+  },
+  {
+    "name": "reset",
+    "argTypes": ["Flag"],
+    "opcode": 13
+  },
+  {
+    "name": "toggle",
+    "argTypes": ["Flag"],
+    "opcode": 14
+  },
+  {
+    "name": "set.v",
+    "argTypes": ["Variable"],
+    "opcode": 15
+  },
+  {
+    "name": "reset.v",
+    "argTypes": ["Variable"],
+    "opcode": 16
+  },
+  {
+    "name": "toggle.v",
+    "argTypes": ["Variable"],
+    "opcode": 17
+  },
+  {
+    "name": "new.room",
+    "argTypes": ["Number"],
+    "opcode": 18
+  },
+  {
+    "name": "new.room.v",
+    "argTypes": ["Variable"],
+    "opcode": 19
+  },
+  {
+    "name": "load.logics",
+    "argTypes": ["Number"],
+    "opcode": 20
+  },
+  {
+    "name": "load.logics.v",
+    "argTypes": ["Variable"],
+    "opcode": 21
+  },
+  {
+    "name": "call",
+    "argTypes": ["Number"],
+    "opcode": 22
+  },
+  {
+    "name": "call.v",
+    "argTypes": ["Variable"],
+    "opcode": 23
+  },
+  {
+    "name": "load.pic",
+    "argTypes": ["Variable"],
+    "opcode": 24
+  },
+  {
+    "name": "draw.pic",
+    "argTypes": ["Variable"],
+    "opcode": 25
+  },
+  {
+    "name": "show.pic",
+    "opcode": 26,
+    "argTypes": []
+  },
+  {
+    "name": "discard.pic",
+    "argTypes": ["Variable"],
+    "opcode": 27
+  },
+  {
+    "name": "overlay.pic",
+    "argTypes": ["Variable"],
+    "opcode": 28
+  },
+  {
+    "name": "show.pri.screen",
+    "opcode": 29,
+    "argTypes": []
+  },
+  {
+    "name": "load.view",
+    "argTypes": ["Number"],
+    "opcode": 30
+  },
+  {
+    "name": "load.view.v",
+    "argTypes": ["Variable"],
+    "opcode": 31
+  },
+  {
+    "name": "discard.view",
+    "argTypes": ["Number"],
+    "opcode": 32
+  },
+  {
+    "name": "animate.obj",
+    "argTypes": ["Object"],
+    "opcode": 33
+  },
+  {
+    "name": "unanimate.all",
+    "opcode": 34,
+    "argTypes": []
+  },
+  {
+    "name": "draw",
+    "argTypes": ["Object"],
+    "opcode": 35
+  },
+  {
+    "name": "erase",
+    "argTypes": ["Object"],
+    "opcode": 36
+  },
+  {
+    "name": "position",
+    "argTypes": ["Object", "Number", "Number"],
+    "opcode": 37
+  },
+  {
+    "name": "position.v",
+    "argTypes": ["Object", "Variable", "Variable"],
+    "opcode": 38
+  },
+  {
+    "name": "get.posn",
+    "argTypes": ["Object", "Variable", "Variable"],
+    "opcode": 39
+  },
+  {
+    "name": "reposition",
+    "argTypes": ["Object", "Variable", "Variable"],
+    "opcode": 40
+  },
+  {
+    "name": "set.view",
+    "argTypes": ["Object", "Number"],
+    "opcode": 41
+  },
+  {
+    "name": "set.view.v",
+    "argTypes": ["Object", "Variable"],
+    "opcode": 42
+  },
+  {
+    "name": "set.loop",
+    "argTypes": ["Object", "Number"],
+    "opcode": 43
+  },
+  {
+    "name": "set.loop.v",
+    "argTypes": ["Object", "Variable"],
+    "opcode": 44
+  },
+  {
+    "name": "fix.loop",
+    "argTypes": ["Object"],
+    "opcode": 45
+  },
+  {
+    "name": "release.loop",
+    "argTypes": ["Object"],
+    "opcode": 46
+  },
+  {
+    "name": "set.cel",
+    "argTypes": ["Object", "Number"],
+    "opcode": 47
+  },
+  {
+    "name": "set.cel.v",
+    "argTypes": ["Object", "Variable"],
+    "opcode": 48
+  },
+  {
+    "name": "last.cel",
+    "argTypes": ["Object", "Variable"],
+    "opcode": 49
+  },
+  {
+    "name": "current.cel",
+    "argTypes": ["Object", "Variable"],
+    "opcode": 50
+  },
+  {
+    "name": "current.loop",
+    "argTypes": ["Object", "Variable"],
+    "opcode": 51
+  },
+  {
+    "name": "current.view",
+    "argTypes": ["Object", "Variable"],
+    "opcode": 52
+  },
+  {
+    "name": "number.of.loops",
+    "argTypes": ["Object", "Variable"],
+    "opcode": 53
+  },
+  {
+    "name": "set.priority",
+    "argTypes": ["Object", "Number"],
+    "opcode": 54
+  },
+  {
+    "name": "set.priority.v",
+    "argTypes": ["Object", "Variable"],
+    "opcode": 55
+  },
+  {
+    "name": "release.priority",
+    "argTypes": ["Object"],
+    "opcode": 56
+  },
+  {
+    "name": "get.priority",
+    "argTypes": ["Object", "Variable"],
+    "opcode": 57
+  },
+  {
+    "name": "stop.update",
+    "argTypes": ["Object"],
+    "opcode": 58
+  },
+  {
+    "name": "start.update",
+    "argTypes": ["Object"],
+    "opcode": 59
+  },
+  {
+    "name": "force.update",
+    "argTypes": ["Object"],
+    "opcode": 60
+  },
+  {
+    "name": "ignore.horizon",
+    "argTypes": ["Object"],
+    "opcode": 61
+  },
+  {
+    "name": "observe.horizon",
+    "argTypes": ["Object"],
+    "opcode": 62
+  },
+  {
+    "name": "set.horizon",
+    "argTypes": ["Number"],
+    "opcode": 63
+  },
+  {
+    "name": "object.on.water",
+    "argTypes": ["Object"],
+    "opcode": 64
+  },
+  {
+    "name": "object.on.land",
+    "argTypes": ["Object"],
+    "opcode": 65
+  },
+  {
+    "name": "object.on.anything",
+    "argTypes": ["Object"],
+    "opcode": 66
+  },
+  {
+    "name": "ignore.objs",
+    "argTypes": ["Object"],
+    "opcode": 67
+  },
+  {
+    "name": "observe.objs",
+    "argTypes": ["Object"],
+    "opcode": 68
+  },
+  {
+    "name": "distance",
+    "argTypes": ["Object", "Object", "Variable"],
+    "opcode": 69
+  },
+  {
+    "name": "stop.cycling",
+    "argTypes": ["Object"],
+    "opcode": 70
+  },
+  {
+    "name": "start.cycling",
+    "argTypes": ["Object"],
+    "opcode": 71
+  },
+  {
+    "name": "normal.cycle",
+    "argTypes": ["Object"],
+    "opcode": 72
+  },
+  {
+    "name": "end.of.loop",
+    "argTypes": ["Object", "Flag"],
+    "opcode": 73
+  },
+  {
+    "name": "reverse.cycle",
+    "argTypes": ["Object"],
+    "opcode": 74
+  },
+  {
+    "name": "reverse.loop",
+    "argTypes": ["Object", "Flag"],
+    "opcode": 75
+  },
+  {
+    "name": "cycle.time",
+    "argTypes": ["Object", "Variable"],
+    "opcode": 76
+  },
+  {
+    "name": "stop.motion",
+    "argTypes": ["Object"],
+    "opcode": 77
+  },
+  {
+    "name": "start.motion",
+    "argTypes": ["Object"],
+    "opcode": 78
+  },
+  {
+    "name": "step.size",
+    "argTypes": ["Object", "Variable"],
+    "opcode": 79
+  },
+  {
+    "name": "step.time",
+    "argTypes": ["Object", "Variable"],
+    "opcode": 80
+  },
+  {
+    "name": "move.obj",
+    "argTypes": ["Object", "Number", "Number", "Number", "Flag"],
+    "opcode": 81
+  },
+  {
+    "name": "move.obj.v",
+    "argTypes": ["Object", "Variable", "Variable", "Number", "Flag"],
+    "opcode": 82
+  },
+  {
+    "name": "follow.ego",
+    "argTypes": ["Object", "Number", "Flag"],
+    "opcode": 83
+  },
+  {
+    "name": "wander",
+    "argTypes": ["Object"],
+    "opcode": 84
+  },
+  {
+    "name": "normal.motion",
+    "argTypes": ["Object"],
+    "opcode": 85
+  },
+  {
+    "name": "set.dir",
+    "argTypes": ["Object", "Variable"],
+    "opcode": 86
+  },
+  {
+    "name": "get.dir",
+    "argTypes": ["Object", "Variable"],
+    "opcode": 87
+  },
+  {
+    "name": "ignore.blocks",
+    "argTypes": ["Object"],
+    "opcode": 88
+  },
+  {
+    "name": "observe.blocks",
+    "argTypes": ["Object"],
+    "opcode": 89
+  },
+  {
+    "name": "block",
+    "argTypes": ["Number", "Number", "Number", "Number"],
+    "opcode": 90
+  },
+  {
+    "name": "unblock",
+    "opcode": 91,
+    "argTypes": []
+  },
+  {
+    "name": "get",
+    "argTypes": ["Item"],
+    "opcode": 92
+  },
+  {
+    "name": "get.v",
+    "argTypes": ["Variable"],
+    "opcode": 93
+  },
+  {
+    "name": "drop",
+    "argTypes": ["Item"],
+    "opcode": 94
+  },
+  {
+    "name": "put",
+    "argTypes": ["Item", "Variable"],
+    "opcode": 95
+  },
+  {
+    "name": "put.v",
+    "argTypes": ["Variable", "Variable"],
+    "opcode": 96
+  },
+  {
+    "name": "get.room.v",
+    "argTypes": ["Variable", "Variable"],
+    "opcode": 97
+  },
+  {
+    "name": "load.sound",
+    "argTypes": ["Number"],
+    "opcode": 98
+  },
+  {
+    "name": "sound",
+    "argTypes": ["Number", "Flag"],
+    "opcode": 99
+  },
+  {
+    "name": "stop.sound",
+    "opcode": 100,
+    "argTypes": []
+  },
+  {
+    "name": "print",
+    "argTypes": ["Message"],
+    "opcode": 101
+  },
+  {
+    "name": "print.v",
+    "argTypes": ["Variable"],
+    "opcode": 102
+  },
+  {
+    "name": "display",
+    "argTypes": ["Number", "Number", "Message"],
+    "opcode": 103
+  },
+  {
+    "name": "display.v",
+    "argTypes": ["Variable", "Variable", "Variable"],
+    "opcode": 104
+  },
+  {
+    "name": "clear.lines",
+    "argTypes": ["Number", "Number", "Number"],
+    "opcode": 105
+  },
+  {
+    "name": "text.screen",
+    "opcode": 106,
+    "argTypes": []
+  },
+  {
+    "name": "graphics",
+    "opcode": 107,
+    "argTypes": []
+  },
+  {
+    "name": "set.cursor.char",
+    "argTypes": ["Message"],
+    "opcode": 108
+  },
+  {
+    "name": "set.text.attribute",
+    "argTypes": ["Number", "Number"],
+    "opcode": 109
+  },
+  {
+    "name": "shake.screen",
+    "argTypes": ["Number"],
+    "opcode": 110
+  },
+  {
+    "name": "configure.screen",
+    "argTypes": ["Number", "Number", "Number"],
+    "opcode": 111
+  },
+  {
+    "name": "status.line.on",
+    "opcode": 112,
+    "argTypes": []
+  },
+  {
+    "name": "status.line.off",
+    "opcode": 113,
+    "argTypes": []
+  },
+  {
+    "name": "set.string",
+    "argTypes": ["String", "Message"],
+    "opcode": 114
+  },
+  {
+    "name": "get.string",
+    "argTypes": ["String", "Message", "Number", "Number", "Number"],
+    "opcode": 115
+  },
+  {
+    "name": "word.to.string",
+    "argTypes": ["Word", "String"],
+    "opcode": 116
+  },
+  {
+    "name": "parse",
+    "argTypes": ["String"],
+    "opcode": 117
+  },
+  {
+    "name": "get.num",
+    "argTypes": ["Message", "Variable"],
+    "opcode": 118
+  },
+  {
+    "name": "prevent.input",
+    "opcode": 119,
+    "argTypes": []
+  },
+  {
+    "name": "accept.input",
+    "opcode": 120,
+    "argTypes": []
+  },
+  {
+    "name": "set.key",
+    "argTypes": ["Number", "Number", "CtrlCode"],
+    "opcode": 121
+  },
+  {
+    "name": "add.to.pic",
+    "argTypes": ["Number", "Number", "Number", "Number", "Number", "Number", "Number"],
+    "opcode": 122
+  },
+  {
+    "name": "add.to.pic.v",
+    "argTypes": [
+      "Variable",
+      "Variable",
+      "Variable",
+      "Variable",
+      "Variable",
+      "Variable",
+      "Variable"
+    ],
+    "opcode": 123
+  },
+  {
+    "name": "status",
+    "opcode": 124,
+    "argTypes": []
+  },
+  {
+    "name": "save.game",
+    "opcode": 125,
+    "argTypes": []
+  },
+  {
+    "name": "restore.game",
+    "opcode": 126,
+    "argTypes": []
+  },
+  {
+    "name": "init.disk",
+    "opcode": 127,
+    "argTypes": []
+  },
+  {
+    "name": "restart.game",
+    "opcode": 128,
+    "argTypes": []
+  },
+  {
+    "name": "show.obj",
+    "argTypes": ["Number"],
+    "opcode": 129
+  },
+  {
+    "name": "random",
+    "argTypes": ["Number", "Number", "Variable"],
+    "opcode": 130
+  },
+  {
+    "name": "program.control",
+    "opcode": 131,
+    "argTypes": []
+  },
+  {
+    "name": "player.control",
+    "opcode": 132,
+    "argTypes": []
+  },
+  {
+    "name": "obj.status.v",
+    "argTypes": ["Variable"],
+    "opcode": 133
+  },
+  {
+    "name": "quit",
+    "argTypes": ["Number"],
+    "opcode": 134
+  },
+  {
+    "name": "show.mem",
+    "argTypes": [],
+    "opcode": 135
+  },
+  {
+    "name": "pause",
+    "argTypes": [],
+    "opcode": 136
+  },
+  {
+    "name": "echo.line",
+    "argTypes": [],
+    "opcode": 137
+  },
+  {
+    "name": "cancel.line",
+    "argTypes": [],
+    "opcode": 138
+  },
+  {
+    "name": "init.joy",
+    "argTypes": [],
+    "opcode": 139
+  },
+  {
+    "name": "toggle.monitor",
+    "argTypes": [],
+    "opcode": 140
+  },
+  {
+    "name": "version",
+    "argTypes": [],
+    "opcode": 141
+  },
+  {
+    "name": "script.size",
+    "argTypes": ["Number"],
+    "opcode": 142
+  },
+  {
+    "name": "set.game.id",
+    "argTypes": ["Message"],
+    "opcode": 143
+  },
+  {
+    "name": "log",
+    "argTypes": ["Message"],
+    "opcode": 144
+  },
+  {
+    "name": "set.scan.start",
+    "argTypes": [],
+    "opcode": 145
+  },
+  {
+    "name": "reset.scan.start",
+    "argTypes": [],
+    "opcode": 146
+  },
+  {
+    "name": "reposition.to",
+    "argTypes": ["Object", "Number", "Number"],
+    "opcode": 147
+  },
+  {
+    "name": "reposition.to.v",
+    "argTypes": ["Object", "Variable", "Variable"],
+    "opcode": 148
+  },
+  {
+    "name": "trace.on",
+    "argTypes": [],
+    "opcode": 149
+  },
+  {
+    "name": "trace.info",
+    "argTypes": ["Number", "Number", "Number"],
+    "opcode": 150
+  },
+  {
+    "name": "print.at",
+    "argTypes": ["Message", "Number", "Number", "Number"],
+    "opcode": 151
+  },
+  {
+    "name": "print.at.v",
+    "argTypes": ["Message", "Variable", "Variable", "Variable"],
+    "opcode": 152
+  },
+  {
+    "name": "discard.view.v",
+    "argTypes": ["Variable"],
+    "opcode": 153
+  },
+  {
+    "name": "clear.text.rect",
+    "argTypes": ["Number", "Number", "Number", "Number", "Number"],
+    "opcode": 154
+  },
+  {
+    "name": "set.upper.left",
+    "argTypes": [],
+    "opcode": 155
+  },
+  {
+    "name": "set.menu",
+    "argTypes": ["Message"],
+    "opcode": 156
+  },
+  {
+    "name": "set.menu.item",
+    "argTypes": ["Message", "CtrlCode"],
+    "opcode": 157
+  },
+  {
+    "name": "submit.menu",
+    "argTypes": [],
+    "opcode": 158
+  },
+  {
+    "name": "enable.item",
+    "argTypes": ["CtrlCode"],
+    "opcode": 159
+  },
+  {
+    "name": "disable.item",
+    "argTypes": ["CtrlCode"],
+    "opcode": 160
+  },
+  {
+    "name": "menu.input",
+    "argTypes": [],
+    "opcode": 161
+  },
+  {
+    "name": "show.obj.v",
+    "argTypes": ["Variable"],
+    "opcode": 162
+  },
+  {
+    "name": "open.dialogue",
+    "argTypes": [],
+    "opcode": 163
+  },
+  {
+    "name": "close.dialogue",
+    "argTypes": [],
+    "opcode": 164
+  },
+  {
+    "name": "mul.n",
+    "argTypes": ["Variable", "Number"],
+    "opcode": 165
+  },
+  {
+    "name": "mul.v",
+    "argTypes": ["Variable", "Variable"],
+    "opcode": 166
+  },
+  {
+    "name": "div.n",
+    "argTypes": ["Variable", "Number"],
+    "opcode": 167
+  },
+  {
+    "name": "div.v",
+    "argTypes": ["Variable", "Variable"],
+    "opcode": 168
+  },
+  {
+    "name": "close.window",
+    "argTypes": [],
+    "opcode": 169
+  },
+  {
+    "name": "set.simple",
+    "argTypes": [],
+    "opcode": 170
+  },
+  {
+    "name": "push.script",
+    "argTypes": [],
+    "opcode": 171
+  },
+  {
+    "name": "pop.script",
+    "argTypes": [],
+    "opcode": 172
+  },
+  {
+    "name": "hold.key",
+    "argTypes": [],
+    "opcode": 173
+  },
+  {
+    "name": "set.pri.base",
+    "argTypes": [],
+    "opcode": 174
+  },
+  {
+    "name": "discard.sound",
+    "argTypes": [],
+    "opcode": 175
+  },
+  {
+    "name": "hide.mouse",
+    "argTypes": [],
+    "opcode": 176
+  },
+  {
+    "name": "allow.menu",
+    "argTypes": [],
+    "opcode": 177
+  },
+  {
+    "name": "show.mouse",
+    "argTypes": [],
+    "opcode": 178
+  },
+  {
+    "name": "fence.mouse",
+    "argTypes": [],
+    "opcode": 179
+  },
+  {
+    "name": "mouse.posn",
+    "argTypes": [],
+    "opcode": 180
+  },
+  {
+    "name": "release.key",
+    "argTypes": [],
+    "opcode": 181
+  }
+]
