@@ -18,18 +18,10 @@ pub struct ViewCelDecodeOptions {
     pub cel_number: u8,
 }
 
-impl Decode<'_> for ViewCel {
+impl<Data: ReadHeterogeneousData + Clone> Decode<'_, Data> for ViewCel {
     type Options = ViewCelDecodeOptions;
 
-    fn decode<'a, Data: ReadHeterogeneousData>(
-        data: &mut Data,
-        options: Self::Options,
-    ) -> Result<Self, DecodingError> {
-        let cel_offset = data.stream_position()?;
-        eprintln!(
-            "Decode: Loop {} Cel {} Offset: {:02x}",
-            options.cel_number, options.loop_number, cel_offset
-        );
+    fn decode<'a>(data: &mut Data, options: Self::Options) -> Result<Self, DecodingError> {
         let width = data.read_u8()?;
         let height = data.read_u8()?;
         let transparency_mirroring_byte = TransparencyMirroringByte::from_bits(data.read_u8()?);
@@ -43,7 +35,6 @@ impl Decode<'_> for ViewCel {
             let pixel_count = width as usize * height as usize;
             let mut pixels = Vec::with_capacity(pixel_count);
             let mut bytes_iterator = data.clone().bytes().map(|b| b.unwrap_or(0));
-            eprintln!("Decode: Pixel count: {}", pixel_count);
             pixels.extend(
                 ViewRLEDecoder::new(
                     &mut bytes_iterator,
@@ -79,13 +70,10 @@ pub struct ViewLoopDecodeOptions {
     pub loop_number: u8,
 }
 
-impl Decode<'_> for ViewLoop {
+impl<Data: ReadHeterogeneousData + Clone> Decode<'_, Data> for ViewLoop {
     type Options = ViewLoopDecodeOptions;
 
-    fn decode<'a, Data: ReadHeterogeneousData>(
-        data: &'a mut Data,
-        options: Self::Options,
-    ) -> Result<Self, DecodingError> {
+    fn decode<'a>(data: &'a mut Data, options: Self::Options) -> Result<Self, DecodingError> {
         let loop_offset = data.stream_position()?;
         let cel_count = data.read_u8()?;
         let mut cels = Vec::with_capacity(cel_count as usize);
@@ -93,17 +81,6 @@ impl Decode<'_> for ViewLoop {
         for _ in 0..cel_count {
             cel_offsets.push(data.read_u16_le()?);
         }
-
-        eprintln!(
-            "Decode: Loop {} Offset: {} Cel offsets: [{}]",
-            options.loop_number,
-            loop_offset,
-            cel_offsets
-                .iter()
-                .map(|&o| format!("{:02x}", o + loop_offset as u16))
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
 
         for (cel_number, &cel_offset) in cel_offsets.iter().enumerate() {
             data.seek(SeekFrom::Start(loop_offset + cel_offset as u64))?;
@@ -126,13 +103,10 @@ impl Decode<'_> for ViewLoop {
     }
 }
 
-impl Decode<'_> for AGIView {
+impl<Data: ReadHeterogeneousData + Clone> Decode<'_, Data> for AGIView {
     type Options = ();
 
-    fn decode<'a, Data: ReadHeterogeneousData>(
-        data: &'a mut Data,
-        _: Self::Options,
-    ) -> Result<Self, DecodingError> {
+    fn decode<'a>(data: &'a mut Data, _: Self::Options) -> Result<Self, DecodingError> {
         // AGI Spec says the purpose of the first 2 bytes is unknown :/
         // http://agiwiki.sierrahelp.com/index.php?title=AGI_Specifications:_Chapter_8_-_View_Resources#ss8.1
         data.read_u8()?;

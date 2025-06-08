@@ -1,0 +1,149 @@
+{
+  "maxAnimatedObjects": 16,
+  "objects": [
+    {
+      "name": "?",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "condom",
+      "startingRoomNumber": 255
+    },
+    {
+      "name": "acoustic guitar",
+      "startingRoomNumber": 10
+    },
+    {
+      "name": "tennis racket",
+      "startingRoomNumber": 10
+    },
+    {
+      "name": "penny",
+      "startingRoomNumber": 10
+    },
+    {
+      "name": "calculator",
+      "startingRoomNumber": 13
+    },
+    {
+      "name": "map",
+      "startingRoomNumber": 255
+    },
+    {
+      "name": "data tape",
+      "startingRoomNumber": 194
+    },
+    {
+      "name": "cash",
+      "startingRoomNumber": 213
+    },
+    {
+      "name": "wallet",
+      "startingRoomNumber": 19
+    },
+    {
+      "name": "id card",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "fake id",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "car keys",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "orange juice",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "vodka",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "laundry detergent",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "room key",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "puke blanket",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "fabric softener",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "gum",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "string",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "quarter01",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "quarter02",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "quarter03",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "quarter04",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "quarter05",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "quarter06",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "quarter07",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "quarter08",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "quarter09",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "quarter10",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "quarter11",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "quarter12",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "fishing line",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "clean blanket",
+      "startingRoomNumber": 0
+    },
+    {
+      "name": "chewed gum",
+      "startingRoomNumber": 0
+    }
+  ]
+}

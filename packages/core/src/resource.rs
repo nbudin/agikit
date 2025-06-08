@@ -15,6 +15,13 @@ impl From<std::io::Error> for DecodingError {
 pub enum EncodingError {
     InvalidOptions(String),
     UnencodableData(String),
+    IoError(std::io::Error),
+}
+
+impl From<std::io::Error> for EncodingError {
+    fn from(error: std::io::Error) -> Self {
+        EncodingError::IoError(error)
+    }
 }
 
 pub trait Encode {
@@ -23,16 +30,16 @@ pub trait Encode {
     fn encode(&self, options: Self::Options) -> Result<Vec<u8>, EncodingError>;
 }
 
-pub trait Decode<'opt> {
+pub trait Decode<'opt, Data: ReadHeterogeneousData> {
     type Options: 'opt;
 
-    fn decode<'a, Data: ReadHeterogeneousData>(
-        data: &'a mut Data,
-        options: Self::Options,
-    ) -> Result<Self, DecodingError>
+    fn decode<'a>(data: &'a mut Data, options: Self::Options) -> Result<Self, DecodingError>
     where
         Self: Sized;
 }
 
-pub trait Resource<'dec>: Encode + Decode<'dec> {}
-impl<'dec, T> Resource<'dec> for T where T: Encode + Decode<'dec> {}
+pub trait Resource<'dec, Data: ReadHeterogeneousData>: Encode + Decode<'dec, Data> {}
+impl<'dec, T, Data: ReadHeterogeneousData> Resource<'dec, Data> for T where
+    T: Encode + Decode<'dec, Data>
+{
+}

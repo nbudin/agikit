@@ -82,8 +82,6 @@ impl Encode for ViewLoop {
             )
             .1;
 
-        eprintln!("Loop {} Cel offsets: {:?}", self.loop_number, cel_offsets);
-
         Ok(std::iter::once(self.cels.len() as u8)
             .chain(cel_offsets.iter().flat_map(|&offset| offset.to_le_bytes()))
             .chain(cels_encoded.iter().flatten().copied())

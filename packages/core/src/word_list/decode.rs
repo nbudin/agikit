@@ -3,14 +3,14 @@ use std::io::{Cursor, SeekFrom};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::js_sys::Uint8Array;
 
-use crate::{resource::Decode, wasm_utils::Buffer};
+use crate::{data_encoding::ReadHeterogeneousData, resource::Decode, wasm_utils::Buffer};
 
 use super::WordList;
 
-impl Decode<'_> for WordList {
+impl<Data: ReadHeterogeneousData> Decode<'_, Data> for WordList {
     type Options = ();
 
-    fn decode<'a, Data: crate::data_encoding::ReadHeterogeneousData>(
+    fn decode<'a>(
         data: &'a mut Data,
         _options: Self::Options,
     ) -> Result<Self, crate::resource::DecodingError>

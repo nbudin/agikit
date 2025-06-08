@@ -15,6 +15,7 @@ dependencies = [
  "peg",
  "pretty_assertions",
  "serde",
+ "serde_json",
  "tsify",
  "wasm-bindgen",
  "web-sys",

@@ -160,10 +160,6 @@ impl<Data: Iterator<Item = u8>> Iterator for ViewRLEEncoder<'_, Data> {
     type Item = u8;
 
     fn next(&mut self) -> Option<Self::Item> {
-        eprintln!(
-            "RLE Encoder: x={}, y={}, state={:?}",
-            self.x, self.y, self.state
-        );
         match self.state {
             ViewRLEEncoderState::Start => {
                 let Some(color) = self.input.next() else {
@@ -188,8 +184,6 @@ impl<Data: Iterator<Item = u8>> Iterator for ViewRLEEncoder<'_, Data> {
                     self.input.next();
                     count += 1;
                 }
-
-                eprintln!("RLE Encoder: color={}, count={}", color, count);
 
                 if self.x == 0 {
                     self.state = ViewRLEEncoderState::ReachedLineEnd;
