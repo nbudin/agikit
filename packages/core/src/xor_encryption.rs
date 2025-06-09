@@ -3,11 +3,8 @@ use std::{
     str::FromStr,
 };
 
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
-use web_sys::{
-    console,
-    js_sys::{JsString, Uint8Array},
-};
+use wasm_bindgen::prelude::wasm_bindgen;
+use web_sys::js_sys::{JsString, Uint8Array};
 
 use crate::wasm_utils::Buffer;
 
@@ -149,17 +146,8 @@ pub fn xor_buffer(
     input: Buffer,
     #[wasm_bindgen(js_name = encryptionKey)] encryption_key: Buffer,
 ) -> Buffer {
-    console::log_1(&JsValue::from_str("xor_buffer called"));
     let input_array = Uint8Array::new(&input);
-    console::log_2(
-        &JsValue::from_str("Input array length:"),
-        &JsValue::from(input_array.length()),
-    );
     let key_array = Uint8Array::new(&encryption_key);
-    console::log_2(
-        &JsValue::from_str("Key array length:"),
-        &JsValue::from(key_array.length()),
-    );
 
     let input_bytes = input_array.to_vec();
     let key_bytes = key_array.to_vec();

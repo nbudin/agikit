@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import { DirEntry, Resource, ResourceDir, ResourceType } from '../Types/Resources';
+import { DirEntry, Resource, ResourceDir } from '../Types/Resources';
 import filesize from 'filesize';
-import { agiLzwCompress, Logger } from '..';
+import { agiLzwCompress, ExplicitVolumeSpecification, Logger, ResourceType } from '..';
 
 // const MAX_VOLUME_SIZE = 0xfffff;
 const MAX_VOLUME_SIZE = 144 * 1024; // for testing purposes
@@ -227,11 +227,6 @@ export function writeV3ResourceFiles(
     fs.writeFileSync(filePath, data);
   });
 }
-
-export type ExplicitVolumeSpecification = {
-  number: number;
-  resources: { resourceType: ResourceType; resourceNumber: number }[];
-};
 
 // This implementation does not attempt to solve the knapsack problem, but in the future
 // it might be smart to try.

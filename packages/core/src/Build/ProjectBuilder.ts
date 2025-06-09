@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Project } from '../Project';
+import { Project } from 'agikit_core';
 import {
   LogicScriptSyntaxError,
   SyntaxErrorWithFilePath,

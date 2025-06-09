@@ -1,3 +1,7 @@
+use serde::{Deserialize, Serialize};
+use strum_macros::{AsRefStr, EnumString};
+use wasm_bindgen::prelude::wasm_bindgen;
+
 use crate::data_encoding::ReadHeterogeneousData;
 
 #[derive(Debug)]
@@ -43,3 +47,21 @@ impl<'dec, T, Data: ReadHeterogeneousData> Resource<'dec, Data> for T where
     T: Encode + Decode<'dec, Data>
 {
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, EnumString, AsRefStr, Serialize, Deserialize)]
+pub enum ResourceType {
+    LOGIC,
+    PIC,
+    VIEW,
+    SOUND,
+}
+
+#[wasm_bindgen(typescript_custom_section)]
+const TS_APPEND_CONTENT: &'static str = r#"
+export enum ResourceType {
+  LOGIC = 'LOGIC',
+  PIC = 'PIC',
+  VIEW = 'VIEW',
+  SOUND = 'SOUND',
+}
+"#;

@@ -1,9 +1,4 @@
-export enum ResourceType {
-  LOGIC = 'LOGIC',
-  PIC = 'PIC',
-  VIEW = 'VIEW',
-  SOUND = 'SOUND',
-}
+import { ResourceType } from 'agikit_core';
 
 export type DirEntry = {
   resourceType: ResourceType;

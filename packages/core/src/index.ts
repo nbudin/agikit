@@ -3,6 +3,7 @@ import {
   egaPalette,
   getAGICommands,
   getAGICommandsByName,
+  getDefaultProjectConfig,
   getTestCommands,
   getTestCommandsByName,
 } from 'agikit_core';
@@ -14,6 +15,7 @@ export const agiCommands = getAGICommands();
 export const testCommands = getTestCommands();
 export const agiCommandsByName = getAGICommandsByName();
 export const testCommandsByName = getTestCommandsByName();
+export const DefaultProjectConfig = getDefaultProjectConfig();
 
 export * from './Build/BuildLogic';
 export * from './Build/BuildPicture';
@@ -34,8 +36,6 @@ export * from './Extract/Picture/RenderPicture';
 export * from './Extract/ReadResources';
 export * from './Extract/Sound/ReadSound';
 export * from './Logger';
-export * from './Project';
-export * from './ProjectConfig';
 export * from './Scripting/LogicDiagnostics';
 export * from './Scripting/LogicScriptGenerator';
 export * from './Scripting/LogicScriptIdentifierMapping';

@@ -6,6 +6,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 use crate::logic::commands::{AGICommand, TestCommand};
 
 pub mod commands;
+pub mod decode;
 
 #[derive(Debug, Clone, PartialEq, Eq, Tsify)]
 #[serde(rename_all = "camelCase")]
@@ -59,9 +60,11 @@ pub enum LogicInstruction {
     Goto(LogicGoto),
 }
 
+pub type LogicMessages = HashMap<u8, String>;
+
 #[derive(Debug, Clone, PartialEq, Eq, Tsify)]
 #[serde(rename_all = "camelCase")]
 pub struct LogicProgram {
     pub instructions: Vec<LogicInstruction>,
-    pub messages: HashMap<u8, String>,
+    pub messages: LogicMessages,
 }

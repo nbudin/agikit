@@ -1,5 +1,5 @@
 import { readdirSync } from 'fs';
-import { Project } from '..';
+import { AGIVersion, Project, ProjectConfig } from '..';
 
 export function detectGame(path: string): Project {
   const filenames = new Set(readdirSync(path).map((filename) => filename.toUpperCase()));
@@ -13,10 +13,7 @@ export function detectGame(path: string): Project {
       filenames.has(v2Filename),
     )
   ) {
-    return new Project(path, {
-      agiVersion: { major: 2, minor: 915 },
-      gameId: 'AGI',
-    });
+    return new Project(path, new ProjectConfig(new AGIVersion(2, 915), 'AGI'));
   }
 
   const possibleV3GameIDs = [...filenames]
@@ -33,8 +30,5 @@ export function detectGame(path: string): Project {
     );
   }
 
-  return new Project(path, {
-    agiVersion: { major: 3, minor: 2149 },
-    gameId: v3GameID,
-  });
+  return new Project(path, new ProjectConfig(new AGIVersion(3, 2149), v3GameID));
 }
