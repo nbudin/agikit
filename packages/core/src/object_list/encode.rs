@@ -6,7 +6,7 @@ use web_sys::js_sys::Uint8Array;
 use crate::{
     data_encoding::WriteHeterogeneousData,
     object_list::ObjectList,
-    resource::{Encode, EncodingError},
+    resources::encode::{Encode, EncodingError},
     wasm_utils::Buffer,
     xor_encryption::{XorCursor, AGI_ENCRYPTION_KEY},
 };

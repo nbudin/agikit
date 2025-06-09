@@ -4,7 +4,7 @@ use crate::{
     agi_version::{AGIMajorVersion, AGIVersion},
     data_encoding::ReadHeterogeneousData,
     logic::{LogicMessages, LogicProgram},
-    resource::{Decode, DecodingError},
+    resources::decode::{Decode, DecodingError},
     xor_encryption::{XorCursor, AGI_ENCRYPTION_KEY},
 };
 

@@ -20,8 +20,6 @@ export const DefaultProjectConfig = getDefaultProjectConfig();
 export * from './Build/BuildLogic';
 export * from './Build/BuildPicture';
 export * from './Build/BuildSound';
-export * from './Build/BuildView';
-export * from './Build/BuildWordsTok';
 export * from './Build/ProjectBuilder';
 export * from './Build/WriteResources';
 export * from './Compression/Bitstreams';

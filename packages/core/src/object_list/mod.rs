@@ -30,7 +30,7 @@ mod tests {
 
     use crate::{
         object_list::ObjectList,
-        resource::{Decode, Encode},
+        resources::{decode::Decode, encode::Encode},
         xor_encryption::{XorCursor, AGI_ENCRYPTION_KEY},
     };
     use pretty_assertions::assert_eq;

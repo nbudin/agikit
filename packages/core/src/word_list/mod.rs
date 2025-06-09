@@ -54,10 +54,7 @@ mod tests {
     use pretty_assertions::assert_eq;
     use std::collections::HashSet;
 
-    use crate::{
-        resource::{Decode, Encode},
-        word_list::WordList,
-    };
+    use crate::{resources::decode::Decode, resources::encode::Encode, word_list::WordList};
 
     static WORDS_TOK: &[u8] = include_bytes!("../../test_data/WORDS.TOK");
 

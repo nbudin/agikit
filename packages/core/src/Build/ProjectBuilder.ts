@@ -9,7 +9,6 @@ import {
   ResourceType,
   WordList,
   parseWordList,
-  buildWordsTok,
   writeV2ResourceFiles,
   encodeResourceVolumes,
   encodeV2Resource,
@@ -24,6 +23,7 @@ import {
   PicResource,
   Picture,
   buildObjectList,
+  buildWordsTok,
 } from '..';
 import { compileLogicScript, LogicCompilerError } from './BuildLogic';
 import fileSize from 'filesize';

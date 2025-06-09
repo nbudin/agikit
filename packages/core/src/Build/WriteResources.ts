@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import { DirEntry, Resource, ResourceDir } from '../Types/Resources';
+import { Resource, ResourceDir } from '../Types/Resources';
 import filesize from 'filesize';
-import { agiLzwCompress, ExplicitVolumeSpecification, Logger, ResourceType } from '..';
+import { agiLzwCompress, DirEntry, ExplicitVolumeSpecification, Logger, ResourceType } from '..';
 
 // const MAX_VOLUME_SIZE = 0xfffff;
 const MAX_VOLUME_SIZE = 144 * 1024; // for testing purposes

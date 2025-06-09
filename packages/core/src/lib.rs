@@ -4,7 +4,7 @@ pub mod data_encoding;
 pub mod logic;
 pub mod object_list;
 pub mod project;
-pub mod resource;
+pub mod resources;
 pub mod views;
 pub mod word_list;
 pub mod xor_encryption;

@@ -3,7 +3,7 @@ use std::io::Cursor;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::js_sys::Uint8Array;
 
-use crate::{color_palettes::ColorPalette, resource::Decode, wasm_utils::Buffer};
+use crate::{color_palettes::ColorPalette, resources::decode::Decode, wasm_utils::Buffer};
 
 use super::cel::{render_view_cel, ViewCel, ViewCelData, ViewCelHandle, ViewCelPixelsIterator};
 
@@ -87,7 +87,7 @@ pub fn read_view_resource(data: Buffer) -> Result<AGIView, JsValue> {
 mod tests {
     use std::io::Cursor;
 
-    use crate::resource::{Decode, Encode};
+    use crate::resources::encode::Encode;
 
     use super::*;
     use pretty_assertions::assert_eq;

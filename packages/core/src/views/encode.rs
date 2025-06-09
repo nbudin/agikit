@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    resource::{Encode, EncodingError},
+    resources::encode::{Encode, EncodingError},
     views::cel::ViewCelPixelsIterator,
 };
 

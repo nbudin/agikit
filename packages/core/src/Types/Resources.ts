@@ -1,11 +1,4 @@
-import { ResourceType } from 'agikit_core';
-
-export type DirEntry = {
-  resourceType: ResourceType;
-  resourceNumber: number;
-  volumeNumber: number;
-  offset: number;
-};
+import { ResourceType, DirEntry } from 'agikit_core';
 
 export type ResourceDir = Record<ResourceType, (DirEntry | undefined)[]>;
 

@@ -1,6 +1,6 @@
 use crate::{
     data_encoding::ReadHeterogeneousData,
-    resource::{Decode, DecodingError},
+    resources::decode::{Decode, DecodingError},
 };
 use std::io::SeekFrom;
 

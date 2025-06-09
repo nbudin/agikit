@@ -1,8 +1,12 @@
 use std::collections::HashMap;
 
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use web_sys::js_sys::Uint8Array;
+
 use crate::{
     data_encoding::encode_uint16be,
-    resource::{Encode, EncodingError},
+    resources::encode::{Encode, EncodingError},
+    wasm_utils::Buffer,
     word_list::WordList,
 };
 
@@ -114,4 +118,14 @@ impl Encode for WordList {
             .chain(std::iter::once(0))
             .collect())
     }
+}
+
+#[wasm_bindgen(js_name = "buildWordsTok")]
+pub fn build_words_tok(object_list: &WordList) -> Result<Buffer, JsValue> {
+    let encoded = object_list
+        .encode(())
+        .map_err(|e| JsValue::from_str(format!("{:?}", e).as_str()))?;
+    let array = Uint8Array::from(encoded.as_slice());
+    let buffer = Buffer::from(array.buffer());
+    Ok(buffer)
 }

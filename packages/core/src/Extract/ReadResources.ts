@@ -1,7 +1,7 @@
 import fs, { readFileSync } from 'fs';
 import path from 'path';
-import { agiLzwDecompress, ResourceType } from '..';
-import { DirEntry, ResourceDir, Resource } from '../Types/Resources';
+import { agiLzwDecompress, DirEntry, ResourceType } from '..';
+import { ResourceDir, Resource } from '../Types/Resources';
 
 function readDirEntry(dirData: Buffer, index: number) {
   const volPlusHighOrderNybble = dirData.readUInt8(index);

@@ -6,7 +6,7 @@ use web_sys::js_sys::Uint8Array;
 use crate::{
     data_encoding::ReadHeterogeneousData,
     object_list::{ObjectList, ObjectListEntry},
-    resource::{Decode, DecodingError},
+    resources::decode::{Decode, DecodingError},
     wasm_utils::Buffer,
     xor_encryption::{XorCursor, AGI_ENCRYPTION_KEY},
 };
@@ -63,7 +63,7 @@ pub fn read_object_list(data: Buffer) -> Result<ObjectList, JsValue> {
 mod tests {
     use std::io::Cursor;
 
-    use crate::{object_list::ObjectList, resource::Decode};
+    use crate::{object_list::ObjectList, resources::decode::Decode};
     use pretty_assertions::assert_eq;
 
     const OBJECT: &[u8] = include_bytes!("../../test_data/OBJECT");

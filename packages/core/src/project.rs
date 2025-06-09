@@ -5,7 +5,7 @@ use tsify::Tsify;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::js_sys::Uint8Array;
 
-use crate::{agi_version::AGIVersion, resource::ResourceType, wasm_utils::Buffer};
+use crate::{agi_version::AGIVersion, resources::ResourceType, wasm_utils::Buffer};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[wasm_bindgen]

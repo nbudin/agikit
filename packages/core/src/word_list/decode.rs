@@ -3,7 +3,7 @@ use std::io::{Cursor, SeekFrom};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::js_sys::Uint8Array;
 
-use crate::{data_encoding::ReadHeterogeneousData, resource::Decode, wasm_utils::Buffer};
+use crate::{data_encoding::ReadHeterogeneousData, resources::decode::Decode, wasm_utils::Buffer};
 
 use super::WordList;
 
@@ -13,7 +13,7 @@ impl<Data: ReadHeterogeneousData> Decode<'_, Data> for WordList {
     fn decode<'a>(
         data: &'a mut Data,
         _options: Self::Options,
-    ) -> Result<Self, crate::resource::DecodingError>
+    ) -> Result<Self, crate::resources::decode::DecodingError>
     where
         Self: Sized,
     {
