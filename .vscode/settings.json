@@ -8,7 +8,13 @@
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "workbench.colorTheme": "Tomorrow Night Blue",
   "jest.jestCommandLine": "yarn run jest",
-  "jest.autoRun": { "watch": true, "onStartup": ["all-tests"] }
+  "jest.autoRun": {
+    "watch": true,
+    "onStartup": ["all-tests"]
+  },
+  "debug.javascript.defaultRuntimeExecutable": {
+    "pwa-node": "/Users/nbudin/.local/share/mise/shims/node"
+  }
   // "editor.fontFamily": "PxPlus IBM CGA, Menlo, Monaco, 'Courier New', monospace"
   // "editor.fontSize": 12,
 }

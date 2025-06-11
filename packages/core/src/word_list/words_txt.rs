@@ -171,13 +171,18 @@ pub fn parse_word_list(input: &str) -> Result<WordList, WordListSyntaxError> {
 mod tests {
     use std::collections::HashSet;
 
-    use super::*;
+    use crate::TEST_DATA_DIR;
 
-    static TEST_WORD_LIST: &str = include_str!("../../test_data/words.txt");
+    use super::*;
 
     #[test]
     fn test_parsing() {
-        let word_list = words_txt_parser::word_declarations(TEST_WORD_LIST)
+        let words_txt_data = TEST_DATA_DIR
+            .get_file("AGI_Contest_2_Template/words.txt")
+            .expect("Failed to get test words.txt file")
+            .contents_utf8()
+            .expect("Failed to read test words.txt file as UTF-8");
+        let word_list = words_txt_parser::word_declarations(words_txt_data)
             .expect("Failed to parse test word list");
 
         assert_eq!(word_list.len(), 44);

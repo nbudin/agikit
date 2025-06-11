@@ -63,16 +63,23 @@ pub fn read_object_list(data: Buffer) -> Result<ObjectList, JsValue> {
 mod tests {
     use std::io::Cursor;
 
-    use crate::{object_list::ObjectList, resources::decode::Decode};
+    use crate::{object_list::ObjectList, resources::decode::Decode, TEST_DATA_DIR};
     use pretty_assertions::assert_eq;
-
-    const OBJECT: &[u8] = include_bytes!("../../test_data/OBJECT");
-    const OBJECT_JSON: &str = include_str!("../../test_data/object.json");
 
     #[test]
     fn test_decode_object() {
-        let object_list = ObjectList::decode(&mut Cursor::new(OBJECT), ()).unwrap();
-        let json_object_list = serde_json::from_str::<ObjectList>(OBJECT_JSON)
+        let object_data = TEST_DATA_DIR
+            .get_file("uriquest/OBJECT")
+            .unwrap()
+            .contents();
+        let object_json_data = TEST_DATA_DIR
+            .get_file("uriquest/object.json")
+            .unwrap()
+            .contents_utf8()
+            .unwrap();
+
+        let object_list = ObjectList::decode(&mut Cursor::new(object_data), ()).unwrap();
+        let json_object_list = serde_json::from_str::<ObjectList>(object_json_data)
             .expect("Failed to deserialize OBJECT JSON");
         assert_eq!(object_list, json_object_list);
     }

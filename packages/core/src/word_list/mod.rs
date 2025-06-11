@@ -54,13 +54,19 @@ mod tests {
     use pretty_assertions::assert_eq;
     use std::collections::HashSet;
 
-    use crate::{resources::decode::Decode, resources::encode::Encode, word_list::WordList};
-
-    static WORDS_TOK: &[u8] = include_bytes!("../../test_data/WORDS.TOK");
+    use crate::{
+        resources::{decode::Decode, encode::Encode},
+        word_list::WordList,
+        TEST_DATA_DIR,
+    };
 
     #[test]
     fn smoke_test() {
-        let word_list = WordList::decode(&mut std::io::Cursor::new(WORDS_TOK), ())
+        let words_tok_data = TEST_DATA_DIR
+            .get_file("AGI_Contest_2_Template/WORDS.TOK")
+            .expect("Failed to get WORDS.TOK file")
+            .contents();
+        let word_list = WordList::decode(&mut std::io::Cursor::new(words_tok_data), ())
             .expect("Failed to decode WORDS.TOK");
 
         assert_eq!(
@@ -69,6 +75,6 @@ mod tests {
         );
 
         let encoded = word_list.encode(()).expect("Failed to encode WordList");
-        assert_eq!(WORDS_TOK, encoded);
+        assert_eq!(words_tok_data, encoded);
     }
 }

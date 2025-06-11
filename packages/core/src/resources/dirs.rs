@@ -1,21 +1,28 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    fs::File,
+    io::{Cursor, Read, Seek, SeekFrom},
+    str::FromStr,
+};
 
-use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 use crate::{
     data_encoding::ReadHeterogeneousData,
     resources::{
         decode::{Decode, DecodingError},
-        ResourceType,
+        file_provider::FileProvider,
+        ResourceNumber, ResourceType,
     },
 };
 
 #[wasm_bindgen(skip_typescript)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DirEntry {
     #[wasm_bindgen(skip)]
     pub resource_type: ResourceType,
     #[wasm_bindgen(js_name = "resourceNumber")]
-    pub resource_number: u8,
+    pub resource_number: ResourceNumber,
     #[wasm_bindgen(js_name = "volumeNumber")]
     pub volume_number: u8,
     pub offset: u32,
@@ -42,7 +49,7 @@ export class DirEntry {
 "#;
 
 impl<Data: ReadHeterogeneousData> Decode<'_, Data> for Option<DirEntry> {
-    type Options = (ResourceType, u8);
+    type Options = (ResourceType, ResourceNumber);
 
     fn decode<'a>(
         data: &'a mut Data,
@@ -73,7 +80,7 @@ impl<Data: ReadHeterogeneousData> Decode<'_, Data> for Option<DirEntry> {
     }
 }
 
-impl<Data: ReadHeterogeneousData> Decode<'_, Data> for HashMap<u8, DirEntry> {
+impl<Data: ReadHeterogeneousData> Decode<'_, Data> for HashMap<ResourceNumber, DirEntry> {
     type Options = ResourceType;
 
     fn decode<'a>(data: &'a mut Data, resource_type: Self::Options) -> Result<Self, DecodingError>
@@ -81,7 +88,7 @@ impl<Data: ReadHeterogeneousData> Decode<'_, Data> for HashMap<u8, DirEntry> {
         Self: Sized,
     {
         let mut entries = HashMap::new();
-        let mut resource_number: u8 = 0;
+        let mut resource_number: ResourceNumber = 0;
 
         loop {
             let decode_result = Option::<DirEntry>::decode(data, (resource_type, resource_number));
@@ -99,6 +106,7 @@ impl<Data: ReadHeterogeneousData> Decode<'_, Data> for HashMap<u8, DirEntry> {
                             return Err(DecodingError::IoError(err));
                         }
                     }
+                    _ => return Err(err),
                 },
             }
 
@@ -106,5 +114,135 @@ impl<Data: ReadHeterogeneousData> Decode<'_, Data> for HashMap<u8, DirEntry> {
         }
 
         Ok(entries)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ResourceDirs {
+    pub dirs: HashMap<ResourceType, HashMap<ResourceNumber, DirEntry>>,
+}
+
+pub enum ResourceDirDecodeOptions<P: FileProvider> {
+    AGI2 { file_provider: P },
+    AGI3 { file_provider: P, game_id: String },
+}
+
+#[wasm_bindgen(js_name = "readV2Dir")]
+pub fn js_read_v2_dir(
+    path: &str,
+    #[wasm_bindgen(js_name = "resourceType")] resource_type: &str,
+) -> Result<Vec<JsValue>, JsValue> {
+    let mut file = File::open(path).map_err(|e| DecodingError::IoError(e).to_string())?;
+    let resource_type = ResourceType::from_str(resource_type)
+        .map_err(|_| format!("Unknown resource type: {}", resource_type))?;
+    let resources = HashMap::<ResourceNumber, DirEntry>::decode(&mut file, resource_type)
+        .map_err(|e| e.to_string())?;
+    let max_resource_number = resources.keys().max().cloned().unwrap_or(0);
+    let mut entries = vec![JsValue::null(); (max_resource_number + 1) as usize];
+    for (number, entry) in resources {
+        entries[number as usize] = entry.into();
+    }
+    Ok(entries)
+}
+
+impl ResourceDirs {
+    pub fn get_entry(
+        &self,
+        resource_type: ResourceType,
+        resource_number: ResourceNumber,
+    ) -> Option<&DirEntry> {
+        self.dirs
+            .get(&resource_type)
+            .and_then(|entries| entries.get(&resource_number))
+    }
+
+    pub fn read<P: FileProvider>(
+        options: ResourceDirDecodeOptions<P>,
+    ) -> Result<Self, DecodingError> {
+        let mut dirs = HashMap::new();
+
+        match options {
+            ResourceDirDecodeOptions::AGI2 { file_provider } => {
+                let mut read_dirfile = |filename: &str,
+                                        resource_type: ResourceType|
+                 -> Result<(), DecodingError> {
+                    let mut dir_file = file_provider.open_file(filename)?;
+                    let resource_dir =
+                        HashMap::<ResourceNumber, DirEntry>::decode(&mut dir_file, resource_type)?;
+                    dirs.insert(resource_type, resource_dir);
+                    Ok(())
+                };
+
+                read_dirfile("LOGDIR", ResourceType::LOGIC)?;
+                read_dirfile("VIEWDIR", ResourceType::VIEW)?;
+                read_dirfile("PICDIR", ResourceType::PIC)?;
+                read_dirfile("SNDDIR", ResourceType::SOUND)?;
+            }
+            ResourceDirDecodeOptions::AGI3 {
+                file_provider,
+                game_id,
+            } => {
+                let filename = format!("{}DIR", game_id);
+                let mut file = file_provider.open_file(&filename)?;
+                file.seek(SeekFrom::End(0))?;
+                let file_end = file.stream_position()?;
+                file.seek(SeekFrom::Start(0))?;
+
+                let logic_start = file.read_u16_le()?;
+                let pic_start = file.read_u16_le()?;
+                let view_start = file.read_u16_le()?;
+                let sound_start = file.read_u16_le()?;
+
+                let mut read_section = |start: ResourceNumber,
+                                        end: ResourceNumber,
+                                        resource_type: ResourceType|
+                 -> Result<(), DecodingError> {
+                    file.seek(SeekFrom::Start(start as u64))?;
+                    let mut buf = vec![0; (end - start) as usize];
+                    file.read_exact(&mut buf.as_mut_slice())?;
+                    dirs.insert(
+                        resource_type,
+                        HashMap::<u16, DirEntry>::decode(&mut Cursor::new(buf), resource_type)?,
+                    );
+                    Ok(())
+                };
+
+                read_section(logic_start, pic_start, ResourceType::LOGIC)?;
+                read_section(pic_start, view_start, ResourceType::PIC)?;
+                read_section(view_start, sound_start, ResourceType::VIEW)?;
+                read_section(sound_start, file_end as u16, ResourceType::SOUND)?;
+            }
+        };
+
+        Ok(Self { dirs })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{resources::ResourceType, TEST_DATA_DIR};
+
+    #[test]
+    fn test_resource_dirs_read_v2() {
+        let file_provider = TEST_DATA_DIR
+            .get_dir("uriquest")
+            .expect("Failed to get test data directory");
+        let resource_dirs =
+            ResourceDirs::read(ResourceDirDecodeOptions::AGI2 { file_provider }).unwrap();
+        assert!(resource_dirs.dirs.contains_key(&ResourceType::LOGIC));
+    }
+
+    #[test]
+    fn test_resource_dirs_read_v3() {
+        let file_provider = TEST_DATA_DIR
+            .get_dir("VTheGraphicalAdventureDemo")
+            .expect("Failed to get test data directory");
+        let resource_dirs = ResourceDirs::read(ResourceDirDecodeOptions::AGI3 {
+            file_provider,
+            game_id: "V".to_string(),
+        })
+        .unwrap();
+        assert!(resource_dirs.dirs.contains_key(&ResourceType::LOGIC));
     }
 }

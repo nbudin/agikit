@@ -32,15 +32,18 @@ mod tests {
         object_list::ObjectList,
         resources::{decode::Decode, encode::Encode},
         xor_encryption::{XorCursor, AGI_ENCRYPTION_KEY},
+        TEST_DATA_DIR,
     };
     use pretty_assertions::assert_eq;
 
-    const OBJECT: &[u8] = include_bytes!("../../test_data/OBJECT");
-    const OBJECT_JSON: &str = include_str!("../../test_data/object.json");
-
     #[test]
     fn test_object_json() {
-        let object_list = serde_json::from_str::<ObjectList>(OBJECT_JSON)
+        let object_json_data = TEST_DATA_DIR
+            .get_file("uriquest/object.json")
+            .expect("Failed to get object.json file")
+            .contents_utf8()
+            .expect("Failed to read object.json as UTF-8");
+        let object_list = serde_json::from_str::<ObjectList>(object_json_data)
             .expect("Failed to deserialize OBJECT JSON");
 
         assert_eq!(object_list.max_animated_objects, 16);
@@ -53,11 +56,15 @@ mod tests {
 
     #[test]
     fn smoke_test() {
-        let object_list = ObjectList::decode(&mut Cursor::new(OBJECT), ()).unwrap();
+        let object_data = TEST_DATA_DIR
+            .get_file("uriquest/OBJECT")
+            .expect("Failed to get OBJECT file")
+            .contents();
+        let object_list = ObjectList::decode(&mut Cursor::new(object_data), ()).unwrap();
         let encoded = object_list.encode(()).unwrap();
 
-        let mut object_list_decrypted: Vec<u8> = Vec::with_capacity(OBJECT.len());
-        XorCursor::new(&mut Cursor::new(OBJECT), AGI_ENCRYPTION_KEY.as_bytes())
+        let mut object_list_decrypted: Vec<u8> = Vec::with_capacity(object_data.len());
+        XorCursor::new(&mut Cursor::new(object_data), AGI_ENCRYPTION_KEY.as_bytes())
             .read_to_end(&mut object_list_decrypted)
             .unwrap();
 
@@ -67,6 +74,6 @@ mod tests {
             .unwrap();
 
         assert_eq!(object_list_decrypted, encoded_decrypted);
-        assert_eq!(OBJECT, encoded);
+        assert_eq!(object_data, encoded);
     }
 }

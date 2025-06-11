@@ -82,25 +82,6 @@ export function readV3ResourceDir(gamePath: string, gameId: string): ResourceDir
   };
 }
 
-export function readV2Resource(gamePath: string, dirEntry: DirEntry): Resource {
-  const volPath = path.join(gamePath, `VOL.${dirEntry.volumeNumber}`);
-  const volData = fs.readFileSync(volPath);
-
-  const signature = volData.readUInt16BE(dirEntry.offset);
-  if (signature !== 0x1234) {
-    throw new Error(`Invalid resource signature ${signature}`);
-  }
-
-  const resourceVolNumber = volData.readUInt8(dirEntry.offset + 2);
-  if (resourceVolNumber !== dirEntry.volumeNumber) {
-    throw new Error('Volume number mismatch');
-  }
-
-  const length = volData.readUInt16LE(dirEntry.offset + 3);
-  const data = volData.slice(dirEntry.offset + 5, dirEntry.offset + 5 + length);
-  return { type: dirEntry.resourceType, number: dirEntry.resourceNumber, data };
-}
-
 export function readV3Resource(gamePath: string, dirEntry: DirEntry, gameId: string): Resource {
   const volPath = path.join(gamePath, `${gameId}VOL.${dirEntry.volumeNumber}`);
   const volData = fs.readFileSync(volPath);
