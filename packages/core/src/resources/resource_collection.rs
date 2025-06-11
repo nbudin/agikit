@@ -47,12 +47,20 @@ pub fn read_v2_resource<P: FileProvider>(
     Ok(data)
 }
 
+pub fn read_v3_resource<P: FileProvider>(
+    _file_provider: &P,
+    _dir_entry: &DirEntry,
+    _game_id: &str,
+) -> Result<Vec<u8>, DecodingError> {
+    todo!("Implement reading v3 resources");
+}
+
 #[wasm_bindgen]
 pub struct JSReadResourceResult {
     #[wasm_bindgen(skip)]
     pub resource_type: ResourceType,
     pub number: ResourceNumber,
-    #[wasm_bindgen(skip)]
+    #[wasm_bindgen(getter_with_clone)]
     pub data: Buffer,
 }
 
@@ -62,19 +70,32 @@ impl JSReadResourceResult {
     pub fn resource_type(&self) -> String {
         self.resource_type.as_ref().to_string()
     }
-
-    #[wasm_bindgen(getter)]
-    pub fn data(&self) -> *const Buffer {
-        &self.data
-    }
 }
 
 #[wasm_bindgen(js_name = "readV2Resource")]
 pub fn js_read_v2_resource(
-    base_path: String,
-    dir_entry: DirEntry,
+    #[wasm_bindgen(js_name = "basePath")] base_path: String,
+    #[wasm_bindgen(js_name = "dirEntry")] dir_entry: DirEntry,
 ) -> Result<JSReadResourceResult, JsValue> {
     let data = read_v2_resource(&Path::new(&base_path).to_path_buf(), &dir_entry)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    let data_array = Uint8Array::new_with_length(data.len() as u32);
+    data_array.copy_from(&data);
+    let data_buffer = Buffer::from(data_array.buffer());
+    Ok(JSReadResourceResult {
+        resource_type: dir_entry.resource_type,
+        number: dir_entry.resource_number,
+        data: data_buffer,
+    })
+}
+
+#[wasm_bindgen(js_name = "readV3Resource")]
+pub fn js_read_v3_resource(
+    #[wasm_bindgen(js_name = "basePath")] base_path: String,
+    #[wasm_bindgen(js_name = "dirEntry")] dir_entry: DirEntry,
+    #[wasm_bindgen(js_name = "gameId")] game_id: String,
+) -> Result<JSReadResourceResult, JsValue> {
+    let data = read_v3_resource(&Path::new(&base_path).to_path_buf(), &dir_entry, &game_id)
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
     let data_array = Uint8Array::new_with_length(data.len() as u32);
     data_array.copy_from(&data);

@@ -38,3 +38,11 @@ impl From<ArrayBuffer> for Buffer {
         Buffer { obj: buffer.into() }
     }
 }
+
+impl Clone for Buffer {
+    fn clone(&self) -> Self {
+        Buffer {
+            obj: self.obj.clone(),
+        }
+    }
+}

@@ -51,12 +51,9 @@ export function writeVolume(
 
   resources.forEach((encodedResource) => {
     volumeData.push(encodedResource.encodedData);
-    dirEntries.push({
-      offset: offset,
-      resourceNumber: encodedResource.number,
-      resourceType: encodedResource.type,
-      volumeNumber,
-    });
+    dirEntries.push(
+      new DirEntry(encodedResource.type, encodedResource.number, volumeNumber, offset),
+    );
     offset += encodedResource.encodedData.byteLength;
 
     if (offset > MAX_VOLUME_SIZE) {
