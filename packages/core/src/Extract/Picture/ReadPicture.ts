@@ -1,4 +1,4 @@
-import { PicBitstreamReader } from '../../Compression/Bitstreams';
+import { PicBitstreamReader } from '../../compression/Bitstreams';
 import {
   Picture,
   PictureCommand,

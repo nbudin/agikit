@@ -1,5 +1,5 @@
 use wasm_bindgen::prelude::wasm_bindgen;
-use web_sys::js_sys::{ArrayBuffer, JsString};
+use web_sys::js_sys::{ArrayBuffer, JsString, Uint8Array};
 
 // https://github.com/rustwasm/wasm-bindgen/issues/1993#issuecomment-583614609
 #[wasm_bindgen]
@@ -36,6 +36,22 @@ impl Buffer {
 impl From<ArrayBuffer> for Buffer {
     fn from(buffer: ArrayBuffer) -> Self {
         Buffer { obj: buffer.into() }
+    }
+}
+
+impl From<Buffer> for Vec<u8> {
+    fn from(buffer: Buffer) -> Self {
+        let array = Uint8Array::new(&buffer.buffer());
+        array.to_vec()
+    }
+}
+
+impl From<Vec<u8>> for Buffer {
+    fn from(value: Vec<u8>) -> Self {
+        let array = Uint8Array::new_with_length(value.len() as u32);
+        array.copy_from(&value);
+
+        Buffer::from(array.buffer())
     }
 }
 

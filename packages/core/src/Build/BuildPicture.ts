@@ -1,6 +1,6 @@
 import assertNever from 'assert-never';
 import { flatMap } from 'lodash';
-import { PicBitstreamWriter } from '../Compression/Bitstreams';
+import { PicBitstreamWriter } from '../compression/Bitstreams';
 import {
   PictureCommand,
   PictureCoordinate,

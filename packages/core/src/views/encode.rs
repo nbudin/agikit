@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
 use crate::{
+    compression::rle::ViewRLEEncoder,
     resources::encode::{Encode, EncodingError},
     views::cel::ViewCelPixelsIterator,
 };
 
 use super::{
     cel::{NonMirroredViewCelData, TransparencyMirroringByte, ViewCel, ViewCelData},
-    rle::ViewRLEEncoder,
     AGIView, ViewLoop,
 };
 

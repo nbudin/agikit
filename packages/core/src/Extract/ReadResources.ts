@@ -1,7 +1,7 @@
-import fs, { readFileSync } from 'fs';
+import { readFileSync } from 'fs';
 import path from 'path';
-import { agiLzwDecompress, DirEntry, readDirData, readV2Dir, ResourceType } from '..';
-import { ResourceDir, Resource } from '../Types/Resources';
+import { readDirData, readV2Dir, ResourceType } from '..';
+import { ResourceDir } from '../Types/Resources';
 
 const v2DirFiles = [
   ['LOGDIR', ResourceType.LOGIC],

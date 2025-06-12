@@ -1,4 +1,5 @@
 use crate::{
+    compression::rle::ViewRLEDecoder,
     data_encoding::ReadHeterogeneousData,
     resources::decode::{Decode, DecodingError},
 };
@@ -9,7 +10,6 @@ use super::{
         MirroredViewCelData, NonMirroredViewCelData, TransparencyMirroringByte, ViewCel,
         ViewCelData,
     },
-    rle::ViewRLEDecoder,
     AGIView, ViewLoop,
 };
 
