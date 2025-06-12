@@ -7,7 +7,7 @@ use crate::{
     data_encoding::ReadHeterogeneousData,
     object_list::{ObjectList, ObjectListEntry},
     resources::decode::{Decode, DecodingError},
-    wasm_utils::Buffer,
+    buffer::Buffer,
     xor_encryption::{XorCursor, AGI_ENCRYPTION_KEY},
 };
 

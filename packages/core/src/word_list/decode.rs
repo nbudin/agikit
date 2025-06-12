@@ -3,7 +3,7 @@ use std::io::{Cursor, SeekFrom};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::js_sys::Uint8Array;
 
-use crate::{data_encoding::ReadHeterogeneousData, resources::decode::Decode, wasm_utils::Buffer};
+use crate::{buffer::Buffer, data_encoding::ReadHeterogeneousData, resources::decode::Decode};
 
 use super::WordList;
 

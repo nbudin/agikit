@@ -6,7 +6,7 @@ use web_sys::js_sys::Uint8Array;
 use crate::{
     data_encoding::encode_uint16be,
     resources::encode::{Encode, EncodingError},
-    wasm_utils::Buffer,
+    buffer::Buffer,
     word_list::WordList,
 };
 

@@ -15,7 +15,7 @@ use crate::{
         file_provider::FileProvider,
         ResourceNumber, ResourceType,
     },
-    wasm_utils::Buffer,
+    buffer::Buffer,
 };
 
 #[wasm_bindgen(skip_typescript)]

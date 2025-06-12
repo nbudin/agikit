@@ -3,7 +3,7 @@ use std::io::Cursor;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::js_sys::Uint8Array;
 
-use crate::{color_palettes::ColorPalette, resources::decode::Decode, wasm_utils::Buffer};
+use crate::{color_palettes::ColorPalette, resources::decode::Decode, buffer::Buffer};
 
 use super::cel::{render_view_cel, ViewCel, ViewCelData, ViewCelHandle, ViewCelPixelsIterator};
 

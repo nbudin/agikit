@@ -8,6 +8,7 @@ use web_sys::js_sys::Uint8Array;
 
 use crate::{
     agi_version::{AGIMajorVersion, AGIVersion},
+    buffer::Buffer,
     data_encoding::ReadHeterogeneousData,
     resources::{
         decode::DecodingError,
@@ -15,7 +16,6 @@ use crate::{
         file_provider::FileProvider,
         ResourceNumber, ResourceType,
     },
-    wasm_utils::Buffer,
 };
 
 pub const RESOURCE_SIGNATURE: u16 = 0x1234;

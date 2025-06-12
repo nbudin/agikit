@@ -6,7 +6,7 @@ use std::{
 use wasm_bindgen::prelude::wasm_bindgen;
 use web_sys::js_sys::{JsString, Uint8Array};
 
-use crate::wasm_utils::Buffer;
+use crate::buffer::Buffer;
 
 pub const AGI_ENCRYPTION_KEY: &str = "Avis Durgan";
 

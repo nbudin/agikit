@@ -13,7 +13,7 @@ pub mod views;
 pub mod word_list;
 pub mod xor_encryption;
 
-mod wasm_utils;
+mod buffer;
 
 #[cfg(test)]
 pub static TEST_DATA_DIR: Dir<'_> = include_dir::include_dir!("$CARGO_MANIFEST_DIR/test_data");

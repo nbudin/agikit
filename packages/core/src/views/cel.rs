@@ -2,7 +2,7 @@ use bitfield_struct::bitfield;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::js_sys::Uint8Array;
 
-use crate::{color_palettes::ColorPalette, wasm_utils::Buffer};
+use crate::{color_palettes::ColorPalette, buffer::Buffer};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NonMirroredViewCelData {

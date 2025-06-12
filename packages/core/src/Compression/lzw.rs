@@ -9,7 +9,7 @@ use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use crate::{
     compression::bitstreams::{ReadBitstream, WriteBitstream},
     data_encoding::ReadHeterogeneousData,
-    wasm_utils::Buffer,
+    buffer::Buffer,
 };
 
 pub const START_OVER_CODE: u32 = 256;
