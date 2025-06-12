@@ -3,12 +3,13 @@ use std::{
     path::Path,
 };
 
+use bitfield_struct::bitfield;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::js_sys::Uint8Array;
 
 use crate::{
-    agi_version::{AGIMajorVersion, AGIVersion},
     buffer::Buffer,
+    compression::lzw::agi_lzw_decompress,
     data_encoding::ReadHeterogeneousData,
     resources::{
         decode::DecodingError,
@@ -47,12 +48,47 @@ pub fn read_v2_resource<P: FileProvider>(
     Ok(data)
 }
 
+#[bitfield(u8)]
+pub struct AGIV3ResourceVolNumberWithPicFlag {
+    #[bits(7)]
+    pub volume_number: u8,
+    pub is_pic: bool,
+}
+
 pub fn read_v3_resource<P: FileProvider>(
-    _file_provider: &P,
-    _dir_entry: &DirEntry,
-    _game_id: &str,
+    file_provider: &P,
+    dir_entry: &DirEntry,
+    game_id: &str,
 ) -> Result<Vec<u8>, DecodingError> {
-    todo!("Implement reading v3 resources");
+    let filename = format!("{}VOL.{}", game_id, dir_entry.volume_number);
+    let mut file = file_provider.open_file(filename.as_str())?;
+    file.seek(SeekFrom::Start(dir_entry.offset as u64))?;
+
+    let signature = file.read_u16_be()?;
+    if signature != RESOURCE_SIGNATURE {
+        return Err(DecodingError::InvalidResourceSignature(signature));
+    }
+
+    let resource_vol_number_with_pic_flag =
+        AGIV3ResourceVolNumberWithPicFlag::from(file.read_u8()?);
+    if resource_vol_number_with_pic_flag.volume_number() != dir_entry.volume_number {
+        return Err(DecodingError::VolumeNumberMismatch {
+            expected: dir_entry.volume_number,
+            actual: resource_vol_number_with_pic_flag.volume_number(),
+        });
+    }
+
+    let uncompressed_length = file.read_u16_le()?;
+    let compressed_length = file.read_u16_le()?;
+
+    let mut data = vec![0; compressed_length as usize];
+    file.read_exact(&mut data)?;
+
+    if resource_vol_number_with_pic_flag.is_pic() || uncompressed_length == compressed_length {
+        Ok(data)
+    } else {
+        agi_lzw_decompress(&data).map_err(|e| e.into())
+    }
 }
 
 #[wasm_bindgen]
@@ -107,16 +143,25 @@ pub fn js_read_v3_resource(
     })
 }
 
+pub enum ResourceCollectionVersionData {
+    AGI2,
+    AGI3(String),
+}
+
 pub struct ResourceCollection<P: FileProvider> {
-    pub agi_version: AGIVersion,
+    pub version_data: ResourceCollectionVersionData,
     pub file_provider: P,
     pub dirs: ResourceDirs,
 }
 
 impl<P: FileProvider> ResourceCollection<P> {
-    pub fn new(agi_version: AGIVersion, file_provider: P, dirs: ResourceDirs) -> Self {
+    pub fn new(
+        version_data: ResourceCollectionVersionData,
+        file_provider: P,
+        dirs: ResourceDirs,
+    ) -> Self {
         Self {
-            agi_version,
+            version_data,
             file_provider,
             dirs,
         }
@@ -134,9 +179,11 @@ impl<P: FileProvider> ResourceCollection<P> {
             });
         };
 
-        match self.agi_version.major {
-            AGIMajorVersion::AGI2 => read_v2_resource(&self.file_provider, entry),
-            AGIMajorVersion::AGI3 => todo!(),
+        match &self.version_data {
+            ResourceCollectionVersionData::AGI2 => read_v2_resource(&self.file_provider, entry),
+            ResourceCollectionVersionData::AGI3(game_id) => {
+                read_v3_resource(&self.file_provider, entry, game_id)
+            }
         }
     }
 }
@@ -144,18 +191,18 @@ impl<P: FileProvider> ResourceCollection<P> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        agi_version::AGIVersion, resources::dirs::ResourceDirDecodeOptions, TEST_DATA_DIR,
-    };
+    use crate::{resources::dirs::ResourceDirDecodeOptions, TEST_DATA_DIR};
 
     #[test]
     fn test_resource_collection_read_v2() {
-        let agi_version = AGIVersion::new(2, 917);
         let file_provider = TEST_DATA_DIR.get_dir("uriquest").unwrap();
         let dirs = ResourceDirs::read(ResourceDirDecodeOptions::AGI2 { file_provider }).unwrap();
 
-        let collection = ResourceCollection::new(agi_version.clone(), file_provider.clone(), dirs);
-        assert_eq!(collection.agi_version, agi_version);
+        let collection = ResourceCollection::new(
+            ResourceCollectionVersionData::AGI2,
+            file_provider.clone(),
+            dirs,
+        );
 
         let logic0 = collection
             .read_resource_data(ResourceType::LOGIC, 0)
@@ -165,7 +212,6 @@ mod tests {
 
     #[test]
     fn test_resource_collection_read_v3() {
-        let agi_version = AGIVersion::new(3, 2149);
         let file_provider = TEST_DATA_DIR.get_dir("VTheGraphicalAdventureDemo").unwrap();
         let dirs = ResourceDirs::read(ResourceDirDecodeOptions::AGI3 {
             file_provider,
@@ -173,7 +219,15 @@ mod tests {
         })
         .unwrap();
 
-        let collection = ResourceCollection::new(agi_version.clone(), file_provider.clone(), dirs);
-        assert_eq!(collection.agi_version, agi_version);
+        let collection = ResourceCollection::new(
+            ResourceCollectionVersionData::AGI3("V".to_string()),
+            file_provider.clone(),
+            dirs,
+        );
+
+        let logic0 = collection
+            .read_resource_data(ResourceType::LOGIC, 0)
+            .expect("Failed to read logic resource 0");
+        assert!(!logic0.is_empty(), "Logic resource 0 should not be empty");
     }
 }

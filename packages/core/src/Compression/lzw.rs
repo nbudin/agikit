@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    fmt::Display,
     hash::Hash,
     io::{Cursor, Read, Seek, SeekFrom},
 };
@@ -7,9 +8,9 @@ use std::{
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 use crate::{
+    buffer::Buffer,
     compression::bitstreams::{ReadBitstream, WriteBitstream},
     data_encoding::ReadHeterogeneousData,
-    buffer::Buffer,
 };
 
 pub const START_OVER_CODE: u32 = 256;
@@ -269,6 +270,17 @@ pub enum DecompressionError {
 impl From<std::io::Error> for DecompressionError {
     fn from(err: std::io::Error) -> Self {
         DecompressionError::IoError(err)
+    }
+}
+
+impl Display for DecompressionError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DecompressionError::IoError(err) => err.fmt(f),
+            DecompressionError::UnexpectedCode { expected, actual } => {
+                write!(f, "Unexpected code: expected {}, got {}", expected, actual)
+            }
+        }
     }
 }
 

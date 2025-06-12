@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use crate::{
+    compression::lzw::DecompressionError,
     data_encoding::ReadHeterogeneousData,
     resources::{resource_collection::RESOURCE_SIGNATURE, ResourceNumber, ResourceType},
 };
@@ -17,11 +18,18 @@ pub enum DecodingError {
         resource_type: ResourceType,
         resource_number: ResourceNumber,
     },
+    DecompressionError(DecompressionError),
 }
 
 impl From<std::io::Error> for DecodingError {
     fn from(error: std::io::Error) -> Self {
         DecodingError::IoError(error)
+    }
+}
+
+impl From<DecompressionError> for DecodingError {
+    fn from(error: DecompressionError) -> Self {
+        DecodingError::DecompressionError(error)
     }
 }
 
@@ -45,6 +53,7 @@ impl Display for DecodingError {
                 resource_type.as_ref(),
                 resource_number
             )),
+            DecodingError::DecompressionError(error) => error.fmt(f),
         }
     }
 }
