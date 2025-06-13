@@ -4,10 +4,10 @@ use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::js_sys::Uint8Array;
 
 use crate::{
+    buffer::Buffer,
     data_encoding::WriteHeterogeneousData,
     object_list::ObjectList,
     resources::encode::{Encode, EncodingError},
-    buffer::Buffer,
     xor_encryption::{XorCursor, AGI_ENCRYPTION_KEY},
 };
 
@@ -17,7 +17,7 @@ impl Encode for ObjectList {
     fn encode(&self, _options: Self::Options) -> Result<Vec<u8>, EncodingError> {
         let mut data = Vec::new();
         let mut raw_cursor = Cursor::new(&mut data);
-        let mut cursor = XorCursor::new(&mut raw_cursor, AGI_ENCRYPTION_KEY.as_bytes());
+        let mut cursor = XorCursor::new(&mut raw_cursor, AGI_ENCRYPTION_KEY.as_bytes(), 0);
 
         let (name_offsets, _) =
             self.objects

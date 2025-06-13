@@ -4,10 +4,10 @@ use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::js_sys::Uint8Array;
 
 use crate::{
+    buffer::Buffer,
     data_encoding::ReadHeterogeneousData,
     object_list::{ObjectList, ObjectListEntry},
     resources::decode::{Decode, DecodingError},
-    buffer::Buffer,
     xor_encryption::{XorCursor, AGI_ENCRYPTION_KEY},
 };
 
@@ -21,7 +21,7 @@ where
     where
         Self: Sized,
     {
-        let mut data = XorCursor::new(data, AGI_ENCRYPTION_KEY.as_bytes());
+        let mut data = XorCursor::new(data, AGI_ENCRYPTION_KEY.as_bytes(), 0);
         let object_names_offset = data.read_u16_le()? + 3;
         let max_animated_objects = data.read_u8()?;
 

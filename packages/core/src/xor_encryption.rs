@@ -21,10 +21,12 @@ pub fn get_xor_encryption_key() -> Buffer {
 pub trait ReadXor<T: Read + Seek> {
     fn get_xor_encryption_key(&self) -> &[u8];
     fn get_data(&mut self) -> &mut T;
+    fn get_start_offset(&self) -> usize;
 
     fn read_xor(&mut self, buf: &mut [u8]) -> Result<usize, std::io::Error> {
+        let start_offset = self.get_start_offset();
         let data = self.get_data();
-        let offset = data.stream_position()? as usize;
+        let offset = data.stream_position()? as usize - start_offset;
         let size = data.read(buf)?;
 
         let key = self.get_xor_encryption_key();
@@ -41,9 +43,11 @@ pub trait ReadXor<T: Read + Seek> {
 pub trait WriteXor<T: Write + Seek> {
     fn get_xor_encryption_key(&self) -> &[u8];
     fn get_data(&mut self) -> &mut T;
+    fn get_start_offset(&self) -> usize;
 
     fn write_xor(&mut self, buf: &[u8]) -> Result<usize, std::io::Error> {
-        let offset = self.get_data().stream_position()? as usize;
+        let start_offset = self.get_start_offset();
+        let offset = self.get_data().stream_position()? as usize - start_offset;
         let key = self.get_xor_encryption_key();
 
         let xor_buf = buf
@@ -64,15 +68,24 @@ pub trait WriteXor<T: Write + Seek> {
 pub struct XorCursor<'a, T> {
     data: &'a mut T,
     key: &'a [u8],
+    start_offset: usize,
 }
 
 impl<'a, T> XorCursor<'a, T> {
-    pub fn new(data: &'a mut T, key: &'a [u8]) -> Self {
-        Self { data, key }
+    pub fn new(data: &'a mut T, key: &'a [u8], start_offset: usize) -> Self {
+        Self {
+            data,
+            key,
+            start_offset,
+        }
     }
 }
 
 impl<'a, T: Read + Seek> ReadXor<T> for XorCursor<'a, T> {
+    fn get_start_offset(&self) -> usize {
+        self.start_offset
+    }
+
     fn get_xor_encryption_key(&self) -> &[u8] {
         self.key
     }
@@ -105,6 +118,10 @@ impl<'a, T: Read + Write + Seek> Write for XorCursor<'a, T> {
 }
 
 impl<'a, T: Read + Write + Seek> WriteXor<T> for XorCursor<'a, T> {
+    fn get_start_offset(&self) -> usize {
+        self.start_offset
+    }
+
     fn get_xor_encryption_key(&self) -> &[u8] {
         self.key
     }

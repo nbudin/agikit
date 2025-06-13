@@ -64,12 +64,16 @@ mod tests {
         let encoded = object_list.encode(()).unwrap();
 
         let mut object_list_decrypted: Vec<u8> = Vec::with_capacity(object_data.len());
-        XorCursor::new(&mut Cursor::new(object_data), AGI_ENCRYPTION_KEY.as_bytes())
-            .read_to_end(&mut object_list_decrypted)
-            .unwrap();
+        XorCursor::new(
+            &mut Cursor::new(object_data),
+            AGI_ENCRYPTION_KEY.as_bytes(),
+            0,
+        )
+        .read_to_end(&mut object_list_decrypted)
+        .unwrap();
 
         let mut encoded_decrypted: Vec<u8> = Vec::with_capacity(encoded.len());
-        XorCursor::new(&mut Cursor::new(&encoded), AGI_ENCRYPTION_KEY.as_bytes())
+        XorCursor::new(&mut Cursor::new(&encoded), AGI_ENCRYPTION_KEY.as_bytes(), 0)
             .read_to_end(&mut encoded_decrypted)
             .unwrap();
 
