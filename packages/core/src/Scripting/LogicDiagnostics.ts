@@ -1,5 +1,5 @@
 import flatMap from 'lodash/flatMap';
-import { agiCommandsByName } from '../Types/AGICommands';
+import { agiCommandsByName } from '../index';
 import { LogicScriptProgram, LogicScriptStatement } from './LogicScriptParserTypes';
 
 type LogicScriptDiagnosticType = 'UnknownCommandName' | 'WrongNumberOfArguments';

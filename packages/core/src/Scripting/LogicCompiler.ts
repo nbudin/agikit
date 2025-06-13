@@ -1,12 +1,5 @@
 import { LogicCommandNode, LogicLabel } from '../Extract/Logic/LogicDecompile';
 import {
-  LogicCommand,
-  LogicCondition,
-  LogicConditionClause,
-  LogicGoto,
-  LogicInstruction,
-} from '../Types/Logic';
-import {
   BasicBlock,
   BasicBlockGraph,
   ElseBasicBlockEdge,
@@ -18,7 +11,14 @@ import { DominatorTree } from '../Extract/Logic/DominatorTree';
 import assertNever from 'assert-never';
 import { flatMap, max } from 'lodash';
 import { generateLabels } from '../Extract/Logic/LogicDisasm';
-import { agiCommandsByName } from '../Types/AGICommands';
+import {
+  LogicCommand,
+  LogicCondition,
+  LogicConditionClause,
+  LogicGoto,
+  LogicInstruction,
+} from 'agikit_core';
+import { agiCommandsByName } from '../index';
 
 type SinglePathCompiledBlock = {
   type: 'singlePath';
@@ -40,9 +40,10 @@ type CompiledBlock = SinglePathCompiledBlock | ConditionalCompiledBlock;
 
 type StitchedBlock = LogicInstruction[];
 
-type PostCompilationPass = (
-  instructions: LogicInstruction[],
-) => { instructions: LogicInstruction[]; changed: boolean };
+type PostCompilationPass = (instructions: LogicInstruction[]) => {
+  instructions: LogicInstruction[];
+  changed: boolean;
+};
 
 const removeUnreachableInstructions: PostCompilationPass = (instructions) => {
   let changed = false;
@@ -136,12 +137,12 @@ const makeConditionalsSelfContained: PostCompilationPass = (instructions) => {
   );
   let maxAddress = max([...instructionIndexes.keys()]) ?? -1;
   const blockEndIndexes = [instructions.length];
-  const blockEndGotos: (LogicGoto | undefined)[] = [];
+  const blockEndGotos: (({ type: 'goto' } & LogicGoto) | undefined)[] = [];
 
   const result = flatMap(instructions, (instruction, index) => {
     let blockEnded = false;
     let outputInstruction = instruction;
-    const thisBlockEndGotos: LogicGoto[] = [];
+    const thisBlockEndGotos: ({ type: 'goto' } & LogicGoto)[] = [];
     while (index >= blockEndIndexes[0]) {
       blockEndIndexes.shift();
       blockEnded = true;
@@ -163,7 +164,7 @@ const makeConditionalsSelfContained: PostCompilationPass = (instructions) => {
       if (skipIndex > containingBlockEnd) {
         const gotoAddress = maxAddress + 1;
         maxAddress = gotoAddress;
-        const gotoInstruction: LogicGoto = {
+        const gotoInstruction: { type: 'goto' } & LogicGoto = {
           address: gotoAddress,
           jumpAddress: instruction.skipAddress,
           type: 'goto',
@@ -273,8 +274,8 @@ export class LogicCompiler {
     return (max([...this.instructionsByAddress.keys()]) ?? 0) + 1;
   }
 
-  compileCommandNode(node: LogicCommandNode): LogicCommand {
-    const command: LogicCommand = {
+  compileCommandNode(node: LogicCommandNode): { type: 'command' } & LogicCommand {
+    const command: { type: 'command' } & LogicCommand = {
       type: 'command',
       address: node.address,
       agiCommand: node.agiCommand,
@@ -342,7 +343,7 @@ export class LogicCompiler {
     if (existing) {
       const blockAddress = this.findBlockAddress(basicBlock);
       this.findOrBuildLabelForAddress(blockAddress);
-      const gotoInstruction: LogicGoto = {
+      const gotoInstruction: { type: 'goto' } & LogicGoto = {
         type: 'goto',
         address: this.findFreeAddress(),
         jumpAddress: blockAddress,
@@ -361,7 +362,7 @@ export class LogicCompiler {
         throw new Error('Block has no instructions and no exit');
       }
     } else {
-      const conditionInstruction: LogicCondition = {
+      const conditionInstruction: { type: 'condition' } & LogicCondition = {
         type: 'condition',
         address: this.findFreeAddress(),
         clauses: block.clauses,
@@ -386,7 +387,7 @@ export class LogicCompiler {
       throw new Error('Block already has an else clause');
     }
 
-    const instruction: LogicCommand = {
+    const instruction: { type: 'command' } & LogicCommand = {
       type: 'command',
       address: this.findFreeAddress(),
       agiCommand: agiCommandsByName.return,

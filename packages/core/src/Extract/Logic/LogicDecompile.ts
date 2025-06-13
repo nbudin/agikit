@@ -1,6 +1,6 @@
+import { LogicCommand, LogicConditionClause, LogicInstruction } from 'agikit_core';
 import assertNever from 'assert-never';
 import { max } from 'lodash';
-import { LogicConditionClause, LogicCommand, LogicInstruction } from '../../Types/Logic';
 import { generateLabels } from './LogicDisasm';
 
 export type LogicLabel = {
@@ -38,7 +38,10 @@ export type LogicGotoNode = {
   metadata?: LogicASTNodeMetadata;
 };
 
-export type LogicASTNode = LogicIfNode | LogicGotoNode | LogicCommandNode;
+export type LogicASTNode =
+  | ({ type: 'if' } & LogicIfNode)
+  | ({ type: 'goto' } & LogicGotoNode)
+  | ({ type: 'command' } & LogicCommandNode);
 
 type UnresolvedIfNode = {
   type: 'unresolvedIf';
@@ -53,7 +56,10 @@ type UnresolvedGotoNode = {
   jumpTargetAddress: number;
 };
 
-type UnresolvedLogicASTNode = LogicCommand | UnresolvedIfNode | UnresolvedGotoNode;
+type UnresolvedLogicASTNode =
+  | ({ type: 'command' } & LogicCommand)
+  | UnresolvedIfNode
+  | UnresolvedGotoNode;
 
 function decompileInstruction(instruction: LogicInstruction): UnresolvedLogicASTNode {
   if (instruction.type === 'command') {
@@ -96,7 +102,7 @@ function resolveNodes(
   }
 
   if (currentNode.type === 'command') {
-    const commandNode: LogicCommandNode = {
+    const commandNode: { type: 'command' } & LogicCommandNode = {
       ...currentNode,
       id: currentNode.address.toString(),
       label: labels.get(currentNode.address),

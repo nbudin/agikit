@@ -1,11 +1,10 @@
-import { LogicInstruction } from '../Types/Logic';
 import { optimizeAST } from '../Extract/Logic/ASTOptimization';
 import { LogicAssembler } from '../Scripting/LogicAssembler';
 import { LogicCompiler } from '../Scripting/LogicCompiler';
 import { LogicScriptASTGenerator } from '../Scripting/LogicScriptASTGenerator';
 import { parseLogicScript, parseLogicScriptRaw } from '../Scripting/LogicScriptParser';
 import { encodeLogic, encodeMessages } from '../Scripting/WriteLogic';
-import { WordList, ObjectList } from 'agikit_core';
+import { WordList, ObjectList, LogicInstruction } from 'agikit_core';
 import { getDiagnosticsForProgram, LogicDiagnostic } from '../Scripting/LogicDiagnostics';
 
 export class LogicCompilerError extends Error {

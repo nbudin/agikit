@@ -2,9 +2,7 @@ import { LogicASTNode, LogicCommandNode, LogicGotoNode, LogicIfNode } from './Lo
 import { BasicBlock, replaceEdge, removeEdge, BasicBlockGraph } from './ControlFlowAnalysis';
 import { NodeVisitor } from '../Graphs';
 
-export type BlockVisitor = (
-  ...params: Parameters<NodeVisitor<BasicBlock>>
-) => {
+export type BlockVisitor = (...params: Parameters<NodeVisitor<BasicBlock>>) => {
   changed: boolean;
 };
 
@@ -74,7 +72,8 @@ export function buildASTFromBasicBlocks(
   };
 
   if (rootBlock.commands.length > 0) {
-    const commandNode: LogicCommandNode = {
+    const commandNode: { type: 'command' } & LogicCommandNode = {
+      type: 'command',
       ...rootBlock.commands[0],
     };
     workingIndex.set(rootBlock, commandNode);
@@ -98,7 +97,7 @@ export function buildASTFromBasicBlocks(
       jumpTarget: {
         id: 'fake',
         address: 0,
-        agiCommand: { name: 'fake', argTypes: [], opcode: -1 },
+        agiCommand: { name: 'fake', argTypes: [], opcode: -1, free: () => {} },
         type: 'command',
         args: [],
       },

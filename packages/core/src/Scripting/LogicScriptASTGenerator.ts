@@ -1,4 +1,3 @@
-import { AGICommandArgType, agiCommandsByName, testCommandsByName } from '../Types/AGICommands';
 import {
   LogicASTNode,
   LogicCommandNode,
@@ -17,10 +16,9 @@ import {
   LogicScriptLiteral,
   LogicScriptTestCall,
 } from './LogicScriptParserTypes';
-import { WordList } from 'agikit_core';
+import { AGICommandArgType, LogicConditionClause, LogicTest, WordList } from 'agikit_core';
 import { flatMap, max } from 'lodash';
 import assertNever from 'assert-never';
-import { LogicConditionClause, LogicTest } from '../Types/Logic';
 import { simplifyLogicScriptExpression, StrictBooleanExpression } from './PropositionalLogic';
 import {
   LogicScriptPrimitiveStatement,
@@ -28,8 +26,9 @@ import {
 } from './LogicScriptPrimitiveTree';
 import { IdentifierMapping } from './LogicScriptIdentifierMapping';
 import { ObjectList } from 'agikit_core';
+import { agiCommandsByName, testCommandsByName } from '../index';
 
-const fakeJumpTarget: LogicCommandNode = {
+const fakeJumpTarget: { type: 'command' } & LogicCommandNode = {
   type: 'command',
   id: 'fakeJumpTarget',
   address: -1,
@@ -206,7 +205,7 @@ export class LogicScriptASTGenerator {
     assertNever(expression);
   }
 
-  private testCallToClause(expression: LogicScriptTestCall): LogicTest {
+  private testCallToClause(expression: LogicScriptTestCall): { type: 'test' } & LogicTest {
     const testCommand = testCommandsByName[expression.testName];
     if (!testCommand) {
       throw new Error(`Unknown test command ${expression.testName}`);
@@ -293,7 +292,7 @@ export class LogicScriptASTGenerator {
         statement.commandName !== 'return'
           ? this.generateASTForNextStatement(statement, stack)
           : undefined;
-      const node: LogicCommandNode = {
+      const node: { type: 'command' } & LogicCommandNode = {
         type: 'command',
         address,
         id: address.toString(10),

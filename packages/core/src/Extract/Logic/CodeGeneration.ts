@@ -15,14 +15,15 @@ import {
   LogicScriptLiteral,
   LogicScriptStatement,
 } from '../../Scripting/LogicScriptParserTypes';
-import { AGICommandArgType } from '../../Types/AGICommands';
 import {
-  LogicProgram,
-  LogicConditionClause,
+  AGICommandArgType,
   LogicCommand,
+  LogicConditionClause,
   LogicInstruction,
-} from '../../Types/Logic';
-import { WordList } from 'agikit_core';
+  LogicProgram,
+  LogicTest,
+  WordList,
+} from 'agikit_core';
 import { optimizeAST } from './ASTOptimization';
 import {
   BasicBlock,
@@ -124,8 +125,12 @@ function doOperationArgumentsMatch(
   return false;
 }
 
+function isClause(clause: LogicConditionClause | LogicTest): clause is LogicConditionClause {
+  return !('testCommand' in clause);
+}
+
 export function generateBooleanExpression(
-  clauses: LogicConditionClause[],
+  clauses: (LogicConditionClause | LogicTest)[],
   context: CodeGenerationContext,
 ): LogicScriptBooleanExpression {
   if (clauses.length > 1) {
@@ -135,7 +140,7 @@ export function generateBooleanExpression(
     };
   }
   const clause = clauses[0];
-  if (clause.type === 'or') {
+  if (isClause(clause) && clause.type === 'or') {
     const clauses = clause.orTests.map((orTest) => generateBooleanExpression([orTest], context));
 
     // TODO: only do this if not in standards mode
@@ -310,10 +315,10 @@ function generateLogicAsmInstructionWithPossibleLabel(
 }
 
 export function generateLogicMessages(logic: LogicProgram): string {
-  const messages = logic.messages.map((message, index) =>
+  const messages = Object.entries(logic.messages).map(([index, message]) =>
     message == null
       ? undefined
-      : `#message ${index + 1} "${message
+      : `#message ${Number.parseInt(index) + 1} "${message
           ?.replace(/"/g, '\\"')
           .replace(/\n/g, '\\n')
           .replace(/\r/g, '\\r')}"`,

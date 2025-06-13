@@ -1,6 +1,5 @@
-import { flatMap, map } from 'lodash';
-import { AGICommandArgType } from '../Types/AGICommands';
-import { LogicScriptIdentifier } from './LogicScriptParserTypes';
+import { AGICommandArgType } from 'agikit_core';
+import { flatMap } from 'lodash';
 
 export type VariableIdentifierMapping = {
   identifierType: 'variable';

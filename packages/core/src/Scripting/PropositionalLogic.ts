@@ -1,6 +1,6 @@
+import { AGICommandArgType } from 'agikit_core';
 import assertNever from 'assert-never';
 import { flatMap } from 'lodash';
-import { AGICommandArgType } from '../Types/AGICommands';
 import {
   IdentifierMapping,
   resolveIdentifierMapping,
@@ -453,13 +453,12 @@ function distributeStrictOrOverAnd(
 }
 
 function concatenateOr(expression: SimpleConcatenatableOr): StrictOrExpression {
-  const orClause = (expression.clauses[0].type === 'BinaryOr'
-    ? expression.clauses[0]
-    : expression.clauses[1]) as BinaryOr<IrreducibleBinaryExpression, IrreducibleBinaryExpression>;
+  const orClause = (
+    expression.clauses[0].type === 'BinaryOr' ? expression.clauses[0] : expression.clauses[1]
+  ) as BinaryOr<IrreducibleBinaryExpression, IrreducibleBinaryExpression>;
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const irreducibleClause: IrreducibleBinaryExpression = expression.clauses.find(
-    isIrreducibleExpression,
-  )!;
+  const irreducibleClause: IrreducibleBinaryExpression =
+    expression.clauses.find(isIrreducibleExpression)!;
 
   return {
     type: 'StrictOrExpression',
@@ -468,13 +467,12 @@ function concatenateOr(expression: SimpleConcatenatableOr): StrictOrExpression {
 }
 
 function concatenateAnd(expression: SimpleConcatenatableAnd): StrictAndExpression {
-  const andClause = (expression.clauses[0].type === 'BinaryAnd'
-    ? expression.clauses[0]
-    : expression.clauses[1]) as BinaryAnd<IrreducibleBinaryExpression, IrreducibleBinaryExpression>;
+  const andClause = (
+    expression.clauses[0].type === 'BinaryAnd' ? expression.clauses[0] : expression.clauses[1]
+  ) as BinaryAnd<IrreducibleBinaryExpression, IrreducibleBinaryExpression>;
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const irreducibleClause: IrreducibleBinaryExpression = expression.clauses.find(
-    isIrreducibleExpression,
-  )!;
+  const irreducibleClause: IrreducibleBinaryExpression =
+    expression.clauses.find(isIrreducibleExpression)!;
 
   return {
     type: 'StrictAndExpression',

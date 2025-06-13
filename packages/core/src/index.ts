@@ -26,7 +26,6 @@ export * from './compression/Bitstreams';
 export * from './Extract/DetectGame';
 export * from './Extract/GameExtractor';
 export * from './Extract/Logic/CodeGeneration';
-export * from './Extract/Logic/ReadLogic';
 export * from './Extract/Picture/PictureJSON';
 export * from './Extract/Picture/ReadPicture';
 export * from './Extract/Picture/RenderPicture';

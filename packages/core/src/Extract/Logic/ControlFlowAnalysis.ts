@@ -1,5 +1,5 @@
+import { LogicConditionClause } from 'agikit_core';
 import assertNever from 'assert-never';
-import { LogicConditionClause } from '../../Types/Logic';
 import { isPresent } from 'ts-is-present';
 import { Graph, GraphEdge, GraphNode } from '../Graphs';
 import { DominatorTree } from './DominatorTree';

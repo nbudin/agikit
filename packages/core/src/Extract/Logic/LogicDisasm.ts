@@ -1,12 +1,13 @@
 import {
+  getAGICommand,
+  getTestCommand,
   LogicCondition,
   LogicConditionClause,
   LogicInstruction,
   LogicOr,
   LogicTest,
-} from '../../Types/Logic';
-import { getAGICommand, getTestCommand } from '../../Types/AGICommands';
-import { AGIVersion } from '../../Types/AGIVersion';
+  AGIVersion,
+} from 'agikit_core';
 import { LogicLabel } from './LogicDecompile';
 
 export function readInstructions(codeData: Buffer, agiVersion: AGIVersion): LogicInstruction[] {
@@ -20,7 +21,7 @@ export function readInstructions(codeData: Buffer, agiVersion: AGIVersion): Logi
     if (opcode === 0xff) {
       const clauses: LogicConditionClause[] = [];
       let negateNext = false;
-      let disjunction: LogicOr | undefined;
+      let disjunction: ({ type: 'or' } & LogicOr) | undefined;
 
       while (offset < codeData.byteLength) {
         const testOpcode = codeData.readUInt8(offset);
@@ -60,7 +61,12 @@ export function readInstructions(codeData: Buffer, agiVersion: AGIVersion): Logi
             });
           }
 
-          const test: LogicTest = { type: 'test', args, negate: negateNext, testCommand };
+          const test: { type: 'test' } & LogicTest = {
+            type: 'test',
+            args,
+            negate: negateNext,
+            testCommand,
+          };
 
           if (disjunction) {
             disjunction.orTests.push(test);
@@ -74,7 +80,7 @@ export function readInstructions(codeData: Buffer, agiVersion: AGIVersion): Logi
       const skipOffset = codeData.readInt16LE(offset);
       offset += 2;
 
-      const condition: LogicCondition = {
+      const condition: { type: 'condition' } & LogicCondition = {
         type: 'condition',
         address,
         clauses,

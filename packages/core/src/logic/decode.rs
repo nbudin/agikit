@@ -237,8 +237,8 @@ impl<'opt, Data: ReadHeterogeneousData> Decode<'opt, Data> for LogicProgram {
     }
 }
 
-#[wasm_bindgen(js_name = "readLogicProgram")]
-pub fn read_logic_program_js(
+#[wasm_bindgen(js_name = "readLogicResource")]
+pub fn read_logic_resource_js(
     resource_data: Buffer,
     agi_version: AGIVersion,
 ) -> Result<LogicProgram, JsValue> {

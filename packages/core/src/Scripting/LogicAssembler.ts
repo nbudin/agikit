@@ -1,6 +1,6 @@
+import { LogicConditionClause, LogicInstruction } from 'agikit_core';
 import assertNever from 'assert-never';
 import { flatMap } from 'lodash';
-import { LogicConditionClause, LogicInstruction } from '../Types/Logic';
 
 type AddressPlaceholder = {
   instruction: LogicInstruction;
@@ -132,7 +132,11 @@ export class LogicAssembler {
     }
 
     if (clause.type === 'or') {
-      return [0xfc, ...flatMap(clause.orTests, (test) => this.assembleClause(test)), 0xfc];
+      return [
+        0xfc,
+        ...flatMap(clause.orTests, (test) => this.assembleClause({ type: 'test', ...test })),
+        0xfc,
+      ];
     }
 
     assertNever(clause);
