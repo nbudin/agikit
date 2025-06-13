@@ -19,6 +19,10 @@ pub trait ReadHeterogeneousData: Read + Seek {
     fn read_u8(&mut self) -> Result<u8, io::Error>;
     fn read_u16_le(&mut self) -> Result<u16, io::Error>;
     fn read_u16_be(&mut self) -> Result<u16, io::Error>;
+    fn read_i16_le(&mut self) -> Result<i16, io::Error> {
+        let value = self.read_u16_le()?;
+        Ok(value as i16)
+    }
     fn read_null_terminated_string(&mut self) -> Result<String, io::Error>;
 }
 
