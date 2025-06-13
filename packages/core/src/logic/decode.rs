@@ -1,11 +1,14 @@
 use std::{
     collections::HashMap,
     fmt::Display,
-    io::{Seek, SeekFrom},
+    io::{Cursor, Seek, SeekFrom},
 };
+
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 use crate::{
     agi_version::{AGIMajorVersion, AGIVersion},
+    buffer::Buffer,
     data_encoding::ReadHeterogeneousData,
     logic::{
         commands::{AGICommand, TestCommand},
@@ -232,6 +235,18 @@ impl<'opt, Data: ReadHeterogeneousData> Decode<'opt, Data> for LogicProgram {
 
         Ok(program)
     }
+}
+
+#[wasm_bindgen(js_name = "readLogicProgram")]
+pub fn read_logic_program_js(
+    resource_data: Buffer,
+    agi_version: AGIVersion,
+) -> Result<LogicProgram, JsValue> {
+    let data_vec = Vec::from(resource_data);
+    let mut cursor = Cursor::new(data_vec);
+
+    LogicProgram::decode(&mut cursor, &agi_version)
+        .map_err(|e| JsValue::from_str(format!("{:?}", e).as_str()))
 }
 
 #[cfg(test)]

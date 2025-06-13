@@ -1,5 +1,6 @@
 use std::{collections::HashMap, sync::LazyLock};
 
+use logic_command_macros::{include_agi_commands, include_test_commands};
 use serde::{Deserialize, Serialize};
 use strum_macros::{AsRefStr, EnumString};
 use tsify::serde_wasm_bindgen;
@@ -147,17 +148,13 @@ export class TestCommand {
 }
 "#;
 
-static AGI_COMMANDS_JSON: &str = include_str!("./agi_commands.json");
 pub static AGI_COMMANDS: LazyLock<HashMap<u8, AGICommand>> = LazyLock::new(|| {
-    let commands: Vec<AGICommand> = serde_json::from_str(AGI_COMMANDS_JSON)
-        .unwrap_or_else(|_| panic!("Failed to parse agi_commands.json"));
+    let commands: Vec<AGICommand> = include_agi_commands!("src/logic/agi_commands.json");
     commands.into_iter().map(|cmd| (cmd.opcode, cmd)).collect()
 });
 
-static TEST_COMMANDS_JSON: &str = include_str!("./test_commands.json");
 pub static TEST_COMMANDS: LazyLock<HashMap<u8, TestCommand>> = LazyLock::new(|| {
-    let commands: Vec<TestCommand> = serde_json::from_str(TEST_COMMANDS_JSON)
-        .unwrap_or_else(|_| panic!("Failed to parse test_commands.json"));
+    let commands: Vec<TestCommand> = include_test_commands!("src/logic/test_commands.json");
     commands.into_iter().map(|cmd| (cmd.opcode, cmd)).collect()
 });
 

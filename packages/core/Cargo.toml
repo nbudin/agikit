@@ -20,6 +20,7 @@ strum_macros = "0.27.1"
 tsify = { version = "0.5.5", features = ["js"] }
 wasm-bindgen = "0.2.100"
 web-sys = { version = "0.3.77", features = ["console"] }
+logic_command_macros = { path = "../logic_command_macros" }
 
 [profile.release]
 opt-level = "s"

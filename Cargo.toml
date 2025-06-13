@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = ["packages/core"]
+members = ["packages/core", "packages/logic_command_macros"]
 
 [dependencies]
