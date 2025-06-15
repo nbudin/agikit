@@ -22,6 +22,9 @@ wasm-bindgen = "0.2.100"
 web-sys = { version = "0.3.77", features = ["console"] }
 logic_command_macros = { path = "../logic_command_macros" }
 
+[features]
+peg-trace = ["peg/trace"]
+
 [profile.release]
 opt-level = "s"
 lto = true

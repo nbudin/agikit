@@ -8,6 +8,7 @@ use crate::logic::commands::{AGICommand, TestCommand};
 
 pub mod commands;
 pub mod decode;
+pub mod logic_script;
 
 #[derive(Debug, Clone, PartialEq, Eq, Tsify, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

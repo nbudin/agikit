@@ -1,0 +1,417 @@
+0 unless (v17 > 0) goto Address9;
+7 call(98);
+
+Address9:
+9 unless (v0 == 0) goto Address83;
+16 call(91);
+18 unless (f6) goto Address35;
+24 disable.item(c20);
+26 set(f14);
+28 reset(f33);
+30 new.room(10);
+32 goto Address83;
+
+Address35:
+35 set.menu("AGI");
+37 set.menu.item("About URI QUEST...", c21);
+40 set.menu.item("INSTRUCTION MANUAL", c2);
+43 set.menu("File");
+45 set.menu.item("Save     <F5>", c3);
+48 set.menu.item("Restore  <F7>", c5);
+51 set.menu.item("-------------", c20);
+54 set.menu.item("Restart  <F9>", c7);
+57 set.menu.item("Quit  <Alt-Z>", c1);
+60 set.menu("Action");
+62 set.menu.item("See Object  <F4>", c22);
+65 set.menu.item("Inventory  <Tab>", c10);
+68 set.menu("Special");
+70 set.menu.item("Clock On/Off      <F6>", c12);
+73 set.menu.item("Pause            <Esc>", c18);
+76 submit.menu();
+77 disable.item(c20);
+79 set(f33);
+81 new.room(1);
+
+Address83:
+83 unless (f5) goto Address109;
+89 load.logics(90);
+91 reset(f32);
+93 clear.lines(24, 24, 0);
+97 animate.obj(o0);
+99 load.view.v(v16);
+101 set.view.v(o0, v16);
+104 observe.objs(o0);
+106 assignn(v37, 255);
+
+Address109:
+109 unless (v35 > 0) goto Address141;
+116 unless (v35 != 255) goto Address136;
+124 disable.item(c21);
+126 disable.item(c2);
+128 disable.item(c3);
+130 disable.item(c18);
+132 disable.item(c22);
+134 load.logics(94);
+
+Address136:
+136 call(94);
+138 goto Address938;
+
+Address141:
+141 unless (!f33) goto Address155;
+148 unless (controller(c19)) goto Address155;
+154 menu.input();
+
+Address155:
+155 unless (controller(c21)) goto Address201;
+161 print("Hi There. This is Jeff Carroll, the creator, designer, writer, artist, composer, and programmer of URI QUEST. You might remember me from such games as... oops, wrong show. ANYHOO... Thanks for reading this little intro. So just sit back and press ENTER after you read each dialog box, and I'll give you a point when you're done, ok? And before you try it, you'll only get this point one time... no cheating. OK, here we go...");
+163 print("This game was the brainchild of me, and also Ed Salamy, one of the co-stars of the game. We both grew up playing the amazing AGI Sierra adventures when we were kids, and we will always hold these games dear to our hearts. One day, while reminiscing about the good ole' college days, Ed remembered something I told him a few weeks back.");
+165 print("I told Ed that I had run across some folks on the net who had decoded the AGI engine that was used to create the old Sierra games. He said it would be cool if we made a game with us as the characters, only we'd look like Sierra characters. To me, this idea seemed only too poetic.");
+167 print("So the next day, I started looking over the phenomenon that is AGI, and I started fooling around with the wonderful AGI Studio, and PICEDIT. Add in those programs, some sound converters, and my under-used computer science degree, and you get the beginnings of URI QUEST.");
+169 print("So I began programming on August 18, 1998. I jotted down bits and pieces of plot ideas and began work on drawing some screens. It took me quite a few screens to truly get the gist of doing it, but it soon became second nature because I ended up doing a main world of over 190 screens. This is more than any original Sierra game. I finished programming on January 28, 1999.");
+171 print("This was quite an undertaking. Often I asked myself why I was doing this, and the answer mostly is because I like to finish whatever I start. But anyway... you may be asking what exactly is URI anyways?");
+173 print("URI is the college that I went to. The University of Rhode Island, which once proudly held the distinction of being the number 1 party school in the country. However, I digress. It was there that me and my best friend John decided to be roomates freshman year. It was also there that we met Ed, and last but not least, Ziggy, our crazy Norwegian neighbor.");
+175 print("I decided to make the 4 of us the main characters in the game. You start the game as me (Jeff) and you have to start figuring things out from there. The actual plot of the game only becomes evident throughout the course of playing. Along the way, you'll meet other friends and people we knew at URI, and visit many campus landmarks.");
+177 print("And now comes time for my disclaimer: URI QUEST was made for fun, period. No profit. That being said, I would also like it to be known that this isn't the type of quality that you'd get from a professional company who has a team to work on games. Although I could have made some really nice graphics for every screen if I wanted to, I didn't. Why not, you ask?");
+179 print("Because I have a life, mostly. The size of this game is enormous. And I worked on this game on average for AT MOST 3 hours a week, during my lunch breaks at work. So, quality had to suffer from quantity. Still, I think it's a fun game to play. And I have just one more little disclaimer...");
+181 print("The URI campus does not look EXACTLY like it does in this game. I've left out many things and sacrificed being specific about every little corner of the campus in order to get the main campus to fit in a 12x12 screen square map. Even still, I think it's a damn good approximation, considering this is 160x200 16-color graphics resolution, PLUS the fact that I drew this whole damn campus from memory! (I graduated two years ago in '97!)");
+183 print("But anyways, I guess that's all I have to say. Thanks for reading this and thanks for playing the game. And please don't cheat by opening the game in AGI Studio to look at the code. There's nothing I hate more than cheating. There is nobody out there who can't figure out this game for themselves. Well, thanks again, and here is your one-time-only 1 point!\n\n-Jeff Carroll");
+185 unless (!f152) goto Address201;
+192 increment(v3);
+194 set(f152);
+196 load.sound(1);
+198 sound(1, f153);
+
+Address201:
+201 unless (controller(c2)) goto Address229;
+207 print("URI QUEST INSTRUCTION MANUAL\n\nSECTION 1. INTRODUCTION\n\nSeasoned Sierra Adventure game players may skip this section.\n\nAGI Games are adventure games in which your character moves around the screen (according to where you move it), and all actions are performed through a typing interface. You type in what you want your character to do, and you will get a response.");
+209 print("Let's say you see a tree on the screen. You might want to look at the tree. Try typing \"look at the tree\" and press ENTER. The response may be a description of the tree, or maybe you'll get a clue that you have to do something further with the tree.");
+211 print("URI Quest understands many verbs and nouns. In most cases, you can omit words like \"a\", \"at\", \"the\", etc... The interpreter will ignore these words. In other words, just typing something like \"look chair\", \"use guitar\" or \"get coin\" are enough. Other times, you might want to be more specific, as in \"look behind bureau\" or \"look under bed\". Either way, this is the basic method for playing this game.");
+213 print("You can move your character with the arrow keys or with the numeric keypad. Using the numeric keypad allows your character to move diagonally in addition to the four basic directions of the arrow keys.\n\nIf you press the ESC key, the top of the screen will turn into a menu bar. You have a number choices to choose from up there. The choices are as follows:");
+215 print("ABOUT URI QUEST: Try it and see what happens.\n\nINSTRUCTIONS: You're reading them.\n\nSAVE GAME: You can save your game's progress at just about any point. Choose this option and follow the instructions.\n\nRESTORE GAME: You can load any game that you've previously saved.\n\nRESTART GAME: Restart the game from the beginning.");
+217 print("INVENTORY: Lists the items that you've picked up.\n\nSEE OBJECT: Allows you to choose an item that you've picked up and look at it. A description of the item is also provided.\n\nCLOCK ON/OFF: Turns the in-game timer on or off.\n\nPAUSE GAME: Pauses the game in progress.\n\nChoosing an option or pressing the ESC key again will exit from this menu.");
+219 print("SECTION 2.\nGAMEPLAY TIPS AND HINTS\n\nCareful examination of every room is the only way you will succeed. LOOK at everything you see. Type LOOK or LOOK AROUND in every room to get a general description of your surroundings. The response may give you some hints about what you should do next. In some cases, it may not. If you see something on your screen that you want to check out, don't be afraid to try it, even though the game did not give you a hint that you should.");
+221 print("To complete your quest, you will have to acquire many items along the way. Try to GET anything you think might be useful. It's always a good idea to LOOK (by pressing F4) at every object you pick up. There may be more to it than meets the eye.");
+223 print("Don't be afraid to try typing anything you can think of to solve a particular puzzle. If you think you know what to do, but the game doesn't understand it, try rephrasing your request. Every effort has been made to think of every possible request the player can type, but I'm sure I haven't thought of everything. Try saying things different ways, usually the simpler the better.");
+225 print("This should be enough to get you going. You'll soon get the hang of it. Good luck!\n\nComments, questions, & suggestions can be sent to me, Jeff Carroll.");
+227 print("To contact me, get updates, hints or any other general info about URI QUEST, go to the URI QUEST Homepage:\n\nhttp://\nwww.jeffcarroll.net/uriquest/");
+
+Address229:
+229 unless (controller(c26)) goto Address237;
+235 decrement(v23);
+
+Address237:
+237 unless (controller(c27) && (v23 < 15)) goto Address248;
+246 increment(v23);
+
+Address248:
+248 unless (!f33) goto Address737;
+255 unless (!f32) goto Address270;
+262 unless (controller(c14)) goto Address270;
+268 print("(This is game version 0.173)");
+
+Address270:
+270 unless (controller(c3) || said("save", "game") || said("save")) goto Address290;
+288 stop.sound();
+289 save.game();
+
+Address290:
+290 unless (controller(c5) || said("restore", "game") || said("restore")) goto Address310;
+308 stop.sound();
+309 restore.game();
+
+Address310:
+310 unless (controller(c7) || said("restart", "game") || said("restart")) goto Address329;
+328 restart.game();
+
+Address329:
+329 unless (controller(c9)) goto Address336;
+335 echo.line();
+
+Address336:
+336 unless (controller(c17)) goto Address343;
+342 cancel.line();
+
+Address343:
+343 unless (controller(c18) || said("pause", "game") || said("pause")) goto Address362;
+361 pause();
+
+Address362:
+362 unless (controller(c10) || said("inv")) goto Address375;
+374 status();
+
+Address375:
+375 unless (controller(c22) || controller(c4)) goto Address716;
+385 set(f13);
+387 status();
+388 unless ((v25 > 0) && (v25 != 255)) goto Address716;
+399 unless (v25 == 1) goto Address408;
+406 show.obj(220);
+
+Address408:
+408 unless (v25 == 2) goto Address417;
+415 show.obj(221);
+
+Address417:
+417 unless (v25 == 3) goto Address426;
+424 show.obj(223);
+
+Address426:
+426 unless (v25 == 4) goto Address435;
+433 show.obj(222);
+
+Address435:
+435 unless (v25 == 5) goto Address444;
+442 show.obj(224);
+
+Address444:
+444 unless (v25 == 6) goto Address453;
+451 show.obj(225);
+
+Address453:
+453 unless (v25 == 7) goto Address462;
+460 show.obj(226);
+
+Address462:
+462 unless (v25 == 8) goto Address471;
+469 show.obj(227);
+
+Address471:
+471 unless (v25 == 9) goto Address480;
+478 show.obj(228);
+
+Address480:
+480 unless (v25 == 10) goto Address489;
+487 show.obj(229);
+
+Address489:
+489 unless (v25 == 11) goto Address498;
+496 show.obj(230);
+
+Address498:
+498 unless (v25 == 12) goto Address507;
+505 show.obj(231);
+
+Address507:
+507 unless (v25 == 13) goto Address516;
+514 show.obj(232);
+
+Address516:
+516 unless (v25 == 14) goto Address525;
+523 show.obj(233);
+
+Address525:
+525 unless (v25 == 15) goto Address534;
+532 show.obj(234);
+
+Address534:
+534 unless (v25 == 16) goto Address543;
+541 show.obj(235);
+
+Address543:
+543 unless (v25 == 17) goto Address552;
+550 show.obj(236);
+
+Address552:
+552 unless (v25 == 18) goto Address561;
+559 show.obj(237);
+
+Address561:
+561 unless (v25 == 19) goto Address570;
+568 show.obj(238);
+
+Address570:
+570 unless (v25 == 20) goto Address579;
+577 show.obj(239);
+
+Address579:
+579 unless (v25 == 21) goto Address588;
+586 show.obj(240);
+
+Address588:
+588 unless (v25 == 22) goto Address597;
+595 show.obj(241);
+
+Address597:
+597 unless (v25 == 23) goto Address606;
+604 show.obj(242);
+
+Address606:
+606 unless (v25 == 24) goto Address615;
+613 show.obj(243);
+
+Address615:
+615 unless (v25 == 25) goto Address624;
+622 show.obj(244);
+
+Address624:
+624 unless (v25 == 26) goto Address633;
+631 show.obj(245);
+
+Address633:
+633 unless (v25 == 27) goto Address642;
+640 show.obj(246);
+
+Address642:
+642 unless (v25 == 28) goto Address651;
+649 show.obj(247);
+
+Address651:
+651 unless (v25 == 29) goto Address660;
+658 show.obj(248);
+
+Address660:
+660 unless (v25 == 30) goto Address669;
+667 show.obj(249);
+
+Address669:
+669 unless (v25 == 31) goto Address678;
+676 show.obj(250);
+
+Address678:
+678 unless (v25 == 32) goto Address687;
+685 show.obj(251);
+
+Address687:
+687 unless (v25 == 33) goto Address696;
+694 show.obj(252);
+
+Address696:
+696 unless (v25 == 34) goto Address705;
+703 show.obj(253);
+
+Address705:
+705 unless (v25 == 35) goto Address714;
+712 show.obj(254);
+
+Address714:
+714 reset(f13);
+
+Address716:
+716 unless (controller(c1) || said("quit", "game") || said("quit")) goto Address737;
+734 stop.sound();
+735 quit(0);
+
+Address737:
+737 get.posn(o0, v30, v31);
+741 unless ((v6 == v34) && (v30 == v32) && (v31 == v33)) goto Address759;
+754 stop.cycling(o0);
+756 goto Address768;
+
+Address759:
+759 unless (!f30) goto Address768;
+766 start.cycling(o0);
+
+Address768:
+768 assignv(v32, v30);
+771 assignv(v33, v31);
+774 assignv(v34, v6);
+777 unless (f31) goto Address788;
+783 start.cycling(o0);
+785 goto Address801;
+
+Address788:
+788 unless ((v6 == 0) || f30) goto Address801;
+799 stop.cycling(o0);
+
+Address801:
+801 unless (said("clock") || controller(c12)) goto Address829;
+813 toggle(f34);
+815 unless (!f34) goto Address826;
+822 status.line.on();
+823 goto Address829;
+
+Address826:
+826 assignn(v37, 255);
+
+Address829:
+829 unless (f34 && !f33) goto Address859;
+838 unless (v37 != v11) goto Address859;
+846 set.text.attribute(0, 15);
+849 display(0, 18, " %v13:%v12|2:%v11|2 ");
+853 set.text.attribute(15, 0);
+856 assignv(v37, v11);
+
+Address859:
+859 unless (f12) goto Address873;
+865 clear.lines(23, 24, 0);
+869 reset(f32);
+871 disable.item(c20);
+
+Address873:
+873 call.v(v0);
+875 unless (f32) goto Address883;
+881 call(99);
+
+Address883:
+883 call(90);
+885 unless (f2 && (v9 > 0)) goto Address923;
+894 reset(f2);
+896 unless (v9 == 1) goto Address905;
+903 print("I don't understand \"%w1\"");
+
+Address905:
+905 unless (v9 == 2) goto Address914;
+912 print("I don't understand \"%w2\"");
+
+Address914:
+914 unless (v9 == 3) goto Address923;
+921 print("I don't understand \"%w3\"");
+
+Address923:
+923 unless (f2 && !f4) goto Address936;
+932 print("I don't understand your request.");
+934 reset(f2);
+
+Address936:
+936 reset(f4);
+
+Address938:
+938 return();
+
+// messages
+#message 1 "AGI"
+#message 2 "About URI QUEST..."
+#message 3 "INSTRUCTION MANUAL"
+#message 4 "File"
+#message 5 "Save     <F5>"
+#message 6 "Restore  <F7>"
+#message 7 "-------------"
+#message 8 "Restart  <F9>"
+#message 9 "Quit  <Alt-Z>"
+#message 10 "Action"
+#message 11 "See Object  <F4>"
+#message 12 "Inventory  <Tab>"
+#message 13 "Special"
+#message 14 "Clock On/Off      <F6>"
+#message 15 "Pause            <Esc>"
+#message 16 "Hi There. This is Jeff Carroll, the creator, designer, writer, artist, composer, and programmer of URI QUEST. You might remember me from such games as... oops, wrong show. ANYHOO... Thanks for reading this little intro. So just sit back and press ENTER after you read each dialog box, and I'll give you a point when you're done, ok? And before you try it, you'll only get this point one time... no cheating. OK, here we go..."
+#message 17 "This game was the brainchild of me, and also Ed Salamy, one of the co-stars of the game. We both grew up playing the amazing AGI Sierra adventures when we were kids, and we will always hold these games dear to our hearts. One day, while reminiscing about the good ole' college days, Ed remembered something I told him a few weeks back."
+#message 18 "I told Ed that I had run across some folks on the net who had decoded the AGI engine that was used to create the old Sierra games. He said it would be cool if we made a game with us as the characters, only we'd look like Sierra characters. To me, this idea seemed only too poetic."
+#message 19 "So the next day, I started looking over the phenomenon that is AGI, and I started fooling around with the wonderful AGI Studio, and PICEDIT. Add in those programs, some sound converters, and my under-used computer science degree, and you get the beginnings of URI QUEST."
+#message 20 "So I began programming on August 18, 1998. I jotted down bits and pieces of plot ideas and began work on drawing some screens. It took me quite a few screens to truly get the gist of doing it, but it soon became second nature because I ended up doing a main world of over 190 screens. This is more than any original Sierra game. I finished programming on January 28, 1999."
+#message 21 "This was quite an undertaking. Often I asked myself why I was doing this, and the answer mostly is because I like to finish whatever I start. But anyway... you may be asking what exactly is URI anyways?"
+#message 22 "URI is the college that I went to. The University of Rhode Island, which once proudly held the distinction of being the number 1 party school in the country. However, I digress. It was there that me and my best friend John decided to be roomates freshman year. It was also there that we met Ed, and last but not least, Ziggy, our crazy Norwegian neighbor."
+#message 23 "I decided to make the 4 of us the main characters in the game. You start the game as me (Jeff) and you have to start figuring things out from there. The actual plot of the game only becomes evident throughout the course of playing. Along the way, you'll meet other friends and people we knew at URI, and visit many campus landmarks."
+#message 24 "And now comes time for my disclaimer: URI QUEST was made for fun, period. No profit. That being said, I would also like it to be known that this isn't the type of quality that you'd get from a professional company who has a team to work on games. Although I could have made some really nice graphics for every screen if I wanted to, I didn't. Why not, you ask?"
+#message 25 "Because I have a life, mostly. The size of this game is enormous. And I worked on this game on average for AT MOST 3 hours a week, during my lunch breaks at work. So, quality had to suffer from quantity. Still, I think it's a fun game to play. And I have just one more little disclaimer..."
+#message 26 "The URI campus does not look EXACTLY like it does in this game. I've left out many things and sacrificed being specific about every little corner of the campus in order to get the main campus to fit in a 12x12 screen square map. Even still, I think it's a damn good approximation, considering this is 160x200 16-color graphics resolution, PLUS the fact that I drew this whole damn campus from memory! (I graduated two years ago in '97!)"
+#message 27 "But anyways, I guess that's all I have to say. Thanks for reading this and thanks for playing the game. And please don't cheat by opening the game in AGI Studio to look at the code. There's nothing I hate more than cheating. There is nobody out there who can't figure out this game for themselves. Well, thanks again, and here is your one-time-only 1 point!\n\n-Jeff Carroll"
+#message 28 "URI QUEST INSTRUCTION MANUAL\n\nSECTION 1. INTRODUCTION\n\nSeasoned Sierra Adventure game players may skip this section.\n\nAGI Games are adventure games in which your character moves around the screen (according to where you move it), and all actions are performed through a typing interface. You type in what you want your character to do, and you will get a response."
+#message 29 "Let's say you see a tree on the screen. You might want to look at the tree. Try typing \"look at the tree\" and press ENTER. The response may be a description of the tree, or maybe you'll get a clue that you have to do something further with the tree."
+#message 30 "URI Quest understands many verbs and nouns. In most cases, you can omit words like \"a\", \"at\", \"the\", etc... The interpreter will ignore these words. In other words, just typing something like \"look chair\", \"use guitar\" or \"get coin\" are enough. Other times, you might want to be more specific, as in \"look behind bureau\" or \"look under bed\". Either way, this is the basic method for playing this game."
+#message 31 "You can move your character with the arrow keys or with the numeric keypad. Using the numeric keypad allows your character to move diagonally in addition to the four basic directions of the arrow keys.\n\nIf you press the ESC key, the top of the screen will turn into a menu bar. You have a number choices to choose from up there. The choices are as follows:"
+#message 32 "ABOUT URI QUEST: Try it and see what happens.\n\nINSTRUCTIONS: You're reading them.\n\nSAVE GAME: You can save your game's progress at just about any point. Choose this option and follow the instructions.\n\nRESTORE GAME: You can load any game that you've previously saved.\n\nRESTART GAME: Restart the game from the beginning."
+#message 33 "INVENTORY: Lists the items that you've picked up.\n\nSEE OBJECT: Allows you to choose an item that you've picked up and look at it. A description of the item is also provided.\n\nCLOCK ON/OFF: Turns the in-game timer on or off.\n\nPAUSE GAME: Pauses the game in progress.\n\nChoosing an option or pressing the ESC key again will exit from this menu."
+#message 34 "SECTION 2.\nGAMEPLAY TIPS AND HINTS\n\nCareful examination of every room is the only way you will succeed. LOOK at everything you see. Type LOOK or LOOK AROUND in every room to get a general description of your surroundings. The response may give you some hints about what you should do next. In some cases, it may not. If you see something on your screen that you want to check out, don't be afraid to try it, even though the game did not give you a hint that you should."
+#message 35 "To complete your quest, you will have to acquire many items along the way. Try to GET anything you think might be useful. It's always a good idea to LOOK (by pressing F4) at every object you pick up. There may be more to it than meets the eye."
+#message 36 "Don't be afraid to try typing anything you can think of to solve a particular puzzle. If you think you know what to do, but the game doesn't understand it, try rephrasing your request. Every effort has been made to think of every possible request the player can type, but I'm sure I haven't thought of everything. Try saying things different ways, usually the simpler the better."
+#message 37 "This should be enough to get you going. You'll soon get the hang of it. Good luck!\n\nComments, questions, & suggestions can be sent to me, Jeff Carroll."
+#message 38 "To contact me, get updates, hints or any other general info about URI QUEST, go to the URI QUEST Homepage:\n\nhttp://www.jeffcarroll.net/uriquest/"
+#message 39 "(This is game version 0.173)"
+#message 40 " %v13:%v12|2:%v11|2 "
+#message 41 "I don't understand \"%w1\""
+#message 42 "I don't understand \"%w2\""
+#message 43 "I don't understand \"%w3\""
+#message 44 "I don't understand your request."
+#message 45 "To contact me, get updates, hints or any other general info about URI QUEST, go to the URI QUEST Homepage:\n\nhttp://\nwww.jeffcarroll.net/uriquest/"
