@@ -4,9 +4,9 @@ use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::js_sys::Uint8Array;
 
 use crate::{
+    buffer::Buffer,
     data_encoding::encode_uint16be,
     resources::encode::{Encode, EncodingError},
-    buffer::Buffer,
     word_list::WordList,
 };
 
@@ -34,11 +34,11 @@ impl Encode for WordList {
         let number_by_word = self
             .words
             .iter()
-            .flat_map(|(word_number, words)| {
-                words
-                    .iter()
+            .flat_map(|(word_number, entry)| {
+                entry
+                    .iter_words()
                     .filter(|word| *word != "ANYWORD")
-                    .map(|word| (word.clone(), *word_number))
+                    .map(|word| (word, *word_number))
             })
             .collect::<HashMap<_, _>>();
 

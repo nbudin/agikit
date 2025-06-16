@@ -6,6 +6,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::logic::commands::{AGICommand, TestCommand};
 
+pub mod asm;
 pub mod commands;
 pub mod decode;
 pub mod logic_script;
@@ -67,6 +68,16 @@ pub enum LogicInstruction {
     Command(LogicCommand),
     Condition(LogicCondition),
     Goto(LogicGoto),
+}
+
+impl LogicInstruction {
+    pub fn address(&self) -> u16 {
+        match self {
+            LogicInstruction::Command(cmd) => cmd.address,
+            LogicInstruction::Condition(cond) => cond.address,
+            LogicInstruction::Goto(goto) => goto.address,
+        }
+    }
 }
 
 #[wasm_bindgen(typescript_custom_section)]

@@ -11,16 +11,35 @@ pub mod words_txt;
 #[wasm_bindgen]
 pub struct WordList {
     #[wasm_bindgen(skip)]
-    pub words: HashMap<u16, HashSet<String>>,
+    pub words: HashMap<u16, WordListEntry>,
 }
 
-struct WordListEntry(u16, Vec<String>);
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WordListEntry {
+    pub number: u16,
+    pub words: HashSet<String>,
+    pub canonical_word: String,
+}
+
+impl WordListEntry {
+    fn iter_words(&self) -> impl Iterator<Item = &str> {
+        std::iter::once(self.canonical_word.as_str()).chain(
+            self.words
+                .iter()
+                .filter(|word| **word != self.canonical_word)
+                .map(|word| word.as_str()),
+        )
+    }
+}
 
 impl Into<JsValue> for WordListEntry {
     fn into(self) -> JsValue {
         let pair = js_sys::Array::new();
-        pair.push(&JsValue::from(self.0));
-        let words = js_sys::Array::from(&self.1.into());
+        pair.push(&JsValue::from(self.number));
+        let words = self
+            .iter_words()
+            .map(JsValue::from)
+            .collect::<js_sys::Array>();
         pair.push(&words);
         pair.into()
     }
@@ -35,17 +54,16 @@ impl WordList {
         }
     }
 
-    pub fn entries(&self) -> Vec<JsValue> {
-        self.words
-            .iter()
-            .map(|(key, value)| WordListEntry(*key, value.iter().cloned().collect()).into())
-            .collect()
+    #[wasm_bindgen(js_name = "entries")]
+    pub fn js_entries(&self) -> Vec<JsValue> {
+        self.words.values().cloned().map(Into::into).collect()
     }
 
-    pub fn get(&self, word_number: u16) -> Option<js_sys::Array> {
+    #[wasm_bindgen(js_name = "get")]
+    pub fn js_get(&self, word_number: u16) -> Option<js_sys::Array> {
         self.words
             .get(&word_number)
-            .map(|set| js_sys::Array::from_iter(set.iter().map(JsValue::from)))
+            .map(|entry| js_sys::Array::from_iter(entry.iter_words().map(JsValue::from)))
     }
 }
 
@@ -56,7 +74,7 @@ mod tests {
 
     use crate::{
         resources::{decode::Decode, encode::Encode},
-        word_list::WordList,
+        word_list::{WordList, WordListEntry},
         TEST_DATA_DIR,
     };
 
@@ -71,7 +89,11 @@ mod tests {
 
         assert_eq!(
             word_list.words.get(&9999),
-            Some(&HashSet::from(["rol".to_string()]))
+            Some(&WordListEntry {
+                number: 9999,
+                canonical_word: "rol".to_string(),
+                words: HashSet::from(["rol".to_string()])
+            })
         );
 
         let encoded = word_list.encode(()).expect("Failed to encode WordList");

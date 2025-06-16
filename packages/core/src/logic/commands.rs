@@ -8,7 +8,7 @@ use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 use crate::agi_version::AGIVersion;
 
-#[derive(Debug, Clone, PartialEq, Eq, EnumString, AsRefStr, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumString, AsRefStr, Serialize, Deserialize)]
 pub enum AGICommandArgType {
     Number,
     Variable,

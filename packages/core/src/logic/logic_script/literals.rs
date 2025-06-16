@@ -1,6 +1,6 @@
 use crate::logic::logic_script::{parsing::ScriptLocationRange, statements::LogicScriptComment};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LogicScriptNumberLiteral {
     pub value: i32,
     pub location: Option<ScriptLocationRange>,
@@ -36,13 +36,27 @@ impl LogicScriptStringLiteral {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum LogicScriptLiteralValue {
     Number(LogicScriptNumberLiteral),
     String(LogicScriptStringLiteral),
 }
 
-#[derive(Debug)]
+impl LogicScriptLiteralValue {
+    pub fn from_string(value: String, location: Option<ScriptLocationRange>) -> Self {
+        LogicScriptLiteralValue::String(LogicScriptStringLiteral {
+            parts: vec![LogicScriptStringLiteralPart::SingleString(
+                LogicScriptSingleStringLiteral {
+                    value,
+                    location: location.clone(),
+                },
+            )],
+            location,
+        })
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct LogicScriptLiteral {
     pub value: LogicScriptLiteralValue,
     pub location: Option<ScriptLocationRange>,

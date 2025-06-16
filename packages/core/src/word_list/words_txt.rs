@@ -1,6 +1,8 @@
+use std::collections::HashMap;
+
 use wasm_bindgen::prelude::wasm_bindgen;
 
-use crate::word_list::WordList;
+use crate::word_list::{WordList, WordListEntry};
 
 peg::parser! {
     grammar words_txt_parser() for str {
@@ -93,15 +95,19 @@ peg::parser! {
                 word
             }
 
-        rule synonym_list() -> std::collections::HashSet<String>
+        rule synonym_list() -> Vec<String>
             = words:(word()*) { words.into_iter().collect() }
 
-        rule word_declaration() -> (u16, std::collections::HashSet<String>)
+        rule word_declaration() -> (u16, WordListEntry)
             = number:word_number() ":" words:synonym_list() {
-                (number, words)
+                (number, WordListEntry {
+                    number,
+                    canonical_word: words.first().cloned().unwrap_or_default(),
+                    words: words.into_iter().collect(),
+                })
             }
 
-        pub rule word_declarations() -> std::collections::HashMap<u16, std::collections::HashSet<String>>
+        pub rule word_declarations() -> HashMap<u16, WordListEntry>
             = declarations:(word_declaration() ** line_terminator()) {
                 declarations.into_iter().collect()
             }
@@ -129,7 +135,7 @@ pub fn export_words(word_list: &WordList) -> String {
         .map(|word_number| {
             let words = word_list.words.get(word_number).unwrap();
             let mut words = words
-                .iter()
+                .iter_words()
                 .map(|word| format_word(word))
                 .collect::<Vec<_>>();
             words.sort_unstable();
@@ -188,11 +194,19 @@ mod tests {
         assert_eq!(word_list.len(), 44);
         assert_eq!(
             word_list.get(&14),
-            Some(&HashSet::from(["y".to_string(), "yes".to_string()]))
+            Some(&WordListEntry {
+                number: 14,
+                canonical_word: "y".to_string(),
+                words: HashSet::from(["y".to_string(), "yes".to_string()]),
+            })
         );
         assert_eq!(
             word_list.get(&9999),
-            Some(&HashSet::from(["rol".to_string()]))
+            Some(&WordListEntry {
+                number: 9999,
+                canonical_word: "rol".to_string(),
+                words: HashSet::from(["rol".to_string()]),
+            })
         );
     }
 }

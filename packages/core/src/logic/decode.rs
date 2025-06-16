@@ -283,7 +283,5 @@ mod tests {
 
         assert_eq!(logic_program.messages.len(), 45);
         assert_eq!(logic_program.messages.get(&0).unwrap(), "AGI");
-
-        eprintln!("Decoded Logic Program: {:#?}", logic_program.instructions);
     }
 }

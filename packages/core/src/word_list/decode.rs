@@ -1,9 +1,15 @@
-use std::io::{Cursor, SeekFrom};
+use std::{
+    collections::HashSet,
+    io::{Cursor, SeekFrom},
+};
 
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::js_sys::Uint8Array;
 
-use crate::{buffer::Buffer, data_encoding::ReadHeterogeneousData, resources::decode::Decode};
+use crate::{
+    buffer::Buffer, data_encoding::ReadHeterogeneousData, resources::decode::Decode,
+    word_list::WordListEntry,
+};
 
 use super::WordList;
 
@@ -41,8 +47,18 @@ impl<Data: ReadHeterogeneousData> Decode<'_, Data> for WordList {
                     previous_word = current_word.clone();
                     let word_number = data.read_u16_be()?;
 
-                    let word_set = word_list.words.entry(word_number).or_default();
-                    word_set.insert(current_word.iter().collect::<String>());
+                    let current_word_str = current_word.iter().collect::<String>();
+
+                    let entry =
+                        word_list
+                            .words
+                            .entry(word_number)
+                            .or_insert_with(|| WordListEntry {
+                                words: HashSet::new(),
+                                canonical_word: current_word_str.clone(),
+                                number: word_number,
+                            });
+                    entry.words.insert(current_word.iter().collect::<String>());
                     break;
                 } else {
                     current_word.push((char ^ 0x7f) as char);
