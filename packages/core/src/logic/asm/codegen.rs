@@ -26,7 +26,9 @@ pub enum AsmCodeGenerationError {
     UnlabeledJumpAddress(u16),
     TooManyArguments(AGICommand, usize),
     UnknownWord(u16),
+    UnknownMessage(u16),
     SerdeJsonError(serde_json::Error),
+    ErrorGeneratingInstruction(LogicInstruction, Box<AsmCodeGenerationError>),
 }
 
 pub trait GenerateLogicAsm {
@@ -114,7 +116,7 @@ impl GenerateLogicAsm for LogicCommand {
             .enumerate()
             .map(|(index, arg)| {
                 Ok(LogicScriptArgument::new(
-                    *arg,
+                    *arg as u16,
                     self.agi_command
                         .arg_types
                         .get(index)
@@ -261,7 +263,9 @@ pub fn generate_labels<'a>(
     for instruction in instructions {
         match instruction {
             LogicInstruction::Goto(goto) => {
-                let targets = target_addresses_with_refs.entry(goto.address).or_default();
+                let targets = target_addresses_with_refs
+                    .entry(goto.jump_address)
+                    .or_default();
                 targets.entry(instruction.address()).or_insert(instruction);
             }
             LogicInstruction::Condition(condition) => {
@@ -311,12 +315,17 @@ pub fn generate_logic_asm_instruction_with_possible_label(
 }
 
 pub fn generate_logic_messages(messages: &LogicMessages) -> Result<String, AsmCodeGenerationError> {
-    let message_lines = messages
+    let mut sorted_message_keys = messages.keys().collect::<Vec<_>>();
+    sorted_message_keys.sort_unstable();
+    let message_lines = sorted_message_keys
         .iter()
-        .map(|(index, message)| {
+        .map(|index| {
+            let message = messages
+                .get(*index)
+                .ok_or_else(|| AsmCodeGenerationError::UnknownMessage(**index as u16))?;
             Ok(format!(
                 "#message {} {}",
-                index + 1,
+                *index + 1,
                 serde_json::to_string(message)
                     .map_err(|err| AsmCodeGenerationError::SerdeJsonError(err))?
             ))
@@ -350,12 +359,18 @@ pub fn generate_logic_asm(
                 &labels_by_address,
                 &context,
             )
+            .map_err(|err| {
+                AsmCodeGenerationError::ErrorGeneratingInstruction(
+                    instruction.clone(),
+                    Box::new(err),
+                )
+            })
         })
         .collect::<Result<Vec<_>, _>>()?
         .join("\n");
 
     Ok(format!(
-        "{}\n\n{}",
+        "{}\n\n{}\n",
         asm_code,
         generate_logic_messages(&logic.messages)?
     ))
@@ -376,6 +391,7 @@ mod tests {
         },
         TEST_DATA_DIR,
     };
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn smoke_test() {
@@ -394,6 +410,10 @@ mod tests {
         let logic_program = LogicProgram::decode(&mut cursor, &AGIVersion::new(2, 917))
             .expect("Failed to decode logic program");
 
+        for instruction in &logic_program.instructions {
+            println!("Instruction: {:?}", instruction);
+        }
+
         let words_tok_data = TEST_DATA_DIR
             .get_file("uriquest/WORDS.TOK")
             .expect("Failed to get WORDS.TOK file")
@@ -406,9 +426,10 @@ mod tests {
 
         let expected_asm = TEST_DATA_DIR
             .get_file("uriquest/0.agiasm")
-            .expect("Failed to get expected logic.asm file")
+            .expect("Failed to get uriquest/0.agiasm file")
             .contents_utf8()
-            .expect("Failed to read expected logic.asm file as UTF-8");
+            .expect("Failed to read uriquest/0.agiasm file");
+
         assert_eq!(generated_asm, expected_asm);
     }
 }

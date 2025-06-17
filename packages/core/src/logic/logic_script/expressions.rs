@@ -23,7 +23,7 @@ pub enum LogicScriptArgument {
 
 impl LogicScriptArgument {
     pub fn new(
-        value: u8,
+        value: u16,
         arg_type: AGICommandArgType,
         context: &AsmCodeGenerationContext,
     ) -> Result<Self, AsmCodeGenerationError> {
@@ -68,7 +68,7 @@ impl LogicScriptArgument {
                 }))
             }
             AGICommandArgType::Message => {
-                let message = context.logic.messages.get(&value);
+                let message = context.logic.messages.get(&(value as u8 - 1));
                 match message {
                     Some(msg) => Ok(LogicScriptArgument::Literal(LogicScriptLiteral {
                         value: LogicScriptLiteralValue::from_string(msg.clone(), None),
@@ -209,8 +209,16 @@ impl LogicScriptBooleanExpression {
                 let argument_list: Vec<_> = test_clause
                     .args
                     .iter()
-                    .zip(test_clause.test_command.arg_types.iter())
-                    .map(|(value, arg_type)| LogicScriptArgument::new(*value, *arg_type, context))
+                    .zip(if test_clause.test_command.var_args {
+                        Box::new(
+                            std::iter::repeat(AGICommandArgType::Word).take(test_clause.args.len()),
+                        )
+                            as Box<dyn std::iter::Iterator<Item = AGICommandArgType>>
+                    } else {
+                        Box::new(test_clause.test_command.arg_types.iter().copied())
+                            as Box<dyn std::iter::Iterator<Item = AGICommandArgType>>
+                    })
+                    .map(|(value, arg_type)| LogicScriptArgument::new(*value, arg_type, context))
                     .collect::<Result<_, _>>()?;
 
                 if test_clause.test_command.name == "equaln"
@@ -221,9 +229,9 @@ impl LogicScriptBooleanExpression {
                             LogicScriptBooleanBinaryOperation {
                                 left: argument_list[0].clone(),
                                 operator: if test_clause.negate {
-                                    LogicScriptBooleanBinaryOperator::Equal
-                                } else {
                                     LogicScriptBooleanBinaryOperator::NotEqual
+                                } else {
+                                    LogicScriptBooleanBinaryOperator::Equal
                                 },
                                 right: argument_list[1].clone(),
                                 location: None,

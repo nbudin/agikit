@@ -25,7 +25,7 @@ pub struct LogicCommand {
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct LogicTest {
     pub test_command: TestCommand,
-    pub args: Vec<u8>,
+    pub args: Vec<u16>,
     pub negate: bool,
 }
 

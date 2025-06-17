@@ -119,15 +119,17 @@ impl<'opt, Data: ReadHeterogeneousData> Decode<'opt, Data> for LogicCondition {
                     let test_command = TestCommand::get(test_opcode)
                         .ok_or_else(|| DisassemblyError::InvalidTestOpcode(test_opcode))?;
 
-                    let arg_count = if test_command.var_args {
-                        data.read_u8()?
+                    let args = if test_command.var_args {
+                        let arg_count = data.read_u8()?;
+                        (0..arg_count)
+                            .map(|_| data.read_u16_le())
+                            .collect::<Result<Vec<_>, _>>()?
                     } else {
-                        test_command.arg_types.len() as u8
+                        let arg_count = test_command.arg_types.len();
+                        (0..arg_count)
+                            .map(|_| data.read_u8().map(|v| v as u16))
+                            .collect::<Result<Vec<_>, _>>()?
                     };
-
-                    let args = (0..arg_count)
-                        .map(|_| data.read_u8())
-                        .collect::<Result<Vec<_>, _>>()?;
 
                     let logic_test = LogicTest {
                         test_command: test_command.clone(),
@@ -146,11 +148,12 @@ impl<'opt, Data: ReadHeterogeneousData> Decode<'opt, Data> for LogicCondition {
         }
 
         let skip_offset = data.read_i16_le()?;
+        let instruction_end_offset = data.stream_position()? as i32 - 2;
 
         let condition = LogicCondition {
             address,
             clauses,
-            skip_address: (address as i32 + skip_offset as i32) as u16,
+            skip_address: (instruction_end_offset + skip_offset as i32) as u16,
         };
 
         Ok(condition)
@@ -173,9 +176,11 @@ impl<'opt, Data: ReadHeterogeneousData> Decode<'opt, Data> for LogicInstruction 
             }
             0xfe => {
                 let jump_offset = data.read_i16_le()?;
+                let instruction_end_address = data.stream_position()? as i32 - 2;
+                let jump_address = (instruction_end_address + jump_offset as i32) as u16;
                 Ok(LogicInstruction::Goto(LogicGoto {
                     address,
-                    jump_address: (address as i32 + jump_offset as i32) as u16,
+                    jump_address,
                 }))
             }
             _ => {
@@ -209,7 +214,7 @@ impl<'opt, Data: ReadHeterogeneousData> Decode<'opt, Data> for Vec<LogicInstruct
         Self: Sized,
     {
         let mut instructions = Vec::new();
-        while data.stream_position()? < text_offset as u64 + 2 {
+        while data.stream_position()? < text_offset as u64 {
             let instruction = LogicInstruction::decode(data, agi_version)?;
             instructions.push(instruction);
         }
