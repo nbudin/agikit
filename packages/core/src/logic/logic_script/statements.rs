@@ -1,71 +1,60 @@
-use crate::logic::logic_script::{
-    directives::LogicScriptDirective,
-    expressions::{
-        LogicScriptArgument, LogicScriptArgumentList, LogicScriptBooleanExpression,
-        LogicScriptIdentifier,
+use crate::logic::{
+    asm::expressions::{LogicArgument, LogicBooleanExpression, LogicIdentifier},
+    logic_script::{
+        directives::LogicScriptDirective,
+        operators::{LogicScriptArithmeticOperator, LogicScriptUnaryAssignmentOperator},
     },
-    operators::{LogicScriptArithmeticOperator, LogicScriptUnaryAssignmentOperator},
-    parsing::ScriptLocationRange,
 };
 
 #[derive(Debug)]
-pub struct LogicScriptCommandCall {
+pub struct LogicScriptCommandCall<Arg: LogicArgument> {
     pub commmand_name: String,
-    pub argument_list: LogicScriptArgumentList,
-    pub location: Option<ScriptLocationRange>,
-    pub command_name_location: Option<ScriptLocationRange>,
+    pub argument_list: Vec<Arg>,
 }
 
 #[derive(Debug)]
-pub struct LogicScriptIfStatement<StatementType> {
-    pub conditions: LogicScriptBooleanExpression,
+pub struct LogicScriptIfStatement<Arg: LogicArgument, StatementType> {
+    pub conditions: LogicBooleanExpression<Arg>,
     pub then_statements: Vec<StatementType>,
     pub else_statements: Vec<StatementType>,
     pub if_keyword: LogicScriptKeyword,
     pub else_keyword: Option<LogicScriptKeyword>,
-    pub location: Option<ScriptLocationRange>,
 }
 
 #[derive(Debug)]
 pub struct LogicScriptUnaryOperationStatement {
     pub operation: LogicScriptUnaryAssignmentOperator,
-    pub identifier: LogicScriptIdentifier,
-    pub location: Option<ScriptLocationRange>,
+    pub identifier: LogicIdentifier,
 }
 
 #[derive(Debug)]
-pub struct LogicScriptValueAssignmentStatement {
-    pub assignee: LogicScriptIdentifier,
-    pub value: LogicScriptArgument,
-    pub location: Option<ScriptLocationRange>,
+pub struct LogicScriptValueAssignmentStatement<Arg: LogicArgument> {
+    pub assignee: LogicIdentifier,
+    pub value: Arg,
 }
 
 #[derive(Debug)]
-pub struct LogicScriptArithmeticAssignmentStatement {
+pub struct LogicScriptArithmeticAssignmentStatement<Arg: LogicArgument> {
     pub operator: LogicScriptArithmeticOperator,
-    pub assignee: LogicScriptIdentifier,
-    pub value: LogicScriptArgument,
-    pub location: Option<ScriptLocationRange>,
+    pub assignee: LogicIdentifier,
+    pub value: Arg,
 }
 
 #[derive(Debug)]
-pub struct LogicScriptLeftIndirectAssignmentStatement {
-    pub assignee_pointer: LogicScriptIdentifier,
-    pub value: LogicScriptArgument,
-    pub location: Option<ScriptLocationRange>,
+pub struct LogicScriptLeftIndirectAssignmentStatement<Arg: LogicArgument> {
+    pub assignee_pointer: LogicIdentifier,
+    pub value: Arg,
 }
 
 #[derive(Debug)]
 pub struct LogicScriptRightIndirectAssignmentStatement {
-    pub assignee: LogicScriptIdentifier,
-    pub value_pointer: LogicScriptIdentifier,
-    pub location: Option<ScriptLocationRange>,
+    pub assignee: LogicIdentifier,
+    pub value_pointer: LogicIdentifier,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct LogicScriptComment {
     pub comment: String,
-    pub location: Option<ScriptLocationRange>,
 }
 
 #[derive(Debug, Clone)]
@@ -77,25 +66,23 @@ pub enum KeywordType {
 #[derive(Debug, Clone)]
 pub struct LogicScriptKeyword {
     pub keyword: KeywordType,
-    pub location: Option<ScriptLocationRange>,
 }
 
 #[derive(Debug)]
 pub struct LogicScriptLabel {
     pub label: String,
-    pub location: Option<ScriptLocationRange>,
 }
 
 #[derive(Debug)]
-pub enum LogicScriptStatement {
+pub enum LogicScriptStatement<Arg: LogicArgument> {
     Label(LogicScriptLabel),
-    CommandCall(LogicScriptCommandCall),
-    IfStatement(LogicScriptIfStatement<Box<LogicScriptStatement>>),
+    CommandCall(LogicScriptCommandCall<Arg>),
+    IfStatement(LogicScriptIfStatement<Arg, Box<LogicScriptStatement<Arg>>>),
     Comment(LogicScriptComment),
     UnaryOperation(LogicScriptUnaryOperationStatement),
     Directive(LogicScriptDirective),
-    ValueAssignment(LogicScriptValueAssignmentStatement),
-    ArithmeticAssignment(LogicScriptArithmeticAssignmentStatement),
-    LeftIndirectAssignment(LogicScriptLeftIndirectAssignmentStatement),
+    ValueAssignment(LogicScriptValueAssignmentStatement<Arg>),
+    ArithmeticAssignment(LogicScriptArithmeticAssignmentStatement<Arg>),
+    LeftIndirectAssignment(LogicScriptLeftIndirectAssignmentStatement<Arg>),
     RightIndirectAssignment(LogicScriptRightIndirectAssignmentStatement),
 }

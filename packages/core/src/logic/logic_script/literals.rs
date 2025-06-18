@@ -1,15 +1,13 @@
-use crate::logic::logic_script::{parsing::ScriptLocationRange, statements::LogicScriptComment};
-
-#[derive(Debug, Clone)]
-pub struct LogicScriptNumberLiteral {
-    pub value: i32,
-    pub location: Option<ScriptLocationRange>,
-}
+use crate::logic::{
+    asm::literals::{
+        LogicLiteral, LogicLiteralValue, LogicNumberLiteral, LogicStringLiteral, StringLiteral,
+    },
+    logic_script::statements::LogicScriptComment,
+};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct LogicScriptSingleStringLiteral {
     pub value: String,
-    pub location: Option<ScriptLocationRange>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -21,7 +19,6 @@ pub enum LogicScriptStringLiteralPart {
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct LogicScriptStringLiteral {
     pub parts: Vec<LogicScriptStringLiteralPart>,
-    pub location: Option<ScriptLocationRange>,
 }
 
 impl LogicScriptStringLiteral {
@@ -36,28 +33,45 @@ impl LogicScriptStringLiteral {
     }
 }
 
+impl StringLiteral<'_, String> for LogicScriptStringLiteral {
+    fn value(&self) -> String {
+        self.value()
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum LogicScriptLiteralValue {
-    Number(LogicScriptNumberLiteral),
+    Number(LogicNumberLiteral),
     String(LogicScriptStringLiteral),
 }
 
 impl LogicScriptLiteralValue {
-    pub fn from_string(value: String, location: Option<ScriptLocationRange>) -> Self {
+    pub fn from_string(value: String) -> Self {
         LogicScriptLiteralValue::String(LogicScriptStringLiteral {
             parts: vec![LogicScriptStringLiteralPart::SingleString(
-                LogicScriptSingleStringLiteral {
-                    value,
-                    location: location.clone(),
-                },
+                LogicScriptSingleStringLiteral { value },
             )],
-            location,
         })
+    }
+}
+
+impl From<LogicScriptLiteral> for LogicLiteral {
+    fn from(literal: LogicScriptLiteral) -> Self {
+        let value = match literal.value {
+            LogicScriptLiteralValue::Number(num) => {
+                LogicLiteralValue::Number(LogicNumberLiteral { value: num.value })
+            }
+            LogicScriptLiteralValue::String(string) => {
+                LogicLiteralValue::String(LogicStringLiteral {
+                    value: string.value(),
+                })
+            }
+        };
+        LogicLiteral { value }
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct LogicScriptLiteral {
     pub value: LogicScriptLiteralValue,
-    pub location: Option<ScriptLocationRange>,
 }

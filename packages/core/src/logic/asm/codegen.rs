@@ -2,15 +2,16 @@ use std::collections::HashMap;
 
 use crate::{
     logic::{
-        asm::LogicLabel,
-        commands::AGICommand,
-        logic_script::{
+        asm::{
             expressions::{
-                LogicScriptArgument, LogicScriptBooleanExpression, LogicScriptIdentifier,
+                AsmLogicArgument, LogicArgument, LogicBooleanExpression, LogicIdentifier,
+                ParsedLogicArgument,
             },
-            literals::{LogicScriptLiteral, LogicScriptLiteralValue},
-            operators::LogicScriptBooleanBinaryOperator,
+            literals::{LogicLiteral, LogicLiteralValue, StringLiteral},
+            operators::LogicBooleanBinaryOperator,
+            LogicLabel,
         },
+        commands::AGICommand,
         LogicCommand, LogicCondition, LogicGoto, LogicInstruction, LogicMessages, LogicProgram,
     },
     word_list::WordList,
@@ -39,38 +40,38 @@ pub trait GenerateLogicAsm {
     ) -> Result<String, AsmCodeGenerationError>;
 }
 
-impl GenerateLogicAsm for LogicScriptBooleanBinaryOperator {
+impl GenerateLogicAsm for LogicBooleanBinaryOperator {
     fn generate_asm(
         &self,
         _context: &AsmCodeGenerationContext,
         _labels: &HashMap<u16, &LogicLabel>,
     ) -> Result<String, AsmCodeGenerationError> {
         Ok(match self {
-            LogicScriptBooleanBinaryOperator::LessThan => "<".to_string(),
-            LogicScriptBooleanBinaryOperator::LessThanOrEqual => "<=".to_string(),
-            LogicScriptBooleanBinaryOperator::GreaterThan => ">".to_string(),
-            LogicScriptBooleanBinaryOperator::GreaterThanOrEqual => ">=".to_string(),
-            LogicScriptBooleanBinaryOperator::Equal => "==".to_string(),
-            LogicScriptBooleanBinaryOperator::NotEqual => "!=".to_string(),
+            LogicBooleanBinaryOperator::LessThan => "<".to_string(),
+            LogicBooleanBinaryOperator::LessThanOrEqual => "<=".to_string(),
+            LogicBooleanBinaryOperator::GreaterThan => ">".to_string(),
+            LogicBooleanBinaryOperator::GreaterThanOrEqual => ">=".to_string(),
+            LogicBooleanBinaryOperator::Equal => "==".to_string(),
+            LogicBooleanBinaryOperator::NotEqual => "!=".to_string(),
         })
     }
 }
 
-impl GenerateLogicAsm for LogicScriptLiteralValue {
+impl GenerateLogicAsm for LogicLiteralValue {
     fn generate_asm(
         &self,
         _context: &AsmCodeGenerationContext,
         _labels: &HashMap<u16, &LogicLabel>,
     ) -> Result<String, AsmCodeGenerationError> {
         Ok(match self {
-            LogicScriptLiteralValue::Number(number) => format!("{}", number.value),
-            LogicScriptLiteralValue::String(string) => serde_json::to_string(&string.value())
+            LogicLiteralValue::Number(number) => format!("{}", number.value),
+            LogicLiteralValue::String(string) => serde_json::to_string(&string.value())
                 .map_err(|err| AsmCodeGenerationError::SerdeJsonError(err))?,
         })
     }
 }
 
-impl GenerateLogicAsm for LogicScriptLiteral {
+impl GenerateLogicAsm for LogicLiteral {
     fn generate_asm(
         &self,
         context: &AsmCodeGenerationContext,
@@ -80,7 +81,7 @@ impl GenerateLogicAsm for LogicScriptLiteral {
     }
 }
 
-impl GenerateLogicAsm for LogicScriptIdentifier {
+impl GenerateLogicAsm for LogicIdentifier {
     fn generate_asm(
         &self,
         _context: &AsmCodeGenerationContext,
@@ -90,15 +91,15 @@ impl GenerateLogicAsm for LogicScriptIdentifier {
     }
 }
 
-impl GenerateLogicAsm for LogicScriptArgument {
+impl GenerateLogicAsm for ParsedLogicArgument {
     fn generate_asm(
         &self,
         context: &AsmCodeGenerationContext,
         labels: &HashMap<u16, &LogicLabel>,
     ) -> Result<String, AsmCodeGenerationError> {
         match self {
-            LogicScriptArgument::Literal(literal) => literal.generate_asm(context, labels),
-            LogicScriptArgument::Identifier(identifier) => identifier.generate_asm(context, labels),
+            ParsedLogicArgument::Literal(literal) => literal.generate_asm(context, labels),
+            ParsedLogicArgument::Identifier(identifier) => identifier.generate_asm(context, labels),
         }
     }
 }
@@ -115,7 +116,7 @@ impl GenerateLogicAsm for LogicCommand {
             .iter()
             .enumerate()
             .map(|(index, arg)| {
-                Ok(LogicScriptArgument::new(
+                Ok(AsmLogicArgument::new(
                     *arg as u16,
                     self.agi_command
                         .arg_types
@@ -127,8 +128,8 @@ impl GenerateLogicAsm for LogicCommand {
                                 self.args.len(),
                             )
                         })?,
-                    context,
-                )?
+                )
+                .try_parse(context)?
                 .generate_asm(context, labels)?)
             })
             .collect::<Result<Vec<_>, _>>()?;
@@ -153,16 +154,15 @@ impl GenerateLogicAsm for LogicGoto {
     }
 }
 
-impl GenerateLogicAsm for LogicScriptBooleanExpression {
+impl<Arg: LogicArgument + GenerateLogicAsm> GenerateLogicAsm for LogicBooleanExpression<Arg> {
     fn generate_asm(
         &self,
         context: &AsmCodeGenerationContext,
         labels: &HashMap<u16, &LogicLabel>,
     ) -> Result<String, AsmCodeGenerationError> {
         let generate_sub_expression_asm =
-            |sub_expression: &LogicScriptBooleanExpression| match sub_expression {
-                LogicScriptBooleanExpression::TestCall(_)
-                | LogicScriptBooleanExpression::NotExpression(_) => {
+            |sub_expression: &LogicBooleanExpression<Arg>| match sub_expression {
+                LogicBooleanExpression::TestCall(_) | LogicBooleanExpression::NotExpression(_) => {
                     sub_expression.generate_asm(context, labels)
                 }
 
@@ -173,7 +173,7 @@ impl GenerateLogicAsm for LogicScriptBooleanExpression {
             };
 
         match self {
-            LogicScriptBooleanExpression::TestCall(test_call) => {
+            LogicBooleanExpression::TestCall(test_call) => {
                 if test_call.test_name == "isset" && test_call.argument_list.len() == 1 {
                     let arg = &test_call.argument_list[0];
                     arg.generate_asm(context, labels)
@@ -190,29 +190,29 @@ impl GenerateLogicAsm for LogicScriptBooleanExpression {
                     ))
                 }
             }
-            LogicScriptBooleanExpression::AndExpression(and_expression) => Ok(and_expression
+            LogicBooleanExpression::AndExpression(and_expression) => Ok(and_expression
                 .clauses
                 .iter()
                 .map(generate_sub_expression_asm)
                 .collect::<Result<Vec<_>, _>>()?
                 .join(" && ")),
-            LogicScriptBooleanExpression::OrExpression(or_expression) => Ok(or_expression
+            LogicBooleanExpression::OrExpression(or_expression) => Ok(or_expression
                 .clauses
                 .iter()
                 .map(generate_sub_expression_asm)
                 .collect::<Result<Vec<_>, _>>()?
                 .join(" || ")),
-            LogicScriptBooleanExpression::NotExpression(not_expression) => Ok(format!(
+            LogicBooleanExpression::NotExpression(not_expression) => Ok(format!(
                 "!{}",
                 generate_sub_expression_asm(&not_expression.expression)?
             )),
-            LogicScriptBooleanExpression::BinaryOperation(operation) => Ok(format!(
+            LogicBooleanExpression::BinaryOperation(operation) => Ok(format!(
                 "{} {} {}",
                 operation.left.generate_asm(context, labels)?,
                 operation.operator.generate_asm(context, labels)?,
                 operation.right.generate_asm(context, labels)?
             )),
-            LogicScriptBooleanExpression::Identifier(identifier) => Ok(identifier.name.clone()),
+            LogicBooleanExpression::Identifier(identifier) => Ok(identifier.name.clone()),
         }
     }
 }
@@ -229,8 +229,7 @@ impl GenerateLogicAsm for LogicCondition {
             ));
         };
 
-        let boolean_expression =
-            LogicScriptBooleanExpression::from_clauses(&self.clauses, &context)?;
+        let boolean_expression = LogicBooleanExpression::from_clauses(&self.clauses, &context)?;
         let condition_asm = boolean_expression.generate_asm(context, labels)?;
         Ok(format!(
             "unless ({}) goto {};",

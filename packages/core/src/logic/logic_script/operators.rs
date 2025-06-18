@@ -1,25 +1,4 @@
-pub trait LogicScriptBinaryOperator {
-    fn is_commutative(&self) -> bool;
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum LogicScriptBooleanBinaryOperator {
-    LessThan,
-    LessThanOrEqual,
-    GreaterThan,
-    GreaterThanOrEqual,
-    Equal,
-    NotEqual,
-}
-
-impl LogicScriptBinaryOperator for LogicScriptBooleanBinaryOperator {
-    fn is_commutative(&self) -> bool {
-        matches!(
-            self,
-            LogicScriptBooleanBinaryOperator::Equal | LogicScriptBooleanBinaryOperator::NotEqual
-        )
-    }
-}
+use crate::logic::asm::operators::LogicBinaryOperator;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum LogicScriptUnaryAssignmentOperator {
@@ -35,7 +14,7 @@ pub enum LogicScriptArithmeticOperator {
     Divide,
 }
 
-impl LogicScriptBinaryOperator for LogicScriptArithmeticOperator {
+impl LogicBinaryOperator for LogicScriptArithmeticOperator {
     fn is_commutative(&self) -> bool {
         matches!(
             self,

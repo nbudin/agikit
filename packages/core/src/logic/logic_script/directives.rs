@@ -1,26 +1,25 @@
-use crate::logic::logic_script::{
-    expressions::LogicScriptIdentifier,
-    literals::{LogicScriptLiteral, LogicScriptNumberLiteral, LogicScriptStringLiteral},
-    parsing::ScriptLocationRange,
+use crate::logic::{
+    asm::{expressions::LogicIdentifier, literals::LogicNumberLiteral},
+    logic_script::literals::{LogicScriptLiteral, LogicScriptStringLiteral},
 };
 
 #[derive(Debug)]
 pub enum LogicScriptDefineValue {
     Literal(LogicScriptLiteral),
-    Identifier(LogicScriptIdentifier),
+    Identifier(LogicIdentifier),
 }
 
 #[derive(Debug)]
 pub enum Directive {
     Message {
-        number: LogicScriptNumberLiteral,
+        number: LogicNumberLiteral,
         message: LogicScriptStringLiteral,
     },
     Include {
         filename: LogicScriptStringLiteral,
     },
     Define {
-        identifier: LogicScriptIdentifier,
+        identifier: LogicIdentifier,
         value: LogicScriptDefineValue,
     },
 }
@@ -35,12 +34,10 @@ pub enum DirectiveType {
 #[derive(Debug)]
 pub struct LogicScriptDirectiveKeyword {
     pub keyword: DirectiveType,
-    pub location: Option<ScriptLocationRange>,
 }
 
 #[derive(Debug)]
 pub struct LogicScriptDirective {
     pub directive: Directive,
     pub keyword: LogicScriptDirectiveKeyword,
-    pub location: Option<ScriptLocationRange>,
 }

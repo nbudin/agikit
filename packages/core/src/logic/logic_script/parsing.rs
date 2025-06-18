@@ -1,90 +1,73 @@
-use std::ops::Range;
-
 use peg::RuleResult;
 
-use crate::logic::logic_script::{
-    directives::{
-        Directive, DirectiveType, LogicScriptDefineValue, LogicScriptDirective,
-        LogicScriptDirectiveKeyword,
+use crate::logic::{
+    asm::{
+        expressions::{
+            LogicAndExpression, LogicBooleanBinaryOperation, LogicBooleanExpression,
+            LogicIdentifier, LogicNotExpression, LogicOrExpression, LogicTestCall,
+            ParsedLogicArgument,
+        },
+        literals::{LogicLiteral, LogicLiteralValue, LogicNumberLiteral},
+        operators::LogicBooleanBinaryOperator,
     },
-    expressions::{
-        LogicScriptAndExpression, LogicScriptArgument, LogicScriptArgumentList,
-        LogicScriptBooleanBinaryOperation, LogicScriptBooleanExpression, LogicScriptIdentifier,
-        LogicScriptNotExpression, LogicScriptOrExpression, LogicScriptTestCall,
-    },
-    literals::{
-        LogicScriptLiteral, LogicScriptLiteralValue, LogicScriptNumberLiteral,
-        LogicScriptSingleStringLiteral, LogicScriptStringLiteral, LogicScriptStringLiteralPart,
-    },
-    operators::{
-        LogicScriptArithmeticOperator, LogicScriptBooleanBinaryOperator,
-        LogicScriptUnaryAssignmentOperator,
-    },
-    statements::{
-        KeywordType, LogicScriptArithmeticAssignmentStatement, LogicScriptCommandCall,
-        LogicScriptComment, LogicScriptIfStatement, LogicScriptKeyword, LogicScriptLabel,
-        LogicScriptLeftIndirectAssignmentStatement, LogicScriptRightIndirectAssignmentStatement,
-        LogicScriptStatement, LogicScriptUnaryOperationStatement,
-        LogicScriptValueAssignmentStatement,
+    logic_script::{
+        directives::{
+            Directive, DirectiveType, LogicScriptDefineValue, LogicScriptDirective,
+            LogicScriptDirectiveKeyword,
+        },
+        literals::{
+            LogicScriptLiteral, LogicScriptLiteralValue, LogicScriptSingleStringLiteral,
+            LogicScriptStringLiteral, LogicScriptStringLiteralPart,
+        },
+        locations::{location_range, Locatable, WithLocation},
+        operators::{LogicScriptArithmeticOperator, LogicScriptUnaryAssignmentOperator},
+        statements::{
+            KeywordType, LogicScriptArithmeticAssignmentStatement, LogicScriptCommandCall,
+            LogicScriptComment, LogicScriptIfStatement, LogicScriptKeyword, LogicScriptLabel,
+            LogicScriptLeftIndirectAssignmentStatement,
+            LogicScriptRightIndirectAssignmentStatement, LogicScriptStatement,
+            LogicScriptUnaryOperationStatement, LogicScriptValueAssignmentStatement,
+        },
     },
 };
 
-#[derive(Debug, Clone, Eq, Ord)]
-pub struct ScriptLocation {
-    pub offset: usize,
-}
-
-impl PartialEq for ScriptLocation {
-    fn eq(&self, other: &Self) -> bool {
-        self.offset == other.offset
-    }
-}
-
-impl PartialOrd for ScriptLocation {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.offset.cmp(&other.offset))
-    }
-}
-
-pub type ScriptLocationRange = Range<ScriptLocation>;
-
-fn location_range(start: usize, end: usize) -> ScriptLocationRange {
-    ScriptLocation { offset: start }..ScriptLocation { offset: end }
-}
-
 pub type LogicScriptProgram<StatementType> = Vec<StatementType>;
 
-impl From<SingleBooleanClause> for LogicScriptBooleanExpression {
+impl From<SingleBooleanClause> for LogicBooleanExpression<WithLocation<ParsedLogicArgument>> {
     fn from(clause: SingleBooleanClause) -> Self {
         match clause {
             SingleBooleanClause::TestCall(test_call) => {
-                LogicScriptBooleanExpression::TestCall(test_call)
+                LogicBooleanExpression::TestCall(test_call.value)
             }
             SingleBooleanClause::BooleanBinaryOperation(op) => {
-                LogicScriptBooleanExpression::BinaryOperation(op)
+                LogicBooleanExpression::BinaryOperation(op.value)
             }
-            SingleBooleanClause::ParenthesizedBooleanExpression(expr) => expr,
+            SingleBooleanClause::ParenthesizedBooleanExpression(expr) => expr.value,
             SingleBooleanClause::NotExpression(not_expr) => {
-                LogicScriptBooleanExpression::NotExpression(not_expr)
+                LogicBooleanExpression::NotExpression(not_expr.value)
             }
             SingleBooleanClause::Identifier(identifier) => {
-                LogicScriptBooleanExpression::Identifier(identifier)
+                LogicBooleanExpression::Identifier(identifier.value)
             }
         }
     }
 }
 
 enum SingleBooleanClause {
-    TestCall(LogicScriptTestCall),
-    BooleanBinaryOperation(LogicScriptBooleanBinaryOperation),
-    ParenthesizedBooleanExpression(LogicScriptBooleanExpression),
-    NotExpression(LogicScriptNotExpression),
-    Identifier(LogicScriptIdentifier),
+    TestCall(WithLocation<LogicTestCall<WithLocation<ParsedLogicArgument>>>),
+    BooleanBinaryOperation(
+        WithLocation<LogicBooleanBinaryOperation<WithLocation<ParsedLogicArgument>>>,
+    ),
+    ParenthesizedBooleanExpression(
+        WithLocation<LogicBooleanExpression<WithLocation<ParsedLogicArgument>>>,
+    ),
+    NotExpression(WithLocation<LogicNotExpression<WithLocation<ParsedLogicArgument>>>),
+    Identifier(WithLocation<LogicIdentifier>),
 }
 
 struct ElseClause {
-    statements: Vec<Box<LogicScriptStatement>>,
-    else_keyword: LogicScriptKeyword,
+    statements: Vec<Box<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>>,
+    else_keyword: WithLocation<LogicScriptKeyword>,
 }
 
 peg::parser! {
@@ -98,26 +81,24 @@ peg::parser! {
         rule white_space() -> ()
             = line_terminator() / " " / "\t" { () }
 
-        rule multi_line_comment() -> LogicScriptComment
+        rule multi_line_comment() -> WithLocation<LogicScriptComment>
             = start:position!() "/*" comment:$((!"*/" source_character())*) "*/" end:position!() {
                 LogicScriptComment {
                     comment: comment.to_string(),
-                    location: Some(location_range(start, end))
-                }
+                }.with_location(location_range(start, end))
              }
 
-        rule single_line_comment() -> LogicScriptComment
+        rule single_line_comment() -> WithLocation<LogicScriptComment>
             = start:position!() "//" comment:$((!line_terminator() source_character())*) line_terminator() end:position!() {
                 LogicScriptComment {
                     comment: comment.to_string(),
-                    location: Some(location_range(start, end))
-                }
+                }.with_location(location_range(start, end))
              }
 
-        rule comment() -> LogicScriptComment
+        rule comment() -> WithLocation<LogicScriptComment>
             = multi_line_comment() / single_line_comment()
 
-        rule wsc() -> Option<LogicScriptComment>
+        rule wsc() -> Option<WithLocation<LogicScriptComment>>
             = comment:comment() { Some(comment) }
             / white_space() { None }
 
@@ -127,64 +108,59 @@ peg::parser! {
         rule identifier_part() -> char
             = c:(['a'..='z' | 'A'..='Z' | '0'..='9' | '_' | '.']) { c }
 
-        rule identifier() -> LogicScriptIdentifier
+        rule identifier() -> WithLocation<LogicIdentifier>
             = start:position!() head:identifier_start() tail:identifier_part()* end:position!() {
                 let name = std::iter::once(head)
                     .chain(tail.into_iter())
                     .collect::<String>();
-                LogicScriptIdentifier { name, location: Some(location_range(start, end)) }
+                LogicIdentifier { name }.with_location(location_range(start, end))
             }
 
-        rule if_token()  -> LogicScriptKeyword
+        rule if_token()  -> WithLocation<LogicScriptKeyword>
             = start:position!() "if" !identifier_part() end:position!() {
                 LogicScriptKeyword {
-                    keyword: KeywordType::If,
-                    location: Some(location_range(start, end))
-                }
+                    keyword: KeywordType::If
+                }.with_location(location_range(start, end))
             }
 
-        rule else_token()  -> LogicScriptKeyword
+        rule else_token()  -> WithLocation<LogicScriptKeyword>
             = start:position!() "else" !identifier_part() end:position!() {
                 LogicScriptKeyword {
-                    keyword: KeywordType::If,
-                    location: Some(location_range(start, end))
-                }
+                    keyword: KeywordType::Else,
+                }.with_location(location_range(start, end))
             }
 
-        rule keyword() -> LogicScriptKeyword
+        rule keyword() -> WithLocation<LogicScriptKeyword>
             = if_token() / else_token()
 
-        rule label() -> LogicScriptLabel
+        rule label() -> WithLocation<LogicScriptLabel>
             = start:position!() identifier:identifier() ":" end:position!() {
                 LogicScriptLabel {
-                    label: identifier.name,
-                    location: Some(location_range(start, end))
-                }
+                    label: identifier.value.name
+                }.with_location(location_range(start, end))
             }
 
         rule decimal_digit() -> char
             = c: ['0'..='9'] { c }
 
-        rule decimal_literal() -> LogicScriptNumberLiteral
+        rule decimal_literal() -> WithLocation<LogicNumberLiteral>
             = start:position!() sign:$("+" / "-")? digits:decimal_digit()+ end:position!() {
                 let sign_multiplier = if sign == Some("-") { -1 } else { 1 };
                 let value = digits.iter().collect::<String>().parse::<i32>().unwrap();
-                LogicScriptNumberLiteral {
-                    value: value * sign_multiplier,
-                    location: Some(location_range(start, end))
-                }
+                LogicNumberLiteral {
+                    value: value * sign_multiplier
+                }.with_location(location_range(start, end))
             }
 
         rule hex_digit() -> char
             = c: ['0'..='9' | 'a'..='f' | 'A'..='F'] { c }
 
-        rule hex_integer_literal() -> LogicScriptNumberLiteral
+        rule hex_integer_literal() -> WithLocation<LogicNumberLiteral>
             = start:position!() "0x" digits:$(hex_digit()+) end:position!() {
                 let value = i32::from_str_radix(digits, 16).unwrap();
-                LogicScriptNumberLiteral {
-                    value,
-                    location: Some(location_range(start, end))
-                }
+                LogicNumberLiteral {
+                    value
+                }.with_location(location_range(start, end))
             }
 
         rule line_continuation() -> ()
@@ -231,137 +207,124 @@ peg::parser! {
             / "\\" sequence:escape_sequence() { Some(sequence) }
             / line_continuation() { None }
 
-        rule single_string_literal() -> LogicScriptSingleStringLiteral
+        rule single_string_literal() -> WithLocation<LogicScriptSingleStringLiteral>
             = start:position!() "'" chars:(single_string_character()*) "'" end:position!() {
                 let value = chars.into_iter().filter_map(|c| c).collect::<String>();
                 LogicScriptSingleStringLiteral {
                     value,
-                    location: Some(location_range(start, end))
-                }
+                }.with_location(location_range(start, end))
             }
             / start:position!() "\"" chars:(double_string_character()*) "\"" end:position!() {
                 let value = chars.into_iter().filter_map(|c| c).collect::<String>();
                 LogicScriptSingleStringLiteral {
                     value,
-                    location: Some(location_range(start, end))
-                }
+                }.with_location(location_range(start, end))
             }
 
-        rule string_literal_part() -> Option<LogicScriptStringLiteralPart>
-            = wsc:wsc() { wsc.map(LogicScriptStringLiteralPart::Comment) }
-            / string:single_string_literal() { Some(LogicScriptStringLiteralPart::SingleString(string)) }
+        rule string_literal_part() -> Option<WithLocation<LogicScriptStringLiteralPart>>
+            = wsc:wsc() { wsc.map(|comment| LogicScriptStringLiteralPart::Comment(comment.value).with_location(comment.location)) }
+            / string:single_string_literal() { Some(LogicScriptStringLiteralPart::SingleString(string.value).with_location(string.location)) }
 
-        rule string_literal() -> LogicScriptStringLiteral
+        rule string_literal() -> WithLocation<LogicScriptStringLiteral>
             = start:position!() head:single_string_literal() tail:string_literal_part()* end:position!() {
                 LogicScriptStringLiteral {
-                    parts: std::iter::once(LogicScriptStringLiteralPart::SingleString(head))
-                        .chain(tail.iter().cloned().filter_map(|part| part))
+                    parts: std::iter::once(LogicScriptStringLiteralPart::SingleString(head.value))
+                        .chain(tail.iter().cloned().filter_map(|part| part.map(|p| p.value)))
                         .collect(),
-                    location: Some(location_range(start, end))
-                }
+                }.with_location(location_range(start, end))
             }
 
-        rule numeric_literal() -> LogicScriptNumberLiteral
+        rule numeric_literal() -> WithLocation<LogicNumberLiteral>
             = decimal:decimal_literal() { decimal }
             / hex:hex_integer_literal() { hex }
 
-        rule literal() -> LogicScriptLiteral
+        rule literal() -> WithLocation<LogicScriptLiteral>
             = number:numeric_literal() {
                 let location = number.location.clone();
                 LogicScriptLiteral {
-                    value: LogicScriptLiteralValue::Number(number),
-                    location,
-                }
+                    value: LogicScriptLiteralValue::Number(number.value),
+                }.with_location(location)
             }
             / string:string_literal() {
                 let location = string.location.clone();
                 LogicScriptLiteral {
-                    value: LogicScriptLiteralValue::String(string),
-                    location,
-                }
+                    value: LogicScriptLiteralValue::String(string.value),
+                }.with_location(location)
         }
 
-        rule argument() -> LogicScriptArgument
-            = identifier:identifier() { LogicScriptArgument::Identifier(identifier) }
-            / literal:literal() { LogicScriptArgument::Literal(literal) }
+        rule argument() -> WithLocation<ParsedLogicArgument>
+            = identifier:identifier() { ParsedLogicArgument::Identifier(identifier.value).with_location(identifier.location) }
+            / literal:literal() { ParsedLogicArgument::Literal(literal.value.into()).with_location(literal.location) }
 
-        rule argument_list() -> LogicScriptArgumentList
+        rule argument_list() -> Vec<WithLocation<ParsedLogicArgument>>
             = arguments:(argument() ** ("," wsc()*)) {
                 arguments.into_iter().collect()
             }
 
-        rule command_call() -> LogicScriptCommandCall
+        rule command_call() -> WithLocation<LogicScriptCommandCall<WithLocation<ParsedLogicArgument>>>
             = start:position!() command_name:identifier() "(" wsc()* argument_list:argument_list()? wsc()* ")" wsc()* ";" end:position!() {
                 LogicScriptCommandCall {
-                    commmand_name: command_name.name,
+                    commmand_name: command_name.value.name,
                     argument_list: argument_list.unwrap_or_default(),
-                    location: Some(location_range(start, end)),
-                    command_name_location: command_name.location,
-                }
+                }.with_location(location_range(start, end))
             }
 
-        rule test_call() -> LogicScriptTestCall
+        rule test_call() -> WithLocation<LogicTestCall<WithLocation<ParsedLogicArgument>>>
             = start:position!() test_name:identifier() "(" wsc()* argument_list:argument_list()? wsc()* ")" end:position!() {
-                LogicScriptTestCall {
-                    test_name: test_name.name,
+                LogicTestCall {
+                    test_name: test_name.value.name,
                     argument_list: argument_list.unwrap_or_default(),
-                    location: Some(location_range(start, end)),
-                    test_name_location: test_name.location,
-                }
+                }.with_location(location_range(start, end))
             }
 
-        rule boolean_binary_operator() -> LogicScriptBooleanBinaryOperator
-            = "<" { LogicScriptBooleanBinaryOperator::LessThan }
-            / ">" { LogicScriptBooleanBinaryOperator::GreaterThan }
-            / "<=" { LogicScriptBooleanBinaryOperator::LessThanOrEqual }
-            / ">=" { LogicScriptBooleanBinaryOperator::GreaterThanOrEqual }
-            / "==" { LogicScriptBooleanBinaryOperator::Equal }
-            / "!=" { LogicScriptBooleanBinaryOperator::NotEqual }
+        rule boolean_binary_operator() -> LogicBooleanBinaryOperator
+            = "<" { LogicBooleanBinaryOperator::LessThan }
+            / ">" { LogicBooleanBinaryOperator::GreaterThan }
+            / "<=" { LogicBooleanBinaryOperator::LessThanOrEqual }
+            / ">=" { LogicBooleanBinaryOperator::GreaterThanOrEqual }
+            / "==" { LogicBooleanBinaryOperator::Equal }
+            / "!=" { LogicBooleanBinaryOperator::NotEqual }
 
-        rule boolean_binary_operation() -> LogicScriptBooleanBinaryOperation
+        rule boolean_binary_operation() -> WithLocation<LogicBooleanBinaryOperation<WithLocation<ParsedLogicArgument>>>
             = start:position!() left:argument() wsc()* operator:boolean_binary_operator() wsc()* right:argument() end:position!() {
-                LogicScriptBooleanBinaryOperation {
+                LogicBooleanBinaryOperation {
                     left,
                     operator,
                     right,
-                    location: Some(location_range(start, end)),
-                }
+                }.with_location(location_range(start, end))
             }
 
-        rule and_expression() -> LogicScriptAndExpression
+        rule and_expression() -> WithLocation<LogicAndExpression<WithLocation<ParsedLogicArgument>>>
             = start:position!() clauses:(single_boolean_clause() **<2,> (wsc()* "&&" wsc()*)) end:position!() {
-                LogicScriptAndExpression {
+                LogicAndExpression {
                     clauses: clauses.into_iter().map(Into::into).collect(),
-                    location: Some(location_range(start, end)),
-                }
+                }.with_location(location_range(start, end))
             }
 
-        rule or_expression() -> LogicScriptOrExpression
+        rule or_expression() -> WithLocation<LogicOrExpression<WithLocation<ParsedLogicArgument>>>
             = start:position!() clauses:(single_boolean_clause() **<2,> (wsc()* "||" wsc()*)) end:position!() {
-                LogicScriptOrExpression {
+                LogicOrExpression {
                     clauses: clauses.into_iter().map(Into::into).collect(),
-                    location: Some(location_range(start, end)),
-                }
+                }.with_location(location_range(start, end))
             }
 
-        rule not_expression() -> LogicScriptNotExpression
+        rule not_expression() -> WithLocation<LogicNotExpression<WithLocation<ParsedLogicArgument>>>
             = start:position!() "!" wsc()* expression:single_boolean_clause() end:position!() {
-                LogicScriptNotExpression {
+                LogicNotExpression {
                     expression: Box::new(expression.into()),
-                    location: Some(location_range(start, end)),
-                }
+                }.with_location(location_range(start, end))
             }
 
-        rule boolean_expression() -> LogicScriptBooleanExpression
-            = and_expr:and_expression() { LogicScriptBooleanExpression::AndExpression(and_expr) }
-            / or_expr:or_expression() { LogicScriptBooleanExpression::OrExpression(or_expr) }
-            / binary_op:boolean_binary_operation() { LogicScriptBooleanExpression::BinaryOperation(binary_op) }
-            / not_expr:not_expression() { LogicScriptBooleanExpression::NotExpression(not_expr) }
-            / test_call:test_call() { LogicScriptBooleanExpression::TestCall(test_call) }
-            / identifier:identifier() { LogicScriptBooleanExpression::Identifier(identifier) }
+        rule boolean_expression() -> WithLocation<LogicBooleanExpression<WithLocation<ParsedLogicArgument>>>
+            = and_expr:and_expression() { LogicBooleanExpression::AndExpression(and_expr.value).with_location(and_expr.location) }
+            / or_expr:or_expression() { LogicBooleanExpression::OrExpression(or_expr.value).with_location(or_expr.location) }
+            / binary_op:boolean_binary_operation() { LogicBooleanExpression::BinaryOperation(binary_op.value).with_location(binary_op.location) }
+            / not_expr:not_expression() { LogicBooleanExpression::NotExpression(not_expr.value).with_location(not_expr.location) }
+            / test_call:test_call() { LogicBooleanExpression::TestCall(test_call.value).with_location(test_call.location) }
+            / identifier:identifier() { LogicBooleanExpression::Identifier(identifier.value).with_location(identifier.location) }
             / parenthesized_boolean_expression:parenthesized_boolean_expression() { parenthesized_boolean_expression }
 
-        rule parenthesized_boolean_expression() -> LogicScriptBooleanExpression
+        rule parenthesized_boolean_expression() -> WithLocation<LogicBooleanExpression<WithLocation<ParsedLogicArgument>>>
             = "(" wsc()* expression:boolean_expression() wsc()* ")" {
                 expression
             }
@@ -382,76 +345,69 @@ peg::parser! {
             }
 
 
-        rule if_statement() -> LogicScriptIfStatement<Box<LogicScriptStatement>>
+        rule if_statement() -> WithLocation<LogicScriptIfStatement<WithLocation<ParsedLogicArgument>, Box<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>>>
             = start:position!() if_keyword:if_token() wsc()* conditions:parenthesized_boolean_expression() wsc()* "{" wsc()* then_statements:statement_list() wsc()* "}" else_clause:else_clause()? end:position!() {
                 LogicScriptIfStatement {
-                    conditions: conditions.into(),
-                    if_keyword,
+                    conditions: conditions.value,
+                    if_keyword: if_keyword.value,
                     then_statements,
-                    else_keyword: else_clause.as_ref().map(|clause| clause.else_keyword.clone()),
+                    else_keyword: else_clause.as_ref().map(|clause| clause.else_keyword.value.clone()),
                     else_statements: else_clause
                         .map(|clause| clause.statements)
                         .unwrap_or_default(),
-                    location: Some(location_range(start, end)),
-                }
+                }.with_location(location_range(start, end))
             }
 
-        rule message_directive_keyword() -> LogicScriptDirectiveKeyword
+        rule message_directive_keyword() -> WithLocation<LogicScriptDirectiveKeyword>
             = start:position!() "#message" !identifier_part() end:position!() {
                 LogicScriptDirectiveKeyword {
                     keyword: DirectiveType::Message,
-                    location: Some(location_range(start, end))
-                }
+                }.with_location(location_range(start, end))
             }
 
-        rule include_directive_keyword() -> LogicScriptDirectiveKeyword
+        rule include_directive_keyword() -> WithLocation<LogicScriptDirectiveKeyword>
             = start:position!() "#include" !identifier_part() end:position!() {
                 LogicScriptDirectiveKeyword {
                     keyword: DirectiveType::Include,
-                    location: Some(location_range(start, end))
-                }
+                }.with_location(location_range(start, end))
             }
 
-        rule define_directive_keyword() -> LogicScriptDirectiveKeyword
+        rule define_directive_keyword() -> WithLocation<LogicScriptDirectiveKeyword>
             = start:position!() "#define" !identifier_part() end:position!() {
                 LogicScriptDirectiveKeyword {
                     keyword: DirectiveType::Define,
-                    location: Some(location_range(start, end))
-                }
+                }.with_location(location_range(start, end))
             }
 
-        rule message_directive() -> LogicScriptDirective
+        rule message_directive() -> WithLocation<LogicScriptDirective>
             = start:position!() keyword:message_directive_keyword() " "+ number:decimal_literal() " "+ message:string_literal() end:position!() {
                 LogicScriptDirective {
-                    keyword,
-                    location: Some(location_range(start, end)),
-                    directive: Directive::Message { number, message },
-                }
+                    keyword: keyword.value,
+                    directive: Directive::Message { number: number.value, message: message.value },
+                }.with_location(location_range(start, end))
             }
 
-        rule include_directive() -> LogicScriptDirective
+        rule include_directive() -> WithLocation<LogicScriptDirective>
             = start:position!() keyword:include_directive_keyword() " "+ filename:string_literal() end:position!() {
                 LogicScriptDirective {
-                    keyword,
-                    location: Some(location_range(start, end)),
-                    directive: Directive::Include { filename }
-                }
+                    keyword: keyword.value,
+                    directive: Directive::Include { filename: filename.value },
+                }.with_location(location_range(start, end))
             }
 
-        rule define_directive_value() -> LogicScriptDefineValue
-            = identifier:identifier() { LogicScriptDefineValue::Identifier(identifier) }
-            / literal:literal() { LogicScriptDefineValue::Literal(literal) }
+        rule define_directive_value() -> WithLocation<LogicScriptDefineValue>
+            = identifier:identifier() { LogicScriptDefineValue::Identifier(identifier.value).with_location(identifier.location) }
+            / literal:literal() { LogicScriptDefineValue::Literal(literal.value).with_location(literal.location) }
 
-        rule define_directive() -> LogicScriptDirective
+        rule define_directive() -> WithLocation<LogicScriptDirective>
             = start:position!() keyword:define_directive_keyword() " "+ identifier:identifier() " "+ value:define_directive_value() end:position!() {
                 LogicScriptDirective {
-                    keyword,
-                    location: Some(location_range(start, end)),
-                    directive: Directive::Define { identifier, value }
-                }
+                    keyword: keyword.value,
+                    directive: Directive::Define { identifier: identifier.value, value: value.value },
+                }.with_location(location_range(start, end))
             }
 
-        rule unary_operation_statement() -> LogicScriptUnaryOperationStatement
+        rule unary_operation_statement() -> WithLocation<LogicScriptUnaryOperationStatement>
             = start:position!() identifier:identifier() wsc()* operator:$("++" / "--") wsc()* ";" end:position!() {
                 LogicScriptUnaryOperationStatement {
                     operation: if operator == "++" {
@@ -459,27 +415,24 @@ peg::parser! {
                     } else {
                         LogicScriptUnaryAssignmentOperator::Decrement
                     },
-                    identifier,
-                    location: Some(location_range(start, end)),
-                }
+                    identifier: identifier.value,
+                }.with_location(location_range(start, end))
             }
 
-        rule numeric_argument() -> LogicScriptArgument
-            = identifier:identifier() { LogicScriptArgument::Identifier(identifier) }
+        rule numeric_argument() -> WithLocation<ParsedLogicArgument>
+            = identifier:identifier() { ParsedLogicArgument::Identifier(identifier.value).with_location(identifier.location) }
             / literal:numeric_literal() {
-                LogicScriptArgument::Literal(LogicScriptLiteral {
-                    location: literal.location.clone(),
-                    value: LogicScriptLiteralValue::Number(literal),
-                })
+                ParsedLogicArgument::Literal(LogicLiteral {
+                    value: LogicLiteralValue::Number(literal.value),
+                }).with_location(literal.location)
             }
 
-        rule value_assignment_statement() -> LogicScriptValueAssignmentStatement
+        rule value_assignment_statement() -> WithLocation<LogicScriptValueAssignmentStatement<WithLocation<ParsedLogicArgument>>>
             = start:position!() assignee:identifier() wsc()* "=" wsc()* value:numeric_argument() wsc()* ";" end:position!() {
                 LogicScriptValueAssignmentStatement {
-                    assignee,
+                    assignee: assignee.value,
                     value,
-                    location: Some(location_range(start, end)),
-                }
+                }.with_location(location_range(start, end))
             }
 
         rule arithmetic_operator() -> LogicScriptArithmeticOperator
@@ -488,93 +441,88 @@ peg::parser! {
             / "*" { LogicScriptArithmeticOperator::Multiply }
             / "/" { LogicScriptArithmeticOperator::Divide }
 
-        rule long_arithmetic_assignment_statement() -> LogicScriptArithmeticAssignmentStatement
+        rule long_arithmetic_assignment_statement() -> WithLocation<LogicScriptArithmeticAssignmentStatement<WithLocation<ParsedLogicArgument>>>
             = start:position!() assignee:identifier() wsc()* "=" wsc()*
               #{|input, pos| {
-                if input[pos..(pos + assignee.name.len())] == assignee.name {
-                    RuleResult::Matched(pos + assignee.name.len(), assignee.name.clone())
+                if input[pos..(pos + assignee.value.name.len())] == assignee.value.name {
+                    RuleResult::Matched(pos + assignee.value.name.len(), assignee.value.name.clone())
                 } else {
                     RuleResult::Failed
                 }
               }}
               wsc()* operator:arithmetic_operator() wsc()* value:numeric_argument() wsc()* ";" end:position!() {
                 LogicScriptArithmeticAssignmentStatement {
-                        operator,
-                        assignee,
-                        value,
-                        location: Some(location_range(start, end)),
-                    }
+                    operator,
+                    assignee: assignee.value,
+                    value
+                }.with_location(location_range(start, end))
               }
             / start:position!() assignee:identifier() wsc()* "=" wsc()*
               value:numeric_argument() wsc()* operator:arithmetic_operator() wsc()*
               #{|input, pos| {
-              if input[pos..(pos + assignee.name.len())] == assignee.name {
-                  RuleResult::Matched(pos + assignee.name.len(), assignee.name.clone())
+              if input[pos..(pos + assignee.value.name.len())] == assignee.value.name {
+                  RuleResult::Matched(pos + assignee.value.name.len(), assignee.value.name.clone())
               } else {
                   RuleResult::Failed
               }
               }}
               wsc()* ";" end:position!() {
-              LogicScriptArithmeticAssignmentStatement {
-                      operator,
-                      assignee,
-                      value,
-                      location: Some(location_range(start, end)),
-                  }
+                LogicScriptArithmeticAssignmentStatement {
+                    operator,
+                    assignee: assignee.value,
+                    value,
+                }.with_location(location_range(start, end))
               }
 
-        rule short_arithmetic_assignment_statement() -> LogicScriptArithmeticAssignmentStatement
+        rule short_arithmetic_assignment_statement() -> WithLocation<LogicScriptArithmeticAssignmentStatement<WithLocation<ParsedLogicArgument>>>
             = start:position!() assignee:identifier() wsc()* operator:arithmetic_operator() "=" wsc()* value:numeric_argument() wsc()* ";" end:position!() {
                 LogicScriptArithmeticAssignmentStatement {
                     operator,
-                    assignee,
+                    assignee: assignee.value,
                     value,
-                    location: Some(location_range(start, end)),
-                }
+                }.with_location(location_range(start, end))
             }
 
-        rule arithmetic_assignment_statement() -> LogicScriptArithmeticAssignmentStatement
+        rule arithmetic_assignment_statement() -> WithLocation<LogicScriptArithmeticAssignmentStatement<WithLocation<ParsedLogicArgument>>>
             = long:long_arithmetic_assignment_statement() { long }
             / short:short_arithmetic_assignment_statement() { short }
 
-        rule left_indirect_assignment_statement() -> LogicScriptLeftIndirectAssignmentStatement
+        rule left_indirect_assignment_statement() -> WithLocation<LogicScriptLeftIndirectAssignmentStatement<WithLocation<ParsedLogicArgument>>>
             = start:position!() "*" wsc()* assignee_pointer:identifier() wsc()* "=" wsc()* value:numeric_argument() wsc()* ";" end:position!() {
                 LogicScriptLeftIndirectAssignmentStatement {
-                    assignee_pointer,
+                    assignee_pointer: assignee_pointer.value,
                     value,
-                    location: Some(location_range(start, end)),
-                }
+                }.with_location(location_range(start, end))
             }
 
-        rule right_indirect_assignment_statement() -> LogicScriptRightIndirectAssignmentStatement
+        rule right_indirect_assignment_statement() -> WithLocation<LogicScriptRightIndirectAssignmentStatement>
             = start:position!() assignee:identifier() wsc()* "=" wsc()* "*" wsc()* value_pointer:identifier() wsc()* ";" end:position!() {
                 LogicScriptRightIndirectAssignmentStatement {
-                    assignee,
-                    value_pointer,
-                    location: Some(location_range(start, end)),
-                }
+                    assignee: assignee.value,
+                    value_pointer: value_pointer.value,
+                }.with_location(location_range(start, end))
             }
 
-        rule statement() -> LogicScriptStatement
-            = label:label() { LogicScriptStatement::Label(label) }
-            / comment:comment() { LogicScriptStatement::Comment(comment) }
-            / directive:message_directive() { LogicScriptStatement::Directive(directive) }
-            / directive:include_directive() { LogicScriptStatement::Directive(directive) }
-            / directive:define_directive() { LogicScriptStatement::Directive(directive) }
-            / command_call:command_call() { LogicScriptStatement::CommandCall(command_call) }
-            / if_statement:if_statement() { LogicScriptStatement::IfStatement(if_statement) }
-            / unary_op:unary_operation_statement() { LogicScriptStatement::UnaryOperation(unary_op) }
-            / value_assignment:value_assignment_statement() { LogicScriptStatement::ValueAssignment(value_assignment) }
-            / arithmetic_assignment:arithmetic_assignment_statement() { LogicScriptStatement::ArithmeticAssignment(arithmetic_assignment) }
-            / left_indirect:left_indirect_assignment_statement() { LogicScriptStatement::LeftIndirectAssignment(left_indirect) }
-            / right_indirect:right_indirect_assignment_statement() { LogicScriptStatement::RightIndirectAssignment(right_indirect) }
+        rule statement() -> LogicScriptStatement<WithLocation<ParsedLogicArgument>>
+            = label:label() { LogicScriptStatement::Label(label.value) }
+            / comment:comment() { LogicScriptStatement::Comment(comment.value) }
+            / directive:message_directive() { LogicScriptStatement::Directive(directive.value) }
+            / directive:include_directive() { LogicScriptStatement::Directive(directive.value) }
+            / directive:define_directive() { LogicScriptStatement::Directive(directive.value) }
+            / command_call:command_call() { LogicScriptStatement::CommandCall(command_call.value) }
+            / if_statement:if_statement() { LogicScriptStatement::IfStatement(if_statement.value) }
+            / unary_op:unary_operation_statement() { LogicScriptStatement::UnaryOperation(unary_op.value) }
+            / value_assignment:value_assignment_statement() { LogicScriptStatement::ValueAssignment(value_assignment.value) }
+            / arithmetic_assignment:arithmetic_assignment_statement() { LogicScriptStatement::ArithmeticAssignment(arithmetic_assignment.value) }
+            / left_indirect:left_indirect_assignment_statement() { LogicScriptStatement::LeftIndirectAssignment(left_indirect.value) }
+            / right_indirect:right_indirect_assignment_statement() { LogicScriptStatement::RightIndirectAssignment(right_indirect.value) }
 
-        rule statement_list() -> Vec<Box<LogicScriptStatement>>
+        rule statement_list() -> Vec<Box<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>>
             = statements:(statement() ++ (white_space()*)) {
                 statements.into_iter().map(Box::new).collect()
             }
 
-        pub rule program() -> LogicScriptProgram<Box<LogicScriptStatement>>
+        pub rule program() -> LogicScriptProgram<Box<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>>
             = white_space()* statements:statement_list() white_space()* {
                 statements
             }
@@ -584,12 +532,17 @@ peg::parser! {
 #[cfg(test)]
 mod tests {
     use crate::{
-        logic::logic_script::{
-            expressions::{LogicScriptArgument, LogicScriptBooleanExpression},
-            literals::{LogicScriptLiteralValue, LogicScriptNumberLiteral},
-            operators::LogicScriptArithmeticOperator,
-            parsing::{logic_script_parser, LogicScriptProgram},
-            statements::LogicScriptStatement,
+        logic::{
+            asm::{
+                expressions::{LogicBooleanExpression, ParsedLogicArgument},
+                literals::{LogicLiteralValue, LogicNumberLiteral},
+            },
+            logic_script::{
+                locations::WithLocation,
+                operators::LogicScriptArithmeticOperator,
+                parsing::{logic_script_parser, LogicScriptProgram},
+                statements::LogicScriptStatement,
+            },
         },
         TEST_DATA_DIR,
     };
@@ -632,7 +585,7 @@ mod tests {
         if let LogicScriptStatement::IfStatement(if_statement) = &*result[0] {
             assert!(matches!(
                 if_statement.conditions,
-                LogicScriptBooleanExpression::OrExpression(_)
+                LogicBooleanExpression::OrExpression(_)
             ));
             assert!(if_statement.then_statements.len() == 1);
         } else {
@@ -642,20 +595,19 @@ mod tests {
 
     #[test]
     fn test_long_arithmetic_assignments() {
-        let expect_correct_results = |result: LogicScriptProgram<Box<LogicScriptStatement>>| {
+        let expect_correct_results = |result: LogicScriptProgram<
+            Box<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>,
+        >| {
             if let LogicScriptStatement::ArithmeticAssignment(assignment) = &*result[0] {
                 assert!(matches!(
                     assignment.operator,
                     LogicScriptArithmeticOperator::Add
                 ));
                 assert!(assignment.assignee.name == "v1");
-                if let LogicScriptArgument::Literal(literal) = &assignment.value {
+                if let ParsedLogicArgument::Literal(literal) = &assignment.value.value {
                     assert!(matches!(
                         literal.value,
-                        LogicScriptLiteralValue::Number(LogicScriptNumberLiteral {
-                            value: 2,
-                            location: _
-                        })
+                        LogicLiteralValue::Number(LogicNumberLiteral { value: 2 })
                     ));
                 } else {
                     panic!("Expected a numeric literal as value");
