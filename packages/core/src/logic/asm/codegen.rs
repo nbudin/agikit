@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 use crate::{
     logic::{
@@ -30,6 +30,34 @@ pub enum AsmCodeGenerationError {
     UnknownMessage(u16),
     SerdeJsonError(serde_json::Error),
     ErrorGeneratingInstruction(LogicInstruction, Box<AsmCodeGenerationError>),
+}
+
+impl Display for AsmCodeGenerationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AsmCodeGenerationError::UnlabeledJumpAddress(address) => {
+                write!(f, "Unlabeled jump address: {}", address)
+            }
+            AsmCodeGenerationError::TooManyArguments(command, count) => write!(
+                f,
+                "Too many arguments for command {}: expected {}, got {}",
+                command.name,
+                command.arg_types.len(),
+                count
+            ),
+            AsmCodeGenerationError::UnknownWord(word) => write!(f, "Unknown word: {}", word),
+            AsmCodeGenerationError::UnknownMessage(index) => {
+                write!(f, "Unknown message: {}", index)
+            }
+            AsmCodeGenerationError::SerdeJsonError(err) => err.fmt(f),
+            AsmCodeGenerationError::ErrorGeneratingInstruction(instruction, err) => write!(
+                f,
+                "Error generating instruction at address {}: {}",
+                instruction.address(),
+                err
+            ),
+        }
+    }
 }
 
 pub trait GenerateLogicAsm {
@@ -435,15 +463,53 @@ mod tests {
 
 #[cfg(feature = "js")]
 pub mod js {
-    use wasm_bindgen::prelude::wasm_bindgen;
+    use std::collections::HashMap;
 
-    use crate::logic::{
-        asm::{codegen::generate_labels, js::OwnedLogicLabel, LogicLabel},
-        LogicInstruction,
+    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+
+    use crate::{
+        logic::{
+            asm::{
+                codegen::{
+                    generate_labels, generate_logic_asm,
+                    generate_logic_asm_instruction_with_possible_label, generate_logic_messages,
+                    AsmCodeGenerationContext, GenerateLogicAsm,
+                },
+                js::OwnedLogicLabel,
+                LogicLabel,
+            },
+            LogicCommand, LogicInstruction, LogicProgram,
+        },
+        word_list::WordList,
     };
 
+    #[wasm_bindgen(js_name = "CodeGenerationContext")]
+    pub struct OwnedCodeGenerationContext {
+        #[wasm_bindgen(getter_with_clone)]
+        pub logic: LogicProgram,
+        #[wasm_bindgen(getter_with_clone, js_name = "wordList")]
+        pub word_list: WordList,
+    }
+
+    #[wasm_bindgen(js_class = "CodeGenerationContext")]
+    impl OwnedCodeGenerationContext {
+        #[wasm_bindgen(constructor)]
+        pub fn new(logic: LogicProgram, word_list: WordList) -> Self {
+            OwnedCodeGenerationContext { logic, word_list }
+        }
+    }
+
+    impl OwnedCodeGenerationContext {
+        pub fn to_asm_code_generation_context(&self) -> AsmCodeGenerationContext {
+            super::AsmCodeGenerationContext {
+                logic: &self.logic,
+                word_list: &self.word_list,
+            }
+        }
+    }
+
     #[wasm_bindgen(js_name = "generateLabels")]
-    pub fn generate_labels_js(
+    pub fn js_generate_labels(
         instructions: Vec<LogicInstruction>,
         #[wasm_bindgen(js_name = "existingLabels")] existing_labels: Option<Vec<OwnedLogicLabel>>,
     ) -> Vec<OwnedLogicLabel> {
@@ -454,5 +520,94 @@ pub mod js {
             .collect();
         let labels = generate_labels(&instructions, &existing_labels);
         labels.into_iter().map(OwnedLogicLabel::from).collect()
+    }
+
+    #[wasm_bindgen(js_name = "generateLogicCommandCode")]
+    pub fn generate_logic_command_code(
+        instruction: LogicCommand,
+        context: &OwnedCodeGenerationContext,
+    ) -> Result<String, JsValue> {
+        instruction
+            .generate_asm(&context.to_asm_code_generation_context(), &HashMap::new())
+            .map_err(|err| JsValue::from_str(&format!("Error generating command code: {}", err)))
+    }
+
+    struct JsLabelMap<'a> {
+        labels: HashMap<u16, LogicLabel<'a>>,
+    }
+
+    impl<'a> JsLabelMap<'a> {
+        fn new(labels: &'a Vec<OwnedLogicLabel>) -> Self {
+            JsLabelMap {
+                labels: labels
+                    .iter()
+                    .map(|label| (label.address, label.to_logic_label()))
+                    .collect(),
+            }
+        }
+
+        fn ref_map(&'a self) -> HashMap<u16, &'a LogicLabel<'a>> {
+            self.labels.iter().map(|(k, v)| (*k, v)).collect()
+        }
+    }
+
+    #[wasm_bindgen(js_name = "generateLogicAsmInstruction")]
+    pub fn js_generate_logic_asm_instruction(
+        instruction: &LogicInstruction,
+        labels: Vec<OwnedLogicLabel>,
+        context: &OwnedCodeGenerationContext,
+    ) -> Result<String, JsValue> {
+        let label_map = JsLabelMap::new(&labels);
+        generate_logic_asm_instruction_with_possible_label(
+            instruction,
+            &label_map.ref_map(),
+            &context.to_asm_code_generation_context(),
+        )
+        .map_err(|err| {
+            JsValue::from_str(&format!(
+                "Error generating instruction at address {}: {}",
+                instruction.address(),
+                err
+            ))
+        })
+    }
+
+    #[wasm_bindgen(js_name = "generateLogicAsmInstructionWithPossibleLabel")]
+    pub fn js_generate_logic_asm_instruction_with_possible_label(
+        instruction: &LogicInstruction,
+        labels: Vec<OwnedLogicLabel>,
+        context: &OwnedCodeGenerationContext,
+    ) -> Result<String, JsValue> {
+        let label_map = JsLabelMap::new(&labels);
+        generate_logic_asm_instruction_with_possible_label(
+            instruction,
+            &label_map.ref_map(),
+            &context.to_asm_code_generation_context(),
+        )
+        .map_err(|err| {
+            JsValue::from_str(&format!(
+                "Error generating instruction at address {}: {}",
+                instruction.address(),
+                err
+            ))
+        })
+    }
+
+    #[wasm_bindgen(js_name = "generateLogicMessages")]
+    pub fn js_generate_logic_messages(logic: &LogicProgram) -> Result<String, JsValue> {
+        generate_logic_messages(&logic.messages)
+            .map_err(|err| JsValue::from_str(&format!("Error generating messages: {}", err)))
+    }
+
+    #[wasm_bindgen(js_name = "generateLogicAsm")]
+    pub fn js_generate_logic_asm(
+        logic: &LogicProgram,
+        word_list: &WordList,
+        labels: Option<Vec<OwnedLogicLabel>>,
+    ) -> Result<String, JsValue> {
+        let labels = labels.unwrap_or_default();
+        let label_refs: Vec<_> = labels.iter().map(|label| label.to_logic_label()).collect();
+        generate_logic_asm(logic, word_list, &label_refs)
+            .map_err(|err| JsValue::from_str(&format!("Error generating ASM code: {}", err)))
     }
 }

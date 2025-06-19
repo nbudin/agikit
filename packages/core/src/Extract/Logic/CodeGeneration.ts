@@ -1,15 +1,8 @@
 import assertNever from 'assert-never';
 import { getGotoTargetLabel, LogicScriptParseTree } from '../../Scripting/LogicScriptParser';
+import { generateLogicScript } from '../../Scripting/LogicScriptGenerator';
 import {
-  generateLogicScript,
-  generateLogicScriptForArgumentList,
-  generateLogicScriptForBooleanExpression,
-} from '../../Scripting/LogicScriptGenerator';
-import {
-  LogicScriptArgument,
   LogicScriptArithmeticAssignmentStatement,
-  LogicScriptBooleanBinaryOperation,
-  LogicScriptBooleanExpression,
   LogicScriptIdentifier,
   LogicScriptIfStatement,
   LogicScriptLiteral,
@@ -17,14 +10,11 @@ import {
 } from '../../Scripting/LogicScriptParserTypes';
 import {
   AGICommandArgType,
-  LogicCommand,
-  LogicConditionClause,
-  LogicInstruction,
   LogicProgram,
-  LogicTest,
   WordList,
-  generateLabels,
   LogicLabel,
+  generateLogicMessages,
+  CodeGenerationContext,
 } from 'agikit_core';
 import { optimizeAST } from './ASTOptimization';
 import {
@@ -38,11 +28,6 @@ import {
 import { DominatorTree } from './DominatorTree';
 import { decompileInstructions } from './LogicDecompile';
 import { BUILT_IN_IDENTIFIERS } from '../../Scripting/LogicScriptIdentifierMapping';
-
-export type CodeGenerationContext = {
-  logic: LogicProgram;
-  wordList: WordList;
-};
 
 function generateWordArg(value: number, context: CodeGenerationContext): LogicScriptLiteral {
   const word = context.wordList.get(value);
@@ -91,253 +76,6 @@ function generateArg(
     default:
       assertNever(argType);
   }
-}
-
-function areArgumentsEqual(a: LogicScriptArgument, b: LogicScriptArgument): boolean {
-  if (a.type === 'Identifier') {
-    if (b.type !== 'Identifier') {
-      return false;
-    }
-
-    return a.name === b.name;
-  }
-
-  if (b.type !== 'Literal') {
-    return false;
-  }
-
-  return a.value === b.value;
-}
-
-function doOperationArgumentsMatch(
-  a: LogicScriptBooleanBinaryOperation,
-  b: LogicScriptBooleanBinaryOperation,
-): boolean {
-  if (areArgumentsEqual(a.left, b.left) && areArgumentsEqual(a.right, b.right)) {
-    return true;
-  }
-
-  if (a.operator === '==' || a.operator === '!=' || b.operator === '==' || b.operator === '!=') {
-    if (areArgumentsEqual(a.right, b.left) && areArgumentsEqual(a.left, b.right)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function isClause(clause: LogicConditionClause | LogicTest): clause is LogicConditionClause {
-  return !('testCommand' in clause);
-}
-
-export function generateBooleanExpression(
-  clauses: (LogicConditionClause | LogicTest)[],
-  context: CodeGenerationContext,
-): LogicScriptBooleanExpression {
-  if (clauses.length > 1) {
-    return {
-      type: 'AndExpression',
-      clauses: clauses.map((clause) => generateBooleanExpression([clause], context)),
-    };
-  }
-  const clause = clauses[0];
-  if (isClause(clause) && clause.type === 'or') {
-    const clauses = clause.orTests.map((orTest) => generateBooleanExpression([orTest], context));
-
-    // TODO: only do this if not in standards mode
-    if (
-      clauses.length === 2 &&
-      clauses[0].type === 'BooleanBinaryOperation' &&
-      clauses[1].type === 'BooleanBinaryOperation'
-    ) {
-      const [left, right] = clauses;
-
-      if (
-        left.operator === '<' &&
-        right.operator === '==' &&
-        doOperationArgumentsMatch(left, right)
-      ) {
-        return {
-          type: 'BooleanBinaryOperation',
-          operator: '<=',
-          left: left.left,
-          right: left.right,
-        };
-      }
-
-      if (
-        left.operator === '==' &&
-        right.operator === '<' &&
-        doOperationArgumentsMatch(left, right)
-      ) {
-        return {
-          type: 'BooleanBinaryOperation',
-          operator: '<=',
-          left: right.left,
-          right: right.right,
-        };
-      }
-
-      if (
-        left.operator === '>' &&
-        right.operator === '==' &&
-        doOperationArgumentsMatch(left, right)
-      ) {
-        return {
-          type: 'BooleanBinaryOperation',
-          operator: '>=',
-          left: left.left,
-          right: left.right,
-        };
-      }
-
-      if (
-        left.operator === '==' &&
-        right.operator === '>' &&
-        doOperationArgumentsMatch(left, right)
-      ) {
-        return {
-          type: 'BooleanBinaryOperation',
-          operator: '>=',
-          left: right.left,
-          right: right.right,
-        };
-      }
-    }
-
-    return { type: 'OrExpression', clauses };
-  }
-
-  const argumentList = clause.args.map((value, index) =>
-    generateArg(
-      value,
-      clause.testCommand.varArgs ? AGICommandArgType.Word : clause.testCommand.argTypes[index],
-      context,
-    ),
-  );
-
-  if (clause.testCommand.name === 'equaln' || clause.testCommand.name === 'equalv') {
-    return {
-      type: 'BooleanBinaryOperation',
-      operator: clause.negate ? '!=' : '==',
-      left: argumentList[0],
-      right: argumentList[1],
-    };
-  }
-
-  if (clause.negate) {
-    return {
-      type: 'NotExpression',
-      expression: generateBooleanExpression([{ ...clause, negate: false }], context),
-    };
-  }
-
-  if (clause.testCommand.name === 'lessn' || clause.testCommand.name === 'lessv') {
-    return {
-      type: 'BooleanBinaryOperation',
-      operator: '<',
-      left: argumentList[0],
-      right: argumentList[1],
-    };
-  }
-
-  if (clause.testCommand.name === 'greatern' || clause.testCommand.name === 'greaterv') {
-    return {
-      type: 'BooleanBinaryOperation',
-      operator: '>',
-      left: argumentList[0],
-      right: argumentList[1],
-    };
-  }
-
-  return {
-    type: 'TestCall',
-    testName: clause.testCommand.name,
-    argumentList,
-  };
-}
-
-export function generateLogicCommandCode(
-  instruction: LogicCommand,
-  context: CodeGenerationContext,
-): string {
-  const argumentList = generateLogicScriptForArgumentList(
-    instruction.args.map((arg, i) => generateArg(arg, instruction.agiCommand.argTypes[i], context)),
-  );
-
-  return `${instruction.agiCommand.name}(${argumentList});`;
-}
-
-function generateLogicAsmInstruction(
-  instruction: LogicInstruction,
-  labels: LogicLabel[],
-  context: CodeGenerationContext,
-) {
-  if (instruction.type === 'command') {
-    return generateLogicCommandCode(instruction, context);
-  }
-
-  if (instruction.type === 'goto') {
-    const jumpLabel = labels.find((label) => label.address === instruction.jumpAddress);
-    if (!jumpLabel) {
-      throw new Error(`Unlabeled jump address: ${instruction.jumpAddress}`);
-    }
-
-    return `goto ${jumpLabel.label};`;
-  }
-
-  const skipLabel = labels.find((label) => label.address === instruction.skipAddress);
-  if (!skipLabel) {
-    throw new Error(`Unlabeled jump address: ${instruction.skipAddress}`);
-  }
-
-  const expression = generateLogicScriptForBooleanExpression(
-    generateBooleanExpression(instruction.clauses, context),
-  );
-  return `unless (${expression}) goto ${skipLabel.label};`;
-}
-
-function generateLogicAsmInstructionWithPossibleLabel(
-  instruction: LogicInstruction,
-  labels: LogicLabel[],
-  context: CodeGenerationContext,
-) {
-  const lineLabel = labels.find((label) => label.address === instruction.address);
-  const lineInstruction = `${instruction.address} ${generateLogicAsmInstruction(
-    instruction,
-    labels,
-    context,
-  )}`;
-  if (lineLabel) {
-    return `\n${lineLabel.label}:\n${lineInstruction}`;
-  }
-
-  return lineInstruction;
-}
-
-export function generateLogicMessages(logic: LogicProgram): string {
-  const messages = Object.entries(logic.messages).map(([index, message]) =>
-    message == null
-      ? undefined
-      : `#message ${Number.parseInt(index) + 1} "${message
-          ?.replace(/"/g, '\\"')
-          .replace(/\n/g, '\\n')
-          .replace(/\r/g, '\\r')}"`,
-  );
-  return `// messages\n${messages.filter((message) => message != null).join('\n')}\n`;
-}
-
-export function generateLogicAsm(
-  logic: LogicProgram,
-  wordList: WordList,
-  labels?: LogicLabel[],
-): string {
-  const labelsToUse = generateLabels(logic.instructions, labels);
-  const asmCode = logic.instructions.map((instruction) =>
-    generateLogicAsmInstructionWithPossibleLabel(instruction, labelsToUse, { logic, wordList }),
-  );
-
-  return `${asmCode.join('\n')}\n\n${generateLogicMessages(logic)}`;
 }
 
 export class LogicScriptGenerator {
@@ -704,6 +442,9 @@ export function generateCodeForLogicProgram(
 ): [string, BasicBlockGraph] {
   const root = decompileInstructions(logic.instructions);
   const optimizedRoot = optimizeAST(root);
-  const scriptGenerator = new LogicScriptGenerator(optimizedRoot, { logic, wordList });
+  const scriptGenerator = new LogicScriptGenerator(
+    optimizedRoot,
+    new CodeGenerationContext(logic, wordList),
+  );
   return [scriptGenerator.generateCode() + '\n\n' + generateLogicMessages(logic), optimizedRoot];
 }

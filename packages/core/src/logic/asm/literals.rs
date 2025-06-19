@@ -1,4 +1,6 @@
-#[derive(Debug, Clone)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogicNumberLiteral {
     pub value: i32,
 }
@@ -7,7 +9,7 @@ pub trait StringLiteral<'a, Output: ToString + 'a> {
     fn value(&'a self) -> Output;
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct LogicStringLiteral {
     pub value: String,
 }
@@ -18,7 +20,7 @@ impl<'a> StringLiteral<'a, &'a str> for LogicStringLiteral {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum LogicLiteralValue {
     Number(LogicNumberLiteral),
     String(LogicStringLiteral),
@@ -30,7 +32,7 @@ impl LogicLiteralValue {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogicLiteral {
     pub value: LogicLiteralValue,
 }
