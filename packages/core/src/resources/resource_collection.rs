@@ -1,14 +1,8 @@
-use std::{
-    io::{Read, Seek, SeekFrom},
-    path::Path,
-};
+use std::io::{Read, Seek, SeekFrom};
 
 use bitfield_struct::bitfield;
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
-use web_sys::js_sys::Uint8Array;
 
 use crate::{
-    buffer::Buffer,
     compression::lzw::agi_lzw_decompress,
     data_encoding::ReadHeterogeneousData,
     resources::{
@@ -89,58 +83,6 @@ pub fn read_v3_resource<P: FileProvider>(
     } else {
         agi_lzw_decompress(&data).map_err(|e| e.into())
     }
-}
-
-#[wasm_bindgen]
-pub struct JSReadResourceResult {
-    #[wasm_bindgen(skip)]
-    pub resource_type: ResourceType,
-    pub number: ResourceNumber,
-    #[wasm_bindgen(getter_with_clone)]
-    pub data: Buffer,
-}
-
-#[wasm_bindgen]
-impl JSReadResourceResult {
-    #[wasm_bindgen(getter, js_name = "type")]
-    pub fn resource_type(&self) -> String {
-        self.resource_type.as_ref().to_string()
-    }
-}
-
-#[wasm_bindgen(js_name = "readV2Resource")]
-pub fn js_read_v2_resource(
-    #[wasm_bindgen(js_name = "basePath")] base_path: String,
-    #[wasm_bindgen(js_name = "dirEntry")] dir_entry: DirEntry,
-) -> Result<JSReadResourceResult, JsValue> {
-    let data = read_v2_resource(&Path::new(&base_path).to_path_buf(), &dir_entry)
-        .map_err(|e| JsValue::from_str(&e.to_string()))?;
-    let data_array = Uint8Array::new_with_length(data.len() as u32);
-    data_array.copy_from(&data);
-    let data_buffer = Buffer::from(data_array.buffer());
-    Ok(JSReadResourceResult {
-        resource_type: dir_entry.resource_type,
-        number: dir_entry.resource_number,
-        data: data_buffer,
-    })
-}
-
-#[wasm_bindgen(js_name = "readV3Resource")]
-pub fn js_read_v3_resource(
-    #[wasm_bindgen(js_name = "basePath")] base_path: String,
-    #[wasm_bindgen(js_name = "dirEntry")] dir_entry: DirEntry,
-    #[wasm_bindgen(js_name = "gameId")] game_id: String,
-) -> Result<JSReadResourceResult, JsValue> {
-    let data = read_v3_resource(&Path::new(&base_path).to_path_buf(), &dir_entry, &game_id)
-        .map_err(|e| JsValue::from_str(&e.to_string()))?;
-    let data_array = Uint8Array::new_with_length(data.len() as u32);
-    data_array.copy_from(&data);
-    let data_buffer = Buffer::from(data_array.buffer());
-    Ok(JSReadResourceResult {
-        resource_type: dir_entry.resource_type,
-        number: dir_entry.resource_number,
-        data: data_buffer,
-    })
 }
 
 pub enum ResourceCollectionVersionData {
@@ -229,5 +171,69 @@ mod tests {
             .read_resource_data(ResourceType::LOGIC, 0)
             .expect("Failed to read logic resource 0");
         assert!(!logic0.is_empty(), "Logic resource 0 should not be empty");
+    }
+}
+
+#[cfg(feature = "js")]
+pub mod js {
+    use std::path::Path;
+
+    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+
+    use crate::{
+        buffer::Buffer,
+        resources::{
+            dirs::DirEntry,
+            resource_collection::{read_v2_resource, read_v3_resource},
+            ResourceNumber, ResourceType,
+        },
+    };
+
+    #[wasm_bindgen]
+    pub struct JSReadResourceResult {
+        #[wasm_bindgen(skip)]
+        pub resource_type: ResourceType,
+        pub number: ResourceNumber,
+        #[wasm_bindgen(getter_with_clone)]
+        pub data: Buffer,
+    }
+
+    #[wasm_bindgen]
+    impl JSReadResourceResult {
+        #[wasm_bindgen(getter, js_name = "type")]
+        pub fn resource_type(&self) -> String {
+            self.resource_type.as_ref().to_string()
+        }
+    }
+
+    #[wasm_bindgen(js_name = "readV2Resource")]
+    pub fn js_read_v2_resource(
+        #[wasm_bindgen(js_name = "basePath")] base_path: String,
+        #[wasm_bindgen(js_name = "dirEntry")] dir_entry: DirEntry,
+    ) -> Result<JSReadResourceResult, JsValue> {
+        let data = read_v2_resource(&Path::new(&base_path).to_path_buf(), &dir_entry)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        let data_buffer = Buffer::from(data);
+        Ok(JSReadResourceResult {
+            resource_type: dir_entry.resource_type,
+            number: dir_entry.resource_number,
+            data: data_buffer,
+        })
+    }
+
+    #[wasm_bindgen(js_name = "readV3Resource")]
+    pub fn js_read_v3_resource(
+        #[wasm_bindgen(js_name = "basePath")] base_path: String,
+        #[wasm_bindgen(js_name = "dirEntry")] dir_entry: DirEntry,
+        #[wasm_bindgen(js_name = "gameId")] game_id: String,
+    ) -> Result<JSReadResourceResult, JsValue> {
+        let data = read_v3_resource(&Path::new(&base_path).to_path_buf(), &dir_entry, &game_id)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        let data_buffer = Buffer::from(data);
+        Ok(JSReadResourceResult {
+            resource_type: dir_entry.resource_type,
+            number: dir_entry.resource_number,
+            data: data_buffer,
+        })
     }
 }

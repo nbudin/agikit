@@ -1,12 +1,9 @@
 use std::{
     collections::HashMap,
-    fs::File,
     io::{Cursor, Read, Seek, SeekFrom},
-    str::FromStr,
 };
 
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
-use web_sys::js_sys::Uint8Array;
+use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::{
     data_encoding::ReadHeterogeneousData,
@@ -15,7 +12,6 @@ use crate::{
         file_provider::FileProvider,
         ResourceNumber, ResourceType,
     },
-    buffer::Buffer,
 };
 
 #[wasm_bindgen(skip_typescript)]
@@ -29,43 +25,6 @@ pub struct DirEntry {
     pub volume_number: u8,
     pub offset: u32,
 }
-
-#[wasm_bindgen]
-impl DirEntry {
-    #[wasm_bindgen(constructor)]
-    pub fn js_new(
-        resource_type: &str,
-        resource_number: ResourceNumber,
-        volume_number: u8,
-        offset: u32,
-    ) -> Result<Self, JsValue> {
-        let resource_type = ResourceType::from_str(resource_type)
-            .map_err(|_| format!("Unknown resource type: {}", resource_type))?;
-        Ok(DirEntry {
-            resource_type,
-            resource_number,
-            volume_number,
-            offset,
-        })
-    }
-
-    #[wasm_bindgen(getter, js_name = "resourceType", skip_typescript)]
-    pub fn js_resource_type(&self) -> String {
-        self.resource_type.as_ref().to_string()
-    }
-}
-
-#[wasm_bindgen(typescript_custom_section)]
-const DIR_ENTRY_TS_APPEND_CONTENT: &'static str = r#"
-export class DirEntry {
-  constructor(resourceType: string, resourceNumber: number, volumeNumber: number, offset: number);
-  free(): void;
-  resourceNumber: number;
-  volumeNumber: number;
-  offset: number;
-  readonly resourceType: ResourceType;
-}
-"#;
 
 impl<Data: ReadHeterogeneousData> Decode<'_, Data> for Option<DirEntry> {
     type Options = (ResourceType, ResourceNumber);
@@ -145,54 +104,6 @@ pub enum ResourceDirDecodeOptions<P: FileProvider> {
     AGI2 { file_provider: P },
     AGI3 { file_provider: P, game_id: String },
 }
-
-fn resource_dir_hashmap_to_js_optional_array(
-    resources: HashMap<ResourceNumber, DirEntry>,
-) -> Vec<JsValue> {
-    let max_resource_number = resources.keys().max().cloned().unwrap_or(0);
-    let mut entries = vec![JsValue::null(); (max_resource_number + 1) as usize];
-    for (number, entry) in resources {
-        entries[number as usize] = entry.into();
-    }
-    entries
-}
-
-#[wasm_bindgen(js_name = "readDirData", skip_typescript)]
-pub fn js_read_dir_data(
-    #[wasm_bindgen(js_name = "dirData")] dir_data: Buffer,
-    #[wasm_bindgen(js_name = "resourceType")] resource_type: &str,
-) -> Result<Vec<JsValue>, JsValue> {
-    let dir_data_vec = Uint8Array::new(&dir_data).to_vec();
-    let mut cursor = Cursor::new(dir_data_vec);
-    let resource_type = ResourceType::from_str(resource_type)
-        .map_err(|_| format!("Unknown resource type: {}", resource_type))?;
-    let resources = HashMap::<ResourceNumber, DirEntry>::decode(&mut cursor, resource_type)
-        .map_err(|e| e.to_string())?;
-    Ok(resource_dir_hashmap_to_js_optional_array(resources))
-}
-
-#[wasm_bindgen(typescript_custom_section)]
-const READ_V2_DIR_APPEND_CONTENT: &'static str = r#"
-export function readDirData(dirData: Buffer, resourceType: ResourceType): (DirEntry | undefined)[];
-"#;
-
-#[wasm_bindgen(js_name = "readV2Dir", skip_typescript)]
-pub fn js_read_v2_dir(
-    path: &str,
-    #[wasm_bindgen(js_name = "resourceType")] resource_type: &str,
-) -> Result<Vec<JsValue>, JsValue> {
-    let mut file = File::open(path).map_err(|e| DecodingError::IoError(e).to_string())?;
-    let resource_type = ResourceType::from_str(resource_type)
-        .map_err(|_| format!("Unknown resource type: {}", resource_type))?;
-    let resources = HashMap::<ResourceNumber, DirEntry>::decode(&mut file, resource_type)
-        .map_err(|e| e.to_string())?;
-    Ok(resource_dir_hashmap_to_js_optional_array(resources))
-}
-
-#[wasm_bindgen(typescript_custom_section)]
-const READ_V2_DIR_APPEND_CONTENT: &'static str = r#"
-export function readV2Dir(path: string, resourceType: ResourceType): (DirEntry | undefined)[];
-"#;
 
 impl ResourceDirs {
     pub fn get_entry(
@@ -294,4 +205,106 @@ mod tests {
         .unwrap();
         assert!(resource_dirs.dirs.contains_key(&ResourceType::LOGIC));
     }
+}
+
+#[cfg(feature = "js")]
+pub mod js {
+    use std::{collections::HashMap, fs::File, io::Cursor, str::FromStr};
+
+    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+    use web_sys::js_sys::Uint8Array;
+
+    use crate::{
+        buffer::Buffer,
+        resources::{
+            decode::{Decode, DecodingError},
+            dirs::DirEntry,
+            ResourceNumber, ResourceType,
+        },
+    };
+
+    #[wasm_bindgen]
+    impl DirEntry {
+        #[wasm_bindgen(constructor)]
+        pub fn js_new(
+            resource_type: &str,
+            resource_number: ResourceNumber,
+            volume_number: u8,
+            offset: u32,
+        ) -> Result<Self, JsValue> {
+            let resource_type = ResourceType::from_str(resource_type)
+                .map_err(|_| format!("Unknown resource type: {}", resource_type))?;
+            Ok(DirEntry {
+                resource_type,
+                resource_number,
+                volume_number,
+                offset,
+            })
+        }
+
+        #[wasm_bindgen(getter, js_name = "resourceType", skip_typescript)]
+        pub fn js_resource_type(&self) -> String {
+            self.resource_type.as_ref().to_string()
+        }
+    }
+
+    #[wasm_bindgen(typescript_custom_section)]
+    const DIR_ENTRY_TS_APPEND_CONTENT: &'static str = r#"
+export class DirEntry {
+  constructor(resourceType: string, resourceNumber: number, volumeNumber: number, offset: number);
+  free(): void;
+  resourceNumber: number;
+  volumeNumber: number;
+  offset: number;
+  readonly resourceType: ResourceType;
+}
+"#;
+
+    fn resource_dir_hashmap_to_js_optional_array(
+        resources: HashMap<ResourceNumber, DirEntry>,
+    ) -> Vec<JsValue> {
+        let max_resource_number = resources.keys().max().cloned().unwrap_or(0);
+        let mut entries = vec![JsValue::null(); (max_resource_number + 1) as usize];
+        for (number, entry) in resources {
+            entries[number as usize] = entry.into();
+        }
+        entries
+    }
+
+    #[wasm_bindgen(js_name = "readDirData", skip_typescript)]
+    pub fn js_read_dir_data(
+        #[wasm_bindgen(js_name = "dirData")] dir_data: Buffer,
+        #[wasm_bindgen(js_name = "resourceType")] resource_type: &str,
+    ) -> Result<Vec<JsValue>, JsValue> {
+        let dir_data_vec = Uint8Array::new(&dir_data).to_vec();
+        let mut cursor = Cursor::new(dir_data_vec);
+        let resource_type = ResourceType::from_str(resource_type)
+            .map_err(|_| format!("Unknown resource type: {}", resource_type))?;
+        let resources = HashMap::<ResourceNumber, DirEntry>::decode(&mut cursor, resource_type)
+            .map_err(|e| e.to_string())?;
+        Ok(resource_dir_hashmap_to_js_optional_array(resources))
+    }
+
+    #[wasm_bindgen(typescript_custom_section)]
+    const READ_DIR_DATA_APPEND_CONTENT: &'static str = r#"
+export function readDirData(dirData: Buffer, resourceType: ResourceType): (DirEntry | undefined)[];
+"#;
+
+    #[wasm_bindgen(js_name = "readV2Dir", skip_typescript)]
+    pub fn js_read_v2_dir(
+        path: &str,
+        #[wasm_bindgen(js_name = "resourceType")] resource_type: &str,
+    ) -> Result<Vec<JsValue>, JsValue> {
+        let mut file = File::open(path).map_err(|e| DecodingError::IoError(e).to_string())?;
+        let resource_type = ResourceType::from_str(resource_type)
+            .map_err(|_| format!("Unknown resource type: {}", resource_type))?;
+        let resources = HashMap::<ResourceNumber, DirEntry>::decode(&mut file, resource_type)
+            .map_err(|e| e.to_string())?;
+        Ok(resource_dir_hashmap_to_js_optional_array(resources))
+    }
+
+    #[wasm_bindgen(typescript_custom_section)]
+    const READ_V2_DIR_APPEND_CONTENT: &'static str = r#"
+export function readV2Dir(path: string, resourceType: ResourceType): (DirEntry | undefined)[];
+"#;
 }

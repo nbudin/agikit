@@ -5,10 +5,7 @@ use std::{
     io::{Cursor, Read, Seek, SeekFrom},
 };
 
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
-
 use crate::{
-    buffer::Buffer,
     compression::bitstreams::{ReadBitstream, WriteBitstream},
     data_encoding::ReadHeterogeneousData,
 };
@@ -192,14 +189,6 @@ pub fn agi_lzw_compress(compressed: &[u8]) -> Result<Vec<u8>, CompressionError> 
     Ok(writer.finish())
 }
 
-#[wasm_bindgen(js_name = "agiLzwCompress")]
-pub fn js_agi_lzw_compress(uncompressed: Buffer) -> Result<Buffer, JsValue> {
-    let uncompressed_bytes: Vec<u8> = uncompressed.into();
-    let compressed = agi_lzw_compress(&uncompressed_bytes)
-        .map_err(|e| JsValue::from_str(&format!("Compression error: {:?}", e)))?;
-    Ok(compressed.into())
-}
-
 pub struct LZWBitstreamReader<'a, Data: Read + Seek> {
     bitstream: &'a mut Data,
     bit_offset: usize,
@@ -380,14 +369,6 @@ pub fn agi_lzw_decompress(compressed: &[u8]) -> Result<Vec<u8>, DecompressionErr
     Ok(result)
 }
 
-#[wasm_bindgen(js_name = "agiLzwDecompress")]
-pub fn js_agi_lzw_decompress(compressed: Buffer) -> Result<Buffer, JsValue> {
-    let compressed_bytes: Vec<u8> = compressed.into();
-    let decompressed = agi_lzw_decompress(&compressed_bytes)
-        .map_err(|e| JsValue::from_str(&format!("Decompression error: {:?}", e)))?;
-    Ok(decompressed.into())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -445,5 +426,31 @@ mod tests {
 
         let compressed = agi_lzw_decompress(&bitstream).expect("Decompression failed");
         assert_eq!(compressed, KNOWN_STRING);
+    }
+}
+
+#[cfg(feature = "js")]
+pub mod js {
+    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+
+    use crate::{
+        buffer::Buffer,
+        compression::lzw::{agi_lzw_compress, agi_lzw_decompress},
+    };
+
+    #[wasm_bindgen(js_name = "agiLzwCompress")]
+    pub fn js_agi_lzw_compress(uncompressed: Buffer) -> Result<Buffer, JsValue> {
+        let uncompressed_bytes: Vec<u8> = uncompressed.into();
+        let compressed = agi_lzw_compress(&uncompressed_bytes)
+            .map_err(|e| JsValue::from_str(&format!("Compression error: {:?}", e)))?;
+        Ok(compressed.into())
+    }
+
+    #[wasm_bindgen(js_name = "agiLzwDecompress")]
+    pub fn js_agi_lzw_decompress(compressed: Buffer) -> Result<Buffer, JsValue> {
+        let compressed_bytes: Vec<u8> = compressed.into();
+        let decompressed = agi_lzw_decompress(&compressed_bytes)
+            .map_err(|e| JsValue::from_str(&format!("Decompression error: {:?}", e)))?;
+        Ok(decompressed.into())
     }
 }

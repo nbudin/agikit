@@ -3,8 +3,7 @@ use std::{collections::HashMap, sync::LazyLock};
 use logic_command_macros::{include_agi_commands, include_test_commands};
 use serde::{Deserialize, Serialize};
 use strum_macros::{AsRefStr, EnumString};
-use tsify::serde_wasm_bindgen;
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::agi_version::AGIVersion;
 
@@ -30,17 +29,6 @@ pub struct AGICommand {
     pub name: String,
     #[wasm_bindgen(skip)]
     pub arg_types: Vec<AGICommandArgType>,
-}
-
-#[wasm_bindgen]
-impl AGICommand {
-    #[wasm_bindgen(getter, js_name = "argTypes", skip_typescript)]
-    pub fn js_args(&self) -> Vec<JsValue> {
-        self.arg_types
-            .iter()
-            .map(|arg| JsValue::from_str(arg.as_ref()))
-            .collect()
-    }
 }
 
 impl AGICommand {
@@ -75,11 +63,6 @@ impl AGICommand {
     }
 }
 
-#[wasm_bindgen(js_name = "getAGICommand")]
-pub fn js_get_agi_command(opcode: u8, agi_version: &AGIVersion) -> Option<AGICommand> {
-    AGICommand::get(opcode, agi_version).cloned()
-}
-
 #[wasm_bindgen(skip_typescript)]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -94,30 +77,53 @@ pub struct TestCommand {
     pub var_args: bool,
 }
 
-#[wasm_bindgen]
-impl TestCommand {
-    #[wasm_bindgen(getter, js_name = "argTypes", skip_typescript)]
-    pub fn js_args(&self) -> Vec<JsValue> {
-        self.arg_types
-            .iter()
-            .map(|arg| JsValue::from_str(arg.as_ref()))
-            .collect()
-    }
-}
-
 impl TestCommand {
     pub fn get(opcode: u8) -> Option<&'static Self> {
         TEST_COMMANDS.get(&opcode)
     }
 }
 
-#[wasm_bindgen(js_name = "getTestCommand")]
-pub fn js_get_test_command(opcode: u8) -> Option<TestCommand> {
-    TestCommand::get(opcode).cloned()
+pub static AGI_COMMANDS: LazyLock<HashMap<u8, AGICommand>> = LazyLock::new(|| {
+    let commands: Vec<AGICommand> = include_agi_commands!("src/logic/agi_commands.json");
+    commands.into_iter().map(|cmd| (cmd.opcode, cmd)).collect()
+});
+
+pub static TEST_COMMANDS: LazyLock<HashMap<u8, TestCommand>> = LazyLock::new(|| {
+    let commands: Vec<TestCommand> = include_test_commands!("src/logic/test_commands.json");
+    commands.into_iter().map(|cmd| (cmd.opcode, cmd)).collect()
+});
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_agi_commands() {
+        assert!(!AGI_COMMANDS.is_empty());
+        assert_eq!(AGI_COMMANDS.get(&1).unwrap().name, "increment");
+    }
+
+    #[test]
+    fn test_test_commands() {
+        assert!(!TEST_COMMANDS.is_empty());
+        assert_eq!(TEST_COMMANDS.get(&1).unwrap().name, "equaln");
+    }
 }
 
-#[wasm_bindgen(typescript_custom_section)]
-const TS_APPEND_CONTENT: &'static str = r#"
+#[cfg(feature = "js")]
+pub mod js {
+    use std::collections::HashMap;
+
+    use tsify::serde_wasm_bindgen;
+    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+
+    use crate::{
+        agi_version::AGIVersion,
+        logic::commands::{AGICommand, TestCommand, AGI_COMMANDS, TEST_COMMANDS},
+    };
+
+    #[wasm_bindgen(typescript_custom_section)]
+    const TS_APPEND_CONTENT: &'static str = r#"
 export enum AGICommandArgType {
   Number = 'Number',
   Variable = 'Variable',
@@ -148,59 +154,65 @@ export class TestCommand {
 }
 "#;
 
-pub static AGI_COMMANDS: LazyLock<HashMap<u8, AGICommand>> = LazyLock::new(|| {
-    let commands: Vec<AGICommand> = include_agi_commands!("src/logic/agi_commands.json");
-    commands.into_iter().map(|cmd| (cmd.opcode, cmd)).collect()
-});
-
-pub static TEST_COMMANDS: LazyLock<HashMap<u8, TestCommand>> = LazyLock::new(|| {
-    let commands: Vec<TestCommand> = include_test_commands!("src/logic/test_commands.json");
-    commands.into_iter().map(|cmd| (cmd.opcode, cmd)).collect()
-});
-
-#[wasm_bindgen(js_name = "getAGICommands")]
-pub fn get_agi_commands() -> Vec<AGICommand> {
-    AGI_COMMANDS.values().cloned().collect()
-}
-
-#[wasm_bindgen(js_name = "getTestCommands")]
-pub fn get_test_commands() -> Vec<TestCommand> {
-    TEST_COMMANDS.values().cloned().collect()
-}
-
-#[wasm_bindgen(js_name = "getAGICommandsByName")]
-pub fn get_agi_commands_by_name() -> Result<JsValue, serde_wasm_bindgen::Error> {
-    let commands_by_name: HashMap<String, AGICommand> = AGI_COMMANDS
-        .values()
-        .map(|cmd| (cmd.name.clone(), cmd.clone()))
-        .collect();
-
-    serde_wasm_bindgen::to_value(&commands_by_name)
-}
-
-#[wasm_bindgen(js_name = "getTestCommandsByName")]
-pub fn get_test_commands_by_name() -> Result<JsValue, serde_wasm_bindgen::Error> {
-    let commands_by_name: HashMap<String, TestCommand> = TEST_COMMANDS
-        .values()
-        .map(|cmd| (cmd.name.clone(), cmd.clone()))
-        .collect();
-
-    serde_wasm_bindgen::to_value(&commands_by_name)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_agi_commands() {
-        assert!(!AGI_COMMANDS.is_empty());
-        assert_eq!(AGI_COMMANDS.get(&1).unwrap().name, "increment");
+    #[wasm_bindgen]
+    impl AGICommand {
+        #[wasm_bindgen(getter, js_name = "argTypes", skip_typescript)]
+        pub fn js_args(&self) -> Vec<JsValue> {
+            self.arg_types
+                .iter()
+                .map(|arg| JsValue::from_str(arg.as_ref()))
+                .collect()
+        }
     }
 
-    #[test]
-    fn test_test_commands() {
-        assert!(!TEST_COMMANDS.is_empty());
-        assert_eq!(TEST_COMMANDS.get(&1).unwrap().name, "equaln");
+    #[wasm_bindgen(js_name = "getAGICommand")]
+    pub fn js_get_agi_command(opcode: u8, agi_version: &AGIVersion) -> Option<AGICommand> {
+        AGICommand::get(opcode, agi_version).cloned()
+    }
+
+    #[wasm_bindgen]
+    impl TestCommand {
+        #[wasm_bindgen(getter, js_name = "argTypes", skip_typescript)]
+        pub fn js_args(&self) -> Vec<JsValue> {
+            self.arg_types
+                .iter()
+                .map(|arg| JsValue::from_str(arg.as_ref()))
+                .collect()
+        }
+    }
+
+    #[wasm_bindgen(js_name = "getTestCommand")]
+    pub fn js_get_test_command(opcode: u8) -> Option<TestCommand> {
+        TestCommand::get(opcode).cloned()
+    }
+
+    #[wasm_bindgen(js_name = "getAGICommands")]
+    pub fn get_agi_commands() -> Vec<AGICommand> {
+        AGI_COMMANDS.values().cloned().collect()
+    }
+
+    #[wasm_bindgen(js_name = "getTestCommands")]
+    pub fn get_test_commands() -> Vec<TestCommand> {
+        TEST_COMMANDS.values().cloned().collect()
+    }
+
+    #[wasm_bindgen(js_name = "getAGICommandsByName")]
+    pub fn get_agi_commands_by_name() -> Result<JsValue, serde_wasm_bindgen::Error> {
+        let commands_by_name: HashMap<String, AGICommand> = AGI_COMMANDS
+            .values()
+            .map(|cmd| (cmd.name.clone(), cmd.clone()))
+            .collect();
+
+        serde_wasm_bindgen::to_value(&commands_by_name)
+    }
+
+    #[wasm_bindgen(js_name = "getTestCommandsByName")]
+    pub fn get_test_commands_by_name() -> Result<JsValue, serde_wasm_bindgen::Error> {
+        let commands_by_name: HashMap<String, TestCommand> = TEST_COMMANDS
+            .values()
+            .map(|cmd| (cmd.name.clone(), cmd.clone()))
+            .collect();
+
+        serde_wasm_bindgen::to_value(&commands_by_name)
     }
 }

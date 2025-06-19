@@ -1,7 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
-use web_sys::js_sys;
+use wasm_bindgen::prelude::wasm_bindgen;
 
 pub mod decode;
 pub mod encode;
@@ -29,41 +28,6 @@ impl WordListEntry {
                 .filter(|word| **word != self.canonical_word)
                 .map(|word| word.as_str()),
         )
-    }
-}
-
-impl Into<JsValue> for WordListEntry {
-    fn into(self) -> JsValue {
-        let pair = js_sys::Array::new();
-        pair.push(&JsValue::from(self.number));
-        let words = self
-            .iter_words()
-            .map(JsValue::from)
-            .collect::<js_sys::Array>();
-        pair.push(&words);
-        pair.into()
-    }
-}
-
-#[wasm_bindgen]
-impl WordList {
-    #[wasm_bindgen(constructor)]
-    pub fn new() -> Self {
-        WordList {
-            words: HashMap::new(),
-        }
-    }
-
-    #[wasm_bindgen(js_name = "entries")]
-    pub fn js_entries(&self) -> Vec<JsValue> {
-        self.words.values().cloned().map(Into::into).collect()
-    }
-
-    #[wasm_bindgen(js_name = "get")]
-    pub fn js_get(&self, word_number: u16) -> Option<js_sys::Array> {
-        self.words
-            .get(&word_number)
-            .map(|entry| js_sys::Array::from_iter(entry.iter_words().map(JsValue::from)))
     }
 }
 
@@ -98,5 +62,50 @@ mod tests {
 
         let encoded = word_list.encode(()).expect("Failed to encode WordList");
         assert_eq!(words_tok_data, encoded);
+    }
+}
+
+#[cfg(feature = "js")]
+pub mod js {
+    use std::collections::HashMap;
+
+    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+    use web_sys::js_sys;
+
+    use crate::word_list::{WordList, WordListEntry};
+
+    impl Into<JsValue> for WordListEntry {
+        fn into(self) -> JsValue {
+            let pair = js_sys::Array::new();
+            pair.push(&JsValue::from(self.number));
+            let words = self
+                .iter_words()
+                .map(JsValue::from)
+                .collect::<js_sys::Array>();
+            pair.push(&words);
+            pair.into()
+        }
+    }
+
+    #[wasm_bindgen]
+    impl WordList {
+        #[wasm_bindgen(constructor)]
+        pub fn new() -> Self {
+            WordList {
+                words: HashMap::new(),
+            }
+        }
+
+        #[wasm_bindgen(js_name = "entries")]
+        pub fn js_entries(&self) -> Vec<JsValue> {
+            self.words.values().cloned().map(Into::into).collect()
+        }
+
+        #[wasm_bindgen(js_name = "get")]
+        pub fn js_get(&self, word_number: u16) -> Option<js_sys::Array> {
+            self.words
+                .get(&word_number)
+                .map(|entry| js_sys::Array::from_iter(entry.iter_words().map(JsValue::from)))
+        }
     }
 }

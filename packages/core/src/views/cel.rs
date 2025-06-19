@@ -1,8 +1,7 @@
 use bitfield_struct::bitfield;
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
-use web_sys::js_sys::Uint8Array;
+use wasm_bindgen::prelude::wasm_bindgen;
 
-use crate::{color_palettes::ColorPalette, buffer::Buffer};
+use crate::color_palettes::ColorPalette;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NonMirroredViewCelData {
@@ -49,19 +48,6 @@ pub fn render_view_cel(
     .collect()
 }
 
-#[wasm_bindgen(js_name = "renderViewCel")]
-pub fn render_view_cel_from_arrays(
-    source_buffer: Uint8Array,
-    transparent_color: u8,
-    color_palette: &ColorPalette,
-) -> Result<Uint8Array, JsValue> {
-    let data_vec = source_buffer.to_vec();
-    let rendered_data = render_view_cel(data_vec.iter().copied(), transparent_color, color_palette);
-    let array_buffer = Uint8Array::new_with_length(rendered_data.len() as u32);
-    array_buffer.copy_from(&rendered_data);
-    Ok(array_buffer)
-}
-
 #[derive(Clone, Debug)]
 pub struct ViewCelHandle<'a> {
     pub loop_number: u8,
@@ -103,16 +89,6 @@ impl ViewCel {
     pub fn mirrored_from_loop_number(&self) -> Option<u8> {
         if let ViewCelData::Mirrored(data) = &self.data {
             Some(data.loop_number)
-        } else {
-            None
-        }
-    }
-
-    #[wasm_bindgen(getter = "buffer")]
-    pub fn js_buffer(&self) -> Option<Buffer> {
-        if let ViewCelData::NonMirrored(data) = &self.data {
-            let js_array = Uint8Array::new_with_length(data.data.len() as u32);
-            Some(Buffer::from_array_buffer(&js_array.buffer()))
         } else {
             None
         }
@@ -167,5 +143,44 @@ impl<'a> Iterator for ViewCelPixelsIterator<'a> {
         self.index += 1;
 
         Some(self.data[offset])
+    }
+}
+
+#[cfg(feature = "js")]
+pub mod js {
+    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+    use web_sys::js_sys::Uint8Array;
+
+    use crate::{
+        buffer::Buffer,
+        color_palettes::ColorPalette,
+        views::cel::{render_view_cel, ViewCel, ViewCelData},
+    };
+
+    #[wasm_bindgen(js_name = "renderViewCel")]
+    pub fn render_view_cel_from_arrays(
+        source_buffer: Uint8Array,
+        transparent_color: u8,
+        color_palette: &ColorPalette,
+    ) -> Result<Uint8Array, JsValue> {
+        let data_vec = source_buffer.to_vec();
+        let rendered_data =
+            render_view_cel(data_vec.iter().copied(), transparent_color, color_palette);
+        let array_buffer = Uint8Array::new_with_length(rendered_data.len() as u32);
+        array_buffer.copy_from(&rendered_data);
+        Ok(array_buffer)
+    }
+
+    #[wasm_bindgen]
+    impl ViewCel {
+        #[wasm_bindgen(getter = "buffer")]
+        pub fn js_buffer(&self) -> Option<Buffer> {
+            if let ViewCelData::NonMirrored(data) = &self.data {
+                let js_array = Uint8Array::new_with_length(data.data.len() as u32);
+                Some(Buffer::from_array_buffer(&js_array.buffer()))
+            } else {
+                None
+            }
+        }
     }
 }
