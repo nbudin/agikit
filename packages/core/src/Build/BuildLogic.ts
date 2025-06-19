@@ -1,10 +1,8 @@
 import { optimizeAST } from '../Extract/Logic/ASTOptimization';
-import { LogicAssembler } from '../Scripting/LogicAssembler';
 import { LogicCompiler } from '../Scripting/LogicCompiler';
 import { LogicScriptASTGenerator } from '../Scripting/LogicScriptASTGenerator';
 import { parseLogicScript, parseLogicScriptRaw } from '../Scripting/LogicScriptParser';
-import { encodeLogic, encodeMessages } from '../Scripting/WriteLogic';
-import { WordList, ObjectList, LogicInstruction } from 'agikit_core';
+import { WordList, ObjectList, assembleLogic } from 'agikit_core';
 import { getDiagnosticsForProgram, LogicDiagnostic } from '../Scripting/LogicDiagnostics';
 
 export class LogicCompilerError extends Error {
@@ -26,16 +24,6 @@ export class LogicCompilerError extends Error {
     this.scriptPath = scriptPath;
     this.diagnostics = diagnostics;
   }
-}
-
-export function assembleLogic(
-  instructions: LogicInstruction[],
-  messages: (string | undefined)[],
-  encryptMessages: boolean,
-): Buffer {
-  const assembler = new LogicAssembler(instructions);
-  const logic = encodeLogic(assembler.assemble(), encodeMessages(messages, encryptMessages));
-  return logic;
 }
 
 export function compileLogicScript(

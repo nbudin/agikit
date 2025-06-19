@@ -1,14 +1,11 @@
 use std::{
     collections::HashMap,
     fmt::Display,
-    io::{Cursor, Seek, SeekFrom},
+    io::{Seek, SeekFrom},
 };
-
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 use crate::{
     agi_version::{AGIMajorVersion, AGIVersion},
-    buffer::Buffer,
     data_encoding::ReadHeterogeneousData,
     logic::{
         commands::{AGICommand, TestCommand},
@@ -242,18 +239,6 @@ impl<'opt, Data: ReadHeterogeneousData> Decode<'opt, Data> for LogicProgram {
     }
 }
 
-#[wasm_bindgen(js_name = "readLogicResource")]
-pub fn read_logic_resource_js(
-    resource_data: Buffer,
-    agi_version: AGIVersion,
-) -> Result<LogicProgram, JsValue> {
-    let data_vec = Vec::from(resource_data);
-    let mut cursor = Cursor::new(data_vec);
-
-    LogicProgram::decode(&mut cursor, &agi_version)
-        .map_err(|e| JsValue::from_str(format!("{:?}", e).as_str()))
-}
-
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
@@ -288,5 +273,28 @@ mod tests {
 
         assert_eq!(logic_program.messages.len(), 45);
         assert_eq!(logic_program.messages.get(&0).unwrap(), "AGI");
+    }
+}
+
+#[cfg(feature = "js")]
+mod js {
+    use std::io::Cursor;
+
+    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+
+    use crate::{
+        agi_version::AGIVersion, buffer::Buffer, logic::LogicProgram, resources::decode::Decode,
+    };
+
+    #[wasm_bindgen(js_name = "readLogicResource")]
+    pub fn read_logic_resource_js(
+        resource_data: Buffer,
+        agi_version: AGIVersion,
+    ) -> Result<LogicProgram, JsValue> {
+        let data_vec = Vec::from(resource_data);
+        let mut cursor = Cursor::new(data_vec);
+
+        LogicProgram::decode(&mut cursor, &agi_version)
+            .map_err(|e| JsValue::from_str(format!("{:?}", e).as_str()))
     }
 }

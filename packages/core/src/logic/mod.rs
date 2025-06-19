@@ -9,6 +9,7 @@ use crate::logic::commands::{AGICommand, TestCommand};
 pub mod asm;
 pub mod commands;
 pub mod decode;
+pub mod encode;
 pub mod logic_script;
 
 #[derive(Debug, Clone, PartialEq, Eq, Tsify, Serialize, Deserialize)]
@@ -95,4 +96,49 @@ pub type LogicMessages = HashMap<u8, String>;
 pub struct LogicProgram {
     pub instructions: Vec<LogicInstruction>,
     pub messages: LogicMessages,
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::Cursor;
+
+    use crate::{
+        agi_version::AGIVersion,
+        resources::{
+            decode::Decode,
+            dirs::{ResourceDirDecodeOptions, ResourceDirs},
+            encode::Encode,
+            resource_collection::{ResourceCollection, ResourceCollectionVersionData},
+            ResourceType,
+        },
+        TEST_DATA_DIR,
+    };
+
+    use super::*;
+
+    #[test]
+    fn smoke_test() {
+        let file_provider = TEST_DATA_DIR.get_dir("uriquest").unwrap();
+        let dirs = ResourceDirs::read(ResourceDirDecodeOptions::AGI2 { file_provider }).unwrap();
+
+        let collection = ResourceCollection::new(
+            ResourceCollectionVersionData::AGI2,
+            file_provider.clone(),
+            dirs,
+        );
+        let logic_data = collection
+            .read_resource_data(ResourceType::LOGIC, 0)
+            .expect("Failed to read logic resource 0");
+        let mut cursor = Cursor::new(logic_data.clone());
+        let logic_program = LogicProgram::decode(&mut cursor, &AGIVersion::new(2, 917))
+            .expect("Failed to decode logic program");
+
+        let reencoded = logic_program
+            .encode(true)
+            .expect("Failed to encode logic program");
+        assert_eq!(
+            reencoded, logic_data,
+            "Re-encoded logic data does not match original"
+        );
+    }
 }

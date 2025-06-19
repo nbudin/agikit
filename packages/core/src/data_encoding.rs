@@ -75,6 +75,10 @@ pub trait WriteHeterogeneousData: Write + Seek {
     fn write_u8(&mut self, value: u8) -> Result<(), io::Error>;
     fn write_u16_le(&mut self, value: u16) -> Result<(), io::Error>;
     fn write_u16_be(&mut self, value: u16) -> Result<(), io::Error>;
+    fn write_i16_le(&mut self, value: i16) -> Result<(), io::Error> {
+        let value_u16 = value as u16;
+        self.write_u16_le(value_u16)
+    }
     fn write_null_terminated_string(&mut self, value: &str) -> Result<(), io::Error>;
 }
 
