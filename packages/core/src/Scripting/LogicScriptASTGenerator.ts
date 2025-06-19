@@ -3,7 +3,6 @@ import {
   LogicCommandNode,
   LogicGotoNode,
   LogicIfNode,
-  LogicLabel,
 } from '../Extract/Logic/LogicDecompile';
 import {
   LogicScriptParseTree,
@@ -25,7 +24,7 @@ import {
   simplifyLogicScriptProgram,
 } from './LogicScriptPrimitiveTree';
 import { IdentifierMapping } from './LogicScriptIdentifierMapping';
-import { ObjectList } from 'agikit_core';
+import { ObjectList, LogicLabel } from 'agikit_core';
 import { agiCommandsByName, testCommandsByName } from '../index';
 
 const fakeJumpTarget: { type: 'command' } & LogicCommandNode = {
@@ -255,11 +254,7 @@ export class LogicScriptASTGenerator {
     }
 
     const label: LogicLabel | undefined = previousLabel
-      ? {
-          label: previousLabel.label,
-          address,
-          references: [],
-        }
+      ? new LogicLabel(address, previousLabel.label, [])
       : undefined;
     if (label) {
       this.labels.set(label.label, label);

@@ -1,15 +1,9 @@
-import { LogicConditionClause } from 'agikit_core';
+import { LogicConditionClause, LogicLabel } from 'agikit_core';
 import assertNever from 'assert-never';
 import { isPresent } from 'ts-is-present';
 import { Graph, GraphEdge, GraphNode } from '../Graphs';
 import { DominatorTree } from './DominatorTree';
-import {
-  LogicLabel,
-  LogicCommandNode,
-  LogicGotoNode,
-  LogicIfNode,
-  LogicASTNode,
-} from './LogicDecompile';
+import { LogicCommandNode, LogicGotoNode, LogicIfNode, LogicASTNode } from './LogicDecompile';
 
 /**
  * An intermediate data structure used during decompilation.  A basic block is a consecutive set

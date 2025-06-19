@@ -1,4 +1,4 @@
-import { LogicCommandNode, LogicLabel } from '../Extract/Logic/LogicDecompile';
+import { LogicCommandNode } from '../Extract/Logic/LogicDecompile';
 import {
   BasicBlock,
   BasicBlockGraph,
@@ -10,15 +10,15 @@ import {
 import { DominatorTree } from '../Extract/Logic/DominatorTree';
 import assertNever from 'assert-never';
 import { flatMap, max } from 'lodash';
-import { generateLabels } from '../Extract/Logic/LogicDisasm';
 import {
   LogicCommand,
   LogicCondition,
   LogicConditionClause,
   LogicGoto,
   LogicInstruction,
+  LogicLabel,
 } from 'agikit_core';
-import { agiCommandsByName } from '../index';
+import { agiCommandsByName, generateLabels } from '../index';
 
 type SinglePathCompiledBlock = {
   type: 'singlePath';
@@ -295,11 +295,7 @@ export class LogicCompiler {
     if (existingLabel) {
       return existingLabel;
     }
-    const newLabel = {
-      address: address,
-      label: `GeneratedLabel${address}`,
-      references: [],
-    };
+    const newLabel = new LogicLabel(address, `GeneratedLabel${address}`, []);
     this.labels.set(address, newLabel);
     return newLabel;
   }

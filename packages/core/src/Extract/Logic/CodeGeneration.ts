@@ -23,6 +23,8 @@ import {
   LogicProgram,
   LogicTest,
   WordList,
+  generateLabels,
+  LogicLabel,
 } from 'agikit_core';
 import { optimizeAST } from './ASTOptimization';
 import {
@@ -34,8 +36,7 @@ import {
   SinglePathBasicBlock,
 } from './ControlFlowAnalysis';
 import { DominatorTree } from './DominatorTree';
-import { decompileInstructions, LogicLabel } from './LogicDecompile';
-import { generateLabels } from './LogicDisasm';
+import { decompileInstructions } from './LogicDecompile';
 import { BUILT_IN_IDENTIFIERS } from '../../Scripting/LogicScriptIdentifierMapping';
 
 export type CodeGenerationContext = {

@@ -432,3 +432,27 @@ mod tests {
         assert_eq!(generated_asm, expected_asm);
     }
 }
+
+#[cfg(feature = "js")]
+pub mod js {
+    use wasm_bindgen::prelude::wasm_bindgen;
+
+    use crate::logic::{
+        asm::{codegen::generate_labels, js::OwnedLogicLabel, LogicLabel},
+        LogicInstruction,
+    };
+
+    #[wasm_bindgen(js_name = "generateLabels")]
+    pub fn generate_labels_js(
+        instructions: Vec<LogicInstruction>,
+        #[wasm_bindgen(js_name = "existingLabels")] existing_labels: Option<Vec<OwnedLogicLabel>>,
+    ) -> Vec<OwnedLogicLabel> {
+        let existing_labels = existing_labels.unwrap_or_default();
+        let existing_labels: Vec<LogicLabel> = existing_labels
+            .iter()
+            .map(|label| label.to_logic_label())
+            .collect();
+        let labels = generate_labels(&instructions, &existing_labels);
+        labels.into_iter().map(OwnedLogicLabel::from).collect()
+    }
+}

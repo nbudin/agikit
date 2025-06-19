@@ -1,13 +1,12 @@
-import { LogicCommand, LogicConditionClause, LogicInstruction } from 'agikit_core';
+import {
+  LogicCommand,
+  LogicConditionClause,
+  LogicInstruction,
+  generateLabels,
+  LogicLabel,
+} from 'agikit_core';
 import assertNever from 'assert-never';
 import { max } from 'lodash';
-import { generateLabels } from './LogicDisasm';
-
-export type LogicLabel = {
-  address: number;
-  label: string;
-  references: LogicInstruction[];
-};
 
 export type LogicASTNodeMetadata = {
   instructionAddress?: number;
