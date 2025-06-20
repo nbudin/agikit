@@ -282,8 +282,8 @@ impl GenerateLogicAsm for LogicInstruction {
 
 pub fn generate_labels<'a>(
     instructions: &'a [LogicInstruction],
-    existing_labels: &'a [LogicLabel<'a>],
-) -> Vec<LogicLabel<'a>> {
+    existing_labels: &'a [LogicLabel],
+) -> Vec<LogicLabel> {
     let mut target_addresses_with_refs: HashMap<u16, HashMap<u16, &'a LogicInstruction>> =
         HashMap::new();
 
@@ -311,10 +311,9 @@ pub fn generate_labels<'a>(
 
     let mut generated_labels: Vec<_> = target_addresses_with_refs
         .into_iter()
-        .map(|(address, references)| LogicLabel {
+        .map(|(address, _)| LogicLabel {
             address,
             label: format!("Address{}", address),
-            references: references.into_values().collect(),
         })
         .collect();
 
@@ -368,7 +367,7 @@ pub fn generate_logic_messages(messages: &LogicMessages) -> Result<String, AsmCo
 pub fn generate_logic_asm(
     logic: &LogicProgram,
     word_list: &WordList,
-    labels: &[LogicLabel<'_>],
+    labels: &[LogicLabel],
 ) -> Result<String, AsmCodeGenerationError> {
     let labels_to_use = generate_labels(&logic.instructions, labels);
     let labels_by_address: HashMap<u16, &LogicLabel> = labels_to_use
@@ -436,10 +435,6 @@ mod tests {
         let mut cursor = Cursor::new(logic_data);
         let logic_program = LogicProgram::decode(&mut cursor, &AGIVersion::new(2, 917))
             .expect("Failed to decode logic program");
-
-        for instruction in &logic_program.instructions {
-            println!("Instruction: {:?}", instruction);
-        }
 
         let words_tok_data = TEST_DATA_DIR
             .get_file("uriquest/WORDS.TOK")
@@ -532,12 +527,12 @@ pub mod js {
             .map_err(|err| JsValue::from_str(&format!("Error generating command code: {}", err)))
     }
 
-    struct JsLabelMap<'a> {
-        labels: HashMap<u16, LogicLabel<'a>>,
+    struct JsLabelMap {
+        labels: HashMap<u16, LogicLabel>,
     }
 
-    impl<'a> JsLabelMap<'a> {
-        fn new(labels: &'a Vec<OwnedLogicLabel>) -> Self {
+    impl JsLabelMap {
+        fn new(labels: &[OwnedLogicLabel]) -> Self {
             JsLabelMap {
                 labels: labels
                     .iter()
@@ -546,7 +541,7 @@ pub mod js {
             }
         }
 
-        fn ref_map(&'a self) -> HashMap<u16, &'a LogicLabel<'a>> {
+        fn ref_map(&self) -> HashMap<u16, &LogicLabel> {
             self.labels.iter().map(|(k, v)| (*k, v)).collect()
         }
     }

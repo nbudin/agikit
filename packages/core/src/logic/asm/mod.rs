@@ -5,11 +5,10 @@ pub mod expressions;
 pub mod literals;
 pub mod operators;
 
-#[derive(Debug)]
-pub struct LogicLabel<'a> {
+#[derive(Debug, Clone)]
+pub struct LogicLabel {
     pub address: u16,
     pub label: String,
-    pub references: Vec<&'a LogicInstruction>,
 }
 
 #[cfg(feature = "js")]
@@ -42,22 +41,21 @@ pub mod js {
         }
     }
 
-    impl<'a> From<LogicLabel<'a>> for OwnedLogicLabel {
-        fn from(label: LogicLabel<'a>) -> Self {
+    impl From<LogicLabel> for OwnedLogicLabel {
+        fn from(label: LogicLabel) -> Self {
             OwnedLogicLabel {
                 address: label.address,
                 label: label.label,
-                references: label.references.into_iter().cloned().collect(),
+                references: vec![],
             }
         }
     }
 
     impl OwnedLogicLabel {
-        pub fn to_logic_label(&self) -> LogicLabel<'_> {
+        pub fn to_logic_label(&self) -> LogicLabel {
             LogicLabel {
                 address: self.address,
                 label: self.label.clone(),
-                references: self.references.iter().collect(),
             }
         }
     }
