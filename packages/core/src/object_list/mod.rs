@@ -61,7 +61,7 @@ mod tests {
             .expect("Failed to get OBJECT file")
             .contents();
         let object_list = ObjectList::decode(&mut Cursor::new(object_data), ()).unwrap();
-        let encoded = object_list.encode(()).unwrap();
+        let encoded = object_list.encode_to_vec(()).unwrap();
 
         let mut object_list_decrypted: Vec<u8> = Vec::with_capacity(object_data.len());
         XorCursor::new(

@@ -1,11 +1,7 @@
 use std::collections::HashMap;
 
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
-use web_sys::js_sys::Uint8Array;
-
 use crate::{
-    buffer::Buffer,
-    data_encoding::encode_uint16be,
+    data_encoding::{encode_uint16be, WriteHeterogeneousData},
     resources::encode::{Encode, EncodingError},
     word_list::WordList,
 };
@@ -27,10 +23,14 @@ fn encode_word(word: &str) -> impl Iterator<Item = u8> + '_ {
     })
 }
 
-impl Encode for WordList {
+impl Encode<'_> for WordList {
     type Options = ();
 
-    fn encode(&self, _options: Self::Options) -> Result<Vec<u8>, EncodingError> {
+    fn encode<Out: WriteHeterogeneousData>(
+        &self,
+        mut out: Out,
+        _options: Self::Options,
+    ) -> Result<(), EncodingError> {
         let number_by_word = self
             .words
             .iter()
@@ -92,7 +92,7 @@ impl Encode for WordList {
 
         let mut header: [u8; 52] = [0; 52];
         let mut data: Vec<u8> = vec![];
-        let mut offset = 52 + data.len();
+        let mut offset = 52;
         for (index, letter) in LETTERS.iter().enumerate() {
             let Some(word_entries) = words_entries_by_first_letter.get(&letter) else {
                 continue;
@@ -111,21 +111,25 @@ impl Encode for WordList {
             }
         }
 
-        Ok(header
-            .iter()
-            .chain(data.iter().as_ref())
-            .copied()
-            .chain(std::iter::once(0))
-            .collect())
+        out.write_all(&header)?;
+        out.write_all(&data)?;
+        out.write_u8(0)?;
+        Ok(())
     }
 }
 
-#[wasm_bindgen(js_name = "buildWordsTok")]
-pub fn build_words_tok(object_list: &WordList) -> Result<Buffer, JsValue> {
-    let encoded = object_list
-        .encode(())
-        .map_err(|e| JsValue::from_str(format!("{:?}", e).as_str()))?;
-    let array = Uint8Array::from(encoded.as_slice());
-    let buffer = Buffer::from(array.buffer());
-    Ok(buffer)
+#[cfg(feature = "js")]
+pub mod js {
+    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+
+    use crate::{buffer::Buffer, resources::encode::Encode, word_list::WordList};
+
+    #[wasm_bindgen(js_name = "buildWordsTok")]
+    pub fn build_words_tok(object_list: &WordList) -> Result<Buffer, JsValue> {
+        let encoded = object_list
+            .encode_to_vec(())
+            .map_err(|e| JsValue::from_str(format!("{:?}", e).as_str()))?;
+        let buffer = Buffer::from(encoded);
+        Ok(buffer)
+    }
 }

@@ -35,7 +35,7 @@ export enum ResourceType {
 export type ResourceNumber = number;
 "#;
 
-pub trait Resource<'dec, Data: ReadHeterogeneousData, T: Encode + Decode<'dec, Data>> {
+pub trait Resource<'dec, 'enc, Data: ReadHeterogeneousData, T: Encode<'enc> + Decode<'dec, Data>> {
     fn resource_type(&self) -> ResourceType;
     fn resource_number(&self) -> ResourceNumber;
 }

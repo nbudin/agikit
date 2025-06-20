@@ -60,7 +60,9 @@ mod tests {
             })
         );
 
-        let encoded = word_list.encode(()).expect("Failed to encode WordList");
+        let encoded = word_list
+            .encode_to_vec(())
+            .expect("Failed to encode WordList");
         assert_eq!(words_tok_data, encoded);
     }
 }

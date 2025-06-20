@@ -107,7 +107,7 @@ impl<'a, T: Seek> Seek for XorCursor<'a, T> {
     }
 }
 
-impl<'a, T: Read + Write + Seek> Write for XorCursor<'a, T> {
+impl<'a, T: Write + Seek> Write for XorCursor<'a, T> {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         self.write_xor(buf)
     }
@@ -117,7 +117,7 @@ impl<'a, T: Read + Write + Seek> Write for XorCursor<'a, T> {
     }
 }
 
-impl<'a, T: Read + Write + Seek> WriteXor<T> for XorCursor<'a, T> {
+impl<'a, T: Write + Seek> WriteXor<T> for XorCursor<'a, T> {
     fn get_start_offset(&self) -> usize {
         self.start_offset
     }

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     compression::rle::ViewRLEEncoder,
+    data_encoding::WriteHeterogeneousData,
     resources::encode::{Encode, EncodingError},
     views::cel::ViewCelPixelsIterator,
 };
@@ -11,24 +12,27 @@ use super::{
     AGIView, ViewLoop,
 };
 
-impl Encode for ViewCel {
+impl Encode<'_> for ViewCel {
     type Options = Option<u8>; // Mirrored from loop number
-    fn encode(&self, mirrored_from_loop_number: Option<u8>) -> Result<Vec<u8>, EncodingError> {
+    fn encode<Out: WriteHeterogeneousData>(
+        &self,
+        mut out: Out,
+        mirrored_from_loop_number: Option<u8>,
+    ) -> Result<(), EncodingError> {
         let ViewCelData::NonMirrored(NonMirroredViewCelData { data }) = &self.data else {
             return Err(EncodingError::InvalidOptions(
                 "Only non-mirrored cel data can be encoded".to_string(),
             ));
         };
 
-        let mut encoded = Vec::new();
-        encoded.push(self.width);
-        encoded.push(self.height);
+        out.write_u8(self.width)?;
+        out.write_u8(self.height)?;
 
         let transparency_mirroring_byte = TransparencyMirroringByte::new()
             .with_transparent_color(self.transparent_color)
             .with_is_mirrored(mirrored_from_loop_number.is_some())
             .with_mirrored_from_loop_number(mirrored_from_loop_number.unwrap_or(0));
-        encoded.push(transparency_mirroring_byte.into_bits());
+        out.write_u8(transparency_mirroring_byte.into_bits())?;
 
         let mut data_iterator = data.iter().copied();
         let encoder = ViewRLEEncoder::new(
@@ -53,22 +57,28 @@ impl Encode for ViewCel {
         let target_byte_count = encoded_data.len().max(mirrored_count);
         let pad_bytes = target_byte_count.saturating_sub(encoded_data.len());
 
-        encoded.extend(encoded_data.iter().copied());
+        out.write_all(&encoded_data)?;
         if pad_bytes > 0 {
-            encoded.extend(std::iter::repeat(0).take(pad_bytes));
+            for _ in 0..pad_bytes {
+                out.write_u8(0)?;
+            }
         }
 
-        Ok(encoded)
+        Ok(())
     }
 }
 
-impl Encode for ViewLoop {
+impl Encode<'_> for ViewLoop {
     type Options = Option<u8>; // Mirrored from loop number
 
-    fn encode(&self, mirrored_from_loop_number: Option<u8>) -> Result<Vec<u8>, EncodingError> {
+    fn encode<Out: WriteHeterogeneousData>(
+        &self,
+        mut out: Out,
+        mirrored_from_loop_number: Option<u8>,
+    ) -> Result<(), EncodingError> {
         let mut cels_encoded = Vec::new();
         for cel in &self.cels {
-            cels_encoded.push(cel.encode(mirrored_from_loop_number)?);
+            cels_encoded.push(cel.encode_to_vec(mirrored_from_loop_number)?);
         }
 
         let cel_offsets = cels_encoded
@@ -82,18 +92,24 @@ impl Encode for ViewLoop {
             )
             .1;
 
-        Ok(std::iter::once(self.cels.len() as u8)
-            .chain(cel_offsets.iter().flat_map(|&offset| offset.to_le_bytes()))
-            .chain(cels_encoded.iter().flatten().copied())
-            .collect())
+        out.write_u8(self.cels.len() as u8)?;
+        for offset in &cel_offsets {
+            out.write_u16_le(*offset)?;
+        }
+        for cel in cels_encoded {
+            out.write_all(&cel)?;
+        }
+        Ok(())
     }
 }
 
-impl Encode for AGIView {
+impl Encode<'_> for AGIView {
     type Options = ();
-    fn encode(&self, _: ()) -> Result<Vec<u8>, EncodingError> {
-        let mut encoded = Vec::new();
-
+    fn encode<Out: WriteHeterogeneousData>(
+        &self,
+        mut out: Out,
+        _options: (),
+    ) -> Result<(), EncodingError> {
         let mirror_source_loop_numbers: HashMap<u8, u8> = self
             .loops
             .iter()
@@ -126,7 +142,7 @@ impl Encode for AGIView {
 
                 Some(
                     loop_
-                        .encode(loop_number_if_mirrored)
+                        .encode_to_vec(loop_number_if_mirrored)
                         .map(|encoded| (loop_.loop_number, encoded)),
                 )
             })
@@ -173,35 +189,27 @@ impl Encode for AGIView {
             })
             .collect::<Vec<_>>();
 
-        encoded.extend(
-            [1, 1, self.loops.len() as u8]
-                .iter()
-                .copied()
-                .chain(
-                    self.description
-                        .as_ref()
-                        .map_or_else(|| [0, 0], |_| (loop_header_length as u16).to_le_bytes()),
-                )
-                .chain(
-                    loop_offsets
-                        .iter()
-                        .flat_map(|offset| (*offset as u16).to_le_bytes()),
-                )
-                .collect::<Vec<u8>>(),
-        );
+        out.write_all(&[1, 1, self.loops.len() as u8])?;
+        out.write_u16_le(if self.description.is_some() {
+            loop_header_length as u16
+        } else {
+            0
+        })?;
+        for offset in &loop_offsets {
+            out.write_u16_le(*offset as u16)?;
+        }
 
         if let Some(description) = &self.description {
-            encoded.extend(description.as_bytes());
-            encoded.push(0); // Null terminator
+            out.write_null_terminated_string(&description)?;
         }
 
         for loop_ in self.loops.iter() {
             if let Some(loop_encoded) = encoded_loops.get(&loop_.loop_number) {
-                encoded.extend(loop_encoded);
+                out.write_all(&loop_encoded)?;
             }
         }
 
-        Ok(encoded)
+        Ok(())
     }
 }
 
@@ -232,7 +240,7 @@ mod tests {
     #[test]
     fn test_encode_cel() {
         let cel = build_test_cel();
-        let encoded = cel.encode(None).unwrap();
+        let encoded = cel.encode_to_vec(None).unwrap();
         assert_eq!(
             encoded,
             vec![
@@ -247,9 +255,9 @@ mod tests {
     #[test]
     fn test_encode_loop() {
         let cel = build_test_cel();
-        let cel_encoded = cel.encode(None).unwrap();
+        let cel_encoded = cel.encode_to_vec(None).unwrap();
         let loop_: ViewLoop = build_test_loop(vec![cel]);
-        let loop_encoded = loop_.encode(None).unwrap();
+        let loop_encoded = loop_.encode_to_vec(None).unwrap();
         assert_eq!(
             loop_encoded,
             vec![
@@ -270,12 +278,12 @@ mod tests {
     fn test_encode_view() {
         let cel = build_test_cel();
         let loop_: ViewLoop = build_test_loop(vec![cel]);
-        let loop_encoded = loop_.encode(None).unwrap();
+        let loop_encoded = loop_.encode_to_vec(None).unwrap();
         let view = AGIView {
             loops: vec![loop_],
             description: Some("Test View".to_string()),
         };
-        let view_encoded = view.encode(()).unwrap();
+        let view_encoded = view.encode_to_vec(()).unwrap();
 
         assert_eq!(
             view_encoded,

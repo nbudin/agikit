@@ -1,6 +1,9 @@
-use std::fmt::{Debug, Display};
+use std::{
+    fmt::{Debug, Display},
+    io::Cursor,
+};
 
-use crate::logic::encode::AssemblyError;
+use crate::{data_encoding::WriteHeterogeneousData, logic::encode::AssemblyError};
 
 #[derive(Debug)]
 pub enum EncodingError {
@@ -33,8 +36,18 @@ impl Display for EncodingError {
     }
 }
 
-pub trait Encode {
-    type Options;
+pub trait Encode<'opt> {
+    type Options: 'opt;
 
-    fn encode(&self, options: Self::Options) -> Result<Vec<u8>, EncodingError>;
+    fn encode<Out: WriteHeterogeneousData>(
+        &self,
+        out: Out,
+        options: Self::Options,
+    ) -> Result<(), EncodingError>;
+    fn encode_to_vec(&self, options: Self::Options) -> Result<Vec<u8>, EncodingError> {
+        let mut data = Vec::new();
+        let cursor = Cursor::new(&mut data);
+        self.encode(cursor, options)?;
+        Ok(data)
+    }
 }

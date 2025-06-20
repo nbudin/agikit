@@ -3,7 +3,7 @@ use std::io::Cursor;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::js_sys::Uint8Array;
 
-use crate::{color_palettes::ColorPalette, resources::decode::Decode, buffer::Buffer};
+use crate::{buffer::Buffer, color_palettes::ColorPalette, resources::decode::Decode};
 
 use super::cel::{render_view_cel, ViewCel, ViewCelData, ViewCelHandle, ViewCelPixelsIterator};
 
@@ -124,7 +124,7 @@ mod tests {
             }
         }
 
-        let encoded = view.encode(()).unwrap();
+        let encoded = view.encode_to_vec(()).unwrap();
         let redecoded = AGIView::decode(&mut Cursor::new(encoded.clone()), ()).unwrap();
         assert_eq!(view, redecoded);
         assert_eq!(view_data[0..30], encoded.as_slice()[0..30]);

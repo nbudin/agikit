@@ -135,7 +135,7 @@ mod tests {
             .expect("Failed to decode logic program");
 
         let reencoded = logic_program
-            .encode(true)
+            .encode_to_vec(true)
             .expect("Failed to encode logic program");
         assert_eq!(
             reencoded

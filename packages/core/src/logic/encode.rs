@@ -60,13 +60,14 @@ impl Display for AssemblyError {
     }
 }
 
-impl Encode for LogicMessages {
+impl Encode<'_> for LogicMessages {
     type Options = bool;
 
-    fn encode(&self, encrypt: Self::Options) -> Result<Vec<u8>, EncodingError> {
-        let mut buffer: Vec<u8> = Vec::new();
-        let mut cursor = Cursor::new(&mut buffer);
-
+    fn encode<Out: WriteHeterogeneousData>(
+        &self,
+        mut out: Out,
+        encrypt: Self::Options,
+    ) -> Result<(), EncodingError> {
         let max_message_id = self.keys().max().unwrap_or(&0);
 
         let message_buffers: Vec<Vec<u8>> = (0..=*max_message_id)
@@ -106,88 +107,101 @@ impl Encode for LogicMessages {
             })
             .collect::<Vec<usize>>();
 
-        cursor.write_u8(*max_message_id + 1)?;
+        out.write_u8(*max_message_id + 1)?;
         // Not sure why there's seemingly an off-by-one error in the format, but empirically there is
-        cursor.write_u16_le(message_header_length as u16 + text_section.len() as u16 - 1)?;
+        out.write_u16_le(message_header_length as u16 + text_section.len() as u16 - 1)?;
         for offset in message_offsets {
-            cursor.write_u16_le(offset as u16)?;
+            out.write_u16_le(offset as u16)?;
         }
-        cursor.write_all(&text_section)?;
-
-        Ok(buffer)
+        out.write_all(&text_section)?;
+        Ok(())
     }
 }
 
-impl Encode for LogicTest {
+impl Encode<'_> for LogicTest {
     type Options = ();
 
-    fn encode(&self, _options: Self::Options) -> Result<Vec<u8>, EncodingError> {
-        let mut buffer: Vec<u8> = Vec::new();
-        let mut cursor = Cursor::new(&mut buffer);
-
+    fn encode<Out: WriteHeterogeneousData>(
+        &self,
+        mut out: Out,
+        _options: Self::Options,
+    ) -> Result<(), EncodingError> {
         if self.negate {
-            cursor.write_u8(0xfd)?;
+            out.write_u8(0xfd)?;
         }
-        cursor.write_u8(self.test_command.opcode)?;
+        out.write_u8(self.test_command.opcode)?;
 
         if self.test_command.var_args {
-            cursor.write_u8(self.args.len() as u8)?;
+            out.write_u8(self.args.len() as u8)?;
             for arg in &self.args {
-                cursor.write_u16_le(*arg)?;
+                out.write_u16_le(*arg)?;
             }
         } else {
             for arg in &self.args {
-                cursor.write_u8(*arg as u8)?;
+                out.write_u8(*arg as u8)?;
             }
         }
 
-        Ok(buffer)
+        Ok(())
     }
 }
 
-impl Encode for LogicOr {
+impl Encode<'_> for LogicOr {
     type Options = ();
 
-    fn encode(&self, options: Self::Options) -> Result<Vec<u8>, EncodingError> {
-        Ok(std::iter::once(0xfc)
-            .chain(
-                self.or_tests
-                    .iter()
-                    .map(|test| test.encode(options))
-                    .collect::<Result<Vec<Vec<u8>>, _>>()?
-                    .into_iter()
-                    .flatten(),
-            )
-            .chain(std::iter::once(0xfc))
-            .collect::<Vec<u8>>())
+    fn encode<Out: WriteHeterogeneousData>(
+        &self,
+        mut out: Out,
+        options: Self::Options,
+    ) -> Result<(), EncodingError> {
+        out.write_u8(0xfc)?;
+        for test in &self.or_tests {
+            test.encode(&mut out, options)?;
+        }
+        out.write_u8(0xfc)?;
+        Ok(())
     }
 }
 
-impl Encode for LogicConditionClause {
+impl Encode<'_> for LogicConditionClause {
     type Options = ();
 
-    fn encode(&self, _options: Self::Options) -> Result<Vec<u8>, EncodingError> {
+    fn encode<Out: WriteHeterogeneousData>(
+        &self,
+        out: Out,
+        _options: Self::Options,
+    ) -> Result<(), EncodingError> {
         match self {
-            LogicConditionClause::Test(test) => test.encode(()),
-            LogicConditionClause::Or(or) => or.encode(()),
+            LogicConditionClause::Test(test) => test.encode(out, ()),
+            LogicConditionClause::Or(or) => or.encode(out, ()),
         }
     }
 }
 
-impl Encode for LogicCommand {
+impl Encode<'_> for LogicCommand {
     type Options = ();
 
-    fn encode(&self, _options: Self::Options) -> Result<Vec<u8>, EncodingError> {
-        Ok(std::iter::once(self.agi_command.opcode)
-            .chain(self.args.iter().copied())
-            .collect())
+    fn encode<Out: WriteHeterogeneousData>(
+        &self,
+        mut out: Out,
+        _options: Self::Options,
+    ) -> Result<(), EncodingError> {
+        out.write_u8(self.agi_command.opcode)?;
+        for arg in &self.args {
+            out.write_u8(*arg)?;
+        }
+        Ok(())
     }
 }
 
-impl Encode for LogicCondition {
+impl Encode<'_> for LogicCondition {
     type Options = (Rc<RefCell<AssemblyState>>, usize);
 
-    fn encode(&self, (state, instruction_id): Self::Options) -> Result<Vec<u8>, EncodingError> {
+    fn encode<Out: WriteHeterogeneousData>(
+        &self,
+        mut out: Out,
+        (state, instruction_id): Self::Options,
+    ) -> Result<(), EncodingError> {
         let jump_target = {
             let read_state = state.borrow();
             read_state
@@ -207,24 +221,23 @@ impl Encode for LogicCondition {
                 jump_target: jump_target.clone(),
             });
 
-        Ok(std::iter::once(0xff)
-            .chain(
-                self.clauses
-                    .iter()
-                    .map(|clause| clause.encode(()))
-                    .collect::<Result<Vec<_>, _>>()?
-                    .into_iter()
-                    .flatten(),
-            )
-            .chain([0xff, 0x00, 0x00].into_iter())
-            .collect())
+        out.write_u8(0xff)?;
+        for clause in self.clauses.iter() {
+            clause.encode(&mut out, ())?;
+        }
+        out.write_all(&[0xff, 0x00, 0x00])?;
+        Ok(())
     }
 }
 
-impl Encode for LogicGoto {
+impl Encode<'_> for LogicGoto {
     type Options = (Rc<RefCell<AssemblyState>>, usize);
 
-    fn encode(&self, (state, instruction_id): Self::Options) -> Result<Vec<u8>, EncodingError> {
+    fn encode<Out: WriteHeterogeneousData>(
+        &self,
+        mut out: Out,
+        (state, instruction_id): Self::Options,
+    ) -> Result<(), EncodingError> {
         let jump_target = {
             let read_state = state.borrow();
             read_state
@@ -244,28 +257,37 @@ impl Encode for LogicGoto {
                 jump_target: jump_target.clone(),
             });
 
-        Ok([0xfe, 0x00, 0x00].into_iter().collect())
+        out.write_all(&[0xfe, 0x00, 0x00])?;
+        Ok(())
     }
 }
 
-impl Encode for LogicInstruction {
+impl Encode<'_> for LogicInstruction {
     type Options = (Rc<RefCell<AssemblyState>>, usize);
 
-    fn encode(&self, (state, instruction_id): Self::Options) -> Result<Vec<u8>, EncodingError> {
+    fn encode<Out: WriteHeterogeneousData>(
+        &self,
+        out: Out,
+        (state, instruction_id): Self::Options,
+    ) -> Result<(), EncodingError> {
         match self {
-            LogicInstruction::Command(logic_command) => logic_command.encode(()),
+            LogicInstruction::Command(logic_command) => logic_command.encode(out, ()),
             LogicInstruction::Condition(logic_condition) => {
-                logic_condition.encode((state, instruction_id))
+                logic_condition.encode(out, (state, instruction_id))
             }
-            LogicInstruction::Goto(logic_goto) => logic_goto.encode((state, instruction_id)),
+            LogicInstruction::Goto(logic_goto) => logic_goto.encode(out, (state, instruction_id)),
         }
     }
 }
 
-impl Encode for Vec<LogicInstruction> {
+impl Encode<'_> for Vec<LogicInstruction> {
     type Options = ();
 
-    fn encode(&self, _options: Self::Options) -> Result<Vec<u8>, EncodingError> {
+    fn encode<Out: WriteHeterogeneousData>(
+        &self,
+        mut out: Out,
+        _options: Self::Options,
+    ) -> Result<(), EncodingError> {
         let instructions_by_id = self
             .iter()
             .enumerate()
@@ -287,9 +309,15 @@ impl Encode for Vec<LogicInstruction> {
         let mut address: u16 = 0;
 
         for (id, instruction) in self.iter().enumerate() {
-            let encoded_instruction = instruction.encode((state.clone(), id)).map_err(|err| {
-                AssemblyError::ErrorAssemblingInstruction(instruction.clone(), Box::new(err))
-            })?;
+            let encoded_instruction =
+                instruction
+                    .encode_to_vec((state.clone(), id))
+                    .map_err(|err| {
+                        AssemblyError::ErrorAssemblingInstruction(
+                            instruction.clone(),
+                            Box::new(err),
+                        )
+                    })?;
             let instruction_len = encoded_instruction.len() as u16;
             byte_code_by_instruction.insert(id, encoded_instruction);
             instruction_addresses.insert(id, address);
@@ -332,23 +360,27 @@ impl Encode for Vec<LogicInstruction> {
             })
             .collect::<Result<Vec<Vec<u8>>, _>>()?;
 
-        Ok(instruction_byte_codes.into_iter().flatten().collect())
+        for byte_code in instruction_byte_codes.iter() {
+            out.write_all(byte_code)?;
+        }
+        Ok(())
     }
 }
 
-impl Encode for LogicProgram {
+impl Encode<'_> for LogicProgram {
     type Options = bool;
 
-    fn encode(&self, encrypt_messages: Self::Options) -> Result<Vec<u8>, EncodingError> {
-        let mut buffer: Vec<u8> = Vec::new();
-        let mut cursor = Cursor::new(&mut buffer);
+    fn encode<Out: WriteHeterogeneousData>(
+        &self,
+        mut out: Out,
+        encrypt_messages: Self::Options,
+    ) -> Result<(), EncodingError> {
+        let instructions = self.instructions.encode_to_vec(())?;
+        out.write_u16_le(instructions.len() as u16)?;
+        out.write_all(&instructions)?;
+        self.messages.encode(&mut out, encrypt_messages)?;
 
-        let instructions = self.instructions.encode(())?;
-        cursor.write_u16_le(instructions.len() as u16)?;
-        cursor.write_all(&instructions)?;
-        cursor.write_all(&self.messages.encode(encrypt_messages)?)?;
-
-        Ok(buffer)
+        Ok(())
     }
 }
 
@@ -384,7 +416,7 @@ pub mod js {
     pub fn js_encode_messages(messages: MessageArray, encrypt: bool) -> Result<Buffer, JsValue> {
         let messages: LogicMessages = messages.into();
         messages
-            .encode(encrypt)
+            .encode_to_vec(encrypt)
             .map(|data| Buffer::from(data))
             .map_err(|e| JsValue::from_str(&e.to_string()))
     }
@@ -400,7 +432,7 @@ pub mod js {
             messages: messages.into(),
         };
         logic_program
-            .encode(encrypt_messages)
+            .encode_to_vec(encrypt_messages)
             .map(|data| Buffer::from(data))
             .map_err(|e| JsValue::from_str(&e.to_string()))
     }
