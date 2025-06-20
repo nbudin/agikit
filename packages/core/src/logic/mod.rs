@@ -115,6 +115,7 @@ mod tests {
     };
 
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn smoke_test() {
@@ -137,7 +138,16 @@ mod tests {
             .encode(true)
             .expect("Failed to encode logic program");
         assert_eq!(
-            reencoded, logic_data,
+            reencoded
+                .iter()
+                .enumerate()
+                .map(|(i, byte)| format!("{:04x}: {:02x}", i, byte))
+                .collect::<Vec<_>>(),
+            logic_data
+                .iter()
+                .enumerate()
+                .map(|(i, byte)| format!("{:04x}: {:02x}", i, byte))
+                .collect::<Vec<_>>(),
             "Re-encoded logic data does not match original"
         );
     }

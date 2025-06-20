@@ -107,7 +107,8 @@ impl Encode for LogicMessages {
             .collect::<Vec<usize>>();
 
         cursor.write_u8(*max_message_id + 1)?;
-        cursor.write_u16_le(message_header_length as u16 + text_section.len() as u16)?;
+        // Not sure why there's seemingly an off-by-one error in the format, but empirically there is
+        cursor.write_u16_le(message_header_length as u16 + text_section.len() as u16 - 1)?;
         for offset in message_offsets {
             cursor.write_u16_le(offset as u16)?;
         }
@@ -187,11 +188,14 @@ impl Encode for LogicCondition {
     type Options = (Rc<RefCell<AssemblyState>>, usize);
 
     fn encode(&self, (state, instruction_id): Self::Options) -> Result<Vec<u8>, EncodingError> {
-        let read_state = state.borrow();
-        let Some(jump_target) = read_state
-            .instructions_by_declared_address
-            .get(&self.skip_address)
-        else {
+        let jump_target = {
+            let read_state = state.borrow();
+            read_state
+                .instructions_by_declared_address
+                .get(&self.skip_address)
+                .copied()
+        };
+        let Some(jump_target) = jump_target else {
             return Err(AssemblyError::InvalidConditionalSkip(self.skip_address).into());
         };
 
@@ -221,11 +225,14 @@ impl Encode for LogicGoto {
     type Options = (Rc<RefCell<AssemblyState>>, usize);
 
     fn encode(&self, (state, instruction_id): Self::Options) -> Result<Vec<u8>, EncodingError> {
-        let read_state = state.borrow();
-        let Some(jump_target) = read_state
-            .instructions_by_declared_address
-            .get(&self.jump_address)
-        else {
+        let jump_target = {
+            let read_state = state.borrow();
+            read_state
+                .instructions_by_declared_address
+                .get(&self.jump_address)
+                .copied()
+        };
+        let Some(jump_target) = jump_target else {
             return Err(AssemblyError::InvalidJump(self.jump_address).into());
         };
 
@@ -267,7 +274,11 @@ impl Encode for Vec<LogicInstruction> {
 
         let state = Rc::new(RefCell::new(AssemblyState {
             instructions_by_id,
-            instructions_by_declared_address: HashMap::new(),
+            instructions_by_declared_address: self
+                .iter()
+                .enumerate()
+                .map(|(id, instruction)| (instruction.address(), id))
+                .collect(),
             address_placeholders: Vec::new(),
         }));
 
@@ -310,7 +321,7 @@ impl Encode for Vec<LogicInstruction> {
                 .splice(byte_code_len - 2.., offset_buffer.iter().copied());
         }
 
-        Ok(self
+        let instruction_byte_codes = self
             .iter()
             .enumerate()
             .map(|(id, _)| {
@@ -319,10 +330,9 @@ impl Encode for Vec<LogicInstruction> {
                     .cloned()
                     .ok_or_else(|| AssemblyError::ByteCodeNotFound)
             })
-            .collect::<Result<Vec<Vec<u8>>, _>>()?
-            .into_iter()
-            .flatten()
-            .collect())
+            .collect::<Result<Vec<Vec<u8>>, _>>()?;
+
+        Ok(instruction_byte_codes.into_iter().flatten().collect())
     }
 }
 
