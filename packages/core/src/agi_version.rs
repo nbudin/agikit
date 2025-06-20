@@ -63,7 +63,14 @@ impl Display for AGIVersion {
     }
 }
 
-#[wasm_bindgen(js_name = "formatVersionNumber")]
-pub fn format_version_number(version: &AGIVersion) -> String {
-    format!("{}", version)
+#[cfg(feature = "js")]
+mod js {
+    use wasm_bindgen::prelude::wasm_bindgen;
+
+    use crate::agi_version::AGIVersion;
+
+    #[wasm_bindgen(js_name = "formatVersionNumber")]
+    pub fn format_version_number(version: &AGIVersion) -> String {
+        format!("{}", version)
+    }
 }
