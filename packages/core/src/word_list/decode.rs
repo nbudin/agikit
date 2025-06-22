@@ -13,10 +13,10 @@ use crate::{
 
 use super::WordList;
 
-impl<Data: ReadHeterogeneousData> Decode<'_, Data> for WordList {
+impl Decode<'_> for WordList {
     type Options = ();
 
-    fn decode<'a>(
+    fn decode<'a, Data: ReadHeterogeneousData>(
         data: &'a mut Data,
         _options: Self::Options,
     ) -> Result<Self, crate::resources::decode::DecodingError>

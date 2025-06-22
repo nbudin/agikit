@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, io::Cursor};
 
 use crate::{
     compression::lzw::DecompressionError,
@@ -67,10 +67,21 @@ impl Display for DecodingError {
     }
 }
 
-pub trait Decode<'opt, Data: ReadHeterogeneousData> {
+pub trait Decode<'opt> {
     type Options: 'opt;
 
-    fn decode<'a>(data: &'a mut Data, options: Self::Options) -> Result<Self, DecodingError>
+    fn decode<'a, Data: ReadHeterogeneousData>(
+        data: &'a mut Data,
+        options: Self::Options,
+    ) -> Result<Self, DecodingError>
     where
         Self: Sized;
+
+    fn decode_from_bytes(data: &[u8], options: Self::Options) -> Result<Self, DecodingError>
+    where
+        Self: Sized,
+    {
+        let mut cursor: Cursor<&[u8]> = Cursor::new(data);
+        Self::decode(&mut cursor, options)
+    }
 }

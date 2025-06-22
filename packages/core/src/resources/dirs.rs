@@ -26,10 +26,10 @@ pub struct DirEntry {
     pub offset: u32,
 }
 
-impl<Data: ReadHeterogeneousData> Decode<'_, Data> for Option<DirEntry> {
+impl Decode<'_> for Option<DirEntry> {
     type Options = (ResourceType, ResourceNumber);
 
-    fn decode<'a>(
+    fn decode<'a, Data: ReadHeterogeneousData>(
         data: &'a mut Data,
         (resource_type, resource_number): Self::Options,
     ) -> Result<Self, DecodingError>
@@ -58,10 +58,13 @@ impl<Data: ReadHeterogeneousData> Decode<'_, Data> for Option<DirEntry> {
     }
 }
 
-impl<Data: ReadHeterogeneousData> Decode<'_, Data> for HashMap<ResourceNumber, DirEntry> {
+impl Decode<'_> for HashMap<ResourceNumber, DirEntry> {
     type Options = ResourceType;
 
-    fn decode<'a>(data: &'a mut Data, resource_type: Self::Options) -> Result<Self, DecodingError>
+    fn decode<'a, Data: ReadHeterogeneousData>(
+        data: &'a mut Data,
+        resource_type: Self::Options,
+    ) -> Result<Self, DecodingError>
     where
         Self: Sized,
     {
@@ -181,13 +184,14 @@ impl ResourceDirs {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{resources::ResourceType, TEST_DATA_DIR};
+    use crate::{
+        resources::ResourceType,
+        test_data::{uriquest_dir, v_the_graphical_adventure_dir},
+    };
 
     #[test]
     fn test_resource_dirs_read_v2() {
-        let file_provider = TEST_DATA_DIR
-            .get_dir("uriquest")
-            .expect("Failed to get test data directory");
+        let file_provider = uriquest_dir();
         let resource_dirs =
             ResourceDirs::read(ResourceDirDecodeOptions::AGI2 { file_provider }).unwrap();
         assert!(resource_dirs.dirs.contains_key(&ResourceType::LOGIC));
@@ -195,9 +199,7 @@ mod tests {
 
     #[test]
     fn test_resource_dirs_read_v3() {
-        let file_provider = TEST_DATA_DIR
-            .get_dir("VTheGraphicalAdventureDemo")
-            .expect("Failed to get test data directory");
+        let file_provider = v_the_graphical_adventure_dir();
         let resource_dirs = ResourceDirs::read(ResourceDirDecodeOptions::AGI3 {
             file_provider,
             game_id: "V".to_string(),

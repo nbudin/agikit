@@ -10,6 +10,24 @@ pub trait FileProvider {
     fn open_file(&self, path: &str) -> Result<impl Read + Seek, io::Error>
     where
         Self: Sized;
+
+    fn read_file_bytes(&self, path: &str) -> Result<Vec<u8>, io::Error>
+    where
+        Self: Sized,
+    {
+        let mut file = self.open_file(path)?;
+        let mut buffer = Vec::new();
+        file.read_to_end(&mut buffer)?;
+        Ok(buffer)
+    }
+
+    fn read_file_utf8(&self, path: &str) -> Result<String, io::Error>
+    where
+        Self: Sized,
+    {
+        let bytes = self.read_file_bytes(path)?;
+        String::from_utf8(bytes).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    }
 }
 
 impl FileProvider for PathBuf {

@@ -2,10 +2,7 @@ use serde::{Deserialize, Serialize};
 use strum_macros::{AsRefStr, EnumString};
 use wasm_bindgen::prelude::wasm_bindgen;
 
-use crate::{
-    data_encoding::ReadHeterogeneousData,
-    resources::{decode::Decode, encode::Encode},
-};
+use crate::resources::{decode::Decode, encode::Encode};
 
 pub mod decode;
 pub mod dirs;
@@ -35,7 +32,7 @@ export enum ResourceType {
 export type ResourceNumber = number;
 "#;
 
-pub trait Resource<'dec, 'enc, Data: ReadHeterogeneousData, T: Encode<'enc> + Decode<'dec, Data>> {
+pub trait Resource<'dec, 'enc, T: Encode<'enc> + Decode<'dec>> {
     fn resource_type(&self) -> ResourceType;
     fn resource_number(&self) -> ResourceNumber;
 }

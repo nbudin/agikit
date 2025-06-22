@@ -1,11 +1,17 @@
 use std::{collections::HashMap, fmt::Display};
 
+use petgraph::{
+    graph::{DiGraph, NodeIndex},
+    visit::EdgeRef,
+    Direction,
+};
+
 use crate::logic::{
     asm::{codegen::generate_labels, LogicLabel},
     LogicCommand, LogicConditionClause, LogicInstruction,
 };
 
-pub type LogicASTNodeID = String;
+pub type LogicASTGraph = DiGraph<LogicASTNode, LogicASTEdge>;
 
 #[derive(Debug, Clone)]
 pub struct LogicASTNodeMetadata {
@@ -15,26 +21,19 @@ pub struct LogicASTNodeMetadata {
 #[derive(Debug, Clone)]
 pub struct LogicCommandNode {
     pub command: LogicCommand,
-    pub id: LogicASTNodeID,
     pub label: Option<LogicLabel>,
-    pub next: Option<LogicASTNodeID>,
     pub metadata: LogicASTNodeMetadata,
 }
 
 #[derive(Debug, Clone)]
 pub struct LogicIfNode {
-    pub id: LogicASTNodeID,
     pub clauses: Vec<LogicConditionClause>,
-    pub then: Option<LogicASTNodeID>,
-    pub else_: Option<LogicASTNodeID>,
     pub label: Option<LogicLabel>,
     pub metadata: LogicASTNodeMetadata,
 }
 
 #[derive(Debug, Clone)]
 pub struct LogicGotoNode {
-    pub id: LogicASTNodeID,
-    pub jump_target: LogicASTNodeID,
     pub label: Option<LogicLabel>,
     pub metadata: LogicASTNodeMetadata,
 }
@@ -47,14 +46,6 @@ pub enum LogicASTNode {
 }
 
 impl LogicASTNode {
-    pub fn id(&self) -> &LogicASTNodeID {
-        match self {
-            LogicASTNode::Command(node) => &node.id,
-            LogicASTNode::If(node) => &node.id,
-            LogicASTNode::Goto(node) => &node.id,
-        }
-    }
-
     pub fn label(&self) -> Option<&LogicLabel> {
         match self {
             LogicASTNode::Command(node) => node.label.as_ref(),
@@ -72,28 +63,27 @@ impl LogicASTNode {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum LogicASTEdge {
+    CommandToNext,
+    IfThen,
+    IfElse,
+    GotoToTarget,
+}
+
 pub struct LogicAST {
-    root_node_id: LogicASTNodeID,
-    nodes: HashMap<LogicASTNodeID, LogicASTNode>,
+    pub graph: DiGraph<LogicASTNode, LogicASTEdge>,
+    pub root_node_id: NodeIndex,
+    pub nodes_by_address: HashMap<u16, NodeIndex>,
+}
+
+impl AsRef<LogicASTGraph> for LogicAST {
+    fn as_ref(&self) -> &LogicASTGraph {
+        &self.graph
+    }
 }
 
 impl LogicAST {
-    pub fn new(root_node_id: LogicASTNodeID, nodes: HashMap<LogicASTNodeID, LogicASTNode>) -> Self {
-        Self {
-            root_node_id,
-            nodes,
-        }
-    }
-
-    pub fn get_node(&self, id: &LogicASTNodeID) -> Option<&LogicASTNode> {
-        self.nodes.get(id)
-    }
-
-    pub fn root_node(&self) -> &LogicASTNode {
-        self.nodes.get(&self.root_node_id).unwrap()
-    }
-
     pub fn from_instructions(
         instructions: &[LogicInstruction],
     ) -> Result<Self, DecompilationError> {
@@ -107,14 +97,59 @@ impl LogicAST {
             .map(UnresolvedLogicASTNode::from_instruction)
             .collect::<Vec<_>>();
 
-        let mut node_index = HashMap::new();
-        let root_node_id = resolve_nodes(&mut unresolved_nodes, 0, &labels, &mut node_index)?;
-        let nodes = node_index
-            .into_iter()
-            .map(|(_, node)| (node.id().clone(), node))
-            .collect::<HashMap<_, _>>();
+        let mut graph = DiGraph::new();
+        let mut nodes_by_address = HashMap::new();
+        let root_node_id = resolve_nodes(
+            &mut unresolved_nodes,
+            0,
+            &labels,
+            &mut graph,
+            &mut nodes_by_address,
+        )?;
 
-        Ok(LogicAST::new(root_node_id.clone(), nodes))
+        Ok(Self {
+            graph,
+            root_node_id,
+            nodes_by_address,
+        })
+    }
+
+    pub fn root_node(&self) -> &LogicASTNode {
+        self.graph
+            .node_weight(self.root_node_id)
+            .expect("Root node not found")
+    }
+
+    pub fn outgoing_neighbor_id_of_type(
+        &self,
+        node_id: NodeIndex,
+        edge_type: LogicASTEdge,
+    ) -> Option<NodeIndex> {
+        self.graph
+            .edges_directed(node_id, Direction::Outgoing)
+            .find_map(|edge| {
+                if edge.weight() == &edge_type {
+                    Some(edge.target())
+                } else {
+                    None
+                }
+            })
+    }
+
+    pub fn next_node_id(&self, node_id: NodeIndex) -> Option<NodeIndex> {
+        self.outgoing_neighbor_id_of_type(node_id, LogicASTEdge::CommandToNext)
+    }
+
+    pub fn then_node_id(&self, node_id: NodeIndex) -> Option<NodeIndex> {
+        self.outgoing_neighbor_id_of_type(node_id, LogicASTEdge::IfThen)
+    }
+
+    pub fn else_node_id(&self, node_id: NodeIndex) -> Option<NodeIndex> {
+        self.outgoing_neighbor_id_of_type(node_id, LogicASTEdge::IfElse)
+    }
+
+    pub fn goto_target_node_id(&self, node_id: NodeIndex) -> Option<NodeIndex> {
+        self.outgoing_neighbor_id_of_type(node_id, LogicASTEdge::GotoToTarget)
     }
 }
 
@@ -190,44 +225,42 @@ fn resolve_nodes(
     unresolved_nodes: &mut Vec<UnresolvedLogicASTNode>,
     current_node_index: usize,
     labels: &HashMap<u16, LogicLabel>,
-    node_index: &mut HashMap<u16, LogicASTNode>,
-) -> Result<LogicASTNodeID, DecompilationError> {
+    graph: &mut DiGraph<LogicASTNode, LogicASTEdge>,
+    nodes_by_address: &mut HashMap<u16, NodeIndex>,
+) -> Result<NodeIndex, DecompilationError> {
     let current_node = unresolved_nodes[current_node_index].clone();
 
-    let existing_node = node_index.get(&current_node.address());
+    let existing_node = nodes_by_address.get(&current_node.address());
     if let Some(existing_node) = existing_node {
-        return Ok(existing_node.id().clone());
+        return Ok(existing_node.clone());
     }
 
-    let node_id = format!("{}", current_node.address());
     match &current_node {
         UnresolvedLogicASTNode::Command(logic_command) => {
-            node_index.insert(
-                current_node.address(),
-                LogicASTNode::Command(LogicCommandNode {
-                    command: logic_command.clone(),
-                    id: node_id.clone(),
-                    label: labels.get(&logic_command.address).cloned(),
-                    next: None,
-                    metadata: LogicASTNodeMetadata {
-                        instruction_address: Some(logic_command.address),
-                    },
-                }),
-            );
+            let node_index = graph.add_node(LogicASTNode::Command(LogicCommandNode {
+                command: logic_command.clone(),
+                label: labels.get(&logic_command.address).cloned(),
+                metadata: LogicASTNodeMetadata {
+                    instruction_address: Some(logic_command.address),
+                },
+            }));
+            nodes_by_address.insert(current_node.address(), node_index.clone());
 
             if logic_command.agi_command.name != "return"
                 && current_node_index + 1 < unresolved_nodes.len()
             {
-                let next =
-                    resolve_nodes(unresolved_nodes, current_node_index + 1, labels, node_index)?;
+                let next_index = resolve_nodes(
+                    unresolved_nodes,
+                    current_node_index + 1,
+                    labels,
+                    graph,
+                    nodes_by_address,
+                )?;
 
-                let node = node_index.get_mut(&current_node.address()).unwrap();
-                if let LogicASTNode::Command(command_node) = node {
-                    command_node.next = Some(next.clone());
-                }
+                graph.add_edge(node_index, next_index, LogicASTEdge::CommandToNext);
             }
 
-            Ok(node_id)
+            Ok(node_index)
         }
         UnresolvedLogicASTNode::If(unresolved_if_node) => {
             // we're going to transform an AGI assembly conditional into something like:
@@ -239,17 +272,14 @@ fn resolve_nodes(
             // }
             //
             // which we can then optimize in later passes using control flow analysis
-            let if_node = LogicASTNode::If(LogicIfNode {
-                id: node_id.clone(),
+            let if_node_index = graph.add_node(LogicASTNode::If(LogicIfNode {
                 clauses: unresolved_if_node.clauses.clone(),
-                then: None,
-                else_: None,
                 label: labels.get(&current_node.address()).cloned(),
                 metadata: LogicASTNodeMetadata {
                     instruction_address: Some(unresolved_if_node.address),
                 },
-            });
-            node_index.insert(unresolved_if_node.address, if_node);
+            }));
+            nodes_by_address.insert(unresolved_if_node.address, if_node_index.clone());
 
             let goto_node_address = unresolved_nodes
                 .iter()
@@ -260,13 +290,15 @@ fn resolve_nodes(
             let goto_node_index = unresolved_nodes.len();
 
             if current_node_index + 1 < unresolved_nodes.len() {
-                let next_node_id =
-                    resolve_nodes(unresolved_nodes, current_node_index + 1, labels, node_index)?;
+                let then_node_index = resolve_nodes(
+                    unresolved_nodes,
+                    current_node_index + 1,
+                    labels,
+                    graph,
+                    nodes_by_address,
+                )?;
 
-                let node = node_index.get_mut(&unresolved_if_node.address).unwrap();
-                if let LogicASTNode::If(if_node) = node {
-                    if_node.then = Some(next_node_id);
-                }
+                graph.add_edge(if_node_index, then_node_index, LogicASTEdge::IfThen);
             }
 
             // insert a virtual goto at the end of the code for the skip target
@@ -275,20 +307,22 @@ fn resolve_nodes(
                 jump_target_address: unresolved_if_node.else_goto_address,
             });
             unresolved_nodes.push(goto_node);
-            let goto_node_id =
-                resolve_nodes(unresolved_nodes, goto_node_index, labels, node_index)?;
-            let node = node_index.get_mut(&unresolved_if_node.address).unwrap();
-            if let LogicASTNode::If(if_node) = node {
-                if_node.else_ = Some(goto_node_id.clone());
-            }
+            let goto_node_index = resolve_nodes(
+                unresolved_nodes,
+                goto_node_index,
+                labels,
+                graph,
+                nodes_by_address,
+            )?;
+            graph.add_edge(if_node_index, goto_node_index, LogicASTEdge::IfElse);
 
-            Ok(node_id)
+            Ok(if_node_index)
         }
         UnresolvedLogicASTNode::Goto(unresolved_goto_node) => {
-            let target = node_index.get(&unresolved_goto_node.jump_target_address);
+            let target_index = nodes_by_address.get(&unresolved_goto_node.jump_target_address);
 
-            let target_id = match target {
-                Some(target) => target.id().clone(),
+            let target_index = match target_index {
+                Some(target) => target.clone(),
                 None => {
                     let target_index = unresolved_nodes
                         .iter()
@@ -298,61 +332,53 @@ fn resolve_nodes(
                             current_address: unresolved_goto_node.address,
                         })?;
 
-                    resolve_nodes(unresolved_nodes, target_index, labels, node_index)?
+                    resolve_nodes(
+                        unresolved_nodes,
+                        target_index,
+                        labels,
+                        graph,
+                        nodes_by_address,
+                    )?
                 }
             };
 
-            let goto_node = LogicASTNode::Goto(LogicGotoNode {
-                id: node_id.clone(),
-                jump_target: target_id,
+            let goto_node_index = graph.add_node(LogicASTNode::Goto(LogicGotoNode {
                 label: labels.get(&unresolved_goto_node.address).cloned(),
                 metadata: LogicASTNodeMetadata {
                     instruction_address: Some(unresolved_goto_node.address),
                 },
-            });
-            node_index.insert(unresolved_goto_node.address, goto_node);
-            Ok(node_id)
+            }));
+            nodes_by_address.insert(unresolved_goto_node.address, goto_node_index.clone());
+            graph.add_edge(goto_node_index, target_index, LogicASTEdge::GotoToTarget);
+            Ok(goto_node_index)
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
 
     use crate::{
         agi_version::AGIVersion,
         logic::{logic_script::ast::LogicAST, LogicProgram},
-        resources::{
-            decode::Decode,
-            dirs::{ResourceDirDecodeOptions, ResourceDirs},
-            resource_collection::{ResourceCollection, ResourceCollectionVersionData},
-            ResourceType,
-        },
-        TEST_DATA_DIR,
+        resources::{decode::Decode, ResourceType},
+        test_data::uriquest_resources,
     };
 
     #[test]
     fn test_build_ast() {
-        let file_provider = TEST_DATA_DIR.get_dir("uriquest").unwrap();
-        let dirs = ResourceDirs::read(ResourceDirDecodeOptions::AGI2 { file_provider }).unwrap();
+        let collection = uriquest_resources();
 
-        let collection = ResourceCollection::new(
-            ResourceCollectionVersionData::AGI2,
-            file_provider.clone(),
-            dirs,
-        );
         let logic_data = collection
             .read_resource_data(ResourceType::LOGIC, 0)
             .expect("Failed to read logic resource 0");
-        let mut cursor = Cursor::new(logic_data);
-        let logic_program = LogicProgram::decode(&mut cursor, &AGIVersion::new(2, 917))
+        let logic_program = LogicProgram::decode_from_bytes(&logic_data, &AGIVersion::new(2, 917))
             .expect("Failed to decode logic program");
 
         let ast = LogicAST::from_instructions(&logic_program.instructions)
             .expect("Failed to build AST from instructions");
         assert!(
-            !ast.root_node().id().is_empty(),
+            ast.root_node().metadata().instruction_address.is_some(),
             "AST should have a root node"
         );
     }

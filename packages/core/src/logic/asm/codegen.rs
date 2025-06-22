@@ -412,16 +412,17 @@ mod tests {
         resources::{
             decode::Decode,
             dirs::{ResourceDirDecodeOptions, ResourceDirs},
+            file_provider::FileProvider,
             resource_collection::{ResourceCollection, ResourceCollectionVersionData},
             ResourceType,
         },
-        TEST_DATA_DIR,
+        test_data::uriquest_dir,
     };
     use pretty_assertions::assert_eq;
 
     #[test]
     fn smoke_test() {
-        let file_provider = TEST_DATA_DIR.get_dir("uriquest").unwrap();
+        let file_provider = uriquest_dir();
         let dirs = ResourceDirs::read(ResourceDirDecodeOptions::AGI2 { file_provider }).unwrap();
 
         let collection = ResourceCollection::new(
@@ -436,20 +437,17 @@ mod tests {
         let logic_program = LogicProgram::decode(&mut cursor, &AGIVersion::new(2, 917))
             .expect("Failed to decode logic program");
 
-        let words_tok_data = TEST_DATA_DIR
-            .get_file("uriquest/WORDS.TOK")
-            .expect("Failed to get WORDS.TOK file")
-            .contents();
+        let words_tok_data = uriquest_dir()
+            .read_file_bytes("WORDS.TOK")
+            .expect("Failed to get WORDS.TOK file");
         let word_list = WordList::decode(&mut std::io::Cursor::new(words_tok_data), ())
             .expect("Failed to decode WORDS.TOK");
 
         let generated_asm = generate_logic_asm(&logic_program, &word_list, &[])
             .expect("Failed to generate ASM code");
 
-        let expected_asm = TEST_DATA_DIR
-            .get_file("uriquest/0.agiasm")
-            .expect("Failed to get uriquest/0.agiasm file")
-            .contents_utf8()
+        let expected_asm = uriquest_dir()
+            .read_file_utf8("0.agiasm")
             .expect("Failed to read uriquest/0.agiasm file");
 
         assert_eq!(generated_asm, expected_asm);

@@ -37,19 +37,18 @@ mod tests {
     use std::collections::HashSet;
 
     use crate::{
-        resources::{decode::Decode, encode::Encode},
+        resources::{decode::Decode, encode::Encode, file_provider::FileProvider},
+        test_data::contest2_template_dir,
         word_list::{WordList, WordListEntry},
-        TEST_DATA_DIR,
     };
 
     #[test]
     fn smoke_test() {
-        let words_tok_data = TEST_DATA_DIR
-            .get_file("AGI_Contest_2_Template/WORDS.TOK")
-            .expect("Failed to get WORDS.TOK file")
-            .contents();
-        let word_list = WordList::decode(&mut std::io::Cursor::new(words_tok_data), ())
-            .expect("Failed to decode WORDS.TOK");
+        let words_tok_data = contest2_template_dir()
+            .read_file_bytes("WORDS.TOK")
+            .expect("Failed to get WORDS.TOK file");
+        let word_list =
+            WordList::decode_from_bytes(&words_tok_data, ()).expect("Failed to decode WORDS.TOK");
 
         assert_eq!(
             word_list.words.get(&9999),

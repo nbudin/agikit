@@ -1,6 +1,3 @@
-#[cfg(test)]
-use include_dir::Dir;
-
 pub mod agi_version;
 pub mod color_palettes;
 pub mod compression;
@@ -16,4 +13,4 @@ pub mod xor_encryption;
 mod buffer;
 
 #[cfg(test)]
-pub static TEST_DATA_DIR: Dir<'_> = include_dir::include_dir!("$CARGO_MANIFEST_DIR/test_data");
+pub mod test_data;

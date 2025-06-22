@@ -11,13 +11,13 @@ use crate::{
     xor_encryption::{XorCursor, AGI_ENCRYPTION_KEY},
 };
 
-impl<Data: ReadHeterogeneousData> Decode<'_, Data> for ObjectList
-where
-    for<'a> XorCursor<'a, Data>: ReadHeterogeneousData,
-{
+impl Decode<'_> for ObjectList {
     type Options = ();
 
-    fn decode<'a>(data: &'a mut Data, _options: Self::Options) -> Result<Self, DecodingError>
+    fn decode<'a, Data: ReadHeterogeneousData>(
+        data: &'a mut Data,
+        _options: Self::Options,
+    ) -> Result<Self, DecodingError>
     where
         Self: Sized,
     {
@@ -61,25 +61,24 @@ pub fn read_object_list(data: Buffer) -> Result<ObjectList, JsValue> {
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
-
-    use crate::{object_list::ObjectList, resources::decode::Decode, TEST_DATA_DIR};
+    use crate::{
+        object_list::ObjectList,
+        resources::{decode::Decode, file_provider::FileProvider},
+        test_data::uriquest_dir,
+    };
     use pretty_assertions::assert_eq;
 
     #[test]
     fn test_decode_object() {
-        let object_data = TEST_DATA_DIR
-            .get_file("uriquest/OBJECT")
-            .unwrap()
-            .contents();
-        let object_json_data = TEST_DATA_DIR
-            .get_file("uriquest/object.json")
-            .unwrap()
-            .contents_utf8()
-            .unwrap();
+        let object_data = uriquest_dir()
+            .read_file_bytes("OBJECT")
+            .expect("Failed to read OBJECT file");
+        let object_json_data = uriquest_dir()
+            .read_file_utf8("object.json")
+            .expect("Failed to read object.json as UTF-8");
 
-        let object_list = ObjectList::decode(&mut Cursor::new(object_data), ()).unwrap();
-        let json_object_list = serde_json::from_str::<ObjectList>(object_json_data)
+        let object_list = ObjectList::decode_from_bytes(&object_data, ()).unwrap();
+        let json_object_list = serde_json::from_str::<ObjectList>(&object_json_data)
             .expect("Failed to deserialize OBJECT JSON");
         assert_eq!(object_list, json_object_list);
     }

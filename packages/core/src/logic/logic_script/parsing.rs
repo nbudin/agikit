@@ -544,7 +544,8 @@ mod tests {
                 statements::LogicScriptStatement,
             },
         },
-        TEST_DATA_DIR,
+        resources::file_provider::FileProvider,
+        test_data::uriquest_dir,
     };
 
     #[test]
@@ -631,11 +632,9 @@ mod tests {
 
     #[test]
     fn smoke_test() {
-        let script = TEST_DATA_DIR
-            .get_file("uriquest/0.agilogic")
-            .unwrap()
-            .contents_utf8()
-            .unwrap();
+        let script = uriquest_dir()
+            .read_file_utf8("0.agilogic")
+            .expect("Failed to read 0.agilogic file");
         let result = logic_script_parser::program(&script).expect("Failed to parse script");
 
         assert!(!result.is_empty(), "Parsed script should not be empty");

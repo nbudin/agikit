@@ -133,18 +133,11 @@ impl<P: FileProvider> ResourceCollection<P> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{resources::dirs::ResourceDirDecodeOptions, TEST_DATA_DIR};
+    use crate::test_data::{uriquest_resources, v_the_graphical_adventure_resources};
 
     #[test]
     fn test_resource_collection_read_v2() {
-        let file_provider = TEST_DATA_DIR.get_dir("uriquest").unwrap();
-        let dirs = ResourceDirs::read(ResourceDirDecodeOptions::AGI2 { file_provider }).unwrap();
-
-        let collection = ResourceCollection::new(
-            ResourceCollectionVersionData::AGI2,
-            file_provider.clone(),
-            dirs,
-        );
+        let collection = uriquest_resources();
 
         let logic0 = collection
             .read_resource_data(ResourceType::LOGIC, 0)
@@ -154,18 +147,7 @@ mod tests {
 
     #[test]
     fn test_resource_collection_read_v3() {
-        let file_provider = TEST_DATA_DIR.get_dir("VTheGraphicalAdventureDemo").unwrap();
-        let dirs = ResourceDirs::read(ResourceDirDecodeOptions::AGI3 {
-            file_provider,
-            game_id: "V".to_string(),
-        })
-        .unwrap();
-
-        let collection = ResourceCollection::new(
-            ResourceCollectionVersionData::AGI3("V".to_string()),
-            file_provider.clone(),
-            dirs,
-        );
+        let collection = v_the_graphical_adventure_resources();
 
         let logic0 = collection
             .read_resource_data(ResourceType::LOGIC, 0)

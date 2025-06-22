@@ -30,20 +30,18 @@ mod tests {
 
     use crate::{
         object_list::ObjectList,
-        resources::{decode::Decode, encode::Encode},
+        resources::{decode::Decode, encode::Encode, file_provider::FileProvider},
+        test_data::uriquest_dir,
         xor_encryption::{XorCursor, AGI_ENCRYPTION_KEY},
-        TEST_DATA_DIR,
     };
     use pretty_assertions::assert_eq;
 
     #[test]
     fn test_object_json() {
-        let object_json_data = TEST_DATA_DIR
-            .get_file("uriquest/object.json")
-            .expect("Failed to get object.json file")
-            .contents_utf8()
+        let object_json_data = uriquest_dir()
+            .read_file_utf8("object.json")
             .expect("Failed to read object.json as UTF-8");
-        let object_list = serde_json::from_str::<ObjectList>(object_json_data)
+        let object_list = serde_json::from_str::<ObjectList>(&object_json_data)
             .expect("Failed to deserialize OBJECT JSON");
 
         assert_eq!(object_list.max_animated_objects, 16);
@@ -56,16 +54,15 @@ mod tests {
 
     #[test]
     fn smoke_test() {
-        let object_data = TEST_DATA_DIR
-            .get_file("uriquest/OBJECT")
-            .expect("Failed to get OBJECT file")
-            .contents();
-        let object_list = ObjectList::decode(&mut Cursor::new(object_data), ()).unwrap();
+        let object_data = uriquest_dir()
+            .read_file_bytes("OBJECT")
+            .expect("Failed to get OBJECT file");
+        let object_list = ObjectList::decode_from_bytes(&object_data, ()).unwrap();
         let encoded = object_list.encode_to_vec(()).unwrap();
 
         let mut object_list_decrypted: Vec<u8> = Vec::with_capacity(object_data.len());
         XorCursor::new(
-            &mut Cursor::new(object_data),
+            &mut Cursor::new(object_data.clone()),
             AGI_ENCRYPTION_KEY.as_bytes(),
             0,
         )

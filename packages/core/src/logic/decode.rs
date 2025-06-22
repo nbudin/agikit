@@ -35,10 +35,10 @@ impl Display for DisassemblyError {
     }
 }
 
-impl<'opt, Data: ReadHeterogeneousData> Decode<'opt, Data> for LogicMessages {
+impl<'opt> Decode<'opt> for LogicMessages {
     type Options = (&'opt AGIVersion, u16);
 
-    fn decode<'a>(
+    fn decode<'a, Data: ReadHeterogeneousData>(
         data: &'a mut Data,
         (agi_version, text_offset): Self::Options,
     ) -> Result<Self, DecodingError>
@@ -82,10 +82,13 @@ impl<'opt, Data: ReadHeterogeneousData> Decode<'opt, Data> for LogicMessages {
     }
 }
 
-impl<'opt, Data: ReadHeterogeneousData> Decode<'opt, Data> for LogicCondition {
+impl<'opt> Decode<'opt> for LogicCondition {
     type Options = u16;
 
-    fn decode<'a>(data: &'a mut Data, address: Self::Options) -> Result<Self, DecodingError>
+    fn decode<'a, Data: ReadHeterogeneousData>(
+        data: &'a mut Data,
+        address: Self::Options,
+    ) -> Result<Self, DecodingError>
     where
         Self: Sized,
     {
@@ -157,10 +160,13 @@ impl<'opt, Data: ReadHeterogeneousData> Decode<'opt, Data> for LogicCondition {
     }
 }
 
-impl<'opt, Data: ReadHeterogeneousData> Decode<'opt, Data> for LogicInstruction {
+impl<'opt> Decode<'opt> for LogicInstruction {
     type Options = &'opt AGIVersion;
 
-    fn decode<'a>(data: &'a mut Data, agi_version: Self::Options) -> Result<Self, DecodingError>
+    fn decode<'a, Data: ReadHeterogeneousData>(
+        data: &'a mut Data,
+        agi_version: Self::Options,
+    ) -> Result<Self, DecodingError>
     where
         Self: Sized,
     {
@@ -200,10 +206,10 @@ impl<'opt, Data: ReadHeterogeneousData> Decode<'opt, Data> for LogicInstruction 
     }
 }
 
-impl<'opt, Data: ReadHeterogeneousData> Decode<'opt, Data> for Vec<LogicInstruction> {
+impl<'opt> Decode<'opt> for Vec<LogicInstruction> {
     type Options = (&'opt AGIVersion, u16);
 
-    fn decode<'a>(
+    fn decode<'a, Data: ReadHeterogeneousData>(
         data: &'a mut Data,
         (agi_version, text_offset): Self::Options,
     ) -> Result<Self, DecodingError>
@@ -219,10 +225,13 @@ impl<'opt, Data: ReadHeterogeneousData> Decode<'opt, Data> for Vec<LogicInstruct
     }
 }
 
-impl<'opt, Data: ReadHeterogeneousData> Decode<'opt, Data> for LogicProgram {
+impl<'opt> Decode<'opt> for LogicProgram {
     type Options = &'opt AGIVersion;
 
-    fn decode<'a>(data: &'a mut Data, agi_version: Self::Options) -> Result<Self, DecodingError>
+    fn decode<'a, Data: ReadHeterogeneousData>(
+        data: &'a mut Data,
+        agi_version: Self::Options,
+    ) -> Result<Self, DecodingError>
     where
         Self: Sized,
     {
@@ -241,34 +250,16 @@ impl<'opt, Data: ReadHeterogeneousData> Decode<'opt, Data> for LogicProgram {
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
-
     use super::*;
-    use crate::{
-        agi_version::AGIVersion,
-        resources::{
-            dirs::{ResourceDirDecodeOptions, ResourceDirs},
-            resource_collection::{ResourceCollection, ResourceCollectionVersionData},
-            ResourceType,
-        },
-        TEST_DATA_DIR,
-    };
+    use crate::{agi_version::AGIVersion, resources::ResourceType, test_data::uriquest_resources};
 
     #[test]
     fn test_decode() {
-        let file_provider = TEST_DATA_DIR.get_dir("uriquest").unwrap();
-        let dirs = ResourceDirs::read(ResourceDirDecodeOptions::AGI2 { file_provider }).unwrap();
-
-        let collection = ResourceCollection::new(
-            ResourceCollectionVersionData::AGI2,
-            file_provider.clone(),
-            dirs,
-        );
+        let collection = uriquest_resources();
         let logic_data = collection
             .read_resource_data(ResourceType::LOGIC, 0)
             .expect("Failed to read logic resource 0");
-        let mut cursor = Cursor::new(logic_data);
-        let logic_program = LogicProgram::decode(&mut cursor, &AGIVersion::new(2, 917))
+        let logic_program = LogicProgram::decode_from_bytes(&logic_data, &AGIVersion::new(2, 917))
             .expect("Failed to decode logic program");
 
         assert_eq!(logic_program.messages.len(), 45);

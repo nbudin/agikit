@@ -87,18 +87,20 @@ pub fn read_view_resource(data: Buffer) -> Result<AGIView, JsValue> {
 mod tests {
     use std::io::Cursor;
 
-    use crate::{resources::encode::Encode, TEST_DATA_DIR};
+    use crate::{
+        resources::{encode::Encode, file_provider::FileProvider},
+        test_data::contest2_template_dir,
+    };
 
     use super::*;
     use pretty_assertions::assert_eq;
 
     #[test]
     fn smoke_test() {
-        let view_data = TEST_DATA_DIR
-            .get_file("AGI_Contest_2_Template/1.agiview")
-            .unwrap()
-            .contents();
-        let view = AGIView::decode(&mut Cursor::new(view_data), ()).unwrap();
+        let view_data = contest2_template_dir()
+            .read_file_bytes("1.agiview")
+            .unwrap();
+        let view = AGIView::decode_from_bytes(&view_data, ()).unwrap();
         assert_eq!(view.loops.len(), 4);
         assert_eq!(view.loops[0].cels.len(), 8);
         for cel in &view.loops[0].cels {
