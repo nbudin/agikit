@@ -4,7 +4,10 @@ use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::wasm_bindgen;
 
-use crate::logic::commands::{AGICommand, TestCommand};
+use crate::logic::{
+    asm::expressions::AsmLogicArgument,
+    commands::{AGICommand, TestCommand},
+};
 
 pub mod asm;
 pub mod commands;
@@ -19,6 +22,19 @@ pub struct LogicCommand {
     pub address: u16,
     pub agi_command: AGICommand,
     pub args: Vec<u8>,
+}
+
+impl LogicCommand {
+    pub fn args(&self) -> Vec<AsmLogicArgument> {
+        self.args
+            .iter()
+            .zip(self.agi_command.arg_types.iter())
+            .map(|(&arg, arg_type)| AsmLogicArgument {
+                value: arg as u16,
+                arg_type: *arg_type,
+            })
+            .collect()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Tsify, Serialize, Deserialize)]

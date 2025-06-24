@@ -6,7 +6,13 @@ use petgraph::{
     Direction,
 };
 
-use crate::logic::logic_script::ast::{LogicAST, LogicASTNode, LogicCommandNode};
+use crate::logic::{
+    logic_script::{
+        ast::{LogicAST, LogicASTNode, LogicCommandNode},
+        codegen::errors::LogicScriptCodeGenerationError,
+    },
+    LogicConditionClause,
+};
 
 pub trait BasicBlockVisitor {
     fn visit_basic_block(&mut self, graph: &mut BasicBlockGraph, block_id: NodeIndex) -> bool;
@@ -20,7 +26,9 @@ impl<F: FnMut(&mut BasicBlockGraph, NodeIndex) -> bool> BasicBlockVisitor for F 
 
 #[derive(Debug, Clone)]
 pub struct BasicBlock {
+    pub label: Option<String>,
     pub commands: Vec<LogicCommandNode>,
+    pub conditions: Option<Vec<LogicConditionClause>>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -28,6 +36,17 @@ pub enum BasicBlockEdgeType {
     Next,
     IfThen,
     IfElse,
+}
+
+pub enum BasicBlockControlFlow {
+    SinglePath {
+        next_id: Option<NodeIndex>,
+    },
+    Conditional {
+        conditions: Vec<LogicConditionClause>,
+        then_id: NodeIndex,
+        else_id: Option<NodeIndex>,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -97,6 +116,53 @@ impl BasicBlockGraph {
                 }
             })
     }
+
+    pub fn control_flow_for_block(
+        &self,
+        block_id: NodeIndex,
+    ) -> Result<BasicBlockControlFlow, LogicScriptCodeGenerationError> {
+        let edges = self
+            .graph
+            .edges_directed(block_id, Direction::Outgoing)
+            .collect::<Vec<_>>();
+        let edge_types = edges.iter().map(|e| e.weight().clone()).collect::<Vec<_>>();
+
+        if edge_types.is_empty() {
+            Ok(BasicBlockControlFlow::SinglePath { next_id: None })
+        } else if edge_types == vec![BasicBlockEdgeType::Next] {
+            Ok(BasicBlockControlFlow::SinglePath {
+                next_id: Some(edges.first().unwrap().target()),
+            })
+        } else if edge_types == vec![BasicBlockEdgeType::IfThen]
+            || edge_types == vec![BasicBlockEdgeType::IfThen, BasicBlockEdgeType::IfElse]
+            || edge_types == vec![BasicBlockEdgeType::IfElse, BasicBlockEdgeType::IfThen]
+        {
+            Ok(BasicBlockControlFlow::Conditional {
+                conditions: self
+                    .graph
+                    .node_weight(block_id)
+                    .and_then(|block| block.conditions.clone())
+                    .unwrap_or_default(),
+                then_id: edges
+                    .iter()
+                    .find(|edge| *edge.weight() == BasicBlockEdgeType::IfThen)
+                    .map(|edge| edge.target())
+                    .unwrap(),
+                else_id: edges
+                    .iter()
+                    .find(|edge| *edge.weight() == BasicBlockEdgeType::IfElse)
+                    .map(|edge| edge.target()),
+            })
+        } else {
+            Err(
+                LogicScriptCodeGenerationError::MalformedBasicBlockEdgeTypes(
+                    block_id,
+                    self.graph.node_weight(block_id).cloned(),
+                    edge_types,
+                ),
+            )
+        }
+    }
 }
 
 fn build_basic_blocks(
@@ -123,7 +189,9 @@ fn build_basic_blocks(
     match node {
         LogicASTNode::Command(node) => {
             let block = BasicBlock {
+                label: node.label.as_ref().map(|l| l.label.clone()),
                 commands: vec![node.clone()],
+                conditions: None,
             };
             let block_id = graph.add_node(block);
             block_ids_by_node_id.insert(node_id, block_id);
@@ -136,8 +204,12 @@ fn build_basic_blocks(
 
             block_id
         }
-        LogicASTNode::If(_node) => {
-            let block = BasicBlock { commands: vec![] };
+        LogicASTNode::If(node) => {
+            let block = BasicBlock {
+                commands: vec![],
+                label: node.label.as_ref().map(|l| l.label.clone()),
+                conditions: Some(node.clauses.clone()),
+            };
             let block_id = graph.add_node(block);
             block_ids_by_node_id.insert(node_id, block_id);
 
@@ -155,8 +227,12 @@ fn build_basic_blocks(
 
             block_id
         }
-        LogicASTNode::Goto(_node) => {
-            let block = BasicBlock { commands: vec![] };
+        LogicASTNode::Goto(node) => {
+            let block = BasicBlock {
+                commands: vec![],
+                label: node.label.as_ref().map(|l| l.label.clone()),
+                conditions: None,
+            };
             let block_id = graph.add_node(block);
             block_ids_by_node_id.insert(node_id, block_id);
 

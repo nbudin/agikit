@@ -4,7 +4,7 @@ pub trait LogicBinaryOperator {
     fn is_commutative(&self) -> bool;
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum LogicBooleanBinaryOperator {
     #[serde(rename = "<")]
     LessThan,

@@ -1,6 +1,9 @@
 use std::ops::Range;
 
-use crate::logic::asm::expressions::LogicArgument;
+use crate::logic::asm::{
+    codegen::{AsmCodeGenerationContext, AsmCodeGenerationError},
+    expressions::{LogicArgument, ParsedLogicArgument},
+};
 
 #[derive(Debug, Clone, Eq, Ord)]
 pub struct ScriptLocation {
@@ -46,6 +49,13 @@ impl<T> AsRef<T> for WithLocation<T> {
 impl<T: LogicArgument> LogicArgument for WithLocation<T> {
     fn value_eq(&self, other: &Self) -> bool {
         self.value.value_eq(&other.value)
+    }
+
+    fn try_parse(
+        &self,
+        context: &AsmCodeGenerationContext,
+    ) -> Result<ParsedLogicArgument, AsmCodeGenerationError> {
+        self.value.try_parse(context)
     }
 }
 

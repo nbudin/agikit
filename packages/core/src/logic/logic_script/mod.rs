@@ -1,6 +1,10 @@
 pub mod ast;
 pub mod basic_block_graph;
+pub mod codegen;
+pub mod control_flow_analysis;
 pub mod directives;
+pub mod dominator_tree;
+pub mod identifiers;
 pub mod literals;
 pub mod locations;
 pub mod operators;

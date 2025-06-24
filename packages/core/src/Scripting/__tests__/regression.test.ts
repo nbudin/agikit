@@ -2,9 +2,7 @@ import { parseLogicScript, parseLogicScriptRaw } from '../LogicScriptParser';
 import { LogicCompiler } from '../LogicCompiler';
 import { optimizeAST } from '../../Extract/Logic/ASTOptimization';
 import { LogicScriptASTGenerator } from '../LogicScriptASTGenerator';
-import { WordList } from '../../Types/WordList';
-import { ObjectList } from '../../Types/ObjectList';
-import { LogicCommand } from '../../Types/Logic';
+import { LogicCommand } from '../../index';
 
 it('Issue #3: compiles to assignn or assignv depending on the value type, not the token type', () => {
   const testScript = `

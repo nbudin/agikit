@@ -1,12 +1,12 @@
 use crate::logic::asm::operators::LogicBinaryOperator;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LogicScriptUnaryAssignmentOperator {
     Increment,
     Decrement,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LogicScriptArithmeticOperator {
     Add,
     Subtract,

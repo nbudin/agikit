@@ -238,7 +238,7 @@ class SemiNCASpanningTree<NodeType extends GraphNode> {
   }
 
   private computeImmediateDominators() {
-    // iterate nodes in reverse DFS order, omitting the root
+    // iterate nodes in DFS order, omitting the root
     const preOrderNodes = this.nodesInDFSOrder.slice(1);
     preOrderNodes.forEach((node) => {
       // we know there's an idom for this node because we initialize it to the parent for all

@@ -17,6 +17,10 @@ pub struct LogicIdentifier {
 
 pub trait LogicArgument {
     fn value_eq(&self, other: &Self) -> bool;
+    fn try_parse(
+        &self,
+        context: &AsmCodeGenerationContext,
+    ) -> Result<ParsedLogicArgument, AsmCodeGenerationError>;
 }
 
 #[derive(Debug, Clone)]
@@ -29,14 +33,8 @@ impl LogicArgument for AsmLogicArgument {
     fn value_eq(&self, other: &Self) -> bool {
         self.value == other.value && self.arg_type == other.arg_type
     }
-}
 
-impl AsmLogicArgument {
-    pub fn new(value: u16, arg_type: AGICommandArgType) -> Self {
-        Self { value, arg_type }
-    }
-
-    pub fn try_parse(
+    fn try_parse(
         &self,
         context: &AsmCodeGenerationContext,
     ) -> Result<ParsedLogicArgument, AsmCodeGenerationError> {
@@ -88,6 +86,12 @@ impl AsmLogicArgument {
     }
 }
 
+impl AsmLogicArgument {
+    pub fn new(value: u16, arg_type: AGICommandArgType) -> Self {
+        Self { value, arg_type }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ParsedLogicArgument {
     Literal(LogicLiteral),
@@ -114,24 +118,31 @@ impl LogicArgument for ParsedLogicArgument {
             _ => false,
         }
     }
+
+    fn try_parse(
+        &self,
+        _context: &AsmCodeGenerationContext,
+    ) -> Result<ParsedLogicArgument, AsmCodeGenerationError> {
+        Ok(self.clone())
+    }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogicAndExpression<Arg: LogicArgument> {
     pub clauses: Vec<LogicBooleanExpression<Arg>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogicOrExpression<Arg: LogicArgument> {
     pub clauses: Vec<LogicBooleanExpression<Arg>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogicNotExpression<Arg: LogicArgument> {
     pub expression: Box<LogicBooleanExpression<Arg>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogicBooleanBinaryOperation<Arg: LogicArgument> {
     pub left: Arg,
     pub operator: LogicBooleanBinaryOperator,
@@ -157,13 +168,13 @@ impl<Arg: LogicArgument> LogicBooleanBinaryOperation<Arg> {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogicTestCall<Arg: LogicArgument> {
     pub test_name: String,
     pub argument_list: Vec<Arg>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum LogicBooleanExpression<Arg: LogicArgument> {
     BinaryOperation(LogicBooleanBinaryOperation<Arg>),
     AndExpression(LogicAndExpression<Arg>),

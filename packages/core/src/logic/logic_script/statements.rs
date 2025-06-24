@@ -6,13 +6,13 @@ use crate::logic::{
     },
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LogicScriptCommandCall<Arg: LogicArgument> {
     pub commmand_name: String,
     pub argument_list: Vec<Arg>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LogicScriptIfStatement<Arg: LogicArgument, StatementType> {
     pub conditions: LogicBooleanExpression<Arg>,
     pub then_statements: Vec<StatementType>,
@@ -21,32 +21,32 @@ pub struct LogicScriptIfStatement<Arg: LogicArgument, StatementType> {
     pub else_keyword: Option<LogicScriptKeyword>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LogicScriptUnaryOperationStatement {
     pub operation: LogicScriptUnaryAssignmentOperator,
     pub identifier: LogicIdentifier,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LogicScriptValueAssignmentStatement<Arg: LogicArgument> {
     pub assignee: LogicIdentifier,
     pub value: Arg,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LogicScriptArithmeticAssignmentStatement<Arg: LogicArgument> {
     pub operator: LogicScriptArithmeticOperator,
     pub assignee: LogicIdentifier,
     pub value: Arg,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LogicScriptLeftIndirectAssignmentStatement<Arg: LogicArgument> {
     pub assignee_pointer: LogicIdentifier,
     pub value: Arg,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LogicScriptRightIndirectAssignmentStatement {
     pub assignee: LogicIdentifier,
     pub value_pointer: LogicIdentifier,
@@ -68,12 +68,12 @@ pub struct LogicScriptKeyword {
     pub keyword: KeywordType,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LogicScriptLabel {
     pub label: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum LogicScriptStatement<Arg: LogicArgument> {
     Label(LogicScriptLabel),
     CommandCall(LogicScriptCommandCall<Arg>),
