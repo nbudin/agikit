@@ -7,11 +7,13 @@ use petgraph::{
 
 use crate::logic::logic_script::basic_block_graph::BasicBlockGraph;
 
+#[derive(Debug, Clone)]
 pub enum ReverseCFGNode {
     BasicBlock { id: NodeIndex },
     VirtualRoot,
 }
 
+#[derive(Debug, Clone)]
 pub struct ReverseCFG {
     pub graph: DiGraph<ReverseCFGNode, ()>,
     pub virtual_root_id: NodeIndex,
@@ -25,26 +27,29 @@ impl ReverseCFG {
 
         let mut dfs = Dfs::new(&basic_block_graph.graph, basic_block_graph.root_block_id);
         while let Some(block_id) = dfs.next(&basic_block_graph.graph) {
-            let reverse_node_id =
-                reverse_graph.add_node(ReverseCFGNode::BasicBlock { id: block_id });
-            reverse_nodes_by_block_id.insert(block_id, reverse_node_id);
+            let reverse_node_id = reverse_nodes_by_block_id
+                .entry(block_id)
+                .or_insert_with(|| {
+                    reverse_graph.add_node(ReverseCFGNode::BasicBlock { id: block_id })
+                })
+                .clone();
 
-            for edge in basic_block_graph
-                .graph
-                .edges_directed(block_id, petgraph::Direction::Incoming)
-            {
-                let source_block_id = edge.source();
-                let source_reverse_node_id = reverse_nodes_by_block_id
-                    .entry(source_block_id)
-                    .or_insert_with(|| {
-                        reverse_graph.add_node(ReverseCFGNode::BasicBlock {
-                            id: source_block_id,
-                        })
-                    });
-                if !reverse_graph.contains_edge(reverse_node_id, *source_reverse_node_id) {
-                    reverse_graph.add_edge(reverse_node_id, *source_reverse_node_id, ());
-                }
-            }
+            // for edge in basic_block_graph
+            //     .graph
+            //     .edges_directed(block_id, petgraph::Direction::Incoming)
+            // {
+            //     let source_block_id = edge.source();
+            //     let source_reverse_node_id = reverse_nodes_by_block_id
+            //         .entry(source_block_id)
+            //         .or_insert_with(|| {
+            //             reverse_graph.add_node(ReverseCFGNode::BasicBlock {
+            //                 id: source_block_id,
+            //             })
+            //         });
+            //     if !reverse_graph.contains_edge(reverse_node_id, *source_reverse_node_id) {
+            //         reverse_graph.add_edge(reverse_node_id, *source_reverse_node_id, ());
+            //     }
+            // }
 
             for edge in basic_block_graph
                 .graph
@@ -57,9 +62,10 @@ impl ReverseCFG {
                         reverse_graph.add_node(ReverseCFGNode::BasicBlock {
                             id: target_block_id,
                         })
-                    });
-                if !reverse_graph.contains_edge(reverse_node_id, *target_reverse_node_id) {
-                    reverse_graph.add_edge(reverse_node_id, *target_reverse_node_id, ());
+                    })
+                    .clone();
+                if !reverse_graph.contains_edge(reverse_node_id, target_reverse_node_id) {
+                    reverse_graph.add_edge(reverse_node_id, target_reverse_node_id, ());
                 }
             }
 
@@ -82,5 +88,56 @@ impl ReverseCFG {
             graph: reverse_graph,
             virtual_root_id,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::logic::logic_script::basic_block_graph::{BasicBlock, BasicBlockEdgeType};
+
+    use super::*;
+
+    #[test]
+    fn test_reverse_control_flow_graph() {
+        // let mut basic_block_graph = BasicBlockGraph;
+        let mut graph = DiGraph::new();
+        let block_a = graph.add_node(BasicBlock {
+            commands: vec![],
+            label: Some("A".to_string()),
+            conditions: None,
+        });
+        let block_b = graph.add_node(BasicBlock {
+            commands: vec![],
+            label: Some("B".to_string()),
+            conditions: None,
+        });
+        let block_c = graph.add_node(BasicBlock {
+            commands: vec![],
+            label: Some("C".to_string()),
+            conditions: None,
+        });
+        let block_d = graph.add_node(BasicBlock {
+            commands: vec![],
+            label: Some("D".to_string()),
+            conditions: None,
+        });
+
+        graph.add_edge(block_a, block_b, BasicBlockEdgeType::Next);
+        graph.add_edge(block_b, block_c, BasicBlockEdgeType::Next);
+        graph.add_edge(block_c, block_d, BasicBlockEdgeType::Next);
+
+        let basic_block_graph = BasicBlockGraph {
+            graph,
+            root_block_id: block_a,
+        };
+
+        let reverse_cfg = ReverseCFG::from_basic_block_graph(&basic_block_graph);
+
+        assert_eq!(reverse_cfg.graph.node_count(), 5);
+        assert_eq!(reverse_cfg.graph.edge_count(), 4);
+        assert!(reverse_cfg
+            .graph
+            .node_weight(reverse_cfg.virtual_root_id)
+            .is_some());
     }
 }

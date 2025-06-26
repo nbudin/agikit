@@ -7,10 +7,12 @@ use petgraph::{
     Direction,
 };
 
+#[derive(Debug, Clone)]
 pub struct DominatorTreeNode<Ix: IndexType = DefaultIx> {
     pub cfg_index: NodeIndex<Ix>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum DominatorTreeEdgeType {
     ImmediateDominator,
 }
@@ -87,7 +89,16 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
         let mut dfs = Dfs::new(cfg, start);
 
         while let Some(node_index) = dfs.next(cfg) {
-            let parent = dfs.stack.last().cloned();
+            let parent = cfg
+                .edges_directed(node_index, Direction::Incoming)
+                .next()
+                .map(|edge| edge.source());
+            eprintln!(
+                "Visiting node {:?} with parent {:?} and dfs number {:?}",
+                node_index,
+                parent,
+                nodes_in_dfs_order.len()
+            );
             spanning_tree_node_info.insert(
                 node_index,
                 SpanningTreeNodeInfo {
@@ -192,7 +203,6 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
             .collect::<Vec<_>>();
 
         for &node in reverse_dfs_order_without_root.iter() {
-            eprintln!("Processing node {node:?}");
             // we know there will be a parent because we're omitting the root
             let parent = self.spanning_tree_node_info[&node].parent.unwrap();
             let mut semi = parent;
@@ -200,12 +210,15 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
             for inward_edge in cfg.edges_directed(node, Direction::Incoming) {
                 let predecessor_index = inward_edge.source();
                 let node_dfs_num = self.spanning_tree_node_info[&node].dfs_num;
+                eprintln!(
+                    "Processing node {:?} with dfs number {:?} and predecessor {:?}",
+                    node, node_dfs_num, predecessor_index
+                );
                 let predecessor_dfs_num = self.spanning_tree_node_info[&predecessor_index].dfs_num;
 
                 let candidate = if predecessor_dfs_num < node_dfs_num {
                     Some(predecessor_index)
                 } else {
-                    eprintln!("ancestor_with_lowest_semi({predecessor_index:?})");
                     let ancestor_with_lowest: Option<NodeIndex<Ix>> =
                         self.ancestor_with_lowest_semi(predecessor_index);
                     ancestor_with_lowest.and_then(|ancestor_index| {
@@ -223,7 +236,6 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
             }
 
             self.spanning_tree_node_info.get_mut(&node).unwrap().sdom = Some(semi);
-            eprintln!("link({parent:?}, {node:?})");
             self.link(parent, node);
         }
     }
@@ -248,5 +260,30 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
 
             self.spanning_tree_node_info.get_mut(&node).unwrap().idom = Some(idom);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::logic::logic_script::dominator_tree::DominatorTree;
+    use petgraph::graph::DiGraph;
+
+    #[test]
+    fn test_simple_dominator_tree() {
+        let mut graph = DiGraph::<(), ()>::new();
+        let n0 = graph.add_node(());
+        let n1 = graph.add_node(());
+        let n2 = graph.add_node(());
+        let n3 = graph.add_node(());
+        let n4 = graph.add_node(());
+
+        graph.extend_with_edges(&[(n0, n1), (n0, n2), (n1, n3), (n2, n3), (n2, n4)]);
+
+        let dominator_tree = DominatorTree::from_cfg(&graph, n0);
+        assert!(dominator_tree.dominates(n0, n1));
+        assert!(dominator_tree.dominates(n0, n2));
+        assert!(dominator_tree.dominates(n0, n3));
+        assert!(dominator_tree.dominates(n2, n4));
+        assert!(!dominator_tree.dominates(n1, n2));
     }
 }
