@@ -6,6 +6,8 @@ use petgraph::{
     Direction,
 };
 
+#[cfg(feature = "dot")]
+use crate::logic::asm::codegen::AsmCodeGenerationContext;
 use crate::logic::{
     asm::{codegen::generate_labels, LogicLabel},
     LogicCommand, LogicConditionClause, LogicInstruction,
@@ -153,6 +155,50 @@ impl LogicAST {
     }
 }
 
+#[cfg(feature = "dot")]
+impl LogicAST {
+    pub fn to_dot(&self, context: &AsmCodeGenerationContext) -> String {
+        use petgraph::dot::{Config, Dot};
+
+        use crate::logic::asm::{codegen::GenerateLogicAsm, expressions::LogicBooleanExpression};
+
+        format!(
+            "{:?}",
+            Dot::with_attr_getters(
+                &self.graph,
+                &[Config::NodeNoLabel],
+                &|_graph_ref, _edge_ref| "".to_string(),
+                &|_graph_ref, (_node_id, node_weight)| {
+                    let shape = match node_weight {
+                        LogicASTNode::Command(_) => "box",
+                        LogicASTNode::Goto(_) => "invtriangle",
+                        LogicASTNode::If(_) => "diamond",
+                    };
+                    let label = match node_weight {
+                        LogicASTNode::Command(node) => node
+                            .command
+                            .generate_asm(context, &HashMap::new())
+                            .expect("Failed to generate asm"),
+                        LogicASTNode::Goto(_) => "goto".to_string(),
+                        LogicASTNode::If(node) => format!(
+                            "if ({})",
+                            LogicBooleanExpression::from_clauses(&node.clauses, context)
+                                .expect("Failed to generate boolean expression")
+                                .generate_asm(context, &HashMap::new())
+                                .expect("Failed to generate asm")
+                        ),
+                    };
+                    format!(
+                        "shape = {}, label = {}",
+                        shape,
+                        serde_json::to_string(&label).unwrap()
+                    )
+                }
+            )
+        )
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum DecompilationError {
     InvalidJump {
@@ -289,6 +335,13 @@ fn resolve_nodes(
                 .unwrap_or(0);
             let goto_node_index = unresolved_nodes.len();
 
+            // insert a virtual goto at the end of the code for the skip target
+            let goto_node = UnresolvedLogicASTNode::Goto(UnresolvedGotoNode {
+                address: goto_node_address,
+                jump_target_address: unresolved_if_node.else_goto_address,
+            });
+            unresolved_nodes.push(goto_node);
+
             if current_node_index + 1 < unresolved_nodes.len() {
                 let then_node_index = resolve_nodes(
                     unresolved_nodes,
@@ -301,12 +354,6 @@ fn resolve_nodes(
                 graph.add_edge(if_node_index, then_node_index, LogicASTEdge::IfThen);
             }
 
-            // insert a virtual goto at the end of the code for the skip target
-            let goto_node = UnresolvedLogicASTNode::Goto(UnresolvedGotoNode {
-                address: goto_node_address,
-                jump_target_address: unresolved_if_node.else_goto_address,
-            });
-            unresolved_nodes.push(goto_node);
             let goto_node_index = resolve_nodes(
                 unresolved_nodes,
                 goto_node_index,
@@ -358,11 +405,16 @@ fn resolve_nodes(
 #[cfg(test)]
 mod tests {
 
+    use std::{fs::File, io::Write};
+
     use crate::{
         agi_version::AGIVersion,
-        logic::{logic_script::ast::LogicAST, LogicProgram},
-        resources::{decode::Decode, ResourceType},
-        test_data::uriquest_resources,
+        logic::{
+            asm::codegen::AsmCodeGenerationContext, logic_script::ast::LogicAST, LogicProgram,
+        },
+        resources::{decode::Decode, file_provider::FileProvider, ResourceType},
+        test_data::{uriquest_dir, uriquest_resources},
+        word_list::WordList,
     };
 
     #[test]
@@ -374,6 +426,9 @@ mod tests {
             .expect("Failed to read logic resource 0");
         let logic_program = LogicProgram::decode_from_bytes(&logic_data, &AGIVersion::new(2, 917))
             .expect("Failed to decode logic program");
+        let word_list =
+            WordList::decode_from_bytes(&uriquest_dir().read_file_bytes("WORDS.TOK").unwrap(), ())
+                .unwrap();
 
         let ast = LogicAST::from_instructions(&logic_program.instructions)
             .expect("Failed to build AST from instructions");
@@ -381,5 +436,16 @@ mod tests {
             ast.root_node().metadata().instruction_address.is_some(),
             "AST should have a root node"
         );
+
+        File::create("ast-debug.dot")
+            .expect("Failed to open ast-debug.dot for writing")
+            .write_fmt(format_args!(
+                "{}",
+                ast.to_dot(&AsmCodeGenerationContext {
+                    logic: &logic_program,
+                    word_list: &word_list
+                })
+            ))
+            .expect("Failed to write dot diagram");
     }
 }

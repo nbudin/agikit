@@ -5,7 +5,7 @@ use petgraph::graph::NodeIndex;
 use crate::logic::{
     asm::expressions::{LogicBooleanExpression, LogicIdentifier, ParsedLogicArgument},
     logic_script::{
-        basic_block_graph::BasicBlockControlFlow,
+        basic_block_graph::{BasicBlock, BasicBlockControlFlow},
         codegen::{
             command_to_statement::CommandToStatement, context::LogicScriptCodeGenerationContext,
             errors::LogicScriptCodeGenerationError,
@@ -19,12 +19,12 @@ use crate::logic::{
 };
 
 pub struct LogicScriptProgramGenerator<'a> {
-    context: LogicScriptCodeGenerationContext<'a>,
+    context: &'a LogicScriptCodeGenerationContext<'a>,
     visited_basic_blocks: HashSet<NodeIndex>,
 }
 
 impl<'a> LogicScriptProgramGenerator<'a> {
-    pub fn new(context: LogicScriptCodeGenerationContext<'a>) -> Self {
+    pub fn new(context: &'a LogicScriptCodeGenerationContext<'a>) -> Self {
         Self {
             context,
             visited_basic_blocks: HashSet::new(),
@@ -69,14 +69,19 @@ impl<'a> LogicScriptProgramGenerator<'a> {
             .get_block(block_id)
             .ok_or_else(|| LogicScriptCodeGenerationError::BlockNotFound(block_id))?;
 
-        if let Some(first_command) = block.commands.first() {
-            return Ok(first_command
-                .label
-                .as_ref()
-                .map(|label| label.label.clone()));
+        match block {
+            &BasicBlock::SinglePath(ref block) => {
+                if let Some(first_command) = block.commands.first() {
+                    return Ok(first_command
+                        .label
+                        .as_ref()
+                        .map(|label| label.label.clone()));
+                }
+            }
+            BasicBlock::Conditional(_) => {}
         }
 
-        Ok(block.label.clone())
+        Ok(block.label().map(|l| l.to_owned()))
     }
 
     fn generate_command_statements(
@@ -94,13 +99,15 @@ impl<'a> LogicScriptProgramGenerator<'a> {
             statements.push(LogicScriptStatement::Label(LogicScriptLabel { label }));
         }
 
-        statements.extend(
-            block
-                .commands
-                .iter()
-                .map(|command| command.command.to_statement(&self.context))
-                .collect::<Result<Vec<_>, _>>()?,
-        );
+        if let BasicBlock::SinglePath(block) = block {
+            statements.extend(
+                block
+                    .commands
+                    .iter()
+                    .map(|command| command.command.to_statement(&self.context))
+                    .collect::<Result<Vec<_>, _>>()?,
+            );
+        }
 
         Ok(statements)
     }
@@ -292,13 +299,14 @@ impl<'a> LogicScriptProgramGenerator<'a> {
             .control_flow_for_block(block_id)?;
 
         match control_flow {
-            BasicBlockControlFlow::SinglePath { next_id } => {
+            BasicBlockControlFlow::SinglePath { next_id, .. } => {
                 self.generate_single_path_code(block_id, next_id, queue)
             }
             BasicBlockControlFlow::Conditional {
                 conditions,
                 then_id,
                 else_id,
+                ..
             } => self.generate_conditional_code(block_id, &conditions, then_id, else_id, queue),
         }
     }
@@ -306,15 +314,11 @@ impl<'a> LogicScriptProgramGenerator<'a> {
 
 #[cfg(test)]
 mod tests {
+    use std::{fs::File, io::Write};
+
     use crate::{
         agi_version::AGIVersion,
-        logic::{
-            logic_script::codegen::{
-                context::LogicScriptCodeGenerationContext,
-                program_generator::LogicScriptProgramGenerator,
-            },
-            LogicProgram,
-        },
+        logic::{logic_script::codegen::context::LogicScriptCodeGenerationContext, LogicProgram},
         resources::{decode::Decode, file_provider::FileProvider, ResourceType},
         test_data::{uriquest_dir, uriquest_resources},
         word_list::WordList,
@@ -336,14 +340,32 @@ mod tests {
         )
         .expect("Failed to decode word list");
 
-        eprintln!("Generating context");
         let context = LogicScriptCodeGenerationContext::try_from_program(&logic, &word_list)
             .expect("Failed to create code generation context");
-        eprintln!("Generating logic script statements");
-        let statements = LogicScriptProgramGenerator::new(context)
-            .generate_statements()
-            .expect("Failed to generate logic script statements");
 
-        panic!("{:?}", statements);
+        eprintln!("Generated context!");
+
+        File::create("debug.dot")
+            .expect("Failed to open debug.dot for writing")
+            .write_fmt(format_args!(
+                "{}",
+                context.basic_block_graph.to_dot(&context.asm_context)
+            ))
+            .expect("Failed to write dot diagram");
+
+        // let generator = LogicScriptProgramGenerator::new(&context);
+
+        // let statements = generator
+        //     .generate_statements()
+        //     .expect("Failed to generate logic script statements");
+
+        // panic!(
+        //     "{}",
+        //     statements
+        //         .into_iter()
+        //         .map(|s| s.generate_logic_script(&context, 0))
+        //         .collect::<Result<String, _>>()
+        //         .expect("Error generating logic script")
+        // );
     }
 }

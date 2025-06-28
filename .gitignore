@@ -32,6 +32,7 @@ qtagistudio-*
 !/packages/*/.yarn/sdks
 !/packages/*/.yarn/versions
 
+*debug*.dot
 
 # Added by cargo
 

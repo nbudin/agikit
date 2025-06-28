@@ -93,12 +93,7 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
                 .edges_directed(node_index, Direction::Incoming)
                 .next()
                 .map(|edge| edge.source());
-            eprintln!(
-                "Visiting node {:?} with parent {:?} and dfs number {:?}",
-                node_index,
-                parent,
-                nodes_in_dfs_order.len()
-            );
+
             spanning_tree_node_info.insert(
                 node_index,
                 SpanningTreeNodeInfo {
@@ -153,12 +148,16 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
     }
 
     fn link(&mut self, ancestor: NodeIndex<Ix>, node: NodeIndex<Ix>) {
+        eprintln!("link({:?}, {:?})", ancestor, node);
+
         let node = &mut self.spanning_tree_node_info.get_mut(&node).unwrap();
         node.ancestor = Some(ancestor);
         node.best = Some(ancestor);
     }
 
     fn ancestor_with_lowest_semi(&mut self, node: NodeIndex<Ix>) -> Option<NodeIndex<Ix>> {
+        eprintln!("ancestor_with_lowest_semi({:?})", node);
+
         let mut working_node_info = self.spanning_tree_node_info.get(&node).cloned();
         if let Some(working_node_info) = &mut working_node_info {
             let ancestor = working_node_info.ancestor;
@@ -166,6 +165,10 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
             if let Some(ancestor) = ancestor {
                 let candidate_best = self.ancestor_with_lowest_semi(ancestor);
                 working_node_info.ancestor = self.spanning_tree_node_info[&ancestor].ancestor;
+                eprintln!(
+                    "Setting {:?}'s ancestor to {:?}",
+                    working_node_info, working_node_info.ancestor
+                );
 
                 let candidate_best_sdom = candidate_best
                     .and_then(|candiate_best| self.spanning_tree_node_info[&candiate_best].sdom);
@@ -203,6 +206,7 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
             .collect::<Vec<_>>();
 
         for &node in reverse_dfs_order_without_root.iter() {
+            eprintln!("Computing semidominator for {:?}", node);
             // we know there will be a parent because we're omitting the root
             let parent = self.spanning_tree_node_info[&node].parent.unwrap();
             let mut semi = parent;
@@ -210,10 +214,6 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
             for inward_edge in cfg.edges_directed(node, Direction::Incoming) {
                 let predecessor_index = inward_edge.source();
                 let node_dfs_num = self.spanning_tree_node_info[&node].dfs_num;
-                eprintln!(
-                    "Processing node {:?} with dfs number {:?} and predecessor {:?}",
-                    node, node_dfs_num, predecessor_index
-                );
                 let predecessor_dfs_num = self.spanning_tree_node_info[&predecessor_index].dfs_num;
 
                 let candidate = if predecessor_dfs_num < node_dfs_num {

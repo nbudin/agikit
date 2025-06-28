@@ -32,7 +32,8 @@ impl<'a> LogicScriptCodeGenerationContext<'a> {
         word_list: &'a WordList,
     ) -> Result<Self, LogicScriptCodeGenerationError> {
         let ast = LogicAST::from_instructions(&program.instructions)?;
-        let basic_block_graph = BasicBlockGraph::from_ast(&ast);
+        let mut basic_block_graph = BasicBlockGraph::from_ast(&ast);
+        basic_block_graph.optimize();
         let asm_context = AsmCodeGenerationContext {
             logic: program,
             word_list: word_list,
@@ -48,6 +49,7 @@ impl<'a> LogicScriptCodeGenerationContext<'a> {
             DominatorTree::from_cfg(&basic_block_graph.graph, basic_block_graph.root_block_id);
 
         let reverse_cfg = ReverseCFG::from_basic_block_graph(&basic_block_graph);
+
         let post_dominator_tree =
             DominatorTree::from_cfg(&reverse_cfg.graph, reverse_cfg.virtual_root_id);
 

@@ -24,7 +24,8 @@ logic_command_macros = { path = "../logic_command_macros" }
 petgraph = "0.8.2"
 
 [features]
-default = ["js"]
+default = ["js", "dot"]
+dot = []
 js = []
 peg-trace = ["peg/trace"]
 

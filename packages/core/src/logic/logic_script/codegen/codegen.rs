@@ -321,7 +321,7 @@ impl<Arg: LogicArgument + GenerateLogicAsm> GenerateLogicScript for LogicScriptS
             }
             LogicScriptStatement::Label(label) => Ok(format!(
                 "\n{}{}\n",
-                " ".repeat((indent - 2).max(0)),
+                " ".repeat((indent.saturating_sub(2)).max(0)),
                 label.generate_logic_script(context, ())?,
             )),
             LogicScriptStatement::Directive(directive) => Ok(indent_line(

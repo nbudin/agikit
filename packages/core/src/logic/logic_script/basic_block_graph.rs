@@ -2,10 +2,12 @@ use std::collections::HashMap;
 
 use petgraph::{
     graph::{DiGraph, EdgeIndex, NodeIndex},
-    visit::{Dfs, EdgeRef},
+    visit::{Dfs, EdgeRef, Walker},
     Direction,
 };
 
+#[cfg(feature = "dot")]
+use crate::logic::asm::codegen::AsmCodeGenerationContext;
 use crate::logic::{
     logic_script::{
         ast::{LogicAST, LogicASTNode, LogicCommandNode},
@@ -25,10 +27,30 @@ impl<F: FnMut(&mut BasicBlockGraph, NodeIndex) -> bool> BasicBlockVisitor for F 
 }
 
 #[derive(Debug, Clone)]
-pub struct BasicBlock {
+pub struct SinglePathBasicBlock {
     pub label: Option<String>,
     pub commands: Vec<LogicCommandNode>,
-    pub conditions: Option<Vec<LogicConditionClause>>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ConditionalBasicBlock {
+    pub label: Option<String>,
+    pub conditions: Vec<LogicConditionClause>,
+}
+
+#[derive(Debug, Clone)]
+pub enum BasicBlock {
+    SinglePath(SinglePathBasicBlock),
+    Conditional(ConditionalBasicBlock),
+}
+
+impl BasicBlock {
+    pub fn label(&self) -> Option<&str> {
+        match self {
+            BasicBlock::SinglePath(block) => block.label.as_deref(),
+            BasicBlock::Conditional(block) => block.label.as_deref(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -38,11 +60,13 @@ pub enum BasicBlockEdgeType {
     IfElse,
 }
 
-pub enum BasicBlockControlFlow {
+pub enum BasicBlockControlFlow<'a> {
     SinglePath {
+        block: &'a SinglePathBasicBlock,
         next_id: Option<NodeIndex>,
     },
     Conditional {
+        block: &'a ConditionalBasicBlock,
         conditions: Vec<LogicConditionClause>,
         then_id: NodeIndex,
         else_id: Option<NodeIndex>,
@@ -69,9 +93,12 @@ impl BasicBlockGraph {
     }
 
     pub fn run_optimization_pass(&mut self, visitor: &mut dyn BasicBlockVisitor) -> bool {
-        let mut dfs = Dfs::new(&self.graph, self.root_block_id);
+        let queue = Dfs::new(&self.graph, self.root_block_id)
+            .iter(&self.graph)
+            .map(|block_id| block_id)
+            .collect::<Vec<_>>();
         let mut changed = false;
-        while let Some(block_id) = dfs.next(&self.graph) {
+        for block_id in queue {
             if visitor.visit_basic_block(self, block_id) {
                 changed = true;
             }
@@ -95,7 +122,7 @@ impl BasicBlockGraph {
     pub fn optimize(&mut self) {
         let mut visitors: Vec<Box<dyn BasicBlockVisitor>> = vec![
             Box::new(remove_empty_block),
-            Box::new(concatenate_linear_blocks),
+            // Box::new(concatenate_linear_blocks),
         ];
         self.run_optimization_passes(&mut visitors);
     }
@@ -121,47 +148,136 @@ impl BasicBlockGraph {
         &self,
         block_id: NodeIndex,
     ) -> Result<BasicBlockControlFlow, LogicScriptCodeGenerationError> {
-        let edges = self
-            .graph
-            .edges_directed(block_id, Direction::Outgoing)
-            .collect::<Vec<_>>();
-        let edge_types = edges.iter().map(|e| e.weight().clone()).collect::<Vec<_>>();
+        let block = self.graph.node_weight(block_id);
 
-        if edge_types.is_empty() {
-            Ok(BasicBlockControlFlow::SinglePath { next_id: None })
-        } else if edge_types == vec![BasicBlockEdgeType::Next] {
-            Ok(BasicBlockControlFlow::SinglePath {
-                next_id: Some(edges.first().unwrap().target()),
-            })
-        } else if edge_types == vec![BasicBlockEdgeType::IfThen]
-            || edge_types == vec![BasicBlockEdgeType::IfThen, BasicBlockEdgeType::IfElse]
-            || edge_types == vec![BasicBlockEdgeType::IfElse, BasicBlockEdgeType::IfThen]
-        {
-            Ok(BasicBlockControlFlow::Conditional {
-                conditions: self
+        match block {
+            Some(BasicBlock::SinglePath(block)) => {
+                let edges = self
                     .graph
-                    .node_weight(block_id)
-                    .and_then(|block| block.conditions.clone())
-                    .unwrap_or_default(),
-                then_id: edges
-                    .iter()
-                    .find(|edge| *edge.weight() == BasicBlockEdgeType::IfThen)
-                    .map(|edge| edge.target())
-                    .unwrap(),
-                else_id: edges
-                    .iter()
-                    .find(|edge| *edge.weight() == BasicBlockEdgeType::IfElse)
-                    .map(|edge| edge.target()),
-            })
-        } else {
-            Err(
-                LogicScriptCodeGenerationError::MalformedBasicBlockEdgeTypes(
-                    block_id,
-                    self.graph.node_weight(block_id).cloned(),
-                    edge_types,
-                ),
-            )
+                    .edges_directed(block_id, Direction::Outgoing)
+                    .filter(|edge| *edge.weight() == BasicBlockEdgeType::Next)
+                    .collect::<Vec<_>>();
+
+                if edges.len() > 1 {
+                    Err(
+                        LogicScriptCodeGenerationError::MalformedBasicBlockEdgeTypes(
+                            block_id,
+                            Some(BasicBlock::SinglePath(block.clone())),
+                            edges
+                                .into_iter()
+                                .map(|edge| edge.weight().clone())
+                                .collect(),
+                        ),
+                    )
+                } else {
+                    Ok(BasicBlockControlFlow::SinglePath {
+                        block,
+                        next_id: edges.first().map(|edge| edge.target()),
+                    })
+                }
+            }
+            Some(BasicBlock::Conditional(block)) => {
+                let if_then_edges = self
+                    .graph
+                    .edges_directed(block_id, Direction::Outgoing)
+                    .filter(|edge| *edge.weight() == BasicBlockEdgeType::IfThen)
+                    .collect::<Vec<_>>();
+
+                let if_else_edges = self
+                    .graph
+                    .edges_directed(block_id, Direction::Outgoing)
+                    .filter(|edge| *edge.weight() == BasicBlockEdgeType::IfElse)
+                    .collect::<Vec<_>>();
+
+                if if_then_edges.len() != 1 || if_else_edges.len() > 1 {
+                    Err(
+                        LogicScriptCodeGenerationError::MalformedBasicBlockEdgeTypes(
+                            block_id,
+                            Some(BasicBlock::Conditional(block.clone())),
+                            if_then_edges
+                                .into_iter()
+                                .chain(if_else_edges.into_iter())
+                                .map(|edge| edge.weight().clone())
+                                .collect(),
+                        ),
+                    )
+                } else {
+                    Ok(BasicBlockControlFlow::Conditional {
+                        block,
+                        conditions: block.conditions.clone(),
+                        then_id: if_then_edges.first().unwrap().target(),
+                        else_id: if_else_edges.first().map(|edge| edge.target()),
+                    })
+                }
+            }
+            None => Err(LogicScriptCodeGenerationError::BlockNotFound(block_id)),
         }
+    }
+}
+
+#[cfg(feature = "dot")]
+impl BasicBlockGraph {
+    pub fn to_dot(&self, asm_context: &AsmCodeGenerationContext) -> String {
+        use petgraph::dot::{Config, Dot};
+
+        use crate::logic::asm::expressions::LogicBooleanExpression;
+
+        format!(
+            "{:?}",
+            Dot::with_attr_getters(
+                &self.graph,
+                &[Config::NodeNoLabel, Config::EdgeNoLabel],
+                &|_graph_ref, edge_ref| match *edge_ref.weight() {
+                    BasicBlockEdgeType::Next => "",
+                    BasicBlockEdgeType::IfThen => "label = \"then\"",
+                    BasicBlockEdgeType::IfElse => "label = \"else\"",
+                }
+                .to_string(),
+                &|_graph_ref, (node_id, node_weight)| {
+                    use crate::logic::asm::codegen::GenerateLogicAsm;
+
+                    let (shape, node_desc) = match node_weight {
+                        BasicBlock::SinglePath(block) => (
+                            "box",
+                            block
+                                .commands
+                                .iter()
+                                .map(|c| c.command.generate_asm(asm_context, &HashMap::new()))
+                                .collect::<Result<Vec<_>, _>>()
+                                .expect("Error generating asm")
+                                .join("\n"),
+                        ),
+                        BasicBlock::Conditional(block) => (
+                            "diamond",
+                            format!(
+                                "if ({})",
+                                LogicBooleanExpression::from_clauses(
+                                    &block.conditions,
+                                    asm_context
+                                )
+                                .expect("Error generating conditions")
+                                .generate_asm(asm_context, &HashMap::new())
+                                .expect("Error generating asm"),
+                            ),
+                        ),
+                    };
+
+                    let label = format!(
+                        "{}\n{}",
+                        node_weight
+                            .label()
+                            .map(|l| l.to_owned())
+                            .unwrap_or_else(|| format!("Node {}", node_id.index())),
+                        node_desc
+                    );
+                    format!(
+                        "shape = {}, label = {}",
+                        shape,
+                        serde_json::to_string(&label).unwrap()
+                    )
+                },
+            )
+        )
     }
 }
 
@@ -188,11 +304,10 @@ fn build_basic_blocks(
         .expect("Node not found in AST graph");
     match node {
         LogicASTNode::Command(node) => {
-            let block = BasicBlock {
+            let block = BasicBlock::SinglePath(SinglePathBasicBlock {
                 label: node.label.as_ref().map(|l| l.label.clone()),
                 commands: vec![node.clone()],
-                conditions: None,
-            };
+            });
             let block_id = graph.add_node(block);
             block_ids_by_node_id.insert(node_id, block_id);
 
@@ -205,11 +320,10 @@ fn build_basic_blocks(
             block_id
         }
         LogicASTNode::If(node) => {
-            let block = BasicBlock {
-                commands: vec![],
+            let block = BasicBlock::Conditional(ConditionalBasicBlock {
                 label: node.label.as_ref().map(|l| l.label.clone()),
-                conditions: Some(node.clauses.clone()),
-            };
+                conditions: node.clauses.clone(),
+            });
             let block_id = graph.add_node(block);
             block_ids_by_node_id.insert(node_id, block_id);
 
@@ -228,11 +342,10 @@ fn build_basic_blocks(
             block_id
         }
         LogicASTNode::Goto(node) => {
-            let block = BasicBlock {
+            let block = BasicBlock::SinglePath(SinglePathBasicBlock {
                 commands: vec![],
                 label: node.label.as_ref().map(|l| l.label.clone()),
-                conditions: None,
-            };
+            });
             let block_id = graph.add_node(block);
             block_ids_by_node_id.insert(node_id, block_id);
 
@@ -248,53 +361,99 @@ fn build_basic_blocks(
 }
 
 pub fn remove_empty_block(graph: &mut BasicBlockGraph, block_id: NodeIndex) -> bool {
-    if let Some(edge_id) = graph.directed_neighbor_edge_id_of_type(
-        block_id,
-        Direction::Outgoing,
-        BasicBlockEdgeType::Next,
-    ) {
-        let (prev_block_id, next_block_id) = graph.graph.edge_endpoints(edge_id).unwrap();
-        let block = graph.graph.node_weight(block_id).unwrap();
+    let block = graph.graph.node_weight(block_id);
+    if let Some(BasicBlock::SinglePath(block)) = block {
+        if let Some(edge_id) = graph.directed_neighbor_edge_id_of_type(
+            block_id,
+            Direction::Outgoing,
+            BasicBlockEdgeType::Next,
+        ) {
+            let (_, next_block_id) = graph.graph.edge_endpoints(edge_id).unwrap();
+            if block.commands.is_empty() {
+                eprintln!(
+                    "Removing empty block {:?}: connecting {:?} -> {:?}",
+                    block_id, block_id, next_block_id
+                );
 
-        if block.commands.is_empty() {
-            graph
-                .graph
-                .add_edge(prev_block_id, next_block_id, BasicBlockEdgeType::Next);
-            graph.graph.remove_node(block_id);
-            graph.graph.remove_edge(edge_id);
-            return true;
+                let incoming_edges = graph
+                    .graph
+                    .edges_directed(block_id, Direction::Incoming)
+                    .map(|edge| (edge.id(), edge.source(), edge.weight().clone()))
+                    .collect::<Vec<_>>();
+                let outgoing_edges = graph
+                    .graph
+                    .edges_directed(block_id, Direction::Outgoing)
+                    .map(|edge| (edge.id(), edge.target(), edge.weight().clone()))
+                    .collect::<Vec<_>>();
+
+                eprintln!(
+                    "Incoming edges: {:?}\nOutgoing edges: {:?}",
+                    incoming_edges, outgoing_edges
+                );
+
+                for (edge_id, source_id, edge_weight) in incoming_edges {
+                    graph.graph.remove_edge(edge_id);
+                    graph.graph.add_edge(source_id, next_block_id, edge_weight);
+                }
+
+                for (edge_id, target_id, edge_weight) in outgoing_edges {
+                    graph.graph.remove_edge(edge_id);
+                    graph.graph.add_edge(next_block_id, target_id, edge_weight);
+                }
+
+                graph.graph.remove_node(block_id);
+                return true;
+            } else {
+                eprintln!("Single-path block {:?} is not empty", block_id);
+            }
+        } else {
+            eprintln!("Single-path block {:?} is terminal", block_id);
         }
+    } else {
+        eprintln!("Block {:?} is not single-path", block_id);
     }
 
     false
 }
 
 pub fn concatenate_linear_blocks(graph: &mut BasicBlockGraph, block_id: NodeIndex) -> bool {
-    if let Some(next_edge_id) = graph.directed_neighbor_edge_id_of_type(
-        block_id,
-        Direction::Outgoing,
-        BasicBlockEdgeType::Next,
-    ) {
-        let prev_edge_id = graph.directed_neighbor_edge_id_of_type(
+    if let Ok(BasicBlockControlFlow::SinglePath {
+        block,
+        next_id: Some(_),
+    }) = graph.control_flow_for_block(block_id)
+    {
+        let next_edge_id = graph
+            .directed_neighbor_edge_id_of_type(
+                block_id,
+                Direction::Outgoing,
+                BasicBlockEdgeType::Next,
+            )
+            .unwrap();
+
+        if let Some(prev_edge_id) = graph.directed_neighbor_edge_id_of_type(
             block_id,
             Direction::Incoming,
             BasicBlockEdgeType::Next,
-        );
-
-        if let Some(prev_edge_id) = prev_edge_id {
+        ) {
             let (prev_block_id, next_block_id) = graph.graph.edge_endpoints(prev_edge_id).unwrap();
-            let commands = graph.graph.node_weight(block_id).unwrap().commands.clone();
+            let commands = block.commands.clone();
 
             let prev_block = graph.graph.node_weight_mut(prev_block_id).unwrap();
-            prev_block.commands.extend(commands);
+            if let BasicBlock::SinglePath(prev_block) = prev_block {
+                eprintln!(
+                    "Concatenating linear blocks: inserting commands {:?}",
+                    commands
+                );
+                prev_block.commands.extend(commands);
 
-            graph.graph.remove_edge(prev_edge_id);
-            graph.graph.remove_edge(next_edge_id);
-            graph
-                .graph
-                .add_edge(prev_block_id, next_block_id, BasicBlockEdgeType::Next);
-            graph.graph.remove_node(block_id);
-            return true;
+                graph.graph.remove_edge(prev_edge_id);
+                graph.graph.remove_edge(next_edge_id);
+                graph
+                    .graph
+                    .add_edge(prev_block_id, next_block_id, BasicBlockEdgeType::Next);
+                graph.graph.remove_node(block_id);
+                return true;
+            }
         }
     }
 

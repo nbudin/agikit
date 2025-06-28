@@ -34,23 +34,6 @@ impl ReverseCFG {
                 })
                 .clone();
 
-            // for edge in basic_block_graph
-            //     .graph
-            //     .edges_directed(block_id, petgraph::Direction::Incoming)
-            // {
-            //     let source_block_id = edge.source();
-            //     let source_reverse_node_id = reverse_nodes_by_block_id
-            //         .entry(source_block_id)
-            //         .or_insert_with(|| {
-            //             reverse_graph.add_node(ReverseCFGNode::BasicBlock {
-            //                 id: source_block_id,
-            //             })
-            //         });
-            //     if !reverse_graph.contains_edge(reverse_node_id, *source_reverse_node_id) {
-            //         reverse_graph.add_edge(reverse_node_id, *source_reverse_node_id, ());
-            //     }
-            // }
-
             for edge in basic_block_graph
                 .graph
                 .edges_directed(block_id, petgraph::Direction::Outgoing)
@@ -64,8 +47,8 @@ impl ReverseCFG {
                         })
                     })
                     .clone();
-                if !reverse_graph.contains_edge(reverse_node_id, target_reverse_node_id) {
-                    reverse_graph.add_edge(reverse_node_id, target_reverse_node_id, ());
+                if !reverse_graph.contains_edge(target_reverse_node_id, reverse_node_id) {
+                    reverse_graph.add_edge(target_reverse_node_id, reverse_node_id, ());
                 }
             }
 
@@ -93,34 +76,31 @@ impl ReverseCFG {
 
 #[cfg(test)]
 mod tests {
-    use crate::logic::logic_script::basic_block_graph::{BasicBlock, BasicBlockEdgeType};
+    use crate::logic::logic_script::basic_block_graph::{
+        BasicBlock, BasicBlockEdgeType, SinglePathBasicBlock,
+    };
 
     use super::*;
 
     #[test]
     fn test_reverse_control_flow_graph() {
-        // let mut basic_block_graph = BasicBlockGraph;
         let mut graph = DiGraph::new();
-        let block_a = graph.add_node(BasicBlock {
+        let block_a = graph.add_node(BasicBlock::SinglePath(SinglePathBasicBlock {
             commands: vec![],
             label: Some("A".to_string()),
-            conditions: None,
-        });
-        let block_b = graph.add_node(BasicBlock {
+        }));
+        let block_b = graph.add_node(BasicBlock::SinglePath(SinglePathBasicBlock {
             commands: vec![],
             label: Some("B".to_string()),
-            conditions: None,
-        });
-        let block_c = graph.add_node(BasicBlock {
+        }));
+        let block_c = graph.add_node(BasicBlock::SinglePath(SinglePathBasicBlock {
             commands: vec![],
             label: Some("C".to_string()),
-            conditions: None,
-        });
-        let block_d = graph.add_node(BasicBlock {
+        }));
+        let block_d = graph.add_node(BasicBlock::SinglePath(SinglePathBasicBlock {
             commands: vec![],
             label: Some("D".to_string()),
-            conditions: None,
-        });
+        }));
 
         graph.add_edge(block_a, block_b, BasicBlockEdgeType::Next);
         graph.add_edge(block_b, block_c, BasicBlockEdgeType::Next);
