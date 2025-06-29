@@ -318,7 +318,18 @@ mod tests {
 
     use crate::{
         agi_version::AGIVersion,
-        logic::{logic_script::codegen::context::LogicScriptCodeGenerationContext, LogicProgram},
+        logic::{
+            asm::codegen::AsmCodeGenerationContext,
+            logic_script::{
+                ast::LogicAST,
+                basic_block_graph::BasicBlockGraph,
+                codegen::{
+                    codegen::GenerateLogicScript, context::LogicScriptCodeGenerationContext,
+                    program_generator::LogicScriptProgramGenerator,
+                },
+            },
+            LogicProgram,
+        },
         resources::{decode::Decode, file_provider::FileProvider, ResourceType},
         test_data::{uriquest_dir, uriquest_resources},
         word_list::WordList,
@@ -340,6 +351,19 @@ mod tests {
         )
         .expect("Failed to decode word list");
 
+        let ast = LogicAST::from_instructions(&logic.instructions).expect("Failed to generate AST");
+        let mut basic_block_graph = BasicBlockGraph::from_ast(&ast);
+        basic_block_graph.optimize();
+        let asm_context = AsmCodeGenerationContext {
+            logic: &logic,
+            word_list: &word_list,
+        };
+
+        File::create("debug-ast.dot")
+            .expect("Failed to open debug-ast.dot for writing")
+            .write_fmt(format_args!("{}", basic_block_graph.to_dot(&asm_context)))
+            .expect("Failed to write dot diagram");
+
         let context = LogicScriptCodeGenerationContext::try_from_program(&logic, &word_list)
             .expect("Failed to create code generation context");
 
@@ -353,19 +377,19 @@ mod tests {
             ))
             .expect("Failed to write dot diagram");
 
-        // let generator = LogicScriptProgramGenerator::new(&context);
+        let generator = LogicScriptProgramGenerator::new(&context);
 
-        // let statements = generator
-        //     .generate_statements()
-        //     .expect("Failed to generate logic script statements");
+        let statements = generator
+            .generate_statements()
+            .expect("Failed to generate logic script statements");
 
-        // panic!(
-        //     "{}",
-        //     statements
-        //         .into_iter()
-        //         .map(|s| s.generate_logic_script(&context, 0))
-        //         .collect::<Result<String, _>>()
-        //         .expect("Error generating logic script")
-        // );
+        panic!(
+            "{}",
+            statements
+                .into_iter()
+                .map(|s| s.generate_logic_script(&context, 0))
+                .collect::<Result<String, _>>()
+                .expect("Error generating logic script")
+        );
     }
 }

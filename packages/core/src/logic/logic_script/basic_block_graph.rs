@@ -51,6 +51,13 @@ impl BasicBlock {
             BasicBlock::Conditional(block) => block.label.as_deref(),
         }
     }
+
+    pub fn set_label(&mut self, label: Option<String>) {
+        match self {
+            BasicBlock::SinglePath(block) => block.label = label,
+            BasicBlock::Conditional(block) => block.label = label,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -122,7 +129,7 @@ impl BasicBlockGraph {
     pub fn optimize(&mut self) {
         let mut visitors: Vec<Box<dyn BasicBlockVisitor>> = vec![
             Box::new(remove_empty_block),
-            // Box::new(concatenate_linear_blocks),
+            Box::new(concatenate_linear_blocks),
         ];
         self.run_optimization_passes(&mut visitors);
     }
@@ -360,6 +367,48 @@ fn build_basic_blocks(
     }
 }
 
+fn remove_block(graph: &mut BasicBlockGraph, block_id: NodeIndex, new_target_block_id: NodeIndex) {
+    let block_label = graph
+        .graph
+        .node_weight(block_id)
+        .and_then(|block| block.label().map(|l| l.to_owned()));
+    let incoming_edges = graph
+        .graph
+        .edges_directed(block_id, Direction::Incoming)
+        .map(|edge| (edge.id(), edge.source(), edge.weight().clone()))
+        .collect::<Vec<_>>();
+    let outgoing_edges = graph
+        .graph
+        .edges_directed(block_id, Direction::Outgoing)
+        .map(|edge| (edge.id(), edge.target(), edge.weight().clone()))
+        .collect::<Vec<_>>();
+
+    for (edge_id, source_id, edge_weight) in incoming_edges {
+        graph.graph.remove_edge(edge_id);
+        if source_id != new_target_block_id {
+            graph
+                .graph
+                .add_edge(source_id, new_target_block_id, edge_weight);
+        }
+    }
+
+    for (edge_id, target_id, edge_weight) in outgoing_edges {
+        graph.graph.remove_edge(edge_id);
+        if new_target_block_id != target_id {
+            graph
+                .graph
+                .add_edge(new_target_block_id, target_id, edge_weight);
+        }
+    }
+
+    graph.graph.remove_node(block_id);
+
+    let new_target_block = graph.graph.node_weight_mut(new_target_block_id).unwrap();
+    if new_target_block.label().is_none() && block_label.is_some() {
+        new_target_block.set_label(block_label);
+    }
+}
+
 pub fn remove_empty_block(graph: &mut BasicBlockGraph, block_id: NodeIndex) -> bool {
     let block = graph.graph.node_weight(block_id);
     if let Some(BasicBlock::SinglePath(block)) = block {
@@ -370,89 +419,39 @@ pub fn remove_empty_block(graph: &mut BasicBlockGraph, block_id: NodeIndex) -> b
         ) {
             let (_, next_block_id) = graph.graph.edge_endpoints(edge_id).unwrap();
             if block.commands.is_empty() {
-                eprintln!(
-                    "Removing empty block {:?}: connecting {:?} -> {:?}",
-                    block_id, block_id, next_block_id
-                );
-
-                let incoming_edges = graph
-                    .graph
-                    .edges_directed(block_id, Direction::Incoming)
-                    .map(|edge| (edge.id(), edge.source(), edge.weight().clone()))
-                    .collect::<Vec<_>>();
-                let outgoing_edges = graph
-                    .graph
-                    .edges_directed(block_id, Direction::Outgoing)
-                    .map(|edge| (edge.id(), edge.target(), edge.weight().clone()))
-                    .collect::<Vec<_>>();
-
-                eprintln!(
-                    "Incoming edges: {:?}\nOutgoing edges: {:?}",
-                    incoming_edges, outgoing_edges
-                );
-
-                for (edge_id, source_id, edge_weight) in incoming_edges {
-                    graph.graph.remove_edge(edge_id);
-                    graph.graph.add_edge(source_id, next_block_id, edge_weight);
-                }
-
-                for (edge_id, target_id, edge_weight) in outgoing_edges {
-                    graph.graph.remove_edge(edge_id);
-                    graph.graph.add_edge(next_block_id, target_id, edge_weight);
-                }
-
-                graph.graph.remove_node(block_id);
+                remove_block(graph, block_id, next_block_id);
                 return true;
-            } else {
-                eprintln!("Single-path block {:?} is not empty", block_id);
             }
-        } else {
-            eprintln!("Single-path block {:?} is terminal", block_id);
         }
-    } else {
-        eprintln!("Block {:?} is not single-path", block_id);
     }
 
     false
 }
 
 pub fn concatenate_linear_blocks(graph: &mut BasicBlockGraph, block_id: NodeIndex) -> bool {
-    if let Ok(BasicBlockControlFlow::SinglePath {
-        block,
-        next_id: Some(_),
-    }) = graph.control_flow_for_block(block_id)
-    {
-        let next_edge_id = graph
-            .directed_neighbor_edge_id_of_type(
-                block_id,
-                Direction::Outgoing,
-                BasicBlockEdgeType::Next,
-            )
-            .unwrap();
-
+    let block = graph.graph.node_weight(block_id);
+    if let Some(BasicBlock::SinglePath(block)) = block {
         if let Some(prev_edge_id) = graph.directed_neighbor_edge_id_of_type(
             block_id,
             Direction::Incoming,
             BasicBlockEdgeType::Next,
         ) {
-            let (prev_block_id, next_block_id) = graph.graph.edge_endpoints(prev_edge_id).unwrap();
-            let commands = block.commands.clone();
+            if let Some(next_edge_id) = graph.directed_neighbor_edge_id_of_type(
+                block_id,
+                Direction::Outgoing,
+                BasicBlockEdgeType::Next,
+            ) {
+                let (prev_block_id, _) = graph.graph.edge_endpoints(prev_edge_id).unwrap();
+                let (_, next_block_id) = graph.graph.edge_endpoints(next_edge_id).unwrap();
+                let commands = block.commands.clone();
 
-            let prev_block = graph.graph.node_weight_mut(prev_block_id).unwrap();
-            if let BasicBlock::SinglePath(prev_block) = prev_block {
-                eprintln!(
-                    "Concatenating linear blocks: inserting commands {:?}",
-                    commands
-                );
-                prev_block.commands.extend(commands);
+                let prev_block = graph.graph.node_weight_mut(prev_block_id).unwrap();
+                if let BasicBlock::SinglePath(prev_block) = prev_block {
+                    prev_block.commands.extend(commands);
 
-                graph.graph.remove_edge(prev_edge_id);
-                graph.graph.remove_edge(next_edge_id);
-                graph
-                    .graph
-                    .add_edge(prev_block_id, next_block_id, BasicBlockEdgeType::Next);
-                graph.graph.remove_node(block_id);
-                return true;
+                    remove_block(graph, block_id, next_block_id);
+                    return true;
+                }
             }
         }
     }
