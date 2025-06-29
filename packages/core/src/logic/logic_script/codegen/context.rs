@@ -11,6 +11,7 @@ use crate::{
             codegen::errors::LogicScriptCodeGenerationError,
             control_flow_analysis::ReverseCFG,
             dominator_tree::DominatorTree,
+            optimization::Optimizable,
         },
         LogicProgram,
     },

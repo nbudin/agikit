@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use petgraph::{
     graph::{DiGraph, EdgeIndex, NodeIndex},
-    visit::{Dfs, EdgeRef, Walker},
+    visit::EdgeRef,
     Direction,
 };
 
@@ -12,6 +12,7 @@ use crate::logic::{
     logic_script::{
         ast::{LogicAST, LogicASTNode, LogicCommandNode},
         codegen::errors::LogicScriptCodeGenerationError,
+        optimization::{DirectedNeighborEdgeUtils, Optimizable, OptimizationVisitor},
     },
     LogicConditionClause,
 };
@@ -99,41 +100,6 @@ impl BasicBlockGraph {
         }
     }
 
-    pub fn run_optimization_pass(&mut self, visitor: &mut dyn BasicBlockVisitor) -> bool {
-        let queue = Dfs::new(&self.graph, self.root_block_id)
-            .iter(&self.graph)
-            .map(|block_id| block_id)
-            .collect::<Vec<_>>();
-        let mut changed = false;
-        for block_id in queue {
-            if visitor.visit_basic_block(self, block_id) {
-                changed = true;
-            }
-        }
-        changed
-    }
-
-    pub fn run_optimization_passes(&mut self, visitors: &mut [Box<dyn BasicBlockVisitor>]) -> () {
-        let mut keep_going = true;
-        while keep_going {
-            let mut changed = false;
-            for visitor in &mut *visitors {
-                if self.run_optimization_pass(visitor.as_mut()) {
-                    changed = true;
-                }
-            }
-            keep_going = changed;
-        }
-    }
-
-    pub fn optimize(&mut self) {
-        let mut visitors: Vec<Box<dyn BasicBlockVisitor>> = vec![
-            Box::new(remove_empty_block),
-            Box::new(concatenate_linear_blocks),
-        ];
-        self.run_optimization_passes(&mut visitors);
-    }
-
     pub fn directed_neighbor_edge_id_of_type(
         &self,
         node_id: NodeIndex,
@@ -219,6 +185,28 @@ impl BasicBlockGraph {
             }
             None => Err(LogicScriptCodeGenerationError::BlockNotFound(block_id)),
         }
+    }
+}
+
+impl Optimizable<DiGraph<BasicBlock, BasicBlockEdgeType>> for BasicBlockGraph {
+    fn get_graph(&self) -> &DiGraph<BasicBlock, BasicBlockEdgeType> {
+        &self.graph
+    }
+
+    fn get_graph_mut(&mut self) -> &mut DiGraph<BasicBlock, BasicBlockEdgeType> {
+        &mut self.graph
+    }
+
+    fn root_id(&self) -> NodeIndex {
+        self.root_block_id
+    }
+
+    fn optimization_visitors(
+    ) -> Vec<Box<dyn OptimizationVisitor<DiGraph<BasicBlock, BasicBlockEdgeType>>>> {
+        vec![
+            Box::new(remove_empty_block),
+            Box::new(concatenate_linear_blocks),
+        ]
     }
 }
 
@@ -367,57 +355,58 @@ fn build_basic_blocks(
     }
 }
 
-fn remove_block(graph: &mut BasicBlockGraph, block_id: NodeIndex, new_target_block_id: NodeIndex) {
+fn remove_block(
+    graph: &mut DiGraph<BasicBlock, BasicBlockEdgeType>,
+    block_id: NodeIndex,
+    new_target_block_id: NodeIndex,
+) {
     let block_label = graph
-        .graph
         .node_weight(block_id)
         .and_then(|block| block.label().map(|l| l.to_owned()));
     let incoming_edges = graph
-        .graph
         .edges_directed(block_id, Direction::Incoming)
         .map(|edge| (edge.id(), edge.source(), edge.weight().clone()))
         .collect::<Vec<_>>();
     let outgoing_edges = graph
-        .graph
         .edges_directed(block_id, Direction::Outgoing)
         .map(|edge| (edge.id(), edge.target(), edge.weight().clone()))
         .collect::<Vec<_>>();
 
     for (edge_id, source_id, edge_weight) in incoming_edges {
-        graph.graph.remove_edge(edge_id);
+        graph.remove_edge(edge_id);
         if source_id != new_target_block_id {
-            graph
-                .graph
-                .add_edge(source_id, new_target_block_id, edge_weight);
+            graph.add_edge(source_id, new_target_block_id, edge_weight);
         }
     }
 
     for (edge_id, target_id, edge_weight) in outgoing_edges {
-        graph.graph.remove_edge(edge_id);
+        graph.remove_edge(edge_id);
         if new_target_block_id != target_id {
-            graph
-                .graph
-                .add_edge(new_target_block_id, target_id, edge_weight);
+            graph.add_edge(new_target_block_id, target_id, edge_weight);
         }
     }
 
-    graph.graph.remove_node(block_id);
+    graph.remove_node(block_id);
 
-    let new_target_block = graph.graph.node_weight_mut(new_target_block_id).unwrap();
+    let new_target_block = graph.node_weight_mut(new_target_block_id).unwrap();
     if new_target_block.label().is_none() && block_label.is_some() {
         new_target_block.set_label(block_label);
     }
 }
 
-pub fn remove_empty_block(graph: &mut BasicBlockGraph, block_id: NodeIndex) -> bool {
-    let block = graph.graph.node_weight(block_id);
+pub fn remove_empty_block(
+    graph: &mut DiGraph<BasicBlock, BasicBlockEdgeType>,
+    block_id: NodeIndex,
+) -> bool {
+    let block = graph.node_weight(block_id);
     if let Some(BasicBlock::SinglePath(block)) = block {
-        if let Some(edge_id) = graph.directed_neighbor_edge_id_of_type(
+        if let Some(edge_id) = DirectedNeighborEdgeUtils::<BasicBlock, BasicBlockEdgeType>::directed_neighbor_edge_id_of_type(
+            graph,
             block_id,
             Direction::Outgoing,
             BasicBlockEdgeType::Next,
         ) {
-            let (_, next_block_id) = graph.graph.edge_endpoints(edge_id).unwrap();
+            let (_, next_block_id) = graph.edge_endpoints(edge_id).unwrap();
             if block.commands.is_empty() {
                 remove_block(graph, block_id, next_block_id);
                 return true;
@@ -428,24 +417,29 @@ pub fn remove_empty_block(graph: &mut BasicBlockGraph, block_id: NodeIndex) -> b
     false
 }
 
-pub fn concatenate_linear_blocks(graph: &mut BasicBlockGraph, block_id: NodeIndex) -> bool {
-    let block = graph.graph.node_weight(block_id);
+pub fn concatenate_linear_blocks(
+    graph: &mut DiGraph<BasicBlock, BasicBlockEdgeType>,
+    block_id: NodeIndex,
+) -> bool {
+    let block = graph.node_weight(block_id);
     if let Some(BasicBlock::SinglePath(block)) = block {
-        if let Some(prev_edge_id) = graph.directed_neighbor_edge_id_of_type(
+        if let Some(prev_edge_id) = DirectedNeighborEdgeUtils::<BasicBlock, BasicBlockEdgeType>::directed_neighbor_edge_id_of_type(
+            graph,
             block_id,
             Direction::Incoming,
             BasicBlockEdgeType::Next,
         ) {
-            if let Some(next_edge_id) = graph.directed_neighbor_edge_id_of_type(
+            if let Some(next_edge_id) = DirectedNeighborEdgeUtils::<BasicBlock, BasicBlockEdgeType>::directed_neighbor_edge_id_of_type(
+                graph,
                 block_id,
                 Direction::Outgoing,
                 BasicBlockEdgeType::Next,
             ) {
-                let (prev_block_id, _) = graph.graph.edge_endpoints(prev_edge_id).unwrap();
-                let (_, next_block_id) = graph.graph.edge_endpoints(next_edge_id).unwrap();
+                let (prev_block_id, _) = graph.edge_endpoints(prev_edge_id).unwrap();
+                let (_, next_block_id) = graph.edge_endpoints(next_edge_id).unwrap();
                 let commands = block.commands.clone();
 
-                let prev_block = graph.graph.node_weight_mut(prev_block_id).unwrap();
+                let prev_block = graph.node_weight_mut(prev_block_id).unwrap();
                 if let BasicBlock::SinglePath(prev_block) = prev_block {
                     prev_block.commands.extend(commands);
 
@@ -464,7 +458,9 @@ mod tests {
     use crate::{
         agi_version::AGIVersion,
         logic::{
-            logic_script::{ast::LogicAST, basic_block_graph::BasicBlockGraph},
+            logic_script::{
+                ast::LogicAST, basic_block_graph::BasicBlockGraph, optimization::Optimizable,
+            },
             LogicProgram,
         },
         resources::{decode::Decode, ResourceType},

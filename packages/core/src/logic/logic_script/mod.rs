@@ -8,5 +8,6 @@ pub mod identifiers;
 pub mod literals;
 pub mod locations;
 pub mod operators;
+pub mod optimization;
 pub mod parsing;
 pub mod statements;

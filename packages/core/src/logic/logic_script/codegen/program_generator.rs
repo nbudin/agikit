@@ -327,6 +327,7 @@ mod tests {
                     codegen::GenerateLogicScript, context::LogicScriptCodeGenerationContext,
                     program_generator::LogicScriptProgramGenerator,
                 },
+                optimization::Optimizable,
             },
             LogicProgram,
         },
