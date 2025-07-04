@@ -260,7 +260,7 @@ impl CommandToStatement for LogicCommand {
             transformer.transform(self, &args, context)
         } else {
             Ok(LogicScriptStatement::CommandCall(LogicScriptCommandCall {
-                commmand_name: command_name.clone(),
+                command_name: command_name.clone(),
                 argument_list: args,
             }))
         }

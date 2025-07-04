@@ -409,9 +409,7 @@ mod tests {
 
     use crate::{
         agi_version::AGIVersion,
-        logic::{
-            asm::codegen::AsmCodeGenerationContext, logic_script::ast::LogicAST, LogicProgram,
-        },
+        logic::{analysis::ast::LogicAST, asm::codegen::AsmCodeGenerationContext, LogicProgram},
         resources::{decode::Decode, file_provider::FileProvider, ResourceType},
         test_data::{uriquest_dir, uriquest_resources},
         word_list::WordList,

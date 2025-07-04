@@ -73,6 +73,10 @@ impl IdentifierMapping {
 pub struct IdentifierMap(HashMap<String, IdentifierMapping>);
 
 impl IdentifierMap {
+    pub fn builtins() -> Self {
+        Self::from_identifiers(IdentifierMapping::builtins())
+    }
+
     pub fn from_identifiers(identifiers: impl IntoIterator<Item = IdentifierMapping>) -> Self {
         Self(
             identifiers

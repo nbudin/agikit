@@ -1,18 +1,22 @@
+#[cfg(feature = "dot")]
+use crate::logic::logic_script::codegen::context::LogicScriptCodeGenerationContext;
 use crate::logic::{
-    asm::expressions::{LogicArgument, LogicBooleanExpression, LogicIdentifier},
+    asm::expressions::{
+        LogicArgument, LogicBooleanExpression, LogicIdentifier, ParsedLogicArgument,
+    },
     logic_script::{
         directives::LogicScriptDirective,
         operators::{LogicScriptArithmeticOperator, LogicScriptUnaryAssignmentOperator},
     },
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LogicScriptCommandCall<Arg: LogicArgument> {
-    pub commmand_name: String,
+    pub command_name: String,
     pub argument_list: Vec<Arg>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LogicScriptIfStatement<Arg: LogicArgument, StatementType> {
     pub conditions: LogicBooleanExpression<Arg>,
     pub then_statements: Vec<StatementType>,
@@ -21,32 +25,32 @@ pub struct LogicScriptIfStatement<Arg: LogicArgument, StatementType> {
     pub else_keyword: Option<LogicScriptKeyword>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LogicScriptUnaryOperationStatement {
     pub operation: LogicScriptUnaryAssignmentOperator,
     pub identifier: LogicIdentifier,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LogicScriptValueAssignmentStatement<Arg: LogicArgument> {
     pub assignee: LogicIdentifier,
     pub value: Arg,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LogicScriptArithmeticAssignmentStatement<Arg: LogicArgument> {
     pub operator: LogicScriptArithmeticOperator,
     pub assignee: LogicIdentifier,
     pub value: Arg,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LogicScriptLeftIndirectAssignmentStatement<Arg: LogicArgument> {
     pub assignee_pointer: LogicIdentifier,
     pub value: Arg,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LogicScriptRightIndirectAssignmentStatement {
     pub assignee: LogicIdentifier,
     pub value_pointer: LogicIdentifier,
@@ -57,23 +61,23 @@ pub struct LogicScriptComment {
     pub comment: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum KeywordType {
     If,
     Else,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LogicScriptKeyword {
     pub keyword: KeywordType,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LogicScriptLabel {
     pub label: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LogicScriptStatement<Arg: LogicArgument> {
     Label(LogicScriptLabel),
     CommandCall(LogicScriptCommandCall<Arg>),
@@ -85,4 +89,77 @@ pub enum LogicScriptStatement<Arg: LogicArgument> {
     ArithmeticAssignment(LogicScriptArithmeticAssignmentStatement<Arg>),
     LeftIndirectAssignment(LogicScriptLeftIndirectAssignmentStatement<Arg>),
     RightIndirectAssignment(LogicScriptRightIndirectAssignmentStatement),
+}
+
+impl LogicScriptStatement<ParsedLogicArgument> {
+    pub fn get_goto_target_label(&self) -> Option<&String> {
+        let LogicScriptStatement::CommandCall(statement) = self else {
+            return None;
+        };
+
+        if statement.command_name != "goto" {
+            return None;
+        }
+
+        let Some(ParsedLogicArgument::Identifier(target)) = statement.argument_list.first() else {
+            return None;
+        };
+
+        Some(&target.name)
+    }
+}
+
+#[cfg(feature = "dot")]
+impl LogicScriptStatement<ParsedLogicArgument> {
+    pub fn node_label(&self, context: &LogicScriptCodeGenerationContext) -> String {
+        use crate::logic::logic_script::codegen::codegen::GenerateLogicScript;
+
+        let label = match self {
+            LogicScriptStatement::IfStatement(if_statement) => format!(
+                "if ({})",
+                if_statement
+                    .conditions
+                    .generate_logic_script(&context, ())
+                    .unwrap()
+            ),
+            _ => self
+                .generate_logic_script(&context, 0)
+                .unwrap()
+                .trim()
+                .to_string(),
+        };
+
+        if label.len() > 50 {
+            format!("{}...", &label[0..50])
+        } else {
+            label
+        }
+    }
+
+    pub fn node_shape(&self) -> &str {
+        match self {
+            LogicScriptStatement::Directive(_) => "oval",
+            LogicScriptStatement::IfStatement(_) => "diamond",
+            LogicScriptStatement::Label(_) => "note",
+            LogicScriptStatement::Comment(_) => "parallelogram",
+            LogicScriptStatement::CommandCall(command_call) => {
+                if command_call.command_name == "goto" {
+                    "invtriangle"
+                } else {
+                    "box"
+                }
+            }
+            _ => "box",
+        }
+    }
+
+    pub fn node_attrs(&self, context: &LogicScriptCodeGenerationContext) -> String {
+        let label = self.node_label(context);
+        let shape = self.node_shape();
+
+        format!(
+            "shape = {shape}, label = {}",
+            serde_json::to_string(&label).expect("Failed to generate JSON")
+        )
+    }
 }

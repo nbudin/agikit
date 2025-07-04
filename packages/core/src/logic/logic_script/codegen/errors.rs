@@ -3,11 +3,12 @@ use std::fmt::Display;
 use petgraph::graph::NodeIndex;
 
 use crate::logic::{
-    asm::{codegen::AsmCodeGenerationError, expressions::ParsedLogicArgument},
-    logic_script::{
+    analysis::{
         ast::DecompilationError,
         basic_block_graph::{BasicBlock, BasicBlockEdgeType},
     },
+    asm::{codegen::AsmCodeGenerationError, expressions::ParsedLogicArgument},
+    logic_script::statements::LogicScriptStatement,
 };
 
 #[derive(Debug)]
@@ -16,10 +17,12 @@ pub enum LogicScriptCodeGenerationError {
     SerdeJsonError(serde_json::Error),
     DecompilationError(DecompilationError),
     BlockNotFound(NodeIndex),
+    StatementGraphNodeNotFound(NodeIndex),
     JumpToUnlabeledStatement(NodeIndex, Option<BasicBlock>),
     ConditionalToUnlabeledBlock(NodeIndex, Option<BasicBlock>),
     MalformedBasicBlockEdgeTypes(NodeIndex, Option<BasicBlock>, Vec<BasicBlockEdgeType>),
     UnexpectedArgument(ParsedLogicArgument),
+    GotoWithNoTarget(LogicScriptStatement<ParsedLogicArgument>),
 }
 
 fn describe_block(block_id: &NodeIndex, block: &Option<BasicBlock>) -> String {
@@ -38,6 +41,13 @@ impl Display for LogicScriptCodeGenerationError {
             LogicScriptCodeGenerationError::DecompilationError(e) => e.fmt(f),
             LogicScriptCodeGenerationError::BlockNotFound(block_id) => {
                 write!(f, "Block not found with ID: {}", block_id.index())
+            }
+            LogicScriptCodeGenerationError::StatementGraphNodeNotFound(node_id) => {
+                write!(
+                    f,
+                    "Statement graph node not found with ID: {}",
+                    node_id.index()
+                )
             }
             LogicScriptCodeGenerationError::UnexpectedArgument(arg) => {
                 write!(f, "Unexpected argument: {:?}", arg)
@@ -66,6 +76,13 @@ impl Display for LogicScriptCodeGenerationError {
                     "Malformed basic block edge types for {} with edge types: {:?}",
                     describe_block(block_id, block),
                     edge_types
+                )
+            }
+            LogicScriptCodeGenerationError::GotoWithNoTarget(statement) => {
+                write!(
+                    f,
+                    "Goto node with label {:?} has no target",
+                    statement.get_goto_target_label()
                 )
             }
         }

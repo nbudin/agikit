@@ -1,20 +1,22 @@
 use std::collections::HashMap;
 
 use petgraph::{
+    Direction,
     graph::{DiGraph, EdgeIndex, NodeIndex},
     visit::EdgeRef,
-    Direction,
 };
 
 #[cfg(feature = "dot")]
 use crate::logic::asm::codegen::AsmCodeGenerationContext;
 use crate::logic::{
-    logic_script::{
-        ast::{LogicAST, LogicASTNode, LogicCommandNode},
-        codegen::errors::LogicScriptCodeGenerationError,
-        optimization::{DirectedNeighborEdgeUtils, Optimizable, OptimizationVisitor},
-    },
     LogicConditionClause,
+    analysis::{
+        ast::{LogicAST, LogicASTNode, LogicCommandNode},
+        optimization::{
+            DirectedNeighborEdgeUtils, Optimizable, OptimizationVisitor, RemoveNodePreservingEdges,
+        },
+    },
+    logic_script::codegen::errors::LogicScriptCodeGenerationError,
 };
 
 pub trait BasicBlockVisitor {
@@ -202,10 +204,11 @@ impl Optimizable<DiGraph<BasicBlock, BasicBlockEdgeType>> for BasicBlockGraph {
     }
 
     fn optimization_visitors(
+        &self,
     ) -> Vec<Box<dyn OptimizationVisitor<DiGraph<BasicBlock, BasicBlockEdgeType>>>> {
         vec![
             Box::new(remove_empty_block),
-            Box::new(concatenate_linear_blocks),
+            // Box::new(concatenate_linear_blocks),
         ]
     }
 }
@@ -363,35 +366,13 @@ fn remove_block(
     let block_label = graph
         .node_weight(block_id)
         .and_then(|block| block.label().map(|l| l.to_owned()));
-    let incoming_edges = graph
-        .edges_directed(block_id, Direction::Incoming)
-        .map(|edge| (edge.id(), edge.source(), edge.weight().clone()))
-        .collect::<Vec<_>>();
-    let outgoing_edges = graph
-        .edges_directed(block_id, Direction::Outgoing)
-        .map(|edge| (edge.id(), edge.target(), edge.weight().clone()))
-        .collect::<Vec<_>>();
-
-    for (edge_id, source_id, edge_weight) in incoming_edges {
-        graph.remove_edge(edge_id);
-        if source_id != new_target_block_id {
-            graph.add_edge(source_id, new_target_block_id, edge_weight);
-        }
-    }
-
-    for (edge_id, target_id, edge_weight) in outgoing_edges {
-        graph.remove_edge(edge_id);
-        if new_target_block_id != target_id {
-            graph.add_edge(new_target_block_id, target_id, edge_weight);
-        }
-    }
-
-    graph.remove_node(block_id);
 
     let new_target_block = graph.node_weight_mut(new_target_block_id).unwrap();
     if new_target_block.label().is_none() && block_label.is_some() {
         new_target_block.set_label(block_label);
     }
+
+    graph.remove_node_preserving_edges(block_id, new_target_block_id);
 }
 
 pub fn remove_empty_block(
@@ -400,8 +381,7 @@ pub fn remove_empty_block(
 ) -> bool {
     let block = graph.node_weight(block_id);
     if let Some(BasicBlock::SinglePath(block)) = block {
-        if let Some(edge_id) = DirectedNeighborEdgeUtils::<BasicBlock, BasicBlockEdgeType>::directed_neighbor_edge_id_of_type(
-            graph,
+        if let Some(edge_id) = graph.directed_neighbor_edge_id_of_type(
             block_id,
             Direction::Outgoing,
             BasicBlockEdgeType::Next,
@@ -423,14 +403,12 @@ pub fn concatenate_linear_blocks(
 ) -> bool {
     let block = graph.node_weight(block_id);
     if let Some(BasicBlock::SinglePath(block)) = block {
-        if let Some(prev_edge_id) = DirectedNeighborEdgeUtils::<BasicBlock, BasicBlockEdgeType>::directed_neighbor_edge_id_of_type(
-            graph,
+        if let Some(prev_edge_id) = graph.directed_neighbor_edge_id_of_type(
             block_id,
             Direction::Incoming,
             BasicBlockEdgeType::Next,
         ) {
-            if let Some(next_edge_id) = DirectedNeighborEdgeUtils::<BasicBlock, BasicBlockEdgeType>::directed_neighbor_edge_id_of_type(
-                graph,
+            if let Some(next_edge_id) = graph.directed_neighbor_edge_id_of_type(
                 block_id,
                 Direction::Outgoing,
                 BasicBlockEdgeType::Next,
@@ -458,12 +436,12 @@ mod tests {
     use crate::{
         agi_version::AGIVersion,
         logic::{
-            logic_script::{
+            LogicProgram,
+            analysis::{
                 ast::LogicAST, basic_block_graph::BasicBlockGraph, optimization::Optimizable,
             },
-            LogicProgram,
         },
-        resources::{decode::Decode, ResourceType},
+        resources::{ResourceType, decode::Decode},
         test_data::uriquest_resources,
     };
 

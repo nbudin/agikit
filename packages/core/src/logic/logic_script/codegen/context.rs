@@ -4,15 +4,14 @@ use petgraph::graph::NodeIndex;
 
 use crate::{
     logic::{
-        asm::codegen::AsmCodeGenerationContext,
-        logic_script::{
+        analysis::{
             ast::LogicAST,
             basic_block_graph::{BasicBlock, BasicBlockGraph},
-            codegen::errors::LogicScriptCodeGenerationError,
-            control_flow_analysis::ReverseCFG,
-            dominator_tree::DominatorTree,
+            dominator_tree::DominationAnalysis,
             optimization::Optimizable,
         },
+        asm::codegen::AsmCodeGenerationContext,
+        logic_script::codegen::errors::LogicScriptCodeGenerationError,
         LogicProgram,
     },
     word_list::WordList,
@@ -21,10 +20,8 @@ use crate::{
 pub struct LogicScriptCodeGenerationContext<'a> {
     pub asm_context: AsmCodeGenerationContext<'a>,
     pub basic_block_graph: BasicBlockGraph,
-    pub dominator_tree: DominatorTree,
-    pub reverse_cfg: ReverseCFG,
-    pub post_dominator_tree: DominatorTree,
     pub block_labels: HashMap<NodeIndex, String>,
+    pub domination_analysis: DominationAnalysis,
 }
 
 impl<'a> LogicScriptCodeGenerationContext<'a> {
@@ -46,33 +43,20 @@ impl<'a> LogicScriptCodeGenerationContext<'a> {
         basic_block_graph: BasicBlockGraph,
         asm_context: AsmCodeGenerationContext<'a>,
     ) -> Self {
-        let dominator_tree =
-            DominatorTree::from_cfg(&basic_block_graph.graph, basic_block_graph.root_block_id);
-
-        let reverse_cfg = ReverseCFG::from_basic_block_graph(&basic_block_graph);
-
-        let post_dominator_tree =
-            DominatorTree::from_cfg(&reverse_cfg.graph, reverse_cfg.virtual_root_id);
+        let domination_analysis = DominationAnalysis::from_graph(
+            &basic_block_graph.graph,
+            basic_block_graph.root_block_id,
+        );
 
         Self {
             asm_context,
             basic_block_graph,
-            dominator_tree,
-            reverse_cfg,
-            post_dominator_tree,
+            domination_analysis,
             block_labels: HashMap::new(),
         }
     }
 
     pub fn get_block(&self, block_id: NodeIndex) -> Option<&BasicBlock> {
         self.basic_block_graph.graph.node_weight(block_id)
-    }
-
-    pub fn dominates(&self, a: NodeIndex, b: NodeIndex) -> bool {
-        self.dominator_tree.dominates(a, b)
-    }
-
-    pub fn post_dominates(&self, a: NodeIndex, b: NodeIndex) -> bool {
-        self.post_dominator_tree.dominates(a, b)
     }
 }

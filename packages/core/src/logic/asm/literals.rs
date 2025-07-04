@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct LogicNumberLiteral {
     pub value: i32,
 }
@@ -20,7 +20,7 @@ impl<'a> StringLiteral<'a, &'a str> for LogicStringLiteral {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum LogicLiteralValue {
     Number(LogicNumberLiteral),
     String(LogicStringLiteral),
@@ -32,7 +32,7 @@ impl LogicLiteralValue {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct LogicLiteral {
     pub value: LogicLiteralValue,
 }

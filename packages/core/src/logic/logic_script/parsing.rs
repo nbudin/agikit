@@ -264,7 +264,7 @@ peg::parser! {
         rule command_call() -> WithLocation<LogicScriptCommandCall<WithLocation<ParsedLogicArgument>>>
             = start:position!() command_name:identifier() "(" wsc()* argument_list:argument_list()? wsc()* ")" wsc()* ";" end:position!() {
                 LogicScriptCommandCall {
-                    commmand_name: command_name.value.name,
+                    command_name: command_name.value.name,
                     argument_list: argument_list.unwrap_or_default(),
                 }.with_location(location_range(start, end))
             }
@@ -555,7 +555,7 @@ mod tests {
 
         assert_eq!(result.len(), 1, "Expected one statement");
         if let LogicScriptStatement::CommandCall(call) = &*result[0] {
-            assert_eq!(call.commmand_name, "command");
+            assert_eq!(call.command_name, "command");
             assert_eq!(call.argument_list.len(), 2);
         } else {
             panic!("Expected a command call statement");

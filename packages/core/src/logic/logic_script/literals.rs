@@ -39,7 +39,7 @@ impl StringLiteral<'_, String> for LogicScriptStringLiteral {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LogicScriptLiteralValue {
     Number(LogicNumberLiteral),
     String(LogicScriptStringLiteral),
@@ -71,7 +71,7 @@ impl From<LogicScriptLiteral> for LogicLiteral {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LogicScriptLiteral {
     pub value: LogicScriptLiteralValue,
 }

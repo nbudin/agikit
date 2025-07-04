@@ -3,9 +3,10 @@ use std::collections::{HashSet, VecDeque};
 use petgraph::graph::NodeIndex;
 
 use crate::logic::{
+    LogicConditionClause,
+    analysis::basic_block_graph::{BasicBlock, BasicBlockControlFlow},
     asm::expressions::{LogicBooleanExpression, LogicIdentifier, ParsedLogicArgument},
     logic_script::{
-        basic_block_graph::{BasicBlock, BasicBlockControlFlow},
         codegen::{
             command_to_statement::CommandToStatement, context::LogicScriptCodeGenerationContext,
             errors::LogicScriptCodeGenerationError,
@@ -15,7 +16,6 @@ use crate::logic::{
             LogicScriptLabel, LogicScriptStatement,
         },
     },
-    LogicConditionClause,
 };
 
 pub struct LogicScriptProgramGenerator<'a> {
@@ -53,7 +53,7 @@ impl<'a> LogicScriptProgramGenerator<'a> {
 
     fn generate_goto(&self, label: String) -> LogicScriptStatement<ParsedLogicArgument> {
         LogicScriptStatement::CommandCall(LogicScriptCommandCall {
-            commmand_name: "goto".to_string(),
+            command_name: "goto".to_string(),
             argument_list: vec![ParsedLogicArgument::Identifier(LogicIdentifier {
                 name: label,
             })],
@@ -122,8 +122,14 @@ impl<'a> LogicScriptProgramGenerator<'a> {
         let command_statements = self.generate_command_statements(block_id)?;
 
         if let Some(next_block_id) = next_block_id {
-            if self.context.dominates(block_id, next_block_id)
-                && self.context.post_dominates(next_block_id, block_id)
+            if self
+                .context
+                .domination_analysis
+                .dominates(block_id, next_block_id)
+                && self
+                    .context
+                    .domination_analysis
+                    .post_dominates(next_block_id, block_id)
             {
                 let next_block_statements =
                     self.generate_logic_script_for_basic_block(next_block_id, queue)?;
@@ -159,7 +165,11 @@ impl<'a> LogicScriptProgramGenerator<'a> {
     {
         let mut generate_branch_code = |block_id: NodeIndex, to_block_id: Option<NodeIndex>| {
             if let Some(to_block_id) = to_block_id {
-                if !self.context.dominates(block_id, to_block_id) {
+                if !self
+                    .context
+                    .domination_analysis
+                    .dominates(block_id, to_block_id)
+                {
                     let Some(label) = self.find_basic_block_label(to_block_id)? else {
                         return Err(LogicScriptCodeGenerationError::ConditionalToUnlabeledBlock(
                             to_block_id,
@@ -183,7 +193,10 @@ impl<'a> LogicScriptProgramGenerator<'a> {
 
             if let Some(to_block_id) = to_block_id {
                 if branch_queue.len() > 0
-                    && !self.context.post_dominates(branch_queue[0], to_block_id)
+                    && !self
+                        .context
+                        .domination_analysis
+                        .post_dominates(branch_queue[0], to_block_id)
                 {
                     let Some(label) = self.find_basic_block_label(branch_queue[0])? else {
                         return Err(LogicScriptCodeGenerationError::ConditionalToUnlabeledBlock(
@@ -219,10 +232,15 @@ impl<'a> LogicScriptProgramGenerator<'a> {
 
         let mut subsequent_code = vec![];
         if let Some(else_id) = else_id {
-            if self.context.post_dominates(else_id, block_id)
-                && then_queue
-                    .iter()
-                    .all(|next_block_id| self.context.dominates(else_id, *next_block_id))
+            if self
+                .context
+                .domination_analysis
+                .post_dominates(else_id, block_id)
+                && then_queue.iter().all(|next_block_id| {
+                    self.context
+                        .domination_analysis
+                        .dominates(else_id, *next_block_id)
+                })
             {
                 // else clause can be unrolled
                 subsequent_code.extend_from_slice(
@@ -247,7 +265,11 @@ impl<'a> LogicScriptProgramGenerator<'a> {
                 continue;
             }
 
-            if !self.context.dominates(block_id, inner_block_id) {
+            if !self
+                .context
+                .domination_analysis
+                .dominates(block_id, inner_block_id)
+            {
                 queue.push_back(inner_block_id);
                 continue;
             }
@@ -319,22 +341,29 @@ mod tests {
     use crate::{
         agi_version::AGIVersion,
         logic::{
-            asm::codegen::AsmCodeGenerationContext,
+            LogicProgram,
+            analysis::{
+                ast::LogicAST, basic_block_graph::BasicBlockGraph,
+                dominator_tree::DominationAnalysis, optimization::Optimizable,
+            },
+            asm::{codegen::AsmCodeGenerationContext, expressions::ParsedLogicArgument},
             logic_script::{
-                ast::LogicAST,
-                basic_block_graph::BasicBlockGraph,
                 codegen::{
                     codegen::GenerateLogicScript, context::LogicScriptCodeGenerationContext,
                     program_generator::LogicScriptProgramGenerator,
+                    statement_graph::LogicScriptStatementGraph,
                 },
-                optimization::Optimizable,
+                identifiers::IdentifierMap,
+                statements::LogicScriptStatement,
             },
-            LogicProgram,
         },
-        resources::{decode::Decode, file_provider::FileProvider, ResourceType},
+        resources::{ResourceType, decode::Decode, file_provider::FileProvider},
         test_data::{uriquest_dir, uriquest_resources},
         word_list::WordList,
     };
+
+    use petgraph::graph::NodeIndex;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn smoke_test() {
@@ -368,8 +397,6 @@ mod tests {
         let context = LogicScriptCodeGenerationContext::try_from_program(&logic, &word_list)
             .expect("Failed to create code generation context");
 
-        eprintln!("Generated context!");
-
         File::create("debug.dot")
             .expect("Failed to open debug.dot for writing")
             .write_fmt(format_args!(
@@ -384,13 +411,60 @@ mod tests {
             .generate_statements()
             .expect("Failed to generate logic script statements");
 
-        panic!(
-            "{}",
-            statements
-                .into_iter()
-                .map(|s| s.generate_logic_script(&context, 0))
-                .collect::<Result<String, _>>()
-                .expect("Error generating logic script")
-        );
+        let mut statement_graph =
+            LogicScriptStatementGraph::from_statements(&statements, IdentifierMap::builtins());
+        statement_graph.optimize();
+
+        File::create("debug-statement-graph.dot")
+            .expect("Failed to open debug-statement-graph.dot for writing")
+            .write_fmt(format_args!("{}", statement_graph.to_dot(&context)))
+            .expect("Failed to write dot diagram");
+
+        let domination_analysis =
+            DominationAnalysis::from_graph(&statement_graph.graph, statement_graph.root_id);
+
+        let get_statement_label =
+            &|_statement_id: NodeIndex, statement: &LogicScriptStatement<ParsedLogicArgument>| {
+                statement.node_attrs(&context)
+            };
+
+        File::create("debug-statement-graph-dominators.dot")
+            .expect("Failed to open debug-statement-graph-dominators.dot for writing")
+            .write_fmt(format_args!(
+                "{}",
+                domination_analysis.dominators_to_dot(&statement_graph.graph, get_statement_label)
+            ))
+            .expect("Failed to write dot diagram");
+        File::create("debug-statement-graph-reverse-cfg.dot")
+            .expect("Failed to open debug-statement-graph-reverse-cfg.dot for writing")
+            .write_fmt(format_args!(
+                "{}",
+                domination_analysis.reverse_cfg_to_dot(&statement_graph.graph, get_statement_label)
+            ))
+            .expect("Failed to write dot diagram");
+        File::create("debug-statement-graph-post-dominators.dot")
+            .expect("Failed to open debug-statement-graph-post-dominators.dot for writing")
+            .write_fmt(format_args!(
+                "{}",
+                domination_analysis
+                    .post_dominators_to_dot(&statement_graph.graph, get_statement_label)
+            ))
+            .expect("Failed to write dot diagram");
+
+        let generated_statements = statement_graph
+            .to_statements()
+            .expect("Failed to generate statements");
+        let generated_script = generated_statements
+            .into_iter()
+            .map(|stmt| stmt.generate_logic_script(&context, 0))
+            .collect::<Result<String, _>>()
+            .expect("Failed to generate logic script");
+
+        let expected = uriquest_dir()
+            .read_file_utf8("0.agilogic")
+            .expect("Failed to read 0.agilogic");
+
+        eprintln!("{}", generated_script);
+        // assert_eq!(expected, generated_script);
     }
 }

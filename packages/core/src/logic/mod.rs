@@ -9,6 +9,7 @@ use crate::logic::{
     commands::{AGICommand, TestCommand},
 };
 
+pub mod analysis;
 pub mod asm;
 pub mod commands;
 pub mod decode;

@@ -178,8 +178,8 @@ impl<Arg: LogicArgument> GenerateLogicScript for LogicScriptCommandCall<Arg> {
         options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         Ok(format!(
-            "{}({})",
-            self.commmand_name,
+            "{}({});",
+            self.command_name,
             self.argument_list.generate_logic_script(context, options)?
         ))
     }
