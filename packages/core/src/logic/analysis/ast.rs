@@ -1,16 +1,16 @@
 use std::{collections::HashMap, fmt::Display};
 
 use petgraph::{
+    Direction,
     graph::{DiGraph, NodeIndex},
     visit::EdgeRef,
-    Direction,
 };
 
 #[cfg(feature = "dot")]
 use crate::logic::asm::codegen::AsmCodeGenerationContext;
 use crate::logic::{
-    asm::{codegen::generate_labels, LogicLabel},
     LogicCommand, LogicConditionClause, LogicInstruction,
+    asm::{LogicLabel, codegen::generate_labels},
 };
 
 pub type LogicASTGraph = DiGraph<LogicASTNode, LogicASTEdge>;
@@ -409,15 +409,15 @@ mod tests {
 
     use crate::{
         agi_version::AGIVersion,
-        logic::{analysis::ast::LogicAST, asm::codegen::AsmCodeGenerationContext, LogicProgram},
-        resources::{decode::Decode, file_provider::FileProvider, ResourceType},
-        test_data::{uriquest_dir, uriquest_resources},
+        logic::{LogicProgram, analysis::ast::LogicAST, asm::codegen::AsmCodeGenerationContext},
+        resources::{ResourceType, decode::Decode, file_provider::FileProvider},
+        test_data::{uriquest, uriquest_dir},
         word_list::WordList,
     };
 
     #[test]
     fn test_build_ast() {
-        let collection = uriquest_resources();
+        let collection = uriquest();
 
         let logic_data = collection
             .read_resource_data(ResourceType::LOGIC, 0)

@@ -44,6 +44,13 @@ impl<Ix: IndexType> DominationAnalysis<Ix> {
         self.dominator_tree.immediate_dominator(node_index)
     }
 
+    pub fn dominance_frontier(
+        &self,
+        node_index: NodeIndex<Ix>,
+    ) -> impl Iterator<Item = NodeIndex<Ix>> {
+        self.dominator_tree.dominance_frontier(node_index)
+    }
+
     pub fn post_dominates(&self, a: NodeIndex<Ix>, b: NodeIndex<Ix>) -> bool {
         let Some(reverse_a) = self.reverse_cfg.reference_node_id_for_source_node_id(a) else {
             return false;
@@ -78,6 +85,27 @@ impl<Ix: IndexType> DominationAnalysis<Ix> {
                 self.reverse_cfg
                     .source_node_id_for_reference_node_id(reverse_index)
             })
+    }
+
+    pub fn post_dominance_frontier(
+        &self,
+        node_index: NodeIndex<Ix>,
+    ) -> Box<dyn Iterator<Item = NodeIndex<Ix>> + '_> {
+        let Some(reverse_node_index) = self
+            .reverse_cfg
+            .reference_node_id_for_source_node_id(node_index)
+        else {
+            return Box::new(std::iter::empty::<NodeIndex<Ix>>());
+        };
+
+        Box::new(
+            self.post_dominator_tree
+                .dominance_frontier(reverse_node_index)
+                .filter_map(|reverse_index| {
+                    self.reverse_cfg
+                        .source_node_id_for_reference_node_id(reverse_index)
+                }),
+        )
     }
 }
 
@@ -216,6 +244,22 @@ impl<Ix: IndexType> ReferenceGraph<NodeReference<Ix>, DominatorTreeEdgeType, Dir
 impl<Ix: IndexType> DominatorTree<Ix> {
     pub fn from_graph<'a, N, E>(graph: &'a DiGraph<N, E, Ix>, start: NodeIndex<Ix>) -> Self {
         SemiNCASpanningTree::from_graph(graph, start).build_dominator_tree::<N, E>()
+    }
+
+    pub fn dominance_frontier(
+        &self,
+        node_index: NodeIndex<Ix>,
+    ) -> impl Iterator<Item = NodeIndex<Ix>> {
+        let node_index = self
+            .reference_node_id_for_source_node_id(node_index)
+            .unwrap();
+        self.graph
+            .edges_directed(node_index, Direction::Outgoing)
+            .into_iter()
+            .map(|edge| {
+                self.source_node_id_for_reference_node_id(edge.target())
+                    .unwrap()
+            })
     }
 
     pub fn immediate_dominator(&self, node_index: NodeIndex<Ix>) -> Option<NodeIndex<Ix>> {

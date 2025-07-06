@@ -1,3 +1,5 @@
+use strum_macros::AsRefStr;
+
 #[cfg(feature = "dot")]
 use crate::logic::logic_script::codegen::context::LogicScriptCodeGenerationContext;
 use crate::logic::{
@@ -77,7 +79,7 @@ pub struct LogicScriptLabel {
     pub label: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, AsRefStr)]
 pub enum LogicScriptStatement<Arg: LogicArgument> {
     Label(LogicScriptLabel),
     CommandCall(LogicScriptCommandCall<Arg>),

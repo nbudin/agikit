@@ -1,11 +1,28 @@
-use std::path::Path;
+use std::{
+    path::{Path, PathBuf},
+    str::FromStr,
+    sync::{Arc, LazyLock},
+};
 
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 use web_sys::js_sys::Uint8Array;
 
-use crate::{agi_version::AGIVersion, resources::ResourceType, buffer::Buffer};
+use crate::{
+    agi_version::{AGIMajorVersion, AGIVersion},
+    buffer::Buffer,
+    logic::LogicProgram,
+    object_list::ObjectList,
+    resources::{
+        ResourceType,
+        decode::{Decode, DecodingError},
+        dirs::{ResourceDirDecodeOptions, ResourceDirs},
+        file_provider::{FileProvider, ReadSeek},
+        resource_collection::{ResourceCollection, ResourceCollectionVersionData},
+    },
+    word_list::WordList,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[wasm_bindgen]
@@ -153,22 +170,30 @@ impl From<ExplicitVolumeSpecification> for ExplicitVolumeSpecificationFileSectio
 
 #[wasm_bindgen]
 pub struct Project {
-    #[wasm_bindgen(js_name = "basePath", getter_with_clone)]
-    pub base_path: String,
+    #[wasm_bindgen(skip)]
+    pub file_provider: Arc<dyn FileProvider>,
+    #[wasm_bindgen(skip)]
+    resource_collection: LazyLock<
+        ResourceCollection<Arc<dyn FileProvider>>,
+        Box<dyn Fn() -> ResourceCollection<Arc<dyn FileProvider>>>,
+    >,
     #[wasm_bindgen(getter_with_clone)]
     pub config: ProjectConfig,
 }
 
-#[wasm_bindgen]
 impl Project {
-    #[wasm_bindgen(constructor)]
-    pub fn new(base_path: String, config: Option<ProjectConfig>) -> Self {
+    pub fn new<FP: FileProvider + 'static>(
+        file_provider: FP,
+        config: Option<ProjectConfig>,
+    ) -> Self {
+        let file_provider = Arc::new(file_provider) as Arc<dyn FileProvider>;
+
         let config = match config {
             Some(cfg) => cfg,
             None => {
-                let config_path = Path::new(&base_path).join("agikit-project.json");
-                if config_path.exists() {
-                    let json = std::fs::read_to_string(&config_path)
+                if file_provider.exists("agikit-project.json") {
+                    let json = file_provider
+                        .read_file_utf8("agikit-project.json")
                         .expect("Failed to read project config file");
                     serde_json::from_str(&json).expect("Error parsing project config")
                 } else {
@@ -177,12 +202,96 @@ impl Project {
             }
         };
 
-        Self { base_path, config }
+        let major_version_lazy = config.agi_version.major.clone();
+        let file_provider_lazy = file_provider.clone();
+        let game_id_lazy = config.game_id.clone();
+        let init_resource_collection = move || {
+            let decode_options = match major_version_lazy {
+                AGIMajorVersion::AGI2 => ResourceDirDecodeOptions::AGI2 {
+                    file_provider: file_provider_lazy.clone(),
+                },
+                AGIMajorVersion::AGI3 => ResourceDirDecodeOptions::AGI3 {
+                    file_provider: file_provider_lazy.clone(),
+                    game_id: game_id_lazy.clone(),
+                },
+            };
+
+            let dirs = ResourceDirs::read(decode_options).unwrap();
+
+            let version_data = match major_version_lazy {
+                AGIMajorVersion::AGI2 => ResourceCollectionVersionData::AGI2,
+                AGIMajorVersion::AGI3 => ResourceCollectionVersionData::AGI3(game_id_lazy.clone()),
+            };
+
+            ResourceCollection::new(version_data, file_provider_lazy.clone(), dirs)
+        };
+
+        Self {
+            file_provider,
+            config,
+            resource_collection: LazyLock::new(Box::new(init_resource_collection)),
+        }
+    }
+
+    pub fn resource_collection(&self) -> &ResourceCollection<Arc<dyn FileProvider>> {
+        &self.resource_collection
+    }
+
+    pub fn read_resource_data(
+        &self,
+        resource_type: ResourceType,
+        resource_number: u16,
+    ) -> Result<Vec<u8>, DecodingError> {
+        self.resource_collection
+            .read_resource_data(resource_type, resource_number)
+    }
+
+    pub fn decode_logic(&self, resource_number: u16) -> Result<LogicProgram, DecodingError> {
+        let data = self.read_resource_data(ResourceType::LOGIC, resource_number)?;
+        LogicProgram::decode_from_bytes(&data, &self.config.agi_version)
+    }
+
+    pub fn decode_object_list(&self) -> Result<ObjectList, DecodingError> {
+        let mut data = self.file_provider.open_file("OBJECT")?;
+        ObjectList::decode(&mut data, ())
+    }
+
+    pub fn decode_word_list(&self) -> Result<WordList, DecodingError> {
+        let mut data = self.file_provider.open_file("WORDS.TOK")?;
+        WordList::decode(&mut data, ())
+    }
+}
+
+impl FileProvider for Project {
+    fn base_path(&self) -> String {
+        self.file_provider.base_path()
+    }
+
+    fn exists(&self, path: &str) -> bool {
+        self.file_provider.exists(path)
+    }
+
+    fn open_file<'a>(&'a self, path: &str) -> Result<Box<dyn ReadSeek + 'a>, std::io::Error> {
+        self.file_provider.open_file(path)
+    }
+}
+
+#[wasm_bindgen]
+impl Project {
+    #[wasm_bindgen(constructor)]
+    pub fn js_new(base_path: String, config: Option<ProjectConfig>) -> Self {
+        let file_provider = PathBuf::from_str(&base_path).unwrap();
+        Self::new(file_provider, config)
+    }
+
+    #[wasm_bindgen(getter, js_name = "basePath")]
+    pub fn base_path(&self) -> String {
+        self.file_provider.base_path()
     }
 
     #[wasm_bindgen(getter, js_name = "projectConfigPath")]
     pub fn project_config_path(&self) -> String {
-        Path::new(&self.base_path)
+        Path::new(&self.base_path())
             .join("agikit-project.json")
             .to_string_lossy()
             .to_string()
@@ -190,7 +299,7 @@ impl Project {
 
     #[wasm_bindgen(getter, js_name = "sourcePath")]
     pub fn source_path(&self) -> String {
-        Path::new(&self.base_path)
+        Path::new(&self.base_path())
             .join("src")
             .to_string_lossy()
             .to_string()
@@ -198,7 +307,7 @@ impl Project {
 
     #[wasm_bindgen(getter, js_name = "destinationPath")]
     pub fn destination_path(&self) -> String {
-        Path::new(&self.base_path)
+        Path::new(&self.base_path())
             .join("build")
             .to_string_lossy()
             .to_string()
@@ -206,7 +315,7 @@ impl Project {
 
     #[wasm_bindgen(getter, js_name = "wordListSourcePath")]
     pub fn word_list_source_path(&self) -> String {
-        Path::new(&self.base_path)
+        Path::new(&self.base_path())
             .join("words.txt")
             .to_string_lossy()
             .to_string()
@@ -214,7 +323,7 @@ impl Project {
 
     #[wasm_bindgen(getter, js_name = "objectListSourcePath")]
     pub fn object_list_source_path(&self) -> String {
-        Path::new(&self.base_path)
+        Path::new(&self.base_path())
             .join("object.json")
             .to_string_lossy()
             .to_string()
@@ -222,7 +331,7 @@ impl Project {
 
     #[wasm_bindgen(getter, js_name = "explicitVolumeConfigPath")]
     pub fn explicit_volume_config_path(&self) -> String {
-        Path::new(&self.base_path)
+        Path::new(&self.base_path())
             .join("resourceVolumes.json")
             .to_string_lossy()
             .to_string()

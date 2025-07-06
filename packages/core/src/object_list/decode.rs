@@ -66,7 +66,7 @@ mod tests {
         resources::{decode::Decode, file_provider::FileProvider},
         test_data::uriquest_dir,
     };
-    use pretty_assertions::assert_eq;
+    use similar_asserts::assert_eq;
 
     #[test]
     fn test_decode_object() {

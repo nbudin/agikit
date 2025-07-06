@@ -1,8 +1,12 @@
 use include_dir::Dir;
 
-use crate::resources::{
-    dirs::{ResourceDirDecodeOptions, ResourceDirs},
-    resource_collection::{ResourceCollection, ResourceCollectionVersionData},
+use crate::{
+    agi_version::AGIVersion,
+    project::{Project, ProjectConfig},
+    resources::{
+        dirs::{ResourceDirDecodeOptions, ResourceDirs},
+        resource_collection::{ResourceCollection, ResourceCollectionVersionData},
+    },
 };
 
 static TEST_DATA_DIR: Dir<'_> = include_dir::include_dir!("$CARGO_MANIFEST_DIR/test_data");
@@ -34,6 +38,16 @@ pub fn uriquest_resources() -> ResourceCollection<Dir<'static>> {
         ResourceCollectionVersionData::AGI2,
         file_provider.clone(),
         dirs,
+    )
+}
+
+pub fn uriquest() -> Project {
+    Project::new(
+        uriquest_dir(),
+        Some(ProjectConfig::new(
+            AGIVersion::new(2, 917),
+            "URIQUEST".to_string(),
+        )),
     )
 }
 

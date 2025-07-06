@@ -119,17 +119,17 @@ pub struct LogicProgram {
 mod tests {
     use crate::{
         agi_version::AGIVersion,
-        resources::{decode::Decode, encode::Encode, ResourceType},
-        test_data::uriquest_resources,
+        resources::{ResourceType, decode::Decode, encode::Encode},
+        test_data::uriquest,
     };
 
     use super::*;
-    use pretty_assertions::assert_eq;
+    use similar_asserts::assert_eq;
 
     #[test]
     fn smoke_test() {
-        let collection = uriquest_resources();
-        let logic_data = collection
+        let uriquest = uriquest();
+        let logic_data = uriquest
             .read_resource_data(ResourceType::LOGIC, 0)
             .expect("Failed to read logic resource 0");
         let logic_program = LogicProgram::decode_from_bytes(&logic_data, &AGIVersion::new(2, 917))

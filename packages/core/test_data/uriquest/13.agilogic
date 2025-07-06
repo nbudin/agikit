@@ -1,0 +1,385 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f100);
+  reset(f102);
+  reset(f103);
+  reset(f105);
+  reset(f108);
+  reset(f109);
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  v51 = 13;
+  animate.obj(o1);
+  load.view(36);
+  set.view(o1, 36);
+  set.loop(o1, 0);
+  set.cel(o1, 3);
+  ignore.blocks(o1);
+  ignore.objs(o1);
+  position(o1, 38, 68);
+  set.priority(o1, 4);
+  stop.cycling(o1);
+  draw(o1);
+
+  if (v1 == 11) {
+    ignore.blocks(o0);
+    ignore.objs(o0);
+    position(o0, 40, 64);
+    set.loop(o0, 2);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f100);
+    program.control();
+  }
+
+  if (v50 == 2) {
+    if (has(i17)) {
+      if (has(i15)) {
+        animate.obj(o2);
+        load.view(3);
+        set.view(o2, 3);
+        set.loop(o2, 1);
+        position(o2, 77, 135);
+        stop.cycling(o2);
+        draw(o2);
+        program.control();
+        set(f106);
+      }
+    }
+  }
+
+Address132:
+  draw(o0);
+  show.pic();
+}
+
+if (f106) {
+  move.obj(o0, 70, 130, 1, f108);
+}
+
+if (f108) {
+  reset(f106);
+  reset(f108);
+  print("\"Hi Sigurd.\" John says.");
+  print("\"Hi John.\" Ziggy says. \"How are you today?\"");
+  print("\"Good.\" John replies. \"So listen, do you want to play a really cool new game with us later?\"");
+  print("\"Ya, of course I do.\" replies Ziggy.");
+  print("\"Good, then listen...\" John says. \"Ed needs you to do him a favor. Can you wash and dry this puke-ridden blanket for him? If you do, we'll let you play the game with us.\"");
+  print("\"Ya, sure. I can do that.\" answers Ziggy. \"But I don't have any quarters. I need 12 quarters to do both washing and drying. I don't have any laundry detergent either. And to top it all off, I forgot where my fabric softener is!\"");
+  v3 += 3;
+  load.sound(12);
+  sound(12, f153);
+  print("\"Tell it to someone who cares, Sigurd.\" John says. \"Here, take the puke blanket from me. I can't bear to smell that shit anymore!\"");
+  print("\"Thanks, John.\" Ziggy says.");
+  print("\"I'll tell ya what...\" John says. \"If you can find the penny that Ed stole from me, I'll let you borrow my laundry detergent.\"");
+  print("\"Oh thank you, John!\" Ziggy replies.");
+  print("\"No problem, Zig.\" John says. \"I'm leaving now, but I'll be in Fine Arts if you find my penny. See ya!\"");
+  print("\"See ya.\" Sigurd says.");
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  set(f109);
+}
+
+if (f109) {
+  move.obj(o0, 40, 80, 1, f110);
+}
+
+if (f110) {
+  reset(f109);
+  reset(f110);
+  load.sound(3);
+  sound(3, f153);
+  end.of.loop(o1, f111);
+}
+
+if (f111) {
+  move.obj(o0, 40, 67, 1, f112);
+}
+
+if (f112) {
+  reset(f111);
+  reset(f112);
+  erase(o0);
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o1, f113);
+}
+
+if (f113) {
+  reset(f113);
+  erase(o2);
+  load.view(3);
+  set.view(o0, 3);
+  set.loop(o0, 1);
+  position(o0, 77, 135);
+  observe.blocks(o0);
+  observe.objs(o0);
+  start.cycling(o0);
+  draw(o0);
+  v50 = 3;
+  drop(i3);
+  drop(i15);
+  print("Well, here you are, Ziggy. You'd better get moving to find all those quarters, and God knows what else you might need to do along the way.");
+  player.control();
+}
+
+if (f100) {
+  move.obj(o0, 40, 80, 1, f101);
+}
+
+if (f101) {
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o1, f105);
+  reset(f101);
+  reset(f100);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (said("o", "d")) {
+  if (posn(o0, 36, 68, 51, 72)) {
+    program.control();
+    load.sound(3);
+    sound(3, f153);
+    end.of.loop(o1, f103);
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (f103) {
+  move.obj(o0, 40, 70, 1, f102);
+}
+
+if (f102) {
+  reset(f103);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  move.obj(o0, 40, 60, 1, f104);
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("C200B is the dorm room of Sigurd (Ziggy for short), the clueless Norwegian. There are two beds, two bureaus, and two desks. Ziggy's roommate is a really weird kid named Andrew. Conveniently, he is never around.");
+}
+
+if (said("examine", "d")) {
+  print("It's used to enter and exit the room.");
+}
+
+if (said("examine", "floor") || said("examine", "ceiling")) {
+  print("There's nothing special about it.");
+}
+
+if (said("examine", "wall")) {
+  print("There are some posters, but not much else (besides cracks).");
+}
+
+if (said("examine", "crack") || said("examine", "crack", "wall")) {
+  print("There is nothing special about them.");
+}
+
+if (said("examine", "poster")) {
+  print("The usual dorm room fare: naked chicks, psychadelic art, etc... Ziggy has a Norwegian poster near his bed.");
+}
+
+if (said("examine", "chair")) {
+  print("The chairs are unimportant.");
+}
+
+if (said("examine", "norge", "poster")) {
+  print("There's nothing special about it.");
+}
+
+if (said("examine", "norge")) {
+  print("Something tells me you can't quite see Norway from here.");
+}
+
+if (said("examine", "behind", "norge", "poster")) {
+  print("There's nothing there.");
+}
+
+if (said("examine", "bureau") || said("examine", "bed") || said("examine", "desk") || said("o", "bureau") || said("examine", "behind", "bureau")) {
+  print("Which one?");
+}
+
+if (said("examine", "left", "bureau") || said("examine", "b", "bureau") || said("examine", "sigurd", "bureau")) {
+  print("Ziggy's bureau rests against the left wall.  It contains smelly Norwegian socks, smelly Norwegian shirts, and smelly Norwegian pants.  In other words, nothing you need.");
+}
+
+if (said("o", "left", "bureau") || said("o", "b", "bureau") || said("o", "sigurd", "bureau")) {
+  print("Trust me.  You don't need or want anything that's in there.");
+}
+
+if (said("examine", "right", "bureau") || said("examine", "t", "bureau") || said("examine", "andrew", "bureau")) {
+  print("Andrew's bureau rests against the top wall.  It probably contains many hippie-type clothes and some miscellaneous drug paraphenalia. Nothing you really need.");
+}
+
+if (said("o", "right", "bureau") || said("o", "t", "bureau") || said("o", "andrew", "bureau")) {
+  print("Now that would just be rude.  Really, you don't need anything that's in there.");
+}
+
+if (said("examine", "left", "desk") || said("examine", "b", "desk") || said("examine", "sigurd", "desk")) {
+  print("Ziggy's desk is up against the bottom wall. His schedule is resting on it.");
+}
+
+if (said("examine", "eds schedule") || said("examine", "sigurd", "eds schedule") || said("read", "eds schedule") || said("read", "sigurd", "eds schedule")) {
+  if (posn(o0, 38, 131, 64, 139)) {
+    if (v50 == 3) {
+      if (!f181) {
+        set(f181);
+        v3 += 1;
+        load.sound(1);
+        sound(1, f153);
+        print("Today:\n\nWake up.\n\nTake make-up test at Ballentine.\n\nSleep.");
+      } else {
+        print("Today:\n\nWake up.\n\nTake make-up test at Ballentine.\n\nSleep.");
+      }
+    } else {
+      print("Only Ziggy himself would be interested in his schedule.");
+    }
+  } else {
+    print("Get closer.");
+  }
+}
+
+if (said("o", "left", "desk") || said("o", "b", "desk") || said("o", "sigurd", "desk")) {
+  print("You look inside but don't see anything you need or want.");
+}
+
+if (said("examine", "right", "desk") || said("examine", "t", "desk") || said("examine", "andrew", "desk")) {
+  print("Andrew's desk is up against the right wall.");
+}
+
+if (said("o", "right", "desk") || said("o", "t", "desk") || said("o", "andrew", "desk")) {
+  print("Now that would just be rude.  Really, you don't need anything that's in there.");
+}
+
+if (said("examine", "sigurd", "bed") || said("examine", "b", "bed") || said("examine", "pink", "bed")) {
+  print("Ziggy's bed is in the lower right corner.  Sadly, it never sees much action.");
+}
+
+if (said("examine", "andrew", "bed") || said("examine", "t", "bed") || said("examine", "purple", "bed")) {
+  print("Andrew's bed is where he sleeps a couple nights a week.");
+}
+
+if (said("acquire", "bed") || said("sleep") || said("go", "sleep") || said("go", "bed") || said("sleep", "bed")) {
+  print("You don't need to.");
+}
+
+if (said("examine", "behind", "andrew", "bureau") || said("examine", "behind", "right", "bureau") || said("examine", "behind", "t", "bureau")) {
+  if (posn(o0, 50, 66, 80, 74)) {
+    print("You see nothing.");
+  } else {
+    print("You can't see behind there from here.");
+  }
+}
+
+if (said("examine", "behind", "sigurd", "bureau") || said("examine", "behind", "left", "bureau") || said("examine", "behind", "b", "bureau")) {
+  if (obj.in.room(i5, v51)) {
+    if (posn(o0, 18, 102, 24, 114)) {
+      print("You see a calculator has fallen behind it.");
+    } else {
+      print("You can't see behind there from here.");
+    }
+  } else {
+    if (posn(o0, 18, 102, 24, 114)) {
+      print("You see nothing.");
+    } else {
+      print("You can't see behind there from here.");
+    }
+  }
+}
+
+if (said("acquire", "calculator")) {
+  if (v50 == 3) {
+    if (obj.in.room(i5, v51)) {
+      if (posn(o0, 18, 102, 24, 114)) {
+        load.sound(12);
+        sound(12, f153);
+        print("Ok.");
+        get(i5);
+        v3 += 1;
+      } else {
+        print("You can't get it from here.");
+      }
+    } else {
+      reset(f4);
+    }
+  } else {
+    print("You don't need it.");
+  }
+}
+
+if (f3) {
+  reset(f100);
+  reset(f102);
+  reset(f103);
+  reset(f105);
+  reset(f108);
+  reset(f109);
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  erase(o1);
+  new.room(11);
+}
+return();
+
+
+// messages
+#message 1 "\"Hi Sigurd.\" John says."
+#message 2 "\"Hi John.\" Ziggy says. \"How are you today?\""
+#message 3 "\"Good.\" John replies. \"So listen, do you want to play a really cool new game with us later?\""
+#message 4 "\"Ya, of course I do.\" replies Ziggy."
+#message 5 "\"Good, then listen...\" John says. \"Ed needs you to do him a favor. Can you wash and dry this puke-ridden blanket for him? If you do, we'll let you play the game with us.\""
+#message 6 "\"Ya, sure. I can do that.\" answers Ziggy. \"But I don't have any quarters. I need 12 quarters to do both washing and drying. I don't have any laundry detergent either. And to top it all off, I forgot where my fabric softener is!\""
+#message 7 "\"Tell it to someone who cares, Sigurd.\" John says. \"Here, take the puke blanket from me. I can't bear to smell that shit anymore!\""
+#message 8 "\"Thanks, John.\" Ziggy says."
+#message 9 "\"I'll tell ya what...\" John says. \"If you can find the penny that Ed stole from me, I'll let you borrow my laundry detergent.\""
+#message 10 "\"Oh thank you, John!\" Ziggy replies."
+#message 11 "\"No problem, Zig.\" John says. \"I'm leaving now, but I'll be in Fine Arts if you find my penny. See ya!\""
+#message 12 "\"See ya.\" Sigurd says."
+#message 13 "Well, here you are, Ziggy. You'd better get moving to find all those quarters, and God knows what else you might need to do along the way."
+#message 14 "You should stop talking to yourself."
+#message 15 "C200B is the dorm room of Sigurd (Ziggy for short), the clueless Norwegian. There are two beds, two bureaus, and two desks. Ziggy's roommate is a really weird kid named Andrew. Conveniently, he is never around."
+#message 16 "It's used to enter and exit the room."
+#message 17 "There's nothing special about it."
+#message 18 "There are some posters, but not much else (besides cracks)."
+#message 19 "There is nothing special about them."
+#message 20 "The usual dorm room fare: naked chicks, psychadelic art, etc... Ziggy has a Norwegian poster near his bed."
+#message 21 "The chairs are unimportant."
+#message 22 "Something tells me you can't quite see Norway from here."
+#message 23 "There's nothing there."
+#message 24 "Which one?"
+#message 25 "Ziggy's bureau rests against the left wall.  It contains smelly Norwegian socks, smelly Norwegian shirts, and smelly Norwegian pants.  In other words, nothing you need."
+#message 26 "Trust me.  You don't need or want anything that's in there."
+#message 27 "Andrew's bureau rests against the top wall.  It probably contains many hippie-type clothes and some miscellaneous drug paraphenalia. Nothing you really need."
+#message 28 "Now that would just be rude.  Really, you don't need anything that's in there."
+#message 29 "Ziggy's desk is up against the bottom wall. His schedule is resting on it."
+#message 30 "Today:\n\nWake up.\n\nTake make-up test at Ballentine.\n\nSleep."
+#message 31 "Only Ziggy himself would be interested in his schedule."
+#message 32 "Get closer."
+#message 33 "You look inside but don't see anything you need or want."
+#message 34 "Andrew's desk is up against the right wall."
+#message 35 "Ziggy's bed is in the lower right corner.  Sadly, it never sees much action."
+#message 36 "Andrew's bed is where he sleeps a couple nights a week."
+#message 37 "You don't need to."
+#message 38 "You see nothing."
+#message 39 "You can't see behind there from here."
+#message 40 "You see a calculator has fallen behind it."
+#message 41 "Ok."
+#message 42 "You can't get it from here."
+#message 43 "You don't need it."
+#message 50 "You're not close enough."

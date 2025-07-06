@@ -33,7 +33,7 @@ impl WordListEntry {
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
+    use similar_asserts::assert_eq;
     use std::collections::HashSet;
 
     use crate::{

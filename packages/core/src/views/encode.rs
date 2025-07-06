@@ -216,7 +216,7 @@ impl Encode<'_> for AGIView {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pretty_assertions::assert_eq;
+    use similar_asserts::assert_eq;
 
     fn build_test_cel() -> ViewCel {
         ViewCel {

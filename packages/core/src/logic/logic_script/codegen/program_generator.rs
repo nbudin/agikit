@@ -3,14 +3,22 @@ use std::collections::{HashSet, VecDeque};
 use petgraph::graph::NodeIndex;
 
 use crate::logic::{
-    LogicConditionClause,
-    analysis::basic_block_graph::{BasicBlock, BasicBlockControlFlow},
-    asm::expressions::{LogicBooleanExpression, LogicIdentifier, ParsedLogicArgument},
+    LogicConditionClause, LogicMessages,
+    analysis::{
+        basic_block_graph::{BasicBlock, BasicBlockControlFlow},
+        optimization::Optimizable,
+    },
+    asm::{
+        codegen::generate_logic_messages,
+        expressions::{LogicBooleanExpression, LogicIdentifier, ParsedLogicArgument},
+    },
     logic_script::{
         codegen::{
-            command_to_statement::CommandToStatement, context::LogicScriptCodeGenerationContext,
-            errors::LogicScriptCodeGenerationError,
+            codegen::GenerateLogicScript, command_to_statement::CommandToStatement,
+            context::LogicScriptCodeGenerationContext, errors::LogicScriptCodeGenerationError,
+            statement_graph::LogicScriptStatementGraph,
         },
+        identifiers::IdentifierMap,
         statements::{
             KeywordType, LogicScriptCommandCall, LogicScriptIfStatement, LogicScriptKeyword,
             LogicScriptLabel, LogicScriptStatement,
@@ -31,6 +39,29 @@ impl<'a> LogicScriptProgramGenerator<'a> {
         }
     }
 
+    pub fn generate_logic_script(
+        self,
+        messages: &LogicMessages,
+    ) -> Result<String, LogicScriptCodeGenerationError> {
+        let context = self.context;
+        let statements = self.generate_statements()?;
+        let mut statement_graph =
+            LogicScriptStatementGraph::from_statements(&statements, IdentifierMap::builtins());
+        statement_graph.optimize();
+
+        let optimized_statements = statement_graph.to_statements()?;
+        let program_section = optimized_statements
+            .into_iter()
+            .map(|stmt| stmt.generate_logic_script(context, 0))
+            .collect::<Result<String, _>>()?;
+
+        Ok(format!(
+            "{}\n\n\n{}",
+            program_section.trim(),
+            generate_logic_messages(messages)?
+        ))
+    }
+
     pub fn generate_statements(
         mut self,
     ) -> Result<Vec<LogicScriptStatement<ParsedLogicArgument>>, LogicScriptCodeGenerationError>
@@ -45,8 +76,6 @@ impl<'a> LogicScriptProgramGenerator<'a> {
 
             statements.extend(self.generate_logic_script_for_basic_block(block_id, &mut queue)?);
         }
-
-        // TODO: optimization passes
 
         Ok(statements)
     }
@@ -336,135 +365,40 @@ impl<'a> LogicScriptProgramGenerator<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::{fs::File, io::Write};
-
     use crate::{
-        agi_version::AGIVersion,
-        logic::{
-            LogicProgram,
-            analysis::{
-                ast::LogicAST, basic_block_graph::BasicBlockGraph,
-                dominator_tree::DominationAnalysis, optimization::Optimizable,
-            },
-            asm::{codegen::AsmCodeGenerationContext, expressions::ParsedLogicArgument},
-            logic_script::{
-                codegen::{
-                    codegen::GenerateLogicScript, context::LogicScriptCodeGenerationContext,
-                    program_generator::LogicScriptProgramGenerator,
-                    statement_graph::LogicScriptStatementGraph,
-                },
-                identifiers::IdentifierMap,
-                statements::LogicScriptStatement,
-            },
+        logic::logic_script::codegen::{
+            context::LogicScriptCodeGenerationContext,
+            program_generator::LogicScriptProgramGenerator,
         },
-        resources::{ResourceType, decode::Decode, file_provider::FileProvider},
-        test_data::{uriquest_dir, uriquest_resources},
-        word_list::WordList,
+        resources::file_provider::FileProvider,
+        test_data::uriquest,
     };
 
-    use petgraph::graph::NodeIndex;
-    use pretty_assertions::assert_eq;
+    use similar_asserts::assert_eq;
 
     #[test]
     fn smoke_test() {
-        let resources = uriquest_resources();
-        let logic_data = resources
-            .read_resource_data(ResourceType::LOGIC, 0)
-            .expect("Failed to read logic data");
-        let logic = LogicProgram::decode_from_bytes(&logic_data, &AGIVersion::new(2, 917))
+        let uriquest = uriquest();
+        let logic = uriquest
+            .decode_logic(13)
             .expect("Failed to decode logic program");
-        let word_list = WordList::decode_from_bytes(
-            &uriquest_dir()
-                .read_file_bytes("WORDS.TOK")
-                .expect("Failed to read WORDS.TOK"),
-            (),
-        )
-        .expect("Failed to decode word list");
-
-        let ast = LogicAST::from_instructions(&logic.instructions).expect("Failed to generate AST");
-        let mut basic_block_graph = BasicBlockGraph::from_ast(&ast);
-        basic_block_graph.optimize();
-        let asm_context = AsmCodeGenerationContext {
-            logic: &logic,
-            word_list: &word_list,
-        };
-
-        File::create("debug-ast.dot")
-            .expect("Failed to open debug-ast.dot for writing")
-            .write_fmt(format_args!("{}", basic_block_graph.to_dot(&asm_context)))
-            .expect("Failed to write dot diagram");
+        let word_list = uriquest
+            .decode_word_list()
+            .expect("Failed to decode word list");
 
         let context = LogicScriptCodeGenerationContext::try_from_program(&logic, &word_list)
             .expect("Failed to create code generation context");
 
-        File::create("debug.dot")
-            .expect("Failed to open debug.dot for writing")
-            .write_fmt(format_args!(
-                "{}",
-                context.basic_block_graph.to_dot(&context.asm_context)
-            ))
-            .expect("Failed to write dot diagram");
-
         let generator = LogicScriptProgramGenerator::new(&context);
 
-        let statements = generator
-            .generate_statements()
-            .expect("Failed to generate logic script statements");
+        let generated_script = generator
+            .generate_logic_script(&logic.messages)
+            .expect("Failed to generate script");
 
-        let mut statement_graph =
-            LogicScriptStatementGraph::from_statements(&statements, IdentifierMap::builtins());
-        statement_graph.optimize();
+        let expected = uriquest
+            .read_file_utf8("13.agilogic")
+            .expect("Failed to read 13.agilogic");
 
-        File::create("debug-statement-graph.dot")
-            .expect("Failed to open debug-statement-graph.dot for writing")
-            .write_fmt(format_args!("{}", statement_graph.to_dot(&context)))
-            .expect("Failed to write dot diagram");
-
-        let domination_analysis =
-            DominationAnalysis::from_graph(&statement_graph.graph, statement_graph.root_id);
-
-        let get_statement_label =
-            &|_statement_id: NodeIndex, statement: &LogicScriptStatement<ParsedLogicArgument>| {
-                statement.node_attrs(&context)
-            };
-
-        File::create("debug-statement-graph-dominators.dot")
-            .expect("Failed to open debug-statement-graph-dominators.dot for writing")
-            .write_fmt(format_args!(
-                "{}",
-                domination_analysis.dominators_to_dot(&statement_graph.graph, get_statement_label)
-            ))
-            .expect("Failed to write dot diagram");
-        File::create("debug-statement-graph-reverse-cfg.dot")
-            .expect("Failed to open debug-statement-graph-reverse-cfg.dot for writing")
-            .write_fmt(format_args!(
-                "{}",
-                domination_analysis.reverse_cfg_to_dot(&statement_graph.graph, get_statement_label)
-            ))
-            .expect("Failed to write dot diagram");
-        File::create("debug-statement-graph-post-dominators.dot")
-            .expect("Failed to open debug-statement-graph-post-dominators.dot for writing")
-            .write_fmt(format_args!(
-                "{}",
-                domination_analysis
-                    .post_dominators_to_dot(&statement_graph.graph, get_statement_label)
-            ))
-            .expect("Failed to write dot diagram");
-
-        let generated_statements = statement_graph
-            .to_statements()
-            .expect("Failed to generate statements");
-        let generated_script = generated_statements
-            .into_iter()
-            .map(|stmt| stmt.generate_logic_script(&context, 0))
-            .collect::<Result<String, _>>()
-            .expect("Failed to generate logic script");
-
-        let expected = uriquest_dir()
-            .read_file_utf8("0.agilogic")
-            .expect("Failed to read 0.agilogic");
-
-        eprintln!("{}", generated_script);
-        // assert_eq!(expected, generated_script);
+        assert_eq!(expected, generated_script);
     }
 }

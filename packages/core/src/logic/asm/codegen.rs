@@ -2,17 +2,17 @@ use std::{collections::HashMap, fmt::Display};
 
 use crate::{
     logic::{
+        LogicCommand, LogicCondition, LogicGoto, LogicInstruction, LogicMessages, LogicProgram,
         asm::{
+            LogicLabel,
             expressions::{
                 AsmLogicArgument, LogicArgument, LogicBooleanExpression, LogicIdentifier,
                 ParsedLogicArgument,
             },
             literals::{LogicLiteral, LogicLiteralValue, StringLiteral},
             operators::LogicBooleanBinaryOperator,
-            LogicLabel,
         },
         commands::AGICommand,
-        LogicCommand, LogicCondition, LogicGoto, LogicInstruction, LogicMessages, LogicProgram,
     },
     word_list::WordList,
 };
@@ -360,6 +360,7 @@ pub fn generate_logic_messages(messages: &LogicMessages) -> Result<String, AsmCo
 
     Ok(std::iter::once("// messages")
         .chain(message_lines.iter().map(|line| line.as_str()))
+        .chain(std::iter::once(""))
         .collect::<Vec<_>>()
         .join("\n"))
 }
@@ -410,15 +411,15 @@ mod tests {
     use crate::{
         agi_version::AGIVersion,
         resources::{
+            ResourceType,
             decode::Decode,
             dirs::{ResourceDirDecodeOptions, ResourceDirs},
             file_provider::FileProvider,
             resource_collection::{ResourceCollection, ResourceCollectionVersionData},
-            ResourceType,
         },
         test_data::uriquest_dir,
     };
-    use pretty_assertions::assert_eq;
+    use similar_asserts::assert_eq;
 
     #[test]
     fn smoke_test() {
@@ -458,20 +459,20 @@ mod tests {
 pub mod js {
     use std::collections::HashMap;
 
-    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+    use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
     use crate::{
         logic::{
+            LogicCommand, LogicInstruction, LogicProgram,
             asm::{
+                LogicLabel,
                 codegen::{
-                    generate_labels, generate_logic_asm,
-                    generate_logic_asm_instruction_with_possible_label, generate_logic_messages,
-                    AsmCodeGenerationContext, GenerateLogicAsm,
+                    AsmCodeGenerationContext, GenerateLogicAsm, generate_labels,
+                    generate_logic_asm, generate_logic_asm_instruction_with_possible_label,
+                    generate_logic_messages,
                 },
                 js::OwnedLogicLabel,
-                LogicLabel,
             },
-            LogicCommand, LogicInstruction, LogicProgram,
         },
         word_list::WordList,
     };

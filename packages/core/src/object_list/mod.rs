@@ -34,7 +34,7 @@ mod tests {
         test_data::uriquest_dir,
         xor_encryption::{XorCursor, AGI_ENCRYPTION_KEY},
     };
-    use pretty_assertions::assert_eq;
+    use similar_asserts::assert_eq;
 
     #[test]
     fn test_object_json() {
