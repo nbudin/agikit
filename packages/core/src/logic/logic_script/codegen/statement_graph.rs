@@ -28,6 +28,7 @@ use crate::logic::{
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LogicScriptStatementGraphEdge {
     Next,
+    GotoTarget,
     IfThen,
     IfElse,
     BlockExit,
@@ -111,54 +112,63 @@ pub struct LogicScriptStatementGraph {
 }
 
 impl LogicScriptStatementGraph {
-    pub fn from_statements(
+    pub fn try_from_statements(
         statements: &[LogicScriptStatement<ParsedLogicArgument>],
         identifiers: IdentifierMap,
-    ) -> Self {
+    ) -> Result<Self, LogicScriptCodeGenerationError> {
         let mut graph = DiGraph::new();
         let (statement_ids, _) = add_statements_to_graph(&mut graph, Box::new(statements.iter()));
         let root_id = *statement_ids.first().unwrap();
 
-        let node_ids_by_label: HashMap<String, NodeIndex> = Dfs::new(&graph, root_id)
-            .iter(&graph)
+        let all_node_ids = Dfs::new(&graph, root_id).iter(&graph).collect::<Vec<_>>();
+
+        let node_ids_by_label: HashMap<String, NodeIndex> = all_node_ids
+            .iter()
             .filter_map(|node_id| {
-                let Some(LogicScriptStatement::Label(label)) = graph.node_weight(node_id) else {
+                let Some(LogicScriptStatement::Label(label)) = graph.node_weight(*node_id) else {
                     return None;
                 };
 
-                Some((label.label.clone(), node_id))
+                Some((label.label.clone(), *node_id))
             })
             .collect();
 
-        let mut connect_gotos_dfs = Dfs::new(&graph, root_id);
-        while let Some(node_id) = connect_gotos_dfs.next(&graph) {
-            let Some(statement) = graph.node_weight(node_id) else {
+        for node_id in all_node_ids.iter() {
+            let Some(statement) = graph.node_weight(*node_id) else {
                 continue;
             };
 
-            let Some(target_label) = statement.get_goto_target_label() else {
+            let LogicScriptStatement::CommandCall(command_call) = statement else {
                 continue;
+            };
+
+            if command_call.command_name != "goto" {
+                continue;
+            }
+
+            let Some(target_label) = statement.get_goto_target_label() else {
+                return Err(LogicScriptCodeGenerationError::GotoWithNoTarget(
+                    statement.clone(),
+                ));
             };
 
             let Some(target_node_id) = node_ids_by_label.get(target_label) else {
                 continue;
             };
 
-            if !graph.contains_edge(node_id, *target_node_id) {
-                graph.add_edge(
-                    node_id,
-                    *target_node_id,
-                    LogicScriptStatementGraphEdge::Next,
-                );
-            }
+            graph.add_edge(
+                *node_id,
+                *target_node_id,
+                LogicScriptStatementGraphEdge::GotoTarget,
+            );
         }
 
-        LogicScriptStatementGraph {
+        Ok(LogicScriptStatementGraph {
             graph,
             root_id,
             identifiers,
             node_ids_by_label,
-        }
+        })
     }
 
     pub fn to_statements(
@@ -167,14 +177,15 @@ impl LogicScriptStatementGraph {
     {
         type StackItem = (NodeIndex, LogicScriptStatement<ParsedLogicArgument>);
         let mut stack = VecDeque::<StackItem>::new();
-        // let mut statements = vec![];
-        let mut dfs = DfsPostOrder::new(&self.graph, self.root_id);
-
+        let traversal_filter = EdgeFiltered::from_fn(&self.graph, |edge| {
+            *edge.weight() != LogicScriptStatementGraphEdge::GotoTarget
+        });
         let next_filter = EdgeFiltered::from_fn(&self.graph, |edge| {
             *edge.weight() == LogicScriptStatementGraphEdge::Next
         });
+        let mut dfs = DfsPostOrder::new(&traversal_filter, self.root_id);
 
-        while let Some(node_id) = dfs.next(&self.graph) {
+        while let Some(node_id) = dfs.next(&traversal_filter) {
             let statement = self.node_to_statement(node_id)?;
 
             let statement = match statement {
@@ -239,75 +250,6 @@ impl LogicScriptStatementGraph {
             .collect())
     }
 
-    // pub fn to_statements(
-    //     &self,
-    // ) -> Result<Vec<LogicScriptStatement<ParsedLogicArgument>>, LogicScriptCodeGenerationError>
-    // {
-    //     enum BlockType {
-    //         IfThen,
-    //         IfElse,
-    //     }
-
-    //     type StackItem = (BlockType, NodeIndex);
-
-    //     let mut root_statement_ids = vec![];
-    //     let domination_analysis = DominationAnalysis::from_graph(&self.graph, self.root_id);
-    //     let walker = StatementGraphWalker::new(self, &domination_analysis);
-    //     let mut dfs = Dfs::new(&walker, self.root_id);
-    //     let mut stack: VecDeque<StackItem> = VecDeque::new();
-    //     let mut statements_by_node_id = HashMap::new();
-
-    //     let insert_statement = |statement: LogicScriptStatement<ParsedLogicArgument>,
-    //                             statement_id: NodeIndex| match stack
-    //         .back()
-    //     {
-    //         None => {
-    //             root_statement_ids.push(statement_id);
-    //             Ok(())
-    //         }
-    //         Some((block_type, node_id)) => match statements_by_node_id.get_mut(node_id) {
-    //             Some(LogicScriptStatement::IfStatement(if_statement)) => {
-    //                 let target = match block_type {
-    //                     BlockType::IfThen => &mut if_statement.then_statements,
-    //                     BlockType::IfElse => &mut if_statement.else_statements,
-    //                 };
-    //                 target.push(Box::new(statement));
-    //                 Ok(())
-    //             }
-    //             _ => Err(LogicScriptCodeGenerationError::StatementGraphInsertError),
-    //         },
-    //     };
-
-    //     while let Some(node_id) = dfs.next(&walker) {
-    //         if let Some((_block_type, top_id)) = stack.back() {
-    //             if domination_analysis.post_dominates(node_id, *top_id) {
-    //                 stack.pop_back();
-    //             }
-    //         }
-
-    //         let statement = self.node_to_statement(node_id)?;
-
-    //         match &statement {
-    //             LogicScriptStatement::IfStatement(if_statement) => {
-    //                 stack.push_back(());
-    //             }
-    //             _ => {}
-    //         }
-
-    //         statements_by_node_id.insert(node_id, statement);
-    //     }
-
-    //     root_statement_ids
-    //         .into_iter()
-    //         .map(|statement_id| {
-    //             statements_by_node_id
-    //                 .get(&statement_id)
-    //                 .cloned()
-    //                 .ok_or_else(|| LogicScriptCodeGenerationError::StatementGraphInsertError)
-    //         })
-    //         .collect()
-    // }
-
     fn node_to_statement(
         &self,
         node_id: NodeIndex,
@@ -321,29 +263,25 @@ impl LogicScriptStatementGraph {
         match statement {
             LogicScriptStatement::CommandCall(command_call) => {
                 if command_call.command_name == "goto" {
-                    let Some(target_node_id) = self
-                        .graph
-                        .directed_neighbor_node_id_of_type(
-                            node_id,
-                            Direction::Outgoing,
-                            LogicScriptStatementGraphEdge::Next,
-                        )
-                        .or_else(|| {
-                            self.graph.directed_neighbor_node_id_of_type(
-                                node_id,
-                                Direction::Outgoing,
-                                LogicScriptStatementGraphEdge::BlockExit,
-                            )
-                        })
-                    else {
+                    let Some(target_node_id) = self.graph.directed_neighbor_node_id_of_type(
+                        node_id,
+                        Direction::Outgoing,
+                        LogicScriptStatementGraphEdge::GotoTarget,
+                    ) else {
+                        eprintln!(
+                            "{:?}",
+                            self.graph
+                                .edges_directed(node_id, Direction::Outgoing)
+                                .collect::<Vec<_>>()
+                        );
                         return Err(LogicScriptCodeGenerationError::GotoWithNoTarget(
                             statement.clone(),
                         ));
                     };
 
                     let Some(target_statement) = self.graph.node_weight(target_node_id) else {
-                        return Err(LogicScriptCodeGenerationError::GotoWithNoTarget(
-                            statement.clone(),
+                        return Err(LogicScriptCodeGenerationError::StatementGraphNodeNotFound(
+                            target_node_id,
                         ));
                     };
 
@@ -377,132 +315,6 @@ impl LogicScriptStatementGraph {
             _ => Ok(statement.clone()),
         }
     }
-
-    // pub fn to_statements_blahhhhh(
-    //     &self,
-    // ) -> Result<Vec<LogicScriptStatement<ParsedLogicArgument>>, LogicScriptCodeGenerationError>
-    // {
-    //     let domination_analysis = DominationAnalysis::from_graph(&self.graph, self.root_id);
-
-    //     let mut statements = vec![];
-    //     let mut queue = VecDeque::from([self.root_id]);
-    //     let mut visited = HashSet::new();
-
-    //     while let Some(current_node_id) = queue.pop_front() {
-    //         if visited.contains(&current_node_id) {
-    //             continue;
-    //         }
-
-    //         statements.push(self.node_to_statement_blahhhh(current_node_id, &domination_analysis)?);
-    //         visited.insert(current_node_id);
-
-    //         for dominated_node_id in domination_analysis.dominance_frontier(current_node_id) {
-    //             queue.push_back(dominated_node_id);
-    //         }
-
-    //         println!("{:?}", queue);
-    //     }
-
-    //     Ok(statements)
-    // }
-
-    // fn node_to_statement_blahhhh(
-    //     &self,
-    //     node_id: NodeIndex,
-    //     domination_analysis: &DominationAnalysis,
-    // ) -> Result<LogicScriptStatement<ParsedLogicArgument>, LogicScriptCodeGenerationError> {
-    //     let Some(statement) = self.graph.node_weight(node_id) else {
-    //         return Err(LogicScriptCodeGenerationError::StatementGraphNodeNotFound(
-    //             node_id,
-    //         ));
-    //     };
-
-    //     match statement {
-    //         LogicScriptStatement::CommandCall(command_call) => {
-    //             if command_call.command_name == "goto" {
-    //                 let Some(target_node_id) = self.graph.directed_neighbor_node_id_of_type(
-    //                     node_id,
-    //                     Direction::Outgoing,
-    //                     LogicScriptStatementGraphEdge::Next,
-    //                 ) else {
-    //                     return Err(LogicScriptCodeGenerationError::GotoWithNoTarget(
-    //                         statement.clone(),
-    //                     ));
-    //                 };
-
-    //                 let Some(target_statement) = self.graph.node_weight(target_node_id) else {
-    //                     return Err(LogicScriptCodeGenerationError::GotoWithNoTarget(
-    //                         statement.clone(),
-    //                     ));
-    //                 };
-
-    //                 let LogicScriptStatement::Label(label) = target_statement else {
-    //                     return Err(LogicScriptCodeGenerationError::JumpToUnlabeledStatement(
-    //                         target_node_id,
-    //                         None,
-    //                     ));
-    //                 };
-    //                 let target_argument = ParsedLogicArgument::Identifier(LogicIdentifier {
-    //                     name: label.label.clone(),
-    //                 });
-
-    //                 Ok(LogicScriptStatement::CommandCall(LogicScriptCommandCall {
-    //                     command_name: "goto".to_string(),
-    //                     argument_list: vec![target_argument],
-    //                 }))
-    //             } else {
-    //                 Ok(statement.clone())
-    //             }
-    //         }
-    //         LogicScriptStatement::IfStatement(if_statement) => {
-    //             let generate_subclause_statements = |subclause_node_id| {
-    //                 let mut statements = vec![];
-    //                 let mut current_node_id = subclause_node_id;
-    //                 while !domination_analysis.post_dominates(current_node_id, node_id) {
-    //                     statements.push(
-    //                         self.node_to_statement_blahhhh(current_node_id, domination_analysis)?,
-    //                     );
-    //                     let Some(next_node_id) =
-    //                         domination_analysis.immediate_post_dominator(current_node_id)
-    //                     else {
-    //                         break;
-    //                     };
-    //                     current_node_id = next_node_id;
-    //                 }
-    //                 Ok::<_, LogicScriptCodeGenerationError>(statements)
-    //             };
-
-    //             let then_node_id = self.graph.directed_neighbor_node_id_of_type(
-    //                 node_id,
-    //                 Direction::Outgoing,
-    //                 LogicScriptStatementGraphEdge::IfThen,
-    //             );
-    //             let else_node_id = self.graph.directed_neighbor_node_id_of_type(
-    //                 node_id,
-    //                 Direction::Outgoing,
-    //                 LogicScriptStatementGraphEdge::IfElse,
-    //             );
-
-    //             let then_statements = then_node_id
-    //                 .map(|then_node_id| generate_subclause_statements(then_node_id))
-    //                 .transpose()?
-    //                 .unwrap_or_default();
-    //             let else_statements = else_node_id
-    //                 .map(|else_node_id| generate_subclause_statements(else_node_id))
-    //                 .transpose()?
-    //                 .unwrap_or_default();
-
-    //             Ok(LogicScriptStatement::IfStatement(LogicScriptIfStatement {
-    //                 conditions: if_statement.conditions.clone(),
-    //                 if_keyword: if_statement.if_keyword.clone(),
-    //                 else_keyword: if_statement.else_keyword.clone(),
-    //                 then_statements: then_statements.into_iter().map(Box::new).collect(),
-    //                 else_statements: else_statements.into_iter().map(Box::new).collect(),
-    //             }))
-    //         }
-    //         _ => Ok(statement.clone()),
-    //     }
-    // }
 }
 
 impl Optimizable<DiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>>
@@ -692,90 +504,6 @@ pub fn remove_empty_then_with_else(
     }
 }
 
-// struct StatementGraphWalker<'a> {
-//     statement_graph: &'a LogicScriptStatementGraph,
-//     domination_analysis: &'a DominationAnalysis,
-//     visit_map: HashSet<NodeIndex>,
-// }
-
-// impl<'a> StatementGraphWalker<'a> {
-//     pub fn new(
-//         statement_graph: &'a LogicScriptStatementGraph,
-//         domination_analysis: &'a DominationAnalysis,
-//     ) -> Self {
-//         Self {
-//             statement_graph,
-//             domination_analysis,
-//             visit_map: HashSet::new(),
-//         }
-//     }
-// }
-
-// impl<'a> GraphBase for StatementGraphWalker<'a> {
-//     type EdgeId = EdgeIndex;
-//     type NodeId = NodeIndex;
-// }
-
-// impl<'a> Visitable for StatementGraphWalker<'a> {
-//     type Map = HashSet<NodeIndex>;
-
-//     fn visit_map(self: &Self) -> Self::Map {
-//         self.visit_map.clone()
-//     }
-
-//     fn reset_map(self: &Self, map: &mut Self::Map) {
-//         map.clear();
-//     }
-// }
-
-// impl<'a> IntoNeighbors for &'a StatementGraphWalker<'a> {
-//     type Neighbors = Box<dyn Iterator<Item = NodeIndex> + 'a>;
-
-//     fn neighbors(self, node_id: Self::NodeId) -> Self::Neighbors {
-//         let dominance_frontier = self
-//             .domination_analysis
-//             .dominance_frontier(node_id)
-//             .collect::<Vec<_>>();
-
-//         let node_weight = self.statement_graph.graph.node_weight(node_id);
-
-//         let mut dominance_edges = dominance_frontier
-//             .into_iter()
-//             .map(|neighbor_id| {
-//                 let edge = self
-//                     .statement_graph
-//                     .graph
-//                     .edges_connecting(node_id, neighbor_id)
-//                     .next();
-
-//                 (neighbor_id, edge)
-//             })
-//             .collect::<Vec<_>>();
-
-//         dominance_edges.sort_by_cached_key(|(_neighbor_id, edge)| {
-//             if let Some(edge) = edge {
-//                 // this node immediately dominates the neighbor
-//                 (0, Some(edge.weight()))
-//             } else {
-//                 (1, None)
-//             }
-//         });
-//         eprintln!(
-//             "{} -> Neighbor edges: {:?}",
-//             node_weight.map(|w| w.as_ref()).unwrap_or_default(),
-//             dominance_edges
-//                 .iter()
-//                 .map(|(_neighbor_id, edge)| edge.map(|e| e.weight()))
-//                 .collect::<Vec<_>>()
-//         );
-//         Box::new(
-//             dominance_edges
-//                 .into_iter()
-//                 .map(|(neighbor_id, _edge)| neighbor_id),
-//         )
-//     }
-// }
-
 #[cfg(feature = "dot")]
 impl LogicScriptStatementGraph {
     pub fn to_dot(&self, context: &LogicScriptCodeGenerationContext) -> String {
@@ -796,9 +524,8 @@ impl LogicScriptStatementGraph {
 #[cfg(test)]
 mod tests {
     use crate::{
-        agi_version::AGIVersion,
         logic::{
-            LogicProgram,
+            asm::expressions::ParsedLogicArgument,
             logic_script::{
                 codegen::{
                     context::LogicScriptCodeGenerationContext,
@@ -806,31 +533,29 @@ mod tests {
                     statement_graph::LogicScriptStatementGraph,
                 },
                 identifiers::IdentifierMap,
+                statements::LogicScriptStatement,
             },
         },
-        resources::{ResourceType, decode::Decode, file_provider::FileProvider},
-        test_data::{uriquest_dir, uriquest_resources},
-        test_utils::write_and_edit,
-        word_list::WordList,
+        project::Project,
+        resources::ResourceType,
+        test_data::uriquest,
     };
 
     use similar_asserts::assert_eq;
 
-    #[test]
-    fn test_to_statements() {
-        let resources = uriquest_resources();
-        let logic_data = resources
-            .read_resource_data(ResourceType::LOGIC, 13)
-            .expect("Failed to read logic data");
-        let logic = LogicProgram::decode_from_bytes(&logic_data, &AGIVersion::new(2, 917))
+    fn statement_graph_comparison(
+        project: &Project,
+        logic_resource_number: u16,
+    ) -> (
+        Vec<LogicScriptStatement<ParsedLogicArgument>>,
+        Vec<LogicScriptStatement<ParsedLogicArgument>>,
+    ) {
+        let logic = project
+            .decode_logic(logic_resource_number)
             .expect("Failed to decode logic program");
-        let word_list = WordList::decode_from_bytes(
-            &uriquest_dir()
-                .read_file_bytes("WORDS.TOK")
-                .expect("Failed to read WORDS.TOK"),
-            (),
-        )
-        .expect("Failed to decode word list");
+        let word_list = project
+            .decode_word_list()
+            .expect("Failed to decode word list");
 
         let context = LogicScriptCodeGenerationContext::try_from_program(&logic, &word_list)
             .expect("Failed to create code generation context");
@@ -842,19 +567,53 @@ mod tests {
             .expect("Failed to generate logic script statements");
 
         let statement_graph =
-            LogicScriptStatementGraph::from_statements(&statements, IdentifierMap::builtins());
+            LogicScriptStatementGraph::try_from_statements(&statements, IdentifierMap::builtins())
+                .expect("Failed to generate statement graph");
 
         let generated_statements = statement_graph
             .to_statements()
             .expect("Failed to generate statements from graph");
 
-        let regen_graph = LogicScriptStatementGraph::from_statements(
-            &generated_statements,
-            IdentifierMap::builtins(),
-        );
-        write_and_edit(".orig.dot", &statement_graph.to_dot(&context));
-        write_and_edit(".regen.dot", &regen_graph.to_dot(&context));
+        (statements, generated_statements)
+    }
 
-        assert_eq!(statements, generated_statements);
+    macro_rules! logic_smoke_test {
+        ($test_name: ident, $resource_number: literal) => {
+            #[test]
+            fn $test_name() {
+                let project = uriquest();
+                let (statements, generated_statements) =
+                    statement_graph_comparison(&project, $resource_number);
+
+                assert_eq!(statements, generated_statements);
+            }
+        };
+    }
+
+    logic_smoke_test!(logic_0_test, 0);
+    logic_smoke_test!(logic_13_test, 13);
+    logic_smoke_test!(logic_93_test, 93);
+
+    #[test]
+    fn comprehensive_smoke_test() {
+        let project = uriquest();
+
+        let mut resource_numbers = project
+            .resource_collection()
+            .dirs
+            .resource_numbers(ResourceType::LOGIC)
+            .collect::<Vec<_>>();
+        resource_numbers.sort();
+
+        let failed = resource_numbers
+            .into_iter()
+            .filter(|resource_number| {
+                let (statements, generated_statements) =
+                    statement_graph_comparison(&project, *resource_number);
+                statements != generated_statements
+            })
+            .collect::<Vec<_>>();
+
+        assert_eq!(Vec::<u16>::new(), failed);
     }
 }

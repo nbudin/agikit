@@ -207,7 +207,8 @@ impl Optimizable<DiGraph<BasicBlock, BasicBlockEdgeType>> for BasicBlockGraph {
         &self,
     ) -> Vec<Box<dyn OptimizationVisitor<DiGraph<BasicBlock, BasicBlockEdgeType>>>> {
         vec![
-            Box::new(remove_empty_block),
+            // TODO why does these both break things
+            // Box::new(remove_empty_block),
             // Box::new(concatenate_linear_blocks),
         ]
     }

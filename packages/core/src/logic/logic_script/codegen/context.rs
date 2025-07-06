@@ -4,6 +4,7 @@ use petgraph::graph::NodeIndex;
 
 use crate::{
     logic::{
+        LogicProgram,
         analysis::{
             ast::LogicAST,
             basic_block_graph::{BasicBlock, BasicBlockGraph},
@@ -12,7 +13,6 @@ use crate::{
         },
         asm::codegen::AsmCodeGenerationContext,
         logic_script::codegen::errors::LogicScriptCodeGenerationError,
-        LogicProgram,
     },
     word_list::WordList,
 };

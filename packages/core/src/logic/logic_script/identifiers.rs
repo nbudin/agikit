@@ -57,6 +57,11 @@ impl IdentifierMapping {
                     number: index,
                     variable_type: AGICommandArgType::Message,
                 },
+                IdentifierMapping::Variable {
+                    name: format!("w{}", index),
+                    number: index,
+                    variable_type: AGICommandArgType::Word,
+                },
             ]
         })
     }

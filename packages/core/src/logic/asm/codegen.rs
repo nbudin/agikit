@@ -360,7 +360,6 @@ pub fn generate_logic_messages(messages: &LogicMessages) -> Result<String, AsmCo
 
     Ok(std::iter::once("// messages")
         .chain(message_lines.iter().map(|line| line.as_str()))
-        .chain(std::iter::once(""))
         .collect::<Vec<_>>()
         .join("\n"))
 }
@@ -451,7 +450,7 @@ mod tests {
             .read_file_utf8("0.agiasm")
             .expect("Failed to read uriquest/0.agiasm file");
 
-        assert_eq!(generated_asm, expected_asm);
+        assert_eq!(expected_asm, generated_asm);
     }
 }
 

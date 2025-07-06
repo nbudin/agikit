@@ -79,7 +79,9 @@ impl LogicArgument for AsmLogicArgument {
                     Some(entry) => Ok(ParsedLogicArgument::Literal(LogicLiteral {
                         value: LogicLiteralValue::from_string(entry.canonical_word.clone()),
                     })),
-                    None => Err(AsmCodeGenerationError::UnknownWord(self.value as u16)),
+                    None => Ok(ParsedLogicArgument::Identifier(LogicIdentifier {
+                        name: format!("w{}", self.value),
+                    })),
                 }
             }
         }

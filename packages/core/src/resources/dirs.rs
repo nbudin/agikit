@@ -8,9 +8,9 @@ use wasm_bindgen::prelude::wasm_bindgen;
 use crate::{
     data_encoding::ReadHeterogeneousData,
     resources::{
+        ResourceNumber, ResourceType,
         decode::{Decode, DecodingError},
         file_provider::FileProvider,
-        ResourceNumber, ResourceType,
     },
 };
 
@@ -119,6 +119,16 @@ impl ResourceDirs {
             .and_then(|entries| entries.get(&resource_number))
     }
 
+    pub fn resource_numbers(
+        &self,
+        resource_type: ResourceType,
+    ) -> impl Iterator<Item = ResourceNumber> {
+        self.dirs
+            .get(&resource_type)
+            .map(|entries| entries.keys().copied())
+            .unwrap_or_default()
+    }
+
     pub fn read<P: FileProvider>(
         options: ResourceDirDecodeOptions<P>,
     ) -> Result<Self, DecodingError> {
@@ -213,15 +223,15 @@ mod tests {
 pub mod js {
     use std::{collections::HashMap, fs::File, io::Cursor, str::FromStr};
 
-    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+    use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
     use web_sys::js_sys::Uint8Array;
 
     use crate::{
         buffer::Buffer,
         resources::{
+            ResourceNumber, ResourceType,
             decode::{Decode, DecodingError},
             dirs::DirEntry,
-            ResourceNumber, ResourceType,
         },
     };
 

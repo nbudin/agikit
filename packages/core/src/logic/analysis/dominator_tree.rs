@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use petgraph::{
     Directed, Direction, Graph,
@@ -489,12 +489,18 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
             let mut idom = self.spanning_tree_node_info[&node].idom.unwrap();
             let sdom = self.spanning_tree_node_info[&node].sdom.unwrap();
             let sdom_dfs_num = self.spanning_tree_node_info[&sdom].dfs_num;
+            let mut visited = HashSet::new();
 
-            while self.spanning_tree_node_info[&idom].dfs_num > sdom_dfs_num {
+            while self.spanning_tree_node_info[&idom].dfs_num > sdom_dfs_num
+                && !visited.contains(&idom)
+            {
+                visited.insert(idom);
                 idom = self.spanning_tree_node_info[&idom].idom.unwrap();
             }
 
-            self.spanning_tree_node_info.get_mut(&node).unwrap().idom = Some(idom);
+            if self.spanning_tree_node_info[&idom].dfs_num <= sdom_dfs_num {
+                self.spanning_tree_node_info.get_mut(&node).unwrap().idom = Some(idom);
+            }
         }
     }
 }

@@ -46,7 +46,7 @@ impl<'a> LogicScriptProgramGenerator<'a> {
         let context = self.context;
         let statements = self.generate_statements()?;
         let mut statement_graph =
-            LogicScriptStatementGraph::from_statements(&statements, IdentifierMap::builtins());
+            LogicScriptStatementGraph::try_from_statements(&statements, IdentifierMap::builtins())?;
         statement_graph.optimize();
 
         let optimized_statements = statement_graph.to_statements()?;
@@ -56,7 +56,7 @@ impl<'a> LogicScriptProgramGenerator<'a> {
             .collect::<Result<String, _>>()?;
 
         Ok(format!(
-            "{}\n\n\n{}",
+            "{}\n\n\n{}\n",
             program_section.trim(),
             generate_logic_messages(messages)?
         ))
