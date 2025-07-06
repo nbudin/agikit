@@ -25,6 +25,8 @@ pub enum LogicScriptCodeGenerationError {
     GotoWithNoTarget(LogicScriptStatement<ParsedLogicArgument>),
 }
 
+impl std::error::Error for LogicScriptCodeGenerationError {}
+
 fn describe_block(block_id: &NodeIndex, block: &Option<BasicBlock>) -> String {
     if let Some(block) = block {
         format!("block ID {}: {:?}", block_id.index(), block)

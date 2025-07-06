@@ -546,35 +546,20 @@ mod tests {
     fn statement_graph_comparison(
         project: &Project,
         logic_resource_number: u16,
-    ) -> (
+    ) -> anyhow::Result<(
         Vec<LogicScriptStatement<ParsedLogicArgument>>,
         Vec<LogicScriptStatement<ParsedLogicArgument>>,
-    ) {
-        let logic = project
-            .decode_logic(logic_resource_number)
-            .expect("Failed to decode logic program");
-        let word_list = project
-            .decode_word_list()
-            .expect("Failed to decode word list");
-
-        let context = LogicScriptCodeGenerationContext::try_from_program(&logic, &word_list)
-            .expect("Failed to create code generation context");
-
+    )> {
+        let logic = project.decode_logic(logic_resource_number)?;
+        let word_list = project.decode_word_list()?;
+        let context = LogicScriptCodeGenerationContext::try_from_program(&logic, &word_list)?;
         let generator = LogicScriptProgramGenerator::new(&context);
-
-        let statements = generator
-            .generate_statements()
-            .expect("Failed to generate logic script statements");
-
+        let statements = generator.generate_statements()?;
         let statement_graph =
-            LogicScriptStatementGraph::try_from_statements(&statements, IdentifierMap::builtins())
-                .expect("Failed to generate statement graph");
+            LogicScriptStatementGraph::try_from_statements(&statements, IdentifierMap::builtins())?;
+        let generated_statements = statement_graph.to_statements()?;
 
-        let generated_statements = statement_graph
-            .to_statements()
-            .expect("Failed to generate statements from graph");
-
-        (statements, generated_statements)
+        Ok((statements, generated_statements))
     }
 
     macro_rules! logic_smoke_test {
@@ -583,7 +568,7 @@ mod tests {
             fn $test_name() {
                 let project = uriquest();
                 let (statements, generated_statements) =
-                    statement_graph_comparison(&project, $resource_number);
+                    statement_graph_comparison(&project, $resource_number).unwrap();
 
                 assert_eq!(statements, generated_statements);
             }
@@ -607,13 +592,26 @@ mod tests {
 
         let failed = resource_numbers
             .into_iter()
-            .filter(|resource_number| {
-                let (statements, generated_statements) =
-                    statement_graph_comparison(&project, *resource_number);
-                statements != generated_statements
+            .filter_map(|resource_number| {
+                let result = statement_graph_comparison(&project, resource_number);
+                result
+                    .and_then(|(statements, generated_statements)| {
+                        if statements == generated_statements {
+                            Ok((statements, generated_statements))
+                        } else {
+                            Err(anyhow::Error::msg(format!(
+                                "LOGIC {} generated statements did not match",
+                                resource_number
+                            )))
+                        }
+                    })
+                    .err()
+                    .map(|err| format!("LOGIC {}: {}", resource_number, err))
             })
             .collect::<Vec<_>>();
 
-        assert_eq!(Vec::<u16>::new(), failed);
+        if !failed.is_empty() {
+            assert!(false, "{:#?}", failed);
+        }
     }
 }

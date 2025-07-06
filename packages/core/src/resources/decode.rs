@@ -4,7 +4,7 @@ use crate::{
     compression::lzw::DecompressionError,
     data_encoding::ReadHeterogeneousData,
     logic::decode::DisassemblyError,
-    resources::{resource_collection::RESOURCE_SIGNATURE, ResourceNumber, ResourceType},
+    resources::{ResourceNumber, ResourceType, resource_collection::RESOURCE_SIGNATURE},
 };
 
 #[derive(Debug)]
@@ -22,6 +22,8 @@ pub enum DecodingError {
     DecompressionError(DecompressionError),
     DisassemblyError(DisassemblyError),
 }
+
+impl std::error::Error for DecodingError {}
 
 impl From<std::io::Error> for DecodingError {
     fn from(error: std::io::Error) -> Self {
