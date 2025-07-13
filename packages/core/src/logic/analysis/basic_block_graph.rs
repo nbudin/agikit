@@ -14,7 +14,7 @@ use crate::logic::{
     analysis::{
         ast::{LogicAST, LogicASTNode, LogicCommandNode},
         optimization::{
-            DirectedNeighborEdgeUtils, Optimizable, OptimizationVisitor, RemoveNodePreservingEdges,
+            DirectedNeighborEdgeUtils, Optimizable, OptimizationResult, RemoveNodePreservingEdges,
         },
     },
     logic_script::codegen::errors::LogicScriptCodeGenerationError,
@@ -204,9 +204,13 @@ impl Optimizable<StableDiGraph<BasicBlock, BasicBlockEdgeType>> for BasicBlockGr
         self.root_block_id
     }
 
-    fn optimization_visitors(
+    fn optimization_passes(
         &self,
-    ) -> Vec<Box<dyn OptimizationVisitor<StableDiGraph<BasicBlock, BasicBlockEdgeType>>>> {
+    ) -> Vec<
+        Box<
+            dyn super::optimization::OptimizationPass<StableDiGraph<BasicBlock, BasicBlockEdgeType>>,
+        >,
+    > {
         vec![
             Box::new(remove_empty_block),
             Box::new(concatenate_linear_blocks),
@@ -362,7 +366,7 @@ fn build_basic_blocks(
 pub fn remove_empty_block(
     graph: &mut StableDiGraph<BasicBlock, BasicBlockEdgeType>,
     block_id: NodeIndex,
-) -> bool {
+) -> OptimizationResult {
     let block = graph.node_weight(block_id);
     if let Some(BasicBlock::SinglePath(block)) = block {
         if block.commands.is_empty() {
@@ -400,24 +404,24 @@ pub fn remove_empty_block(
                             }
                         },
                     );
-                    return true;
+                    return OptimizationResult::Changed;
                 }
             }
         }
     }
 
-    false
+    OptimizationResult::Unchanged
 }
 
 pub fn concatenate_linear_blocks(
     graph: &mut StableDiGraph<BasicBlock, BasicBlockEdgeType>,
     block_id: NodeIndex,
-) -> bool {
+) -> OptimizationResult {
     let block = graph.node_weight(block_id);
     if let Some(BasicBlock::SinglePath(block)) = block {
         if block.label.is_some() {
             // this block might be referenced by a jump
-            return false;
+            return OptimizationResult::Unchanged;
         }
 
         if let Some(prev_block_id) = graph.directed_neighbor_node_id_of_type(
@@ -443,11 +447,11 @@ pub fn concatenate_linear_blocks(
             }
 
             graph.remove_node(block_id);
-            return true;
+            return OptimizationResult::Changed;
         }
     }
 
-    false
+    OptimizationResult::Unchanged
 }
 
 #[cfg(test)]
@@ -511,7 +515,7 @@ mod tests {
         graph.add_edge(block2_id, block3_id, BasicBlockEdgeType::Next);
 
         assert!(
-            remove_empty_block(&mut graph, block2_id),
+            remove_empty_block(&mut graph, block2_id).is_changed(),
             "Block was not removed"
         );
 
@@ -555,7 +559,7 @@ mod tests {
         graph.add_edge(block1_id, block2_id, BasicBlockEdgeType::Next);
 
         assert!(
-            concatenate_linear_blocks(&mut graph, block2_id),
+            concatenate_linear_blocks(&mut graph, block2_id).is_changed(),
             "Block was not removed"
         );
 

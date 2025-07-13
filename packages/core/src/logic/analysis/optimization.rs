@@ -123,13 +123,59 @@ where
     }
 }
 
-pub trait OptimizationVisitor<G: GraphBase> {
-    fn visit(&mut self, graph: &mut G, node_id: G::NodeId) -> bool;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OptimizationResult {
+    Unchanged = 0,
+    Changed = 1,
 }
 
-impl<G: GraphBase, F: FnMut(&mut G, G::NodeId) -> bool> OptimizationVisitor<G> for F {
-    fn visit(&mut self, graph: &mut G, node_id: G::NodeId) -> bool {
+impl OptimizationResult {
+    pub fn is_changed(&self) -> bool {
+        *self == OptimizationResult::Changed
+    }
+
+    // Rust doesn't currently allow overloading || via a trait
+    pub fn or(&self, other: &OptimizationResult) -> OptimizationResult {
+        if self.is_changed() || other.is_changed() {
+            OptimizationResult::Changed
+        } else {
+            OptimizationResult::Unchanged
+        }
+    }
+}
+
+pub trait OptimizationVisitor<G: GraphBase> {
+    fn visit(&mut self, graph: &mut G, node_id: G::NodeId) -> OptimizationResult;
+}
+
+impl<G: GraphBase, F: FnMut(&mut G, G::NodeId) -> OptimizationResult> OptimizationVisitor<G> for F {
+    fn visit(&mut self, graph: &mut G, node_id: G::NodeId) -> OptimizationResult {
         self(graph, node_id)
+    }
+}
+
+pub trait OptimizationPass<G: GraphBase> {
+    fn run<'a>(&'a mut self, graph: &'a mut G, root_id: G::NodeId) -> OptimizationResult;
+}
+
+impl<G: GraphBase, V: OptimizationVisitor<G>> OptimizationPass<G> for V
+where
+    for<'a> &'a G: GraphRef + NodeIndexable + Visitable + IntoNeighbors,
+    for<'a> <&'a G as GraphBase>::NodeId: From<G::NodeId> + Into<G::NodeId>,
+{
+    fn run<'a>(&'a mut self, graph: &'a mut G, root_id: G::NodeId) -> OptimizationResult {
+        let queue = {
+            Dfs::new(graph as &G, root_id.into())
+                .iter(graph as &G)
+                .map(|node_id| node_id.into())
+                .collect::<Vec<G::NodeId>>()
+        };
+
+        let mut changed = OptimizationResult::Unchanged;
+        for node_id in queue {
+            changed = changed.or(&self.visit(graph, node_id));
+        }
+        changed
     }
 }
 
@@ -137,47 +183,36 @@ pub trait Optimizable<G: GraphBase>
 where
     Self: Sized,
     for<'a> &'a G: GraphRef + NodeIndexable + Visitable + IntoNeighbors,
-    for<'a> <&'a G as GraphBase>::NodeId: ToOwned<Owned = <G as GraphBase>::NodeId>,
+    for<'a> <&'a G as GraphBase>::NodeId: Into<G::NodeId>,
 {
     fn get_graph(&self) -> &G;
     fn get_graph_mut(&mut self) -> &mut G;
     fn root_id(&self) -> <&G as GraphBase>::NodeId;
-    fn optimization_visitors(&self) -> Vec<Box<dyn OptimizationVisitor<G>>>;
+    fn optimization_passes(&self) -> Vec<Box<dyn OptimizationPass<G>>>;
 
-    fn run_optimization_pass(&mut self, visitor: &mut dyn OptimizationVisitor<G>) -> bool {
-        let queue = {
-            let graph = self.get_graph();
-            Dfs::new(graph, self.root_id())
-                .iter(&graph)
-                .map(|block_id| block_id.to_owned())
-                .collect::<Vec<_>>()
-        };
-
-        let mut changed = false;
-        let graph = self.get_graph_mut();
-        for block_id in queue {
-            if visitor.visit(graph, block_id) {
-                changed = true;
-            }
+    fn run_optimization_passes_once(
+        &mut self,
+        passes: &mut [Box<dyn OptimizationPass<G>>],
+    ) -> OptimizationResult {
+        let mut result = OptimizationResult::Unchanged;
+        let root_id = self.root_id().into();
+        for pass in &mut *passes {
+            result = result.or(&pass.run(self.get_graph_mut(), root_id));
         }
-        changed
+        result
     }
 
-    fn run_optimization_passes(&mut self, visitors: &mut [Box<dyn OptimizationVisitor<G>>]) -> () {
+    fn optimize(&mut self) -> OptimizationResult {
         let mut keep_going = true;
-        while keep_going {
-            let mut changed = false;
-            for visitor in &mut *visitors {
-                if self.run_optimization_pass(visitor.as_mut()) {
-                    changed = true;
-                }
-            }
-            keep_going = changed;
-        }
-    }
+        let mut overall_result = OptimizationResult::Unchanged;
 
-    fn optimize(&mut self) {
-        let mut visitors = Self::optimization_visitors(&self);
-        self.run_optimization_passes(&mut visitors);
+        while keep_going {
+            let mut passes = Self::optimization_passes(&self);
+            let iteration_result = self.run_optimization_passes_once(&mut passes);
+            overall_result = overall_result.or(&iteration_result);
+            keep_going = iteration_result.is_changed();
+        }
+
+        overall_result
     }
 }
