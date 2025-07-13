@@ -375,37 +375,23 @@ pub fn remove_empty_block(
                 Direction::Outgoing,
                 BasicBlockEdgeType::Next,
             ) {
-                if let Some(prev_block_id) = graph.directed_neighbor_node_id_of_type(
-                    block_id,
-                    Direction::Incoming,
-                    BasicBlockEdgeType::Next,
-                ) {
-                    let block_label = graph
-                        .node_weight(block_id)
-                        .and_then(|block| block.label().map(|l| l.to_owned()));
+                let incoming_edge_data = graph.incoming_edge_data(block_id);
 
-                    let new_target_block = graph.node_weight_mut(next_block_id).unwrap();
-                    if new_target_block.label().is_none() && block_label.is_some() {
-                        new_target_block.set_label(block_label);
-                    }
+                let block_label = graph
+                    .node_weight(block_id)
+                    .and_then(|block| block.label().map(|l| l.to_owned()));
 
-                    graph.remove_node_preserving_edges(
-                        block_id,
-                        prev_block_id,
-                        next_block_id,
-                        |graph, edge_id| {
-                            let edge_weight = graph.edge_weight(edge_id).unwrap();
-                            let (_from_id, to_id) = graph.edge_endpoints(edge_id).unwrap();
-
-                            if to_id == block_id {
-                                *edge_weight != BasicBlockEdgeType::Next
-                            } else {
-                                true
-                            }
-                        },
-                    );
-                    return OptimizationResult::Changed;
+                let new_target_block = graph.node_weight_mut(next_block_id).unwrap();
+                if new_target_block.label().is_none() && block_label.is_some() {
+                    new_target_block.set_label(block_label);
                 }
+
+                for (_, source_id, weight) in incoming_edge_data {
+                    graph.update_edge(source_id, next_block_id, weight);
+                }
+                graph.remove_node(block_id);
+
+                return OptimizationResult::Changed;
             }
         }
     }

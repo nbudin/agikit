@@ -364,13 +364,13 @@ impl<Arg: LogicArgument + GenerateLogicAsm> GenerateLogicScript for LogicScriptS
                 .chain(then_lines);
 
                 let lines: Box<dyn Iterator<Item = String>> = if else_lines.is_empty() {
-                    Box::new(lines.chain(std::iter::once("}\n".to_string())))
+                    Box::new(lines.chain(std::iter::once("}".to_string())))
                 } else {
                     Box::new(
                         lines
                             .chain(std::iter::once("} else {\n".to_string()))
                             .chain(else_lines)
-                            .chain(std::iter::once("}\n".to_string())),
+                            .chain(std::iter::once("}".to_string())),
                     )
                 };
 
@@ -399,5 +399,20 @@ impl<Arg: LogicArgument + GenerateLogicAsm> GenerateLogicScript for LogicScriptS
                 ))
             }
         }
+    }
+}
+
+impl<Arg: LogicArgument + GenerateLogicAsm> GenerateLogicScript for Vec<LogicScriptStatement<Arg>> {
+    type Options = usize; // indentation level
+
+    fn generate_logic_script(
+        &self,
+        context: &LogicScriptCodeGenerationContext<'_>,
+        options: Self::Options,
+    ) -> Result<String, LogicScriptCodeGenerationError> {
+        self.iter()
+            .map(|statement| statement.generate_logic_script(context, options))
+            .collect::<Result<Vec<_>, _>>()
+            .map(|lines| lines.join("\n"))
     }
 }

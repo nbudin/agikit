@@ -48,17 +48,9 @@ impl<'a> LogicScriptProgramGenerator<'a> {
         let mut statement_graph =
             LogicScriptStatementGraph::try_from_statements(&statements, IdentifierMap::builtins())?;
         statement_graph.optimize();
-        #[cfg(test)]
-        crate::test_utils::write_and_edit(
-            ".dot",
-            &context.basic_block_graph.to_dot(&context.asm_context),
-        );
 
         let optimized_statements = statement_graph.to_statements()?;
-        let program_section = optimized_statements
-            .into_iter()
-            .map(|stmt| stmt.generate_logic_script(context, 0))
-            .collect::<Result<String, _>>()?;
+        let program_section = optimized_statements.generate_logic_script(context, 0)?;
 
         Ok(format!(
             "{}\n\n\n{}\n",

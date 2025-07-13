@@ -49,12 +49,6 @@ fn add_statements_to_graph<'a>(
         .map(|statement| {
             let node_id = graph.add_node(statement.clone());
 
-            eprintln!(
-                "{} incoming prev: {:?} incoming block exits: {:?}",
-                statement.as_ref(),
-                prev_node_id,
-                block_exit_node_ids
-            );
             for block_exit_node_id in block_exit_node_ids.iter() {
                 graph.add_edge(
                     *block_exit_node_id,
@@ -75,22 +69,16 @@ fn add_statements_to_graph<'a>(
                         .then_statements
                         .iter()
                         .map(|stmt| stmt.as_ref());
-                    eprintln!("Evaluating then branch");
                     let (then_statement_ids, then_block_exits) =
                         add_statements_to_graph(graph, Box::new(then_statements));
                     if let Some(then_id) = then_statement_ids.first() {
                         graph.add_edge(node_id, *then_id, LogicScriptStatementGraphEdge::IfThen);
                     }
                     if then_block_exits.is_empty() {
-                        eprintln!(
-                            "Returned then_block_exits is empty, attempting to use {:?}",
-                            then_statement_ids.last()
-                        );
                         if let Some(last_then_id) = then_statement_ids.last() {
                             block_exit_node_ids.push(*last_then_id);
                         }
                     } else {
-                        eprintln!("Returned then_block_exits: {:?}", then_block_exits);
                         block_exit_node_ids.extend(&then_block_exits);
                     }
 
@@ -98,7 +86,6 @@ fn add_statements_to_graph<'a>(
                         .else_statements
                         .iter()
                         .map(|stmt| stmt.as_ref());
-                    eprintln!("Evaluating else branch");
                     let (else_statement_ids, else_block_exits) =
                         add_statements_to_graph(graph, Box::new(else_statements));
                     if let Some(else_id) = else_statement_ids.first() {
