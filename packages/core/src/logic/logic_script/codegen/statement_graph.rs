@@ -469,7 +469,7 @@ pub fn remove_redundant_jumps(
     let Some(next_id) = graph.directed_neighbor_node_id_of_type(
         node_id,
         Direction::Outgoing,
-        LogicScriptStatementGraphEdge::GotoTarget,
+        LogicScriptStatementGraphEdge::Next,
     ) else {
         return OptimizationResult::Unchanged;
     };

@@ -1,11 +1,11 @@
 use std::io::Cursor;
 
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 use web_sys::js_sys::Uint8Array;
 
 use crate::{buffer::Buffer, color_palettes::ColorPalette, resources::decode::Decode};
 
-use super::cel::{render_view_cel, ViewCel, ViewCelData, ViewCelHandle, ViewCelPixelsIterator};
+use super::cel::{ViewCel, ViewCelData, ViewCelHandle, ViewCelPixelsIterator, render_view_cel};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[wasm_bindgen]

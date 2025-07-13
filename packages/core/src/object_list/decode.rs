@@ -1,6 +1,6 @@
 use std::io::{Cursor, Seek, SeekFrom};
 
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 use web_sys::js_sys::Uint8Array;
 
 use crate::{
@@ -8,7 +8,7 @@ use crate::{
     data_encoding::ReadHeterogeneousData,
     object_list::{ObjectList, ObjectListEntry},
     resources::decode::{Decode, DecodingError},
-    xor_encryption::{XorCursor, AGI_ENCRYPTION_KEY},
+    xor_encryption::{AGI_ENCRYPTION_KEY, XorCursor},
 };
 
 impl Decode<'_> for ObjectList {

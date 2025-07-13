@@ -431,7 +431,7 @@ mod tests {
 
 #[cfg(feature = "js")]
 pub mod js {
-    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+    use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
     use crate::{
         buffer::Buffer,

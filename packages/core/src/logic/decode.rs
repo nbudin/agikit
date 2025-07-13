@@ -8,12 +8,12 @@ use crate::{
     agi_version::{AGIMajorVersion, AGIVersion},
     data_encoding::ReadHeterogeneousData,
     logic::{
-        commands::{AGICommand, TestCommand},
         LogicCommand, LogicCondition, LogicConditionClause, LogicGoto, LogicInstruction,
         LogicMessages, LogicOr, LogicProgram, LogicTest,
+        commands::{AGICommand, TestCommand},
     },
     resources::decode::{Decode, DecodingError},
-    xor_encryption::{XorCursor, AGI_ENCRYPTION_KEY},
+    xor_encryption::{AGI_ENCRYPTION_KEY, XorCursor},
 };
 
 #[derive(Debug)]
@@ -271,7 +271,7 @@ mod tests {
 mod js {
     use std::io::Cursor;
 
-    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+    use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
     use crate::{
         agi_version::AGIVersion, buffer::Buffer, logic::LogicProgram, resources::decode::Decode,

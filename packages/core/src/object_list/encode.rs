@@ -2,7 +2,7 @@ use crate::{
     data_encoding::WriteHeterogeneousData,
     object_list::ObjectList,
     resources::encode::{Encode, EncodingError},
-    xor_encryption::{XorCursor, AGI_ENCRYPTION_KEY},
+    xor_encryption::{AGI_ENCRYPTION_KEY, XorCursor},
 };
 
 impl Encode<'_> for ObjectList {
@@ -42,7 +42,7 @@ impl Encode<'_> for ObjectList {
 
 #[cfg(feature = "js")]
 pub mod js {
-    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+    use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
     use crate::{buffer::Buffer, object_list::ObjectList, resources::encode::Encode};
 

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    data_encoding::{encode_uint16be, WriteHeterogeneousData},
+    data_encoding::{WriteHeterogeneousData, encode_uint16be},
     resources::encode::{Encode, EncodingError},
     word_list::WordList,
 };
@@ -120,7 +120,7 @@ impl Encode<'_> for WordList {
 
 #[cfg(feature = "js")]
 pub mod js {
-    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+    use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
     use crate::{buffer::Buffer, resources::encode::Encode, word_list::WordList};
 

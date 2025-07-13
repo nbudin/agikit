@@ -13,7 +13,7 @@ use crate::{
         LogicMessages, LogicOr, LogicProgram, LogicTest,
     },
     resources::encode::{Encode, EncodingError},
-    xor_encryption::{XorCursor, AGI_ENCRYPTION_KEY},
+    xor_encryption::{AGI_ENCRYPTION_KEY, XorCursor},
 };
 
 #[derive(Debug)]
@@ -388,7 +388,7 @@ impl Encode<'_> for LogicProgram {
 pub mod js {
     use serde::{Deserialize, Serialize};
     use tsify::Tsify;
-    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+    use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
     use crate::{
         buffer::Buffer,

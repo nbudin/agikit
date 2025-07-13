@@ -1,4 +1,5 @@
 use crate::logic::{
+    LogicCommand,
     asm::expressions::{LogicArgument, LogicIdentifier, ParsedLogicArgument},
     logic_script::{
         codegen::{
@@ -12,7 +13,6 @@ use crate::logic::{
             LogicScriptUnaryOperationStatement, LogicScriptValueAssignmentStatement,
         },
     },
-    LogicCommand,
 };
 
 enum ExpectedArgumentType {

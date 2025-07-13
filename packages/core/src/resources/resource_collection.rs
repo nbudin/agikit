@@ -6,10 +6,10 @@ use crate::{
     compression::lzw::agi_lzw_decompress,
     data_encoding::ReadHeterogeneousData,
     resources::{
+        ResourceNumber, ResourceType,
         decode::DecodingError,
         dirs::{DirEntry, ResourceDirs},
         file_provider::FileProvider,
-        ResourceNumber, ResourceType,
     },
 };
 
@@ -160,14 +160,14 @@ mod tests {
 pub mod js {
     use std::path::Path;
 
-    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+    use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
     use crate::{
         buffer::Buffer,
         resources::{
+            ResourceNumber, ResourceType,
             dirs::DirEntry,
             resource_collection::{read_v2_resource, read_v3_resource},
-            ResourceNumber, ResourceType,
         },
     };
 

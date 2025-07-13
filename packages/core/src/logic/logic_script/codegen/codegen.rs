@@ -102,7 +102,7 @@ impl GenerateLogicScript for LogicScriptLabel {
         _context: &LogicScriptCodeGenerationContext<'_>,
         _options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
-        Ok(format!("{}:\n", self.label))
+        Ok(format!("{}:", self.label))
     }
 }
 
@@ -305,7 +305,9 @@ impl GenerateLogicScript for LogicScriptRightIndirectAssignmentStatement {
     }
 }
 
-impl<Arg: LogicArgument + GenerateLogicAsm> GenerateLogicScript for LogicScriptStatement<Arg> {
+impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
+    for LogicScriptStatement<Arg>
+{
     type Options = usize; // indentation level
 
     fn generate_logic_script(
@@ -333,19 +335,15 @@ impl<Arg: LogicArgument + GenerateLogicAsm> GenerateLogicScript for LogicScriptS
             LogicScriptStatement::IfStatement(if_statement) => {
                 let generate_lines = |statements: &[Box<LogicScriptStatement<Arg>>]| -> Result<Vec<String>, LogicScriptCodeGenerationError> {
                   let mut branch_lines: Vec<String> = statements
-                      .iter()
-                      .map(|stmt| {
-                          stmt.generate_logic_script(context, 2).map(|line| {
-                              line.trim_end()
-                                  .split("\n")
-                                  .map(|l| format!("{}\n", l))
-                                  .collect::<Vec<_>>()
-                          })
-                      })
-                      .collect::<Result<Vec<Vec<String>>, _>>()?
-                      .into_iter()
-                      .flatten()
-                      .collect();
+                    .iter()
+                    .map(|stmt| (*stmt).as_ref().clone())
+                    .collect::<Vec<LogicScriptStatement<Arg>>>()
+                    .generate_logic_script(context, 2).map(|line| {
+                        line.trim_end()
+                            .split("\n")
+                            .map(|l| format!("{}\n", l))
+                            .collect::<Vec<_>>()
+                    })?;
 
                   if branch_lines.len() > 0 && branch_lines[0] == "\n" {
                       branch_lines.remove(0);
@@ -374,10 +372,7 @@ impl<Arg: LogicArgument + GenerateLogicAsm> GenerateLogicScript for LogicScriptS
                     )
                 };
 
-                Ok(format!(
-                    "\n{}",
-                    lines.map(|line| indent_line(&line)).collect::<String>()
-                ))
+                Ok(lines.map(|line| indent_line(&line)).collect::<String>())
             }
             LogicScriptStatement::UnaryOperation(unary_operation_statement) => Ok(indent_line(
                 &unary_operation_statement.generate_logic_script(context, ())?,
@@ -402,7 +397,9 @@ impl<Arg: LogicArgument + GenerateLogicAsm> GenerateLogicScript for LogicScriptS
     }
 }
 
-impl<Arg: LogicArgument + GenerateLogicAsm> GenerateLogicScript for Vec<LogicScriptStatement<Arg>> {
+impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
+    for Vec<LogicScriptStatement<Arg>>
+{
     type Options = usize; // indentation level
 
     fn generate_logic_script(
@@ -410,8 +407,24 @@ impl<Arg: LogicArgument + GenerateLogicAsm> GenerateLogicScript for Vec<LogicScr
         context: &LogicScriptCodeGenerationContext<'_>,
         options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
+        let mut prev_statement: Option<&LogicScriptStatement<Arg>> = None;
         self.iter()
-            .map(|statement| statement.generate_logic_script(context, options))
+            .map(|statement| {
+                let mut script = statement.generate_logic_script(context, options)?;
+                if matches!(statement, LogicScriptStatement::IfStatement(_))
+                    && matches!(
+                        prev_statement,
+                        Some(
+                            LogicScriptStatement::IfStatement(_)
+                                | LogicScriptStatement::CommandCall(_)
+                        )
+                    )
+                {
+                    script = format!("\n{}", script);
+                }
+                prev_statement = Some(statement);
+                Ok(script)
+            })
             .collect::<Result<Vec<_>, _>>()
             .map(|lines| lines.join("\n"))
     }

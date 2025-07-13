@@ -6,11 +6,11 @@ use crate::{
 use std::io::{Read, SeekFrom};
 
 use super::{
+    AGIView, ViewLoop,
     cel::{
         MirroredViewCelData, NonMirroredViewCelData, TransparencyMirroringByte, ViewCel,
         ViewCelData,
     },
-    AGIView, ViewLoop,
 };
 
 pub struct ViewCelDecodeOptions {

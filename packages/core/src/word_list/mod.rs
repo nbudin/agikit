@@ -70,7 +70,7 @@ mod tests {
 pub mod js {
     use std::collections::HashMap;
 
-    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+    use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
     use web_sys::js_sys;
 
     use crate::word_list::{WordList, WordListEntry};

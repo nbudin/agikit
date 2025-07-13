@@ -32,7 +32,7 @@ mod tests {
         object_list::ObjectList,
         resources::{decode::Decode, encode::Encode, file_provider::FileProvider},
         test_data::uriquest_dir,
-        xor_encryption::{XorCursor, AGI_ENCRYPTION_KEY},
+        xor_encryption::{AGI_ENCRYPTION_KEY, XorCursor},
     };
     use similar_asserts::assert_eq;
 

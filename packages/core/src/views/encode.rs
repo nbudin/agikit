@@ -8,8 +8,8 @@ use crate::{
 };
 
 use super::{
-    cel::{NonMirroredViewCelData, TransparencyMirroringByte, ViewCel, ViewCelData},
     AGIView, ViewLoop,
+    cel::{NonMirroredViewCelData, TransparencyMirroringByte, ViewCel, ViewCelData},
 };
 
 impl Encode<'_> for ViewCel {

@@ -3,7 +3,7 @@ use std::{
     io::{Cursor, SeekFrom},
 };
 
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 use web_sys::js_sys::Uint8Array;
 
 use crate::{

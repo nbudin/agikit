@@ -148,13 +148,13 @@ impl<'a> Iterator for ViewCelPixelsIterator<'a> {
 
 #[cfg(feature = "js")]
 pub mod js {
-    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+    use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
     use web_sys::js_sys::Uint8Array;
 
     use crate::{
         buffer::Buffer,
         color_palettes::ColorPalette,
-        views::cel::{render_view_cel, ViewCel, ViewCelData},
+        views::cel::{ViewCel, ViewCelData, render_view_cel},
     };
 
     #[wasm_bindgen(js_name = "renderViewCel")]

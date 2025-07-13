@@ -19,7 +19,7 @@ use crate::logic::{
             LogicScriptLiteral, LogicScriptLiteralValue, LogicScriptSingleStringLiteral,
             LogicScriptStringLiteral, LogicScriptStringLiteralPart,
         },
-        locations::{location_range, Locatable, WithLocation},
+        locations::{Locatable, WithLocation, location_range},
         operators::{LogicScriptArithmeticOperator, LogicScriptUnaryAssignmentOperator},
         statements::{
             KeywordType, LogicScriptArithmeticAssignmentStatement, LogicScriptCommandCall,
@@ -540,7 +540,7 @@ mod tests {
             logic_script::{
                 locations::WithLocation,
                 operators::LogicScriptArithmeticOperator,
-                parsing::{logic_script_parser, LogicScriptProgram},
+                parsing::{LogicScriptProgram, logic_script_parser},
                 statements::LogicScriptStatement,
             },
         },

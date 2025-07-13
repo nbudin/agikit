@@ -48,6 +48,15 @@ impl<'a> LogicScriptProgramGenerator<'a> {
         let mut statement_graph =
             LogicScriptStatementGraph::try_from_statements(&statements, IdentifierMap::builtins())?;
         statement_graph.optimize();
+        // #[cfg(test)]
+        // crate::test_utils::write_and_edit(
+        //     ".dot",
+        //     &context
+        //         .domination_analysis
+        //         .dominators_to_dot(&context.basic_block_graph.graph, &|node_id, _block| {
+        //             format!("label = \"{}\"", node_id.index())
+        //         }),
+        // );
 
         let optimized_statements = statement_graph.to_statements()?;
         let program_section = optimized_statements.generate_logic_script(context, 0)?;
@@ -191,10 +200,11 @@ impl<'a> LogicScriptProgramGenerator<'a> {
     {
         let mut generate_branch_code = |block_id: NodeIndex, to_block_id: Option<NodeIndex>| {
             if let Some(to_block_id) = to_block_id {
-                if !self
-                    .context
-                    .domination_analysis
-                    .dominates(block_id, to_block_id)
+                if block_id == to_block_id
+                    || !self
+                        .context
+                        .domination_analysis
+                        .dominates(block_id, to_block_id)
                 {
                     let Some(label) = self.find_basic_block_label(to_block_id)? else {
                         return Err(LogicScriptCodeGenerationError::ConditionalToUnlabeledBlock(
@@ -261,11 +271,11 @@ impl<'a> LogicScriptProgramGenerator<'a> {
             if self
                 .context
                 .domination_analysis
-                .post_dominates(else_id, block_id)
+                .dominates(block_id, else_id)
                 && then_queue.iter().all(|next_block_id| {
                     self.context
                         .domination_analysis
-                        .dominates(else_id, *next_block_id)
+                        .dominates(block_id, *next_block_id)
                 })
             {
                 // else clause can be unrolled
