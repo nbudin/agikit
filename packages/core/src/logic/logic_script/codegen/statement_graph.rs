@@ -699,7 +699,7 @@ mod tests {
         graph.add_edge(
             goto_id,
             target_statement_id,
-            LogicScriptStatementGraphEdge::GotoTarget,
+            LogicScriptStatementGraphEdge::Next,
         );
 
         assert!(
