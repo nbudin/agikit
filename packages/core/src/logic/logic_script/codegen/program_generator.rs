@@ -327,18 +327,7 @@ impl<'a> LogicScriptProgramGenerator<'a> {
     ) -> Result<Vec<LogicScriptStatement<ParsedLogicArgument>>, LogicScriptCodeGenerationError>
     {
         if self.visited_basic_blocks.contains(&block_id) {
-            let label = self
-                .context
-                .block_labels
-                .get(&block_id)
-                .cloned()
-                .ok_or_else(|| {
-                    LogicScriptCodeGenerationError::JumpToUnlabeledStatement(
-                        block_id,
-                        self.context.get_block(block_id).cloned(),
-                    )
-                })?;
-
+            let label = self.context.label_for_block_id(block_id);
             return Ok(vec![self.generate_goto(label)]);
         }
 
@@ -376,29 +365,39 @@ mod tests {
 
     use similar_asserts::assert_eq;
 
-    #[test]
-    fn smoke_test() {
-        let uriquest = uriquest();
-        let logic = uriquest
-            .decode_logic(13)
-            .expect("Failed to decode logic program");
-        let word_list = uriquest
-            .decode_word_list()
-            .expect("Failed to decode word list");
+    macro_rules! logic_smoke_test {
+        ($test_name: ident, $resource_number: literal) => {
+            #[test]
+            fn $test_name() {
+                let uriquest = uriquest();
+                let logic = uriquest
+                    .decode_logic($resource_number)
+                    .expect("Failed to decode logic program");
+                let word_list = uriquest
+                    .decode_word_list()
+                    .expect("Failed to decode word list");
 
-        let context = LogicScriptCodeGenerationContext::try_from_program(&logic, &word_list)
-            .expect("Failed to create code generation context");
+                let context =
+                    LogicScriptCodeGenerationContext::try_from_program(&logic, &word_list)
+                        .expect("Failed to create code generation context");
 
-        let generator = LogicScriptProgramGenerator::new(&context);
+                let generator = LogicScriptProgramGenerator::new(&context);
 
-        let generated_script = generator
-            .generate_logic_script(&logic.messages)
-            .expect("Failed to generate script");
+                let generated_script = generator
+                    .generate_logic_script(&logic.messages)
+                    .expect("Failed to generate script");
 
-        let expected = uriquest
-            .read_file_utf8("13.agilogic")
-            .expect("Failed to read 13.agilogic");
+                let expected = uriquest
+                    .read_file_utf8(&format!("{}.agilogic", $resource_number))
+                    .unwrap();
 
-        assert_eq!(expected, generated_script);
+                assert_eq!(expected, generated_script);
+            }
+        };
     }
+
+    logic_smoke_test!(logic_0_test, 0);
+    logic_smoke_test!(logic_13_test, 13);
+    logic_smoke_test!(logic_93_test, 93);
+    logic_smoke_test!(logic_100_test, 100);
 }

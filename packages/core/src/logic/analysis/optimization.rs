@@ -1,6 +1,7 @@
 use petgraph::{
     Direction,
-    graph::{DiGraph, EdgeIndex, NodeIndex},
+    graph::{EdgeIndex, NodeIndex},
+    prelude::StableDiGraph,
     visit::{
         Dfs, EdgeIndexable, EdgeRef, GraphBase, GraphRef, IntoEdgeReferences, IntoEdgesDirected,
         IntoNeighbors, NodeIndexable, Visitable, Walker,
@@ -68,17 +69,19 @@ pub trait RemoveNodePreservingEdges<NodeIndexType, EdgeIndexType, EdgeWeight> {
         node_id: NodeIndexType,
     ) -> Vec<(EdgeIndexType, NodeIndexType, EdgeWeight)>;
 
-    fn remove_node_preserving_edges(
+    fn remove_node_preserving_edges<F: Fn(&Self, EdgeIndexType) -> bool>(
         &mut self,
         node_id: NodeIndexType,
+        new_source_id: NodeIndexType,
         new_target_id: NodeIndexType,
+        preserve_edge: F,
     );
 }
 
 impl<'a, NodeType: 'a, EdgeType: 'a + Clone>
-    RemoveNodePreservingEdges<NodeIndex, EdgeIndex, EdgeType> for DiGraph<NodeType, EdgeType>
+    RemoveNodePreservingEdges<NodeIndex, EdgeIndex, EdgeType> for StableDiGraph<NodeType, EdgeType>
 where
-    &'a DiGraph<NodeType, EdgeType>: IntoEdgesDirected + NodeIndexable + EdgeIndexable,
+    &'a StableDiGraph<NodeType, EdgeType>: IntoEdgesDirected + NodeIndexable + EdgeIndexable,
 {
     fn incoming_edge_data(&self, node_id: NodeIndex) -> Vec<(EdgeIndex, NodeIndex, EdgeType)> {
         self.edges_directed(node_id, Direction::Incoming)
@@ -92,20 +95,26 @@ where
             .collect::<Vec<_>>()
     }
 
-    fn remove_node_preserving_edges(&mut self, node_index: NodeIndex, new_target_id: NodeIndex) {
+    fn remove_node_preserving_edges<F: Fn(&Self, EdgeIndex) -> bool>(
+        &mut self,
+        node_index: NodeIndex,
+        new_source_id: NodeIndex,
+        new_target_id: NodeIndex,
+        preserve_edge: F,
+    ) {
         let incoming_edges = self.incoming_edge_data(node_index);
         let outgoing_edges = self.outgoing_edge_data(node_index);
 
         for (edge_id, source_id, edge_weight) in incoming_edges {
-            if source_id != new_target_id {
+            if preserve_edge(self, edge_id) {
                 self.add_edge(source_id, new_target_id, edge_weight);
             }
             self.remove_edge(edge_id);
         }
 
         for (edge_id, target_id, edge_weight) in outgoing_edges {
-            if new_target_id != target_id {
-                self.add_edge(new_target_id, target_id, edge_weight);
+            if preserve_edge(self, edge_id) {
+                self.add_edge(new_source_id, target_id, edge_weight);
             }
             self.remove_edge(edge_id);
         }

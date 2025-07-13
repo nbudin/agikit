@@ -5,7 +5,8 @@ use std::fmt::Debug;
 use petgraph::{
     Direction,
     algo::has_path_connecting,
-    graph::{DiGraph, NodeIndex},
+    graph::NodeIndex,
+    prelude::StableDiGraph,
     visit::{Dfs, DfsPostOrder, EdgeFiltered, EdgeRef, Walker},
 };
 
@@ -35,7 +36,10 @@ pub enum LogicScriptStatementGraphEdge {
 }
 
 fn add_statements_to_graph<'a>(
-    graph: &mut DiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>,
+    graph: &mut StableDiGraph<
+        LogicScriptStatement<ParsedLogicArgument>,
+        LogicScriptStatementGraphEdge,
+    >,
     statements: Box<dyn Iterator<Item = &'a LogicScriptStatement<ParsedLogicArgument>> + 'a>,
 ) -> (Vec<NodeIndex>, Vec<NodeIndex>) {
     let mut prev_node_id: Option<NodeIndex> = None;
@@ -105,7 +109,8 @@ fn add_statements_to_graph<'a>(
 }
 
 pub struct LogicScriptStatementGraph {
-    pub graph: DiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>,
+    pub graph:
+        StableDiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>,
     pub root_id: NodeIndex,
     pub identifiers: IdentifierMap,
     pub node_ids_by_label: HashMap<String, NodeIndex>,
@@ -116,7 +121,7 @@ impl LogicScriptStatementGraph {
         statements: &[LogicScriptStatement<ParsedLogicArgument>],
         identifiers: IdentifierMap,
     ) -> Result<Self, LogicScriptCodeGenerationError> {
-        let mut graph = DiGraph::new();
+        let mut graph = StableDiGraph::new();
         let (statement_ids, _) = add_statements_to_graph(&mut graph, Box::new(statements.iter()));
         let root_id = *statement_ids.first().unwrap();
 
@@ -268,12 +273,6 @@ impl LogicScriptStatementGraph {
                         Direction::Outgoing,
                         LogicScriptStatementGraphEdge::GotoTarget,
                     ) else {
-                        eprintln!(
-                            "{:?}",
-                            self.graph
-                                .edges_directed(node_id, Direction::Outgoing)
-                                .collect::<Vec<_>>()
-                        );
                         return Err(LogicScriptCodeGenerationError::GotoWithNoTarget(
                             statement.clone(),
                         ));
@@ -317,18 +316,21 @@ impl LogicScriptStatementGraph {
     }
 }
 
-impl Optimizable<DiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>>
-    for LogicScriptStatementGraph
+impl
+    Optimizable<
+        StableDiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>,
+    > for LogicScriptStatementGraph
 {
     fn get_graph(
         &self,
-    ) -> &DiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge> {
+    ) -> &StableDiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>
+    {
         &self.graph
     }
 
     fn get_graph_mut(
         &mut self,
-    ) -> &mut DiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>
+    ) -> &mut StableDiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>
     {
         &mut self.graph
     }
@@ -342,7 +344,10 @@ impl Optimizable<DiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptS
     ) -> Vec<
         Box<
             dyn OptimizationVisitor<
-                DiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>,
+                StableDiGraph<
+                    LogicScriptStatement<ParsedLogicArgument>,
+                    LogicScriptStatementGraphEdge,
+                >,
             >,
         >,
     > {
@@ -375,12 +380,12 @@ impl RemoveUnusedLabels {
 
 impl
     OptimizationVisitor<
-        DiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>,
+        StableDiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>,
     > for RemoveUnusedLabels
 {
     fn visit(
         &mut self,
-        graph: &mut DiGraph<
+        graph: &mut StableDiGraph<
             LogicScriptStatement<ParsedLogicArgument>,
             LogicScriptStatementGraphEdge,
         >,
@@ -411,13 +416,33 @@ impl
             return false;
         };
 
-        graph.remove_node_preserving_edges(node_id, next_id);
+        let Some(prev_id) = graph
+            .directed_neighbor_node_id_of_type(
+                node_id,
+                Direction::Incoming,
+                LogicScriptStatementGraphEdge::Next,
+            )
+            .or_else(|| {
+                graph.directed_neighbor_node_id_of_type(
+                    node_id,
+                    Direction::Incoming,
+                    LogicScriptStatementGraphEdge::BlockExit,
+                )
+            })
+        else {
+            return false;
+        };
+
+        graph.remove_node_preserving_edges(node_id, prev_id, next_id, |_, _| true);
         true
     }
 }
 
 pub fn remove_redundant_jumps(
-    graph: &mut DiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>,
+    graph: &mut StableDiGraph<
+        LogicScriptStatement<ParsedLogicArgument>,
+        LogicScriptStatementGraphEdge,
+    >,
     node_id: NodeIndex,
 ) -> bool {
     let Some(statement) = graph.node_weight(node_id) else {
@@ -445,6 +470,23 @@ pub fn remove_redundant_jumps(
         return false;
     };
 
+    let Some(prev_id) = graph
+        .directed_neighbor_node_id_of_type(
+            node_id,
+            Direction::Incoming,
+            LogicScriptStatementGraphEdge::Next,
+        )
+        .or_else(|| {
+            graph.directed_neighbor_node_id_of_type(
+                node_id,
+                Direction::Incoming,
+                LogicScriptStatementGraphEdge::BlockExit,
+            )
+        })
+    else {
+        return false;
+    };
+
     let Some(next_statement) = graph.node_weight(next_id) else {
         return false;
     };
@@ -455,7 +497,7 @@ pub fn remove_redundant_jumps(
     };
 
     if is_redundant_jump {
-        graph.remove_node_preserving_edges(node_id, next_id);
+        graph.remove_node_preserving_edges(node_id, prev_id, next_id, |_, _| true);
         true
     } else {
         false
@@ -463,7 +505,10 @@ pub fn remove_redundant_jumps(
 }
 
 pub fn remove_empty_then_with_else(
-    graph: &mut DiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>,
+    graph: &mut StableDiGraph<
+        LogicScriptStatement<ParsedLogicArgument>,
+        LogicScriptStatementGraphEdge,
+    >,
     node_id: NodeIndex,
 ) -> bool {
     let Some(LogicScriptStatement::IfStatement(statement)) = graph.node_weight_mut(node_id) else {
@@ -553,6 +598,7 @@ mod tests {
         let logic = project.decode_logic(logic_resource_number)?;
         let word_list = project.decode_word_list()?;
         let context = LogicScriptCodeGenerationContext::try_from_program(&logic, &word_list)?;
+
         let generator = LogicScriptProgramGenerator::new(&context);
         let statements = generator.generate_statements()?;
         let statement_graph =
@@ -578,6 +624,7 @@ mod tests {
     logic_smoke_test!(logic_0_test, 0);
     logic_smoke_test!(logic_13_test, 13);
     logic_smoke_test!(logic_93_test, 93);
+    logic_smoke_test!(logic_100_test, 100);
 
     #[test]
     fn comprehensive_smoke_test() {

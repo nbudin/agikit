@@ -1,9 +1,10 @@
 use std::collections::{HashMap, HashSet};
 
 use petgraph::{
-    Directed, Direction, Graph,
+    Directed, Direction,
     csr::{DefaultIx, IndexType},
-    graph::{DiGraph, NodeIndex},
+    graph::NodeIndex,
+    prelude::StableDiGraph,
     visit::{Dfs, EdgeRef},
 };
 
@@ -40,14 +41,17 @@ impl<'a, Ix: IndexType> TryFrom<&'a InvertedGraphNode<Ix>> for NodeReference<Ix>
 #[derive(Debug, Clone)]
 pub struct InvertedGraph<Ix: IndexType = DefaultIx> {
     pub virtual_root_id: NodeIndex,
-    pub reverse_graph: DiGraph<InvertedGraphNode<Ix>, ()>,
+    pub reverse_graph: StableDiGraph<InvertedGraphNode<Ix>, ()>,
     reverse_nodes_by_node_id: HashMap<NodeIndex<Ix>, NodeIndex>,
 }
 
 impl<Ix: IndexType> InvertedGraph<Ix> {
-    pub fn from_graph<'a, N, E>(graph: &'a DiGraph<N, E, Ix>, root_id: NodeIndex<Ix>) -> Self {
+    pub fn from_graph<'a, N, E>(
+        graph: &'a StableDiGraph<N, E, Ix>,
+        root_id: NodeIndex<Ix>,
+    ) -> Self {
         let mut reverse_nodes_by_node_id = HashMap::new();
-        let mut reverse_graph = DiGraph::new();
+        let mut reverse_graph = StableDiGraph::new();
         let mut root_ids = HashSet::new();
 
         let mut dfs = Dfs::new(&graph, root_id);
@@ -96,7 +100,7 @@ impl<Ix: IndexType> InvertedGraph<Ix> {
 }
 
 impl<Ix: IndexType> ReferenceGraph<InvertedGraphNode<Ix>, (), Directed, Ix> for InvertedGraph<Ix> {
-    fn reference_graph(&self) -> &Graph<InvertedGraphNode<Ix>, (), Directed> {
+    fn reference_graph(&self) -> &StableDiGraph<InvertedGraphNode<Ix>, ()> {
         &self.reverse_graph
     }
 
@@ -118,7 +122,7 @@ mod tests {
 
     #[test]
     fn test_reverse_control_flow_graph() {
-        let mut graph = DiGraph::new();
+        let mut graph = StableDiGraph::new();
         let block_a = graph.add_node(BasicBlock::SinglePath(SinglePathBasicBlock {
             commands: vec![],
             label: Some("A".to_string()),

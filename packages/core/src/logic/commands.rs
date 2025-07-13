@@ -61,6 +61,12 @@ impl AGICommand {
 
         AGI_COMMANDS.get(&opcode)
     }
+
+    pub fn by_name(name: &str, agi_version: &AGIVersion) -> Option<&'static Self> {
+        AGI_COMMAND_OPCODES_BY_NAME
+            .get(name)
+            .and_then(|opcode| Self::get(*opcode, agi_version))
+    }
 }
 
 #[wasm_bindgen(skip_typescript)]
@@ -81,6 +87,12 @@ impl TestCommand {
     pub fn get(opcode: u8) -> Option<&'static Self> {
         TEST_COMMANDS.get(&opcode)
     }
+
+    pub fn by_name(name: &str) -> Option<&'static Self> {
+        TEST_COMMAND_OPCODES_BY_NAME
+            .get(name)
+            .and_then(|opcode| Self::get(*opcode))
+    }
 }
 
 pub static AGI_COMMANDS: LazyLock<HashMap<u8, AGICommand>> = LazyLock::new(|| {
@@ -88,9 +100,23 @@ pub static AGI_COMMANDS: LazyLock<HashMap<u8, AGICommand>> = LazyLock::new(|| {
     commands.into_iter().map(|cmd| (cmd.opcode, cmd)).collect()
 });
 
+pub static AGI_COMMAND_OPCODES_BY_NAME: LazyLock<HashMap<String, u8>> = LazyLock::new(|| {
+    AGI_COMMANDS
+        .iter()
+        .map(|(opcode, cmd)| (cmd.name.clone(), *opcode))
+        .collect()
+});
+
 pub static TEST_COMMANDS: LazyLock<HashMap<u8, TestCommand>> = LazyLock::new(|| {
     let commands: Vec<TestCommand> = include_test_commands!("src/logic/test_commands.json");
     commands.into_iter().map(|cmd| (cmd.opcode, cmd)).collect()
+});
+
+pub static TEST_COMMAND_OPCODES_BY_NAME: LazyLock<HashMap<String, u8>> = LazyLock::new(|| {
+    TEST_COMMANDS
+        .iter()
+        .map(|(opcode, cmd)| (cmd.name.clone(), *opcode))
+        .collect()
 });
 
 #[cfg(test)]
@@ -115,11 +141,11 @@ pub mod js {
     use std::collections::HashMap;
 
     use tsify::serde_wasm_bindgen;
-    use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+    use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
     use crate::{
         agi_version::AGIVersion,
-        logic::commands::{AGICommand, TestCommand, AGI_COMMANDS, TEST_COMMANDS},
+        logic::commands::{AGI_COMMANDS, AGICommand, TEST_COMMANDS, TestCommand},
     };
 
     #[wasm_bindgen(typescript_custom_section)]

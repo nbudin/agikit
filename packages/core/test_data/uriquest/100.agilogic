@@ -1,0 +1,39 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+
+  if (!(v1 > 9)) {
+    position(o0, 60, 100);
+    status.line.on();
+    accept.input();
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  new.room(10);
+}
+
+if (v2 == 2) {
+  new.room(10);
+}
+
+if (v2 == 3) {
+  new.room(10);
+}
+
+if (v2 == 4) {
+  new.room(10);
+}
+return();
+
+
+// messages
+#message 1 "You should stop talking to yourself."

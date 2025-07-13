@@ -1,8 +1,9 @@
 use petgraph::{
+    EdgeType,
     csr::{DefaultIx, IndexType},
     graph::NodeIndex,
+    prelude::StableGraph,
     visit::NodeRef,
-    EdgeType, Graph,
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -52,7 +53,7 @@ pub trait ReferenceGraph<RN, RE, Ty: EdgeType, Ix: IndexType = DefaultIx>
 where
     for<'a> &'a RN: TryInto<NodeReference<Ix>>,
 {
-    fn reference_graph(&self) -> &Graph<RN, RE, Ty>;
+    fn reference_graph(&self) -> &StableGraph<RN, RE, Ty>;
 
     fn source_node_id_for_reference_node_id(
         &self,

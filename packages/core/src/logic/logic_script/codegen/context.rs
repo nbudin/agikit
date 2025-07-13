@@ -1,6 +1,9 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
-use petgraph::graph::NodeIndex;
+use petgraph::{graph::NodeIndex, visit::Dfs};
 
 use crate::{
     logic::{
@@ -17,10 +20,62 @@ use crate::{
     word_list::WordList,
 };
 
+pub struct LogicScriptLabelMap {
+    labels_by_block_id: HashMap<NodeIndex, String>,
+    block_id_by_label: HashMap<String, NodeIndex>,
+    generated_label_counter: u16,
+}
+
+impl LogicScriptLabelMap {
+    pub fn new(graph: &BasicBlockGraph) -> Self {
+        let mut labels_by_block_id = HashMap::new();
+        let mut block_id_by_label = HashMap::new();
+
+        let mut dfs = Dfs::new(&graph.graph, graph.root_block_id);
+        while let Some(block_id) = dfs.next(&graph.graph) {
+            let Some(block) = graph.graph.node_weight(block_id) else {
+                continue;
+            };
+
+            let Some(label) = block.label() else {
+                continue;
+            };
+
+            labels_by_block_id.insert(block_id, label.to_string());
+            block_id_by_label.insert(label.to_string(), block_id);
+        }
+
+        Self {
+            labels_by_block_id,
+            block_id_by_label,
+            generated_label_counter: 0,
+        }
+    }
+
+    pub fn label_for_block_id(&mut self, block_id: NodeIndex) -> String {
+        self.labels_by_block_id
+            .entry(block_id)
+            .or_insert_with(|| {
+                let label = loop {
+                    let label = format!("GeneratedLabel{}", self.generated_label_counter);
+                    self.generated_label_counter += 1;
+                    if !self.block_id_by_label.contains_key(&label) {
+                        break label;
+                    }
+                };
+
+                self.block_id_by_label.insert(label.clone(), block_id);
+
+                label
+            })
+            .clone()
+    }
+}
+
 pub struct LogicScriptCodeGenerationContext<'a> {
     pub asm_context: AsmCodeGenerationContext<'a>,
     pub basic_block_graph: BasicBlockGraph,
-    pub block_labels: HashMap<NodeIndex, String>,
+    pub block_labels: Arc<Mutex<LogicScriptLabelMap>>,
     pub domination_analysis: DominationAnalysis,
 }
 
@@ -48,15 +103,24 @@ impl<'a> LogicScriptCodeGenerationContext<'a> {
             basic_block_graph.root_block_id,
         );
 
+        let label_map = LogicScriptLabelMap::new(&basic_block_graph);
+
         Self {
             asm_context,
             basic_block_graph,
             domination_analysis,
-            block_labels: HashMap::new(),
+            block_labels: Arc::new(Mutex::new(label_map)),
         }
     }
 
     pub fn get_block(&self, block_id: NodeIndex) -> Option<&BasicBlock> {
         self.basic_block_graph.graph.node_weight(block_id)
+    }
+
+    pub fn label_for_block_id(&self, block_id: NodeIndex) -> String {
+        self.block_labels
+            .lock()
+            .unwrap()
+            .label_for_block_id(block_id)
     }
 }

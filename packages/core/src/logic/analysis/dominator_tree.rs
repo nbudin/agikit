@@ -1,9 +1,10 @@
 use std::collections::{HashMap, HashSet};
 
 use petgraph::{
-    Directed, Direction, Graph,
+    Directed, Direction,
     csr::{DefaultIx, IndexType},
-    graph::{DiGraph, NodeIndex},
+    graph::NodeIndex,
+    prelude::{StableDiGraph, StableGraph},
     visit::{Dfs, EdgeRef},
 };
 
@@ -19,7 +20,7 @@ pub struct DominationAnalysis<Ix: IndexType = DefaultIx> {
 }
 
 impl<Ix: IndexType> DominationAnalysis<Ix> {
-    pub fn from_graph<N, E>(graph: &DiGraph<N, E, Ix>, root_id: NodeIndex<Ix>) -> Self {
+    pub fn from_graph<N, E>(graph: &StableDiGraph<N, E, Ix>, root_id: NodeIndex<Ix>) -> Self {
         let dominator_tree = DominatorTree::from_graph(&graph, root_id);
         let reverse_cfg = InvertedGraph::from_graph(&graph, root_id);
         let post_dominator_tree =
@@ -113,7 +114,7 @@ impl<Ix: IndexType> DominationAnalysis<Ix> {
 impl<Ix: IndexType> DominationAnalysis<Ix> {
     pub fn dominators_to_dot<N, E, F: Fn(NodeIndex<Ix>, &N) -> String>(
         &self,
-        graph: &DiGraph<N, E, Ix>,
+        graph: &StableDiGraph<N, E, Ix>,
         node_attrs: &F,
     ) -> String {
         use petgraph::dot::{Config, Dot};
@@ -140,7 +141,7 @@ impl<Ix: IndexType> DominationAnalysis<Ix> {
 
     pub fn reverse_cfg_to_dot<N, E, F: Fn(NodeIndex<Ix>, &N) -> String>(
         &self,
-        graph: &DiGraph<N, E, Ix>,
+        graph: &StableDiGraph<N, E, Ix>,
         node_attrs: &F,
     ) -> String {
         use petgraph::dot::{Config, Dot};
@@ -177,7 +178,7 @@ impl<Ix: IndexType> DominationAnalysis<Ix> {
 
     pub fn post_dominators_to_dot<N, E, F: Fn(NodeIndex<Ix>, &N) -> String>(
         &self,
-        graph: &DiGraph<N, E, Ix>,
+        graph: &StableDiGraph<N, E, Ix>,
         node_attrs: &F,
     ) -> String {
         use petgraph::dot::{Config, Dot};
@@ -220,14 +221,14 @@ pub enum DominatorTreeEdgeType {
 
 pub struct DominatorTree<Ix: IndexType = DefaultIx> {
     pub root_id: NodeIndex,
-    graph: DiGraph<NodeReference<Ix>, DominatorTreeEdgeType>,
+    graph: StableDiGraph<NodeReference<Ix>, DominatorTreeEdgeType>,
     dominator_tree_index_by_source_graph_index: HashMap<NodeIndex<Ix>, NodeIndex>,
 }
 
 impl<Ix: IndexType> ReferenceGraph<NodeReference<Ix>, DominatorTreeEdgeType, Directed, Ix>
     for DominatorTree<Ix>
 {
-    fn reference_graph(&self) -> &Graph<NodeReference<Ix>, DominatorTreeEdgeType, Directed> {
+    fn reference_graph(&self) -> &StableGraph<NodeReference<Ix>, DominatorTreeEdgeType, Directed> {
         &self.graph
     }
 
@@ -242,7 +243,7 @@ impl<Ix: IndexType> ReferenceGraph<NodeReference<Ix>, DominatorTreeEdgeType, Dir
 }
 
 impl<Ix: IndexType> DominatorTree<Ix> {
-    pub fn from_graph<'a, N, E>(graph: &'a DiGraph<N, E, Ix>, start: NodeIndex<Ix>) -> Self {
+    pub fn from_graph<'a, N, E>(graph: &'a StableDiGraph<N, E, Ix>, start: NodeIndex<Ix>) -> Self {
         SemiNCASpanningTree::from_graph(graph, start).build_dominator_tree::<N, E>()
     }
 
@@ -321,7 +322,7 @@ struct SemiNCASpanningTree<Ix: IndexType = DefaultIx> {
 
 impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
     pub fn from_graph<NodeType, EdgeType>(
-        graph: &DiGraph<NodeType, EdgeType, Ix>,
+        graph: &StableDiGraph<NodeType, EdgeType, Ix>,
         start: NodeIndex<Ix>,
     ) -> Self {
         let mut nodes_in_dfs_order = Vec::with_capacity(graph.node_count());
@@ -359,7 +360,7 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
     }
 
     pub fn build_dominator_tree<'a, N, E>(&self) -> DominatorTree<Ix> {
-        let mut graph = DiGraph::new();
+        let mut graph = StableDiGraph::new();
         let dominator_tree_nodes_by_source_graph_index = self
             .source_graph_indexes_in_dfs_order
             .iter()
@@ -433,7 +434,7 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
 
     fn compute_semidominators<NodeType, EdgeType>(
         &mut self,
-        graph: &DiGraph<NodeType, EdgeType, Ix>,
+        graph: &StableDiGraph<NodeType, EdgeType, Ix>,
     ) {
         // iterate nodes in reverse DFS order, omitting the root
         let reverse_dfs_order_without_root = self.source_graph_indexes_in_dfs_order[1..]
@@ -508,11 +509,11 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
 #[cfg(test)]
 mod tests {
     use super::DominatorTree;
-    use petgraph::graph::DiGraph;
+    use petgraph::prelude::StableDiGraph;
 
     #[test]
     fn test_simple_dominator_tree() {
-        let mut graph = DiGraph::<(), ()>::new();
+        let mut graph = StableDiGraph::<(), ()>::new();
         let n0 = graph.add_node(());
         let n1 = graph.add_node(());
         let n2 = graph.add_node(());

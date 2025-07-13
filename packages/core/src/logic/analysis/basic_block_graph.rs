@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use petgraph::{
     Direction,
-    graph::{DiGraph, EdgeIndex, NodeIndex},
+    graph::{EdgeIndex, NodeIndex},
+    prelude::StableDiGraph,
     visit::EdgeRef,
 };
 
@@ -85,13 +86,13 @@ pub enum BasicBlockControlFlow<'a> {
 
 #[derive(Debug, Clone)]
 pub struct BasicBlockGraph {
-    pub graph: DiGraph<BasicBlock, BasicBlockEdgeType>,
+    pub graph: StableDiGraph<BasicBlock, BasicBlockEdgeType>,
     pub root_block_id: NodeIndex,
 }
 
 impl BasicBlockGraph {
     pub fn from_ast(ast: &LogicAST) -> Self {
-        let mut graph = DiGraph::new();
+        let mut graph = StableDiGraph::new();
         let mut block_ids_by_node_id = HashMap::new();
         let root_block_id =
             build_basic_blocks(ast, ast.root_node_id, &mut graph, &mut block_ids_by_node_id);
@@ -190,12 +191,12 @@ impl BasicBlockGraph {
     }
 }
 
-impl Optimizable<DiGraph<BasicBlock, BasicBlockEdgeType>> for BasicBlockGraph {
-    fn get_graph(&self) -> &DiGraph<BasicBlock, BasicBlockEdgeType> {
+impl Optimizable<StableDiGraph<BasicBlock, BasicBlockEdgeType>> for BasicBlockGraph {
+    fn get_graph(&self) -> &StableDiGraph<BasicBlock, BasicBlockEdgeType> {
         &self.graph
     }
 
-    fn get_graph_mut(&mut self) -> &mut DiGraph<BasicBlock, BasicBlockEdgeType> {
+    fn get_graph_mut(&mut self) -> &mut StableDiGraph<BasicBlock, BasicBlockEdgeType> {
         &mut self.graph
     }
 
@@ -205,11 +206,10 @@ impl Optimizable<DiGraph<BasicBlock, BasicBlockEdgeType>> for BasicBlockGraph {
 
     fn optimization_visitors(
         &self,
-    ) -> Vec<Box<dyn OptimizationVisitor<DiGraph<BasicBlock, BasicBlockEdgeType>>>> {
+    ) -> Vec<Box<dyn OptimizationVisitor<StableDiGraph<BasicBlock, BasicBlockEdgeType>>>> {
         vec![
-            // TODO why do these both break things
             Box::new(remove_empty_block),
-            // Box::new(concatenate_linear_blocks),
+            Box::new(concatenate_linear_blocks),
         ]
     }
 }
@@ -283,12 +283,12 @@ impl BasicBlockGraph {
 fn build_basic_blocks(
     ast: &LogicAST,
     node_id: NodeIndex,
-    graph: &mut DiGraph<BasicBlock, BasicBlockEdgeType>,
+    graph: &mut StableDiGraph<BasicBlock, BasicBlockEdgeType>,
     block_ids_by_node_id: &mut HashMap<NodeIndex, NodeIndex>,
 ) -> NodeIndex {
     let find_or_build_blocks_for_node =
         |node_id: NodeIndex,
-         graph: &mut DiGraph<BasicBlock, BasicBlockEdgeType>,
+         graph: &mut StableDiGraph<BasicBlock, BasicBlockEdgeType>,
          block_ids_by_node_id: &mut HashMap<NodeIndex, NodeIndex>|
          -> NodeIndex {
             block_ids_by_node_id
@@ -359,70 +359,47 @@ fn build_basic_blocks(
     }
 }
 
-fn remove_block(
-    graph: &mut DiGraph<BasicBlock, BasicBlockEdgeType>,
-    block_id: NodeIndex,
-    new_target_block_id: NodeIndex,
-) {
-    let block_label = graph
-        .node_weight(block_id)
-        .and_then(|block| block.label().map(|l| l.to_owned()));
-
-    let new_target_block = graph.node_weight_mut(new_target_block_id).unwrap();
-    if new_target_block.label().is_none() && block_label.is_some() {
-        new_target_block.set_label(block_label);
-    }
-
-    graph.remove_node_preserving_edges(block_id, new_target_block_id);
-}
-
 pub fn remove_empty_block(
-    graph: &mut DiGraph<BasicBlock, BasicBlockEdgeType>,
+    graph: &mut StableDiGraph<BasicBlock, BasicBlockEdgeType>,
     block_id: NodeIndex,
 ) -> bool {
     let block = graph.node_weight(block_id);
     if let Some(BasicBlock::SinglePath(block)) = block {
-        if let Some(edge_id) = graph.directed_neighbor_edge_id_of_type(
-            block_id,
-            Direction::Outgoing,
-            BasicBlockEdgeType::Next,
-        ) {
-            let (_, next_block_id) = graph.edge_endpoints(edge_id).unwrap();
-            if block.commands.is_empty() {
-                remove_block(graph, block_id, next_block_id);
-                return true;
-            }
-        }
-    }
-
-    false
-}
-
-pub fn concatenate_linear_blocks(
-    graph: &mut DiGraph<BasicBlock, BasicBlockEdgeType>,
-    block_id: NodeIndex,
-) -> bool {
-    let block = graph.node_weight(block_id);
-    if let Some(BasicBlock::SinglePath(block)) = block {
-        if let Some(prev_edge_id) = graph.directed_neighbor_edge_id_of_type(
-            block_id,
-            Direction::Incoming,
-            BasicBlockEdgeType::Next,
-        ) {
-            if let Some(next_edge_id) = graph.directed_neighbor_edge_id_of_type(
+        if block.commands.is_empty() {
+            if let Some(next_block_id) = graph.directed_neighbor_node_id_of_type(
                 block_id,
                 Direction::Outgoing,
                 BasicBlockEdgeType::Next,
             ) {
-                let (prev_block_id, _) = graph.edge_endpoints(prev_edge_id).unwrap();
-                let (_, next_block_id) = graph.edge_endpoints(next_edge_id).unwrap();
-                let commands = block.commands.clone();
+                if let Some(prev_block_id) = graph.directed_neighbor_node_id_of_type(
+                    block_id,
+                    Direction::Incoming,
+                    BasicBlockEdgeType::Next,
+                ) {
+                    let block_label = graph
+                        .node_weight(block_id)
+                        .and_then(|block| block.label().map(|l| l.to_owned()));
 
-                let prev_block = graph.node_weight_mut(prev_block_id).unwrap();
-                if let BasicBlock::SinglePath(prev_block) = prev_block {
-                    prev_block.commands.extend(commands);
+                    let new_target_block = graph.node_weight_mut(next_block_id).unwrap();
+                    if new_target_block.label().is_none() && block_label.is_some() {
+                        new_target_block.set_label(block_label);
+                    }
 
-                    remove_block(graph, block_id, next_block_id);
+                    graph.remove_node_preserving_edges(
+                        block_id,
+                        prev_block_id,
+                        next_block_id,
+                        |graph, edge_id| {
+                            let edge_weight = graph.edge_weight(edge_id).unwrap();
+                            let (_from_id, to_id) = graph.edge_endpoints(edge_id).unwrap();
+
+                            if to_id == block_id {
+                                *edge_weight != BasicBlockEdgeType::Next
+                            } else {
+                                true
+                            }
+                        },
+                    );
                     return true;
                 }
             }
@@ -432,22 +409,170 @@ pub fn concatenate_linear_blocks(
     false
 }
 
+pub fn concatenate_linear_blocks(
+    graph: &mut StableDiGraph<BasicBlock, BasicBlockEdgeType>,
+    block_id: NodeIndex,
+) -> bool {
+    let block = graph.node_weight(block_id);
+    if let Some(BasicBlock::SinglePath(block)) = block {
+        if block.label.is_some() {
+            // this block might be referenced by a jump
+            return false;
+        }
+
+        if let Some(prev_block_id) = graph.directed_neighbor_node_id_of_type(
+            block_id,
+            Direction::Incoming,
+            BasicBlockEdgeType::Next,
+        ) {
+            let next_edge_id = graph.directed_neighbor_edge_id_of_type(
+                block_id,
+                Direction::Outgoing,
+                BasicBlockEdgeType::Next,
+            );
+            let commands = block.commands.clone();
+            let prev_block = graph.node_weight_mut(prev_block_id).unwrap();
+
+            if let BasicBlock::SinglePath(prev_block) = prev_block {
+                prev_block.commands.extend(commands);
+                if let Some(next_edge_id) = next_edge_id {
+                    let (_, next_block_id) = graph.edge_endpoints(next_edge_id).unwrap();
+                    graph.add_edge(prev_block_id, next_block_id, BasicBlockEdgeType::Next);
+                    graph.remove_edge(next_edge_id);
+                }
+            }
+
+            graph.remove_node(block_id);
+            return true;
+        }
+    }
+
+    false
+}
+
 #[cfg(test)]
 mod tests {
+    use petgraph::{Direction, prelude::StableDiGraph};
+
     use crate::{
         agi_version::AGIVersion,
         logic::{
-            LogicProgram,
+            LogicCommand, LogicProgram,
             analysis::{
-                ast::LogicAST, basic_block_graph::BasicBlockGraph, optimization::Optimizable,
+                ast::{LogicAST, LogicASTNodeMetadata, LogicCommandNode},
+                basic_block_graph::{
+                    BasicBlock, BasicBlockEdgeType, BasicBlockGraph, SinglePathBasicBlock,
+                    concatenate_linear_blocks, remove_empty_block,
+                },
+                optimization::{DirectedNeighborEdgeUtils, Optimizable},
             },
+            asm::LogicLabel,
+            commands::AGICommand,
         },
         resources::{ResourceType, decode::Decode},
         test_data::uriquest_resources,
     };
 
+    fn build_increment_command_node(address: u16) -> LogicCommandNode {
+        LogicCommandNode {
+            command: LogicCommand {
+                agi_command: AGICommand::by_name("increment", &AGIVersion::new(2, 917))
+                    .unwrap()
+                    .clone(),
+                address,
+                args: vec![address as u8],
+            },
+            label: Some(LogicLabel {
+                label: format!("Address{}", address),
+                address,
+            }),
+            metadata: LogicASTNodeMetadata {
+                instruction_address: Some(address),
+            },
+        }
+    }
+
     #[test]
-    fn test_optimization() {
+    fn test_remove_empty_block() {
+        let mut graph = StableDiGraph::<BasicBlock, BasicBlockEdgeType>::new();
+        let block1_id = graph.add_node(BasicBlock::SinglePath(SinglePathBasicBlock {
+            commands: vec![build_increment_command_node(1)],
+            label: Some("Address1".to_string()),
+        }));
+        let block2_id = graph.add_node(BasicBlock::SinglePath(SinglePathBasicBlock {
+            commands: vec![],
+            label: None,
+        }));
+        let block3_id = graph.add_node(BasicBlock::SinglePath(SinglePathBasicBlock {
+            commands: vec![build_increment_command_node(3)],
+            label: Some("Address3".to_string()),
+        }));
+        graph.add_edge(block1_id, block2_id, BasicBlockEdgeType::Next);
+        graph.add_edge(block2_id, block3_id, BasicBlockEdgeType::Next);
+
+        assert!(
+            remove_empty_block(&mut graph, block2_id),
+            "Block was not removed"
+        );
+
+        assert_eq!(2, graph.node_count());
+        let Some(BasicBlock::SinglePath(block1)) = graph.node_weight(block1_id) else {
+            panic!(
+                "Unexpected weight for {:?}: {:?}",
+                block1_id,
+                graph.node_weight(block1_id)
+            );
+        };
+        assert_eq!(1, block1.commands.len());
+        let Some(next_block_id) = graph.directed_neighbor_node_id_of_type(
+            block1_id,
+            Direction::Outgoing,
+            BasicBlockEdgeType::Next,
+        ) else {
+            panic!("{:?} had no Next edge", block1_id);
+        };
+        let Some(BasicBlock::SinglePath(next_block)) = graph.node_weight(next_block_id) else {
+            panic!(
+                "Unexpected weight for {:?}: {:?}",
+                next_block_id,
+                graph.node_weight(next_block_id)
+            );
+        };
+        assert_eq!(1, next_block.commands.len());
+    }
+
+    #[test]
+    fn test_concatenate_linear_blocks() {
+        let mut graph = StableDiGraph::<BasicBlock, BasicBlockEdgeType>::new();
+        let block1_id = graph.add_node(BasicBlock::SinglePath(SinglePathBasicBlock {
+            commands: vec![build_increment_command_node(1)],
+            label: Some("Address1".to_string()),
+        }));
+        let block2_id = graph.add_node(BasicBlock::SinglePath(SinglePathBasicBlock {
+            commands: vec![build_increment_command_node(3)],
+            label: None,
+        }));
+        graph.add_edge(block1_id, block2_id, BasicBlockEdgeType::Next);
+
+        assert!(
+            concatenate_linear_blocks(&mut graph, block2_id),
+            "Block was not removed"
+        );
+
+        assert_eq!(1, graph.node_count());
+        assert_eq!(0, graph.edge_count());
+        let Some(BasicBlock::SinglePath(block1)) = graph.node_weight(block1_id) else {
+            panic!(
+                "Unexpected weight for {:?}: {:?}",
+                block1_id,
+                graph.node_weight(block1_id)
+            );
+        };
+        assert_eq!(2, block1.commands.len());
+    }
+
+    #[test]
+    fn smoke_test_optimization() {
         let collection = uriquest_resources();
         let logic_data = collection
             .read_resource_data(ResourceType::LOGIC, 0)

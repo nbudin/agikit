@@ -1,10 +1,6 @@
 use std::{collections::HashMap, fmt::Display};
 
-use petgraph::{
-    Direction,
-    graph::{DiGraph, NodeIndex},
-    visit::EdgeRef,
-};
+use petgraph::{Direction, graph::NodeIndex, prelude::StableDiGraph, visit::EdgeRef};
 
 #[cfg(feature = "dot")]
 use crate::logic::asm::codegen::AsmCodeGenerationContext;
@@ -13,7 +9,7 @@ use crate::logic::{
     asm::{LogicLabel, codegen::generate_labels},
 };
 
-pub type LogicASTGraph = DiGraph<LogicASTNode, LogicASTEdge>;
+pub type LogicASTGraph = StableDiGraph<LogicASTNode, LogicASTEdge>;
 
 #[derive(Debug, Clone)]
 pub struct LogicASTNodeMetadata {
@@ -74,7 +70,7 @@ pub enum LogicASTEdge {
 }
 
 pub struct LogicAST {
-    pub graph: DiGraph<LogicASTNode, LogicASTEdge>,
+    pub graph: StableDiGraph<LogicASTNode, LogicASTEdge>,
     pub root_node_id: NodeIndex,
     pub nodes_by_address: HashMap<u16, NodeIndex>,
 }
@@ -99,7 +95,7 @@ impl LogicAST {
             .map(UnresolvedLogicASTNode::from_instruction)
             .collect::<Vec<_>>();
 
-        let mut graph = DiGraph::new();
+        let mut graph = StableDiGraph::new();
         let mut nodes_by_address = HashMap::new();
         let root_node_id = resolve_nodes(
             &mut unresolved_nodes,
@@ -271,7 +267,7 @@ fn resolve_nodes(
     unresolved_nodes: &mut Vec<UnresolvedLogicASTNode>,
     current_node_index: usize,
     labels: &HashMap<u16, LogicLabel>,
-    graph: &mut DiGraph<LogicASTNode, LogicASTEdge>,
+    graph: &mut StableDiGraph<LogicASTNode, LogicASTEdge>,
     nodes_by_address: &mut HashMap<u16, NodeIndex>,
 ) -> Result<NodeIndex, DecompilationError> {
     let current_node = unresolved_nodes[current_node_index].clone();
