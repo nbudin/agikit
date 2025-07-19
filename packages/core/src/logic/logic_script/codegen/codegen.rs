@@ -411,14 +411,15 @@ impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
         self.iter()
             .map(|statement| {
                 let mut script = statement.generate_logic_script(context, options)?;
-                if matches!(statement, LogicScriptStatement::IfStatement(_))
+                if (matches!(statement, LogicScriptStatement::IfStatement(_))
                     && matches!(
                         prev_statement,
                         Some(
                             LogicScriptStatement::IfStatement(_)
                                 | LogicScriptStatement::CommandCall(_)
                         )
-                    )
+                    ))
+                    || matches!(prev_statement, Some(LogicScriptStatement::IfStatement(_)))
                 {
                     script = format!("\n{}", script);
                 }

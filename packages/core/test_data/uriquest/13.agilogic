@@ -53,7 +53,6 @@ if (f5) {
     }
   }
 
-Address132:
   draw(o0);
   show.pic();
 }
@@ -335,6 +334,7 @@ if (f3) {
   erase(o1);
   new.room(11);
 }
+
 return();
 
 

@@ -13,9 +13,12 @@ use petgraph::{
 #[cfg(feature = "dot")]
 use crate::logic::logic_script::codegen::context::LogicScriptCodeGenerationContext;
 use crate::logic::{
-    analysis::optimization::{
-        DirectedNeighborEdgeUtils, Optimizable, OptimizationPass, OptimizationResult,
-        OptimizationVisitor, RemoveNodePreservingEdges,
+    analysis::{
+        dominator_tree::DominatorTree,
+        optimization::{
+            DirectedNeighborEdgeUtils, Optimizable, OptimizationPass, OptimizationResult,
+            OptimizationVisitor, RemoveNodePreservingEdges,
+        },
     },
     asm::expressions::{
         LogicBooleanExpression, LogicIdentifier, LogicNotExpression, ParsedLogicArgument,
@@ -109,6 +112,7 @@ fn add_statements_to_graph<'a>(
     (added_statements, block_exit_node_ids)
 }
 
+#[derive(Debug, Clone)]
 pub struct LogicScriptStatementGraph {
     pub graph:
         StableDiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>,
@@ -186,12 +190,19 @@ impl LogicScriptStatementGraph {
         let traversal_filter = EdgeFiltered::from_fn(&self.graph, |edge| {
             *edge.weight() != LogicScriptStatementGraphEdge::GotoTarget
         });
-        let next_filter = EdgeFiltered::from_fn(&self.graph, |edge| {
-            *edge.weight() == LogicScriptStatementGraphEdge::Next
+        let inward_filter = EdgeFiltered::from_fn(&traversal_filter, |edge| {
+            *edge.weight() != LogicScriptStatementGraphEdge::BlockExit
         });
-        let mut dfs = DfsPostOrder::new(&traversal_filter, self.root_id);
+        let no_then_filter = EdgeFiltered::from_fn(&traversal_filter, |edge| {
+            *edge.weight() != LogicScriptStatementGraphEdge::IfThen
+        });
+        let no_else_filter = EdgeFiltered::from_fn(&traversal_filter, |edge| {
+            *edge.weight() != LogicScriptStatementGraphEdge::IfElse
+        });
+        let dominator_tree = DominatorTree::from_graph(&self.graph, self.root_id);
+        let mut dfs_post_order = DfsPostOrder::new(&traversal_filter, self.root_id);
 
-        while let Some(node_id) = dfs.next(&traversal_filter) {
+        while let Some(node_id) = dfs_post_order.next(&traversal_filter) {
             let statement = self.node_to_statement(node_id)?;
 
             let statement = match statement {
@@ -211,29 +222,47 @@ impl LogicScriptStatementGraph {
                     let mut else_statements = vec![];
                     let mut other_statements = VecDeque::new();
 
-                    let is_then_statement = |node_id| {
+                    let is_then_statement = |subclause_node_id| {
                         if let Some(then_node_id) = then_node_id
-                            && has_path_connecting(&next_filter, then_node_id, node_id, None)
+                            && has_path_connecting(
+                                &inward_filter,
+                                then_node_id,
+                                subclause_node_id,
+                                None,
+                            )
                         {
-                            if let Some(else_node_id) = else_node_id
-                                && has_path_connecting(&next_filter, else_node_id, node_id, None)
-                            {
+                            if has_path_connecting(
+                                &no_then_filter,
+                                node_id,
+                                subclause_node_id,
+                                None,
+                            ) {
                                 return false;
                             }
-                            return true;
+
+                            return dominator_tree.dominates(node_id, subclause_node_id);
                         }
                         return false;
                     };
-                    let is_else_statement = |node_id| {
+                    let is_else_statement = |subclause_node_id| {
                         if let Some(else_node_id) = else_node_id
-                            && has_path_connecting(&next_filter, else_node_id, node_id, None)
+                            && has_path_connecting(
+                                &inward_filter,
+                                else_node_id,
+                                subclause_node_id,
+                                None,
+                            )
                         {
-                            if let Some(then_node_id) = then_node_id
-                                && has_path_connecting(&next_filter, then_node_id, node_id, None)
-                            {
+                            if has_path_connecting(
+                                &no_else_filter,
+                                node_id,
+                                subclause_node_id,
+                                None,
+                            ) {
                                 return false;
                             }
-                            return true;
+
+                            return dominator_tree.dominates(node_id, subclause_node_id);
                         }
                         return false;
                     };
@@ -466,11 +495,20 @@ pub fn remove_redundant_jumps(
         return OptimizationResult::Unchanged;
     };
 
-    let Some(next_id) = graph.directed_neighbor_node_id_of_type(
-        node_id,
-        Direction::Outgoing,
-        LogicScriptStatementGraphEdge::Next,
-    ) else {
+    let Some(next_id) = graph
+        .directed_neighbor_node_id_of_type(
+            node_id,
+            Direction::Outgoing,
+            LogicScriptStatementGraphEdge::Next,
+        )
+        .or_else(|| {
+            graph.directed_neighbor_node_id_of_type(
+                node_id,
+                Direction::Outgoing,
+                LogicScriptStatementGraphEdge::BlockExit,
+            )
+        })
+    else {
         return OptimizationResult::Unchanged;
     };
 

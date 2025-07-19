@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::logic::commands::AGICommandArgType;
 
+#[derive(Debug, Clone)]
 pub enum IdentifierMapping {
     Variable {
         name: String,
@@ -75,6 +76,7 @@ impl IdentifierMapping {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct IdentifierMap(HashMap<String, IdentifierMapping>);
 
 impl IdentifierMap {

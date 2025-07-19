@@ -48,17 +48,18 @@ impl<'a> LogicScriptProgramGenerator<'a> {
         let mut statement_graph =
             LogicScriptStatementGraph::try_from_statements(&statements, IdentifierMap::builtins())?;
         statement_graph.optimize();
-        // #[cfg(test)]
-        // crate::test_utils::write_and_edit(
-        //     ".dot",
-        //     &context
-        //         .domination_analysis
-        //         .dominators_to_dot(&context.basic_block_graph.graph, &|node_id, _block| {
-        //             format!("label = \"{}\"", node_id.index())
-        //         }),
-        // );
 
         let optimized_statements = statement_graph.to_statements()?;
+        #[cfg(test)]
+        crate::test_utils::write_and_edit(
+            ".dot",
+            &statement_graph.to_dot(context),
+            // &LogicScriptStatementGraph::try_from_statements(
+            //     &optimized_statements,
+            //     IdentifierMap::builtins(),
+            // )?
+            // .to_dot(context),
+        );
         let program_section = optimized_statements.generate_logic_script(context, 0)?;
 
         Ok(format!(
