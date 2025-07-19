@@ -199,7 +199,7 @@ impl LogicScriptStatementGraph {
         let no_else_filter = EdgeFiltered::from_fn(&traversal_filter, |edge| {
             *edge.weight() != LogicScriptStatementGraphEdge::IfElse
         });
-        let dominator_tree = DominatorTree::from_graph(&self.graph, self.root_id);
+        let dominator_tree = DominatorTree::from_graph(&traversal_filter, self.root_id);
         let mut dfs_post_order = DfsPostOrder::new(&traversal_filter, self.root_id);
 
         while let Some(node_id) = dfs_post_order.next(&traversal_filter) {
@@ -231,6 +231,13 @@ impl LogicScriptStatementGraph {
                                 None,
                             )
                         {
+                            if let Some(LogicScriptStatement::Label(label)) =
+                                self.graph.node_weight(subclause_node_id)
+                                && label.label == "Address229"
+                            {
+                                eprintln!("Hi, it's me, I'm the problem");
+                            }
+
                             if has_path_connecting(
                                 &no_then_filter,
                                 node_id,
@@ -238,6 +245,13 @@ impl LogicScriptStatementGraph {
                                 None,
                             ) {
                                 return false;
+                            }
+
+                            if let Some(LogicScriptStatement::Label(label)) =
+                                self.graph.node_weight(subclause_node_id)
+                                && label.label == "Address229"
+                            {
+                                eprintln!("There are no other paths");
                             }
 
                             return dominator_tree.dominates(node_id, subclause_node_id);
@@ -664,7 +678,6 @@ mod tests {
         project::Project,
         resources::ResourceType,
         test_data::uriquest,
-        test_utils::write_and_edit,
     };
 
     use petgraph::{Direction, prelude::StableDiGraph};
@@ -685,8 +698,6 @@ mod tests {
         let statements = generator.generate_statements()?;
         let statement_graph =
             LogicScriptStatementGraph::try_from_statements(&statements, IdentifierMap::builtins())?;
-
-        write_and_edit(".dot", &statement_graph.to_dot(&context));
 
         let generated_statements = statement_graph.to_statements()?;
 

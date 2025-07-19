@@ -4,8 +4,8 @@ use petgraph::{
     Directed, Direction,
     csr::{DefaultIx, IndexType},
     graph::NodeIndex,
-    prelude::{StableDiGraph, StableGraph},
-    visit::{Dfs, EdgeRef},
+    prelude::{EdgeIndex, StableDiGraph, StableGraph},
+    visit::{Dfs, EdgeRef, GraphBase, IntoEdgesDirected, IntoNeighbors, NodeCount, Visitable},
 };
 
 use crate::logic::analysis::{
@@ -24,7 +24,7 @@ impl<Ix: IndexType> DominationAnalysis<Ix> {
         let dominator_tree = DominatorTree::from_graph(&graph, root_id);
         let reverse_cfg = InvertedGraph::from_graph(&graph, root_id);
         let post_dominator_tree =
-            DominatorTree::from_graph(reverse_cfg.reference_graph(), reverse_cfg.virtual_root_id);
+            DominatorTree::from_graph(&reverse_cfg.reference_graph(), reverse_cfg.virtual_root_id);
 
         Self {
             dominator_tree,
@@ -243,8 +243,14 @@ impl<Ix: IndexType> ReferenceGraph<NodeReference<Ix>, DominatorTreeEdgeType, Dir
 }
 
 impl<Ix: IndexType> DominatorTree<Ix> {
-    pub fn from_graph<'a, N, E>(graph: &'a StableDiGraph<N, E, Ix>, start: NodeIndex<Ix>) -> Self {
-        SemiNCASpanningTree::from_graph(graph, start).build_dominator_tree::<N, E>()
+    pub fn from_graph<'a, G>(graph: &'a G, start: NodeIndex<Ix>) -> Self
+    where
+        &'a G: GraphBase<NodeId = NodeIndex<Ix>, EdgeId = EdgeIndex<Ix>>
+            + NodeCount
+            + Visitable
+            + IntoEdgesDirected,
+    {
+        SemiNCASpanningTree::from_graph(graph, start).build_dominator_tree()
     }
 
     pub fn dominance_frontier(
@@ -321,10 +327,14 @@ struct SemiNCASpanningTree<Ix: IndexType = DefaultIx> {
 }
 
 impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
-    pub fn from_graph<NodeType, EdgeType>(
-        graph: &StableDiGraph<NodeType, EdgeType, Ix>,
-        start: NodeIndex<Ix>,
-    ) -> Self {
+    pub fn from_graph<'a, G>(graph: &'a G, start: NodeIndex<Ix>) -> Self
+    where
+        &'a G: GraphBase<NodeId = NodeIndex<Ix>, EdgeId = EdgeIndex<Ix>>
+            + IntoEdgesDirected
+            + Visitable
+            + IntoNeighbors
+            + NodeCount,
+    {
         let mut nodes_in_dfs_order = Vec::with_capacity(graph.node_count());
         let mut spanning_tree_node_info = HashMap::with_capacity(graph.node_count());
         let mut dfs = Dfs::new(graph, start);
@@ -359,7 +369,7 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
         semi_nca_tree
     }
 
-    pub fn build_dominator_tree<'a, N, E>(&self) -> DominatorTree<Ix> {
+    pub fn build_dominator_tree<'a>(&self) -> DominatorTree<Ix> {
         let mut graph = StableDiGraph::new();
         let dominator_tree_nodes_by_source_graph_index = self
             .source_graph_indexes_in_dfs_order
@@ -432,10 +442,10 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
         working_node_info.and_then(|ni| ni.best)
     }
 
-    fn compute_semidominators<NodeType, EdgeType>(
-        &mut self,
-        graph: &StableDiGraph<NodeType, EdgeType, Ix>,
-    ) {
+    fn compute_semidominators<'a, G>(&mut self, graph: &'a G)
+    where
+        &'a G: GraphBase<NodeId = NodeIndex<Ix>, EdgeId = EdgeIndex<Ix>> + IntoEdgesDirected,
+    {
         // iterate nodes in reverse DFS order, omitting the root
         let reverse_dfs_order_without_root = self.source_graph_indexes_in_dfs_order[1..]
             .iter()
