@@ -1,0 +1,127 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  v52 = 50;
+
+  if (v1 == 195) {
+    position(o0, 100, 120);
+    v6 = 7;
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're inside Jeff's cubicle in Lippitt Hall.");
+}
+
+if (said("examine", "administrative") || said("examine", "lippitt")) {
+  print("It's where Jeff works.");
+}
+
+if (said("examine", "floor")) {
+  print("You see a worn, ugly rug.");
+}
+
+if (said("examine", "carpet")) {
+  print("You see a worn, ugly rug.");
+}
+
+if (said("examine", "wall")) {
+  print("There are some work orders on the wall.");
+}
+
+if (said("acquire", "order") || said("examine", "order") || said("read", "order")) {
+  print("Although you should technically be working on some of those, you don't feel like doing too much today.");
+}
+
+if (said("examine", "desk")) {
+  print("You and Ed's roommate are working on a IBM 286 ST computer.");
+}
+
+if (said("examine", "computer")) {
+  print("It's missing a hard drive and a power supply at the moment.");
+}
+
+if (said("examine", "phone")) {
+  print("It's just a phone.");
+}
+
+if (said("use", "phone")) {
+  print("You have no one to call.");
+}
+
+if (said("use", "computer") || said("turn on", "computer")) {
+  print("You can't. It's broken.");
+}
+
+if (said("examine", "shelf") || said("examine", "book")) {
+  print("The shelf contains some books, but you don't need any of them.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (!f163) {
+  v52 -= 1;
+}
+
+if ((!f163) && ((v52 == 5))) {
+  load.sound(7);
+  sound(7, f153);
+  print("Your phone is ringing.");
+  v52 = 100;
+}
+
+if (said("answer", "phone") || said("acquire", "phone")) {
+  if (!f163) {
+    if (posn(o0, 66, 109, 73, 111)) {
+      set(f163);
+      print("\"Hello?\" you say.");
+      print("\"Hey Jeff. It's me, Neal.\" says the voice.");
+      print("\"Oh, hi Tater, what's up?\" you reply.");
+      print("\"Not much. I'm pretty bored.\" Neal says. \"Do you feel like pretending to have a work assignment and come over to my room?\"");
+      print("\"Sure, why the heck not.\" you say. \"It's pretty dead over here today anyways. I'll be by soon.  See ya then.\"");
+      v3 += 2;
+      load.sound(1);
+      sound(1, f153);
+      print("\"See ya.\" replies Tater as he hangs up.");
+    } else {
+      print("Get closer, you idiot.");
+    }
+  } else {
+    print("It's not ringing!");
+  }
+}
+
+if (f3) {
+  new.room(195);
+}
+return();
+
+
+// messages
+#message 1 "You're inside Jeff's cubicle in Lippitt Hall."
+#message 2 "It's where Jeff works."
+#message 3 "You see a worn, ugly rug."
+#message 4 "There are some work orders on the wall."
+#message 5 "Although you should technically be working on some of those, you don't feel like doing too much today."
+#message 6 "You and Ed's roommate are working on a IBM 286 ST computer."
+#message 7 "It's missing a hard drive and a power supply at the moment."
+#message 8 "It's just a phone."
+#message 9 "You have no one to call."
+#message 10 "You can't. It's broken."
+#message 11 "The shelf contains some books, but you don't need any of them."
+#message 12 "You should stop talking to yourself."
+#message 13 "Your phone is ringing."
+#message 14 "\"Hello?\" you say."
+#message 15 "\"Hey Jeff. It's me, Neal.\" says the voice."
+#message 16 "\"Oh, hi Tater, what's up?\" you reply."
+#message 17 "\"Not much. I'm pretty bored.\" Neal says. \"Do you feel like pretending to have a work assignment and come over to my room?\""
+#message 18 "\"Sure, why the heck not.\" you say. \"It's pretty dead over here today anyways. I'll be by soon.  See ya then.\""
+#message 19 "\"See ya.\" replies Tater as he hangs up."
+#message 20 "Get closer, you idiot."
+#message 21 "It's not ringing!"

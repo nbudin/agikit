@@ -1,0 +1,105 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f110);
+  reset(f100);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine", "floor")) {
+  if (posn(o0, 3, 146, 103, 163)) {
+    if (has(i30)) {
+      print("You don't see anything in this particular spot.");
+    } else {
+      set(f110);
+      print("Well, well, well. Amidst the assorted trash that Ed and his roommate have thrown out the window, you find a nice shiny quarter!");
+    }
+  } else {
+    print("Hmm... You don't see anything in this particular spot.");
+  }
+}
+
+if (said("acquire", "coin")) {
+  if (f110) {
+    if (v50 == 3) {
+      if (has(i30)) {
+        print("You already found it.");
+      } else {
+        if (posn(o0, 3, 146, 103, 163)) {
+          get(i30);
+          v3 += 1;
+          load.sound(12);
+          sound(12, f153);
+          print("You take the quarter.");
+        } else {
+          print("Get closer.");
+        }
+      }
+    } else {
+      print("Nah. You don't need it for anything.");
+    }
+  } else {
+    print("Huh?");
+  }
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're near the Union, behind Bressler Hall.");
+}
+
+if (said("examine", "memorial union") || said("examine", "building") || said("examine", "bressler")) {
+  print("The Union is at the top of your screen, Bressler is at the bottom.");
+}
+
+if (said("examine", "tree")) {
+  print("That's the tree outside of Ed's room.");
+}
+
+if (said("examine", "fence")) {
+  print("Yup. That most certainly is a fence.");
+}
+
+if (said("examine", "lot")) {
+  print("It's a staff parking lot.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 2) {
+  if (!f100) {
+    print("You don't need to go that way.  This game is big enough as it is.");
+    set(f100);
+  }
+}
+
+Address246:
+
+if (v2 == 4) {
+  reset(f110);
+  reset(f100);
+  new.room(74);
+}
+return();
+
+
+// messages
+#message 1 "You don't see anything in this particular spot."
+#message 2 "Well, well, well. Amidst the assorted trash that Ed and his roommate have thrown out the window, you find a nice shiny quarter!"
+#message 3 "Hmm... You don't see anything in this particular spot."
+#message 4 "You already found it."
+#message 5 "You take the quarter."
+#message 6 "Get closer."
+#message 7 "Nah. You don't need it for anything."
+#message 8 "Huh?"
+#message 9 "You're near the Union, behind Bressler Hall."
+#message 10 "The Union is at the top of your screen, Bressler is at the bottom."
+#message 11 "That's the tree outside of Ed's room."
+#message 12 "Yup. That most certainly is a fence."
+#message 13 "It's a staff parking lot."
+#message 14 "You should stop talking to yourself."
+#message 15 "You don't need to go that way.  This game is big enough as it is."

@@ -1,0 +1,68 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+
+  if (v1 == 146) {
+    position(o0, 50, 51);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're behind Pastore Hall.");
+}
+
+if (said("examine", "pastore") || said("examine", "building")) {
+  print("It's just a big building. It holds no secrets.");
+}
+
+if (said("examine", "bench") || said("sit", "bench")) {
+  print("You're on a mission, you can't think about sitting.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "tree")) {
+  print("Yes, there is a tree here.");
+}
+
+if (said("examine", "lot")) {
+  print("It's a staff parking lot.");
+}
+
+if (said("examine", "path")) {
+  print("It leads to the parking lot.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It leads to the parking lot.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  new.room(146);
+}
+
+if (v2 == 4) {
+  new.room(133);
+}
+return();
+
+
+// messages
+#message 1 "You're behind Pastore Hall."
+#message 2 "It's just a big building. It holds no secrets."
+#message 3 "You're on a mission, you can't think about sitting."
+#message 4 "You see nothing important."
+#message 5 "Yes, there is a tree here."
+#message 6 "It's a staff parking lot."
+#message 7 "It leads to the parking lot."
+#message 8 "You should stop talking to yourself."

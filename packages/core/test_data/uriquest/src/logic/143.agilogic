@@ -1,0 +1,67 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're on a path near Ranger Hall.");
+}
+
+if (said("examine", "ranger") || said("examine", "building")) {
+  print("It's a big stone building, just like most of the others on campus.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "tree")) {
+  print("Yes, there are trees here.");
+}
+
+if (said("examine", "bush")) {
+  print("Heh, heh, huh, huh. You said \"bush\".");
+}
+
+if (said("examine", "path")) {
+  print("It leads across campus.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It leads across campus.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 4) {
+  new.room(142);
+}
+
+if (v2 == 2) {
+  new.room(144);
+}
+
+if (v2 == 3) {
+  new.room(131);
+}
+
+if (v2 == 1) {
+  new.room(157);
+}
+return();
+
+
+// messages
+#message 1 "You're on a path near Ranger Hall."
+#message 2 "It's a big stone building, just like most of the others on campus."
+#message 3 "You see nothing important."
+#message 4 "Yes, there are trees here."
+#message 5 "Heh, heh, huh, huh. You said \"bush\"."
+#message 6 "It leads across campus."
+#message 7 "You should stop talking to yourself."

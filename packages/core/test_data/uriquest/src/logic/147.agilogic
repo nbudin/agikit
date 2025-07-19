@@ -1,0 +1,70 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+
+  if (v1 == 123) {
+    position(o0, 65, 165);
+    v6 = 1;
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're at the northern edge of campus between Woodward Hall and Tyler Hall.");
+}
+
+if (said("examine", "woodward")) {
+  print("You have no idea what goes on in there. You really don't care, either.");
+}
+
+if (said("examine", "tyler")) {
+  print("It's the computer science and mathematics building. Jeff's home away from home.");
+}
+
+if (said("examine", "d") || said("o", "d")) {
+  print("As much as you're dying to see what's in there, let's just pretend it's locked.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "lot")) {
+  print("It's for staff and frat boy parking.");
+}
+
+if (said("examine", "window")) {
+  print("There's nothing interesting to see in there.");
+}
+
+if (said("examine", "tree")) {
+  print("It's a tree, nothing more.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 2) {
+  new.room(148);
+}
+
+if (v2 == 3) {
+  new.room(123);
+}
+return();
+
+
+// messages
+#message 1 "You're at the northern edge of campus between Woodward Hall and Tyler Hall."
+#message 2 "You have no idea what goes on in there. You really don't care, either."
+#message 3 "It's the computer science and mathematics building. Jeff's home away from home."
+#message 4 "As much as you're dying to see what's in there, let's just pretend it's locked."
+#message 5 "You see nothing important."
+#message 6 "It's for staff and frat boy parking."
+#message 7 "There's nothing interesting to see in there."
+#message 8 "It's a tree, nothing more."
+#message 9 "You should stop talking to yourself."

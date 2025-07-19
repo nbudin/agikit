@@ -1,0 +1,96 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(55);
+  reset(f100);
+
+  if (v1 == 109) {
+    position(o0, 75, 60);
+  }
+
+  if (v1 == 122) {
+    position(o0, 150, 110);
+    v6 = 7;
+  }
+
+  if (v1 == 87) {
+    position(o0, 30, 110);
+    v6 = 3;
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You are on a street near Pastore Hall and the Memorial Union.");
+}
+
+if (said("examine", "memorial union")) {
+  print("Basically, the student Union is the center of all activity on campus.");
+}
+
+if (said("examine", "pastore")) {
+  print("Off to the right, you see Pastore Hall.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "tree")) {
+  print("Yes, there is a tree in the distance.");
+}
+
+if (said("examine", "road")) {
+  print("This is a closed off street, so you don't have to worry about drunk frat boys running you over.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("Unlike transformers, there's nothing more to it than meets the eye.");
+}
+
+if (said("examine", "wall")) {
+  print("Unlike transformers, there's nothing more to it than meets the eye.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 3) {
+  if (!f100) {
+    print("You don't need to go that way.  This game is big enough as it is.");
+    set(f100);
+  }
+}
+
+Address194:
+
+if (v2 == 1) {
+  reset(f100);
+  new.room(109);
+}
+
+if (f3) {
+  reset(f100);
+  new.room(87);
+}
+
+if (v2 == 2) {
+  reset(f100);
+  new.room(122);
+}
+return();
+
+
+// messages
+#message 1 "You are on a street near Pastore Hall and the Memorial Union."
+#message 2 "Basically, the student Union is the center of all activity on campus."
+#message 3 "Off to the right, you see Pastore Hall."
+#message 4 "You see nothing important."
+#message 5 "Yes, there is a tree in the distance."
+#message 6 "This is a closed off street, so you don't have to worry about drunk frat boys running you over."
+#message 7 "Unlike transformers, there's nothing more to it than meets the eye."
+#message 8 "You should stop talking to yourself."
+#message 9 "You don't need to go that way.  This game is big enough as it is."

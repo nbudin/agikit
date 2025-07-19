@@ -1,0 +1,185 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f101);
+  reset(f102);
+  reset(f103);
+  reset(f104);
+
+  if (v1 == 148) {
+    position(o0, 117, 117);
+    v6 = 7;
+  }
+
+  if (v1 == 198) {
+    position(o0, 90, 100);
+    v6 = 5;
+  }
+  animate.obj(o1);
+  load.view(62);
+  set.view(o1, 62);
+  set.loop(o1, 1);
+  set.cel(o1, 0);
+  position(o1, 22, 86);
+  set.priority(o1, 4);
+  start.cycling(o1);
+  draw(o1);
+  draw(o0);
+  show.pic();
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (said("press", "bell") || said("use", "bell")) {
+  if (posn(o0, 52, 101, 61, 105)) {
+    if (f101) {
+      print("You already did!  Once is enough.");
+    } else {
+      load.sound(7);
+      sound(7, f153);
+      set(f101);
+      set(f103);
+    }
+  } else {
+    print("Get Closer.");
+  }
+}
+
+if (f103) {
+  move.obj(o1, 44, 86, 1, f104);
+}
+
+if (f104) {
+  reset(f103);
+  move.obj(o1, 44, 91, 1, f102);
+}
+
+if (f102) {
+  reset(f104);
+  reset(f102);
+  stop.cycling(o1);
+  print("\"What can I do for ya?\" asks the kid.");
+}
+
+if (said("give", "backup tape") || said("give", "backup tape", "bum")) {
+  if (f101) {
+    if (posn(o0, 28, 101, 57, 104)) {
+      if (f161) {
+        print("He already has it!");
+      } else {
+        if (has(i7)) {
+          drop(i7);
+          set(f161);
+          load.sound(1);
+          sound(1, f153);
+          v3 += 1;
+          print("\"Thanks\", says the kid. \"I'll have the backup ready tomorrow.\"");
+        } else {
+          print("What the hell are you talking about?");
+        }
+      }
+    } else {
+      print("Get Closer.");
+    }
+  } else {
+    print("There's no one here!");
+  }
+}
+
+if (said("examine", "bum")) {
+  if (f101) {
+    print("He's the typical dorky wannabe computer dude that patrols the dispatch window.");
+  } else {
+    print("Huh?");
+  }
+}
+
+if (said("chat", "bum")) {
+  if (f101) {
+    print("You'd rather string your nuts up and feed them to a bantha than talk to that dork.");
+  } else {
+    print("Huh?");
+  }
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("This is the lobby of Tyler Hall. The dispatch window is here. A door leads upstairs where you will find the 24 hour computer terminal room.");
+}
+
+if (said("examine", "computer") || said("examine", "computer", "room")) {
+  print("It's down the hall upstairs.");
+}
+
+if (said("examine", "d")) {
+  print("One door leads outside. There's a sign above the other door that reads: \"STAIRS TO FLOOR 2\".");
+}
+
+if (said("examine", "dispatch", "window") || said("examine", "window")) {
+  print("It's where people pick up and drop off things. There is a bell there.");
+}
+
+if (said("examine", "floor")) {
+  print("You see an ugly, dirty floor.");
+}
+
+if (said("examine", "wall")) {
+  print("The walls are ugly and depressing. There are some cubbyholes on one wall.");
+}
+
+if (said("examine", "cubby holes")) {
+  print("There are handouts for all sorts of things in there. Unfortunately, none of the handouts is a walkthrough for this game.");
+}
+
+if (said("acquire", "handout")) {
+  print("You don't need any.");
+}
+
+if (said("examine", "handout")) {
+  print("None of them interest you.");
+}
+
+if ((f3) && (posn(o0, 87, 95, 103, 106))) {
+  reset(f102);
+  reset(f103);
+  reset(f104);
+  reset(f101);
+  erase(o1);
+  new.room(198);
+}
+
+if ((f3) && (posn(o0, 117, 110, 132, 126))) {
+  reset(f102);
+  reset(f103);
+  reset(f104);
+  reset(f101);
+  erase(o1);
+  new.room(148);
+}
+return();
+
+
+// messages
+#message 1 "You should stop talking to yourself."
+#message 2 "You already did!  Once is enough."
+#message 3 "Get Closer."
+#message 4 "\"What can I do for ya?\" asks the kid."
+#message 5 "He already has it!"
+#message 6 "\"Thanks\", says the kid. \"I'll have the backup ready tomorrow.\""
+#message 7 "What the hell are you talking about?"
+#message 8 "There's no one here!"
+#message 9 "He's the typical dorky wannabe computer dude that patrols the dispatch window."
+#message 10 "Huh?"
+#message 11 "You'd rather string your nuts up and feed them to a bantha than talk to that dork."
+#message 12 "This is the lobby of Tyler Hall. The dispatch window is here. A door leads upstairs where you will find the 24 hour computer terminal room."
+#message 13 "It's down the hall upstairs."
+#message 14 "One door leads outside. There's a sign above the other door that reads: \"STAIRS TO FLOOR 2\"."
+#message 15 "It's where people pick up and drop off things. There is a bell there."
+#message 16 "You see an ugly, dirty floor."
+#message 17 "The walls are ugly and depressing. There are some cubbyholes on one wall."
+#message 18 "There are handouts for all sorts of things in there. Unfortunately, none of the handouts is a walkthrough for this game."
+#message 19 "You don't need any."
+#message 20 "None of them interest you."

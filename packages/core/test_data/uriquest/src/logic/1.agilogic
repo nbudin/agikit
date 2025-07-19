@@ -1,0 +1,54 @@
+if (f5) {
+  v0 = 92;
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  v0 = 1;
+  v52 = 120;
+  v55 = 3;
+  animate.obj(o1);
+  load.view(90);
+  set.view(o1, 90);
+  position(o1, 35, 57);
+  set.loop(o1, 0);
+  set.cel(o1, 0);
+  cycle.time(o1, v55);
+  step.time(o1, v55);
+  start.cycling(o1);
+  draw(o1);
+  animate.obj(o2);
+  load.view(91);
+  set.view(o2, 91);
+  position(o2, 35, 72);
+  set.loop(o2, 0);
+  set.cel(o2, 0);
+  cycle.time(o2, v55);
+  step.time(o2, v55);
+  start.cycling(o2);
+  draw(o2);
+  animate.obj(o3);
+  load.view(92);
+  set.view(o3, 92);
+  position(o3, 4, 129);
+  set.loop(o3, 0);
+  set.cel(o3, 0);
+  cycle.time(o3, v55);
+  step.time(o3, v55);
+  start.cycling(o3);
+  draw(o3);
+  program.control();
+  show.pic();
+}
+v52 -= 1;
+if (v52 == 5) {
+  erase(o1);
+  erase(o2);
+  erase(o3);
+  new.room(2);
+}
+return();
+
+
+// messages
+

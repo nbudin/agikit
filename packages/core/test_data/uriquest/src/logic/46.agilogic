@@ -1,0 +1,93 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("This is the front of Butterfield dining hall.");
+}
+
+if (said("examine", "dining hall") || said("examine", "butterfield")) {
+  print("It's nickname is butternut or butterfuck, depending on your mood.");
+}
+
+if (said("examine", "d") || said("o", "d")) {
+  print("You're not hungry.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "road")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("There's nothing important about it.");
+}
+
+if (said("examine", "bush")) {
+  print("There's nothing important about them.");
+}
+
+if (said("examine", "window")) {
+  print("There's nothing to see.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 4) {
+  new.room(45);
+}
+
+if (v2 == 3) {
+  v2 = 1;
+  get.posn(o0, v52, v53);
+  erase(o0);
+  v54 = 167;
+  v53 = 159;
+  v53 -= v52;
+
+  if (v53 != 6) {
+    v53 -= 7;
+  } else {
+    v53 = 0;
+  }
+  position.v(o0, v53, v54);
+
+  if (v6 == 5) {
+    v6 = 1;
+  }
+
+  if (v6 == 6) {
+    v6 = 2;
+  }
+
+  if (v6 == 4) {
+    v6 = 8;
+  }
+  new.room(33);
+}
+
+if (v2 == 2) {
+  new.room(47);
+}
+return();
+
+
+// messages
+#message 1 "This is the front of Butterfield dining hall."
+#message 2 "It's nickname is butternut or butterfuck, depending on your mood."
+#message 3 "You're not hungry."
+#message 4 "You see nothing important."
+#message 5 "There's nothing important about it."
+#message 6 "There's nothing important about them."
+#message 7 "There's nothing to see."
+#message 8 "You should stop talking to yourself."

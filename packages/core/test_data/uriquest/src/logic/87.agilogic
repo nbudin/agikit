@@ -1,0 +1,149 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f110);
+  reset(f100);
+
+  if (v1 == 110) {
+    position(o0, 80, 165);
+    v6 = 1;
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine", "ram") || said("examine", "ram", "monument")) {
+  if (posn(o0, 87, 77, 99, 82)) {
+    if (has(i31)) {
+      print("You don't see anything on this particular side of Rhody.");
+    } else {
+      set(f110);
+      print("Well, well, well. You spy a nice shiny quarter stuck in Rhody's butt!");
+    }
+  } else {
+    print("You don't see anything on this particular side of Rhody.");
+  }
+}
+
+if (said("acquire", "coin")) {
+  if (f110) {
+    if (v50 == 3) {
+      if (has(i31)) {
+        print("You already found it.");
+      } else {
+        if (posn(o0, 87, 77, 99, 82)) {
+          get(i31);
+          v3 += 1;
+          load.sound(12);
+          sound(12, f153);
+          print("You take the quarter from the ram's ass.");
+        } else {
+          print("Get closer.");
+        }
+      }
+    } else {
+      print("Nah. You don't need it for anything.");
+    }
+  } else {
+    print("Huh?");
+  }
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in front of the Union. There is a stone statue of Rhody the Ram on a pedestal here.");
+}
+
+if (said("examine", "building") || said("examine", "memorial union")) {
+  print("The Memorial Union is one of the major gathering areas on campus. It's always bustling with activity.");
+}
+
+if (said("examine", "d") || said("o", "d")) {
+  print("There's no need to go in that door.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "pedestal")) {
+  print("Rhody's been standing on it for the last 40 years.");
+}
+
+if (said("examine", "bush")) {
+  print("Just bushes, nothing more.");
+}
+
+if (said("examine", "bench")) {
+  print("People who wait for the bus sit on them.");
+}
+
+if (said("sit", "bench")) {
+  print("You have no time for that!");
+}
+
+if (said("examine", "tree")) {
+  print("My God, it's a tree!! What will they think of next?");
+}
+
+if (said("examine", "sidewalk")) {
+  print("There's nothing special about it.");
+}
+
+if (said("examine", "boulder")) {
+  print("There's nothing special about it.");
+}
+
+if (said("examine", "window")) {
+  print("You see nothing special.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 4) {
+  if (!f100) {
+    print("You don't need to go that way.  This game is big enough as it is.");
+    set(f100);
+  }
+}
+
+Address356:
+
+if (v2 == 3) {
+  reset(f110);
+  reset(f100);
+  new.room(110);
+}
+
+if (v2 == 2) {
+  reset(f110);
+  reset(f100);
+  new.room(86);
+}
+return();
+
+
+// messages
+#message 1 "You don't see anything on this particular side of Rhody."
+#message 2 "Well, well, well. You spy a nice shiny quarter stuck in Rhody's butt!"
+#message 3 "You already found it."
+#message 4 "You take the quarter from the ram's ass."
+#message 5 "Get closer."
+#message 6 "Nah. You don't need it for anything."
+#message 7 "Huh?"
+#message 8 "You're in front of the Union. There is a stone statue of Rhody the Ram on a pedestal here."
+#message 9 "The Memorial Union is one of the major gathering areas on campus. It's always bustling with activity."
+#message 10 "There's no need to go in that door."
+#message 11 "You see nothing important."
+#message 12 "Rhody's been standing on it for the last 40 years."
+#message 13 "Just bushes, nothing more."
+#message 14 "People who wait for the bus sit on them."
+#message 15 "You have no time for that!"
+#message 16 "My God, it's a tree!! What will they think of next?"
+#message 17 "There's nothing special about it."
+#message 18 "You see nothing special."
+#message 19 "You should stop talking to yourself."
+#message 20 "You don't need to go that way.  This game is big enough as it is."

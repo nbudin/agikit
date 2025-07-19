@@ -1,0 +1,45 @@
+prevent.input();
+status.line.off();
+text.screen();
+v19 = 0;
+reset(f4);
+display(3, 0, "               AGI Help");
+display(6, 0, "      F1 displays this message.");
+display(7, 0, "      F2 turns the sound off and on.");
+display(8, 0, "      F3 retypes the last line typed.");
+display(9, 0, "      F5 saves your current game.");
+display(10, 0, "      F7 restores a saved game.");
+display(11, 0, "      F9 restarts the game.");
+display(12, 0, "   ALT-Z quits the game.");
+display(13, 0, "     TAB shows the inventory screen.");
+display(14, 0, "     ESC pops up menus.");
+display(15, 0, "  Ctrl-J sets up your joystick.");
+display(16, 0, "      +  Increases volume.");
+display(17, 0, "      -  Decreases volume.");
+
+Address60:
+
+if (!have.key()) {
+  goto(Address60);
+}
+accept.input();
+status.line.on();
+graphics();
+set(f4);
+return();
+
+
+// messages
+#message 1 "               AGI Help"
+#message 2 "      F1 displays this message."
+#message 3 "      F2 turns the sound off and on."
+#message 4 "      F3 retypes the last line typed."
+#message 5 "      F5 saves your current game."
+#message 6 "      F7 restores a saved game."
+#message 7 "      F9 restarts the game."
+#message 8 "   ALT-Z quits the game."
+#message 9 "     TAB shows the inventory screen."
+#message 10 "     ESC pops up menus."
+#message 11 "  Ctrl-J sets up your joystick."
+#message 12 "      +  Increases volume."
+#message 13 "      -  Decreases volume."

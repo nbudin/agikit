@@ -1,0 +1,257 @@
+if (f5) {
+  reset(f100);
+  reset(f101);
+  reset(f111);
+  reset(f107);
+  reset(f113);
+  reset(f112);
+  reset(f108);
+  reset(f109);
+  reset(f111);
+  reset(f118);
+
+  if (v1 == 17) {
+    ignore.blocks(o0);
+    position(o0, 107, 97);
+    set.loop(o0, 1);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f113);
+    program.control();
+  }
+
+  if (v1 == 21) {
+    ignore.blocks(o0);
+    position(o0, 53, 77);
+    set.loop(o0, 2);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f107);
+    program.control();
+  }
+
+  if (v1 == 22) {
+    ignore.blocks(o0);
+    position(o0, 42, 160);
+    set.loop(o0, 3);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f111);
+    program.control();
+  }
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  animate.obj(o1);
+  load.view(38);
+  set.view(o1, 38);
+  set.loop(o1, 0);
+
+  if (f107) {
+    set.cel(o1, 3);
+  } else {
+    set.cel(o1, 0);
+  }
+  ignore.blocks(o1);
+  ignore.objs(o1);
+  position(o1, 51, 80);
+  set.priority(o1, 4);
+  stop.cycling(o1);
+  draw(o1);
+  show.pic();
+  draw(o0);
+}
+
+if (f113) {
+  move.obj(o0, 90, 97, 1, f112);
+}
+
+if (f112) {
+  reset(f112);
+  reset(f113);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (f107) {
+  move.obj(o0, 53, 87, 1, f108);
+}
+
+if (f108) {
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o1, f118);
+  reset(f108);
+  reset(f107);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (f111) {
+  move.obj(o0, 42, 150, 1, f109);
+}
+
+if (f109) {
+  reset(f109);
+  reset(f111);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("This is the hallway at the very bottom of C tower. The top door leads to the laundry room, and the bottom door leads to the lounge. The other door is just a utility closet, which is always locked.");
+}
+
+if (said("examine", "d")) {
+  print("The top door leads to the laundry room, and the bottom door leads to the lounge. The other door is just a utility closet, which is always locked.");
+}
+
+if (said("examine", "lounge", "d") || said("examine", "b", "d")) {
+  print("It's just your average doorway.");
+}
+
+if (said("examine", "laundry", "d") || said("examine", "t", "d") || said("examine", "laundry")) {
+  print("Laundry..... yuck.");
+}
+
+if (said("examine", "closet", "d") || said("examine", "utility", "d") || said("examine", "utility", "closet", "d") || said("examine", "right", "d") || said("examine", "utility", "closet")) {
+  print("It's locked, and there's nothing you need in there anyways.");
+}
+
+if (said("o", "closet", "d") || said("o", "utility", "d") || said("o", "utility", "closet", "d") || said("o", "right", "d") || said("o", "utility", "closet")) {
+  print("It's locked, and there's nothing you need in there anyways.");
+}
+
+if (said("examine", "window")) {
+  print("It's the laundry room.");
+}
+
+if (said("examine", "floor")) {
+  print("The only thing on the floor besides beer stains is a door stop.");
+}
+
+if (said("examine", "door stop") || said("acquire", "door stop")) {
+  print("It's holding the door to the stairwell open. You don't need it.");
+}
+
+if (said("examine", "wall")) {
+  print("There are some cracks in the hideously painted walls. In other words, your typical dorm walls. You see the laundry room through a window on the top wall.");
+}
+
+if (said("acquire", "anyword")) {
+  print("You don't need it.");
+}
+
+if (said("o", "laundry", "d") || said("o", "t", "d") || said("o", "laundry") || said("o", "laundry", "room")) {
+  if (posn(o0, 48, 79, 60, 84)) {
+    program.control();
+    load.sound(3);
+    sound(3, f153);
+    end.of.loop(o1, f101);
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (f101) {
+  move.obj(o0, 53, 82, 1, f100);
+}
+
+if (f100) {
+  reset(f101);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  move.obj(o0, 53, 60, 1, f111);
+}
+
+if (said("knock", "laundry", "d") || said("knock", "t", "d") || said("knock", "laundry")) {
+  print("No one answers.");
+}
+
+if (said("c", "laundry", "d") || said("c", "t", "d")) {
+  print("It's already closed.");
+}
+
+if (said("knock", "utility", "d") || said("knock", "right", "d") || said("knock", "closet", "d") || said("knock", "utility", "closet") || said("knock", "utility", "closet", "d")) {
+  print("No one answers.");
+}
+
+if (said("c", "utility", "d") || said("c", "right", "d") || said("c", "closet", "d") || said("c", "utility", "closet")) {
+  print("It's already closed.");
+}
+
+if (said("knock", "d") || said("o", "d")) {
+  print("Which one?");
+}
+
+if ((f3) && posn(o0, 39, 159, 59, 166)) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f111);
+  reset(f107);
+  reset(f113);
+  reset(f112);
+  reset(f108);
+  reset(f109);
+  reset(f111);
+  reset(f118);
+
+  if (!f166 || (v50 > 0)) {
+    new.room(22);
+  } else {
+    new.room(216);
+  }
+}
+
+if ((f3) && posn(o0, 49, 67, 65, 82)) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f111);
+  reset(f107);
+  reset(f113);
+  reset(f112);
+  reset(f108);
+  reset(f109);
+  reset(f111);
+  reset(f118);
+  new.room(21);
+}
+
+if ((f3) && posn(o0, 107, 91, 120, 113)) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f111);
+  reset(f107);
+  reset(f113);
+  reset(f112);
+  reset(f108);
+  reset(f109);
+  reset(f111);
+  reset(f118);
+  new.room(17);
+}
+return();
+
+
+// messages
+#message 1 "This is the hallway at the very bottom of C tower. The top door leads to the laundry room, and the bottom door leads to the lounge. The other door is just a utility closet, which is always locked."
+#message 2 "The top door leads to the laundry room, and the bottom door leads to the lounge. The other door is just a utility closet, which is always locked."
+#message 3 "It's just your average doorway."
+#message 4 "Laundry..... yuck."
+#message 5 "It's locked, and there's nothing you need in there anyways."
+#message 6 "It's the laundry room."
+#message 7 "The only thing on the floor besides beer stains is a door stop."
+#message 8 "It's holding the door to the stairwell open. You don't need it."
+#message 9 "There are some cracks in the hideously painted walls. In other words, your typical dorm walls. You see the laundry room through a window on the top wall."
+#message 10 "You don't need it."
+#message 11 "No one answers."
+#message 12 "It's already closed."
+#message 13 "Which one?"
+#message 50 "You're not close enough."

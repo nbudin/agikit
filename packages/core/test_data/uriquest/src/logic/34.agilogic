@@ -1,0 +1,99 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You are in front of Adams Hall.");
+}
+
+if (said("examine", "adams") || said("examine", "building")) {
+  print("Adams Hall is a mostly freshman dorm. Even still, you've never had reason to set foot in it.");
+}
+
+if (said("examine", "window")) {
+  print("You see nothing good.");
+}
+
+if (said("examine", "bush")) {
+  print("A bush is a bush is a bush.");
+}
+
+if (said("examine", "floor")) {
+  print("There's nothing important.");
+}
+
+if (said("examine", "d") || said("o", "d")) {
+  print("You don't need to go in there, so don't bother trying.");
+}
+
+if (said("examine", "road")) {
+  print("The street is hard and black, just like John Hol... umm, nevermind.");
+}
+
+if (said("examine", "tree")) {
+  print("There's nothing important about the trees.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("There's nothing important about it.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 2) {
+  new.room(33);
+}
+
+if (v2 == 3) {
+  v2 = 1;
+  get.posn(o0, v52, v53);
+  erase(o0);
+  v54 = 167;
+  v53 = 159;
+  v53 -= v52;
+
+  if (v53 != 6) {
+    v53 -= 7;
+  } else {
+    v53 = 0;
+  }
+  position.v(o0, v53, v54);
+
+  if (v6 == 5) {
+    v6 = 1;
+  }
+
+  if (v6 == 6) {
+    v6 = 2;
+  }
+
+  if (v6 == 4) {
+    v6 = 8;
+  }
+  new.room(47);
+}
+
+if (v2 == 4) {
+  new.room(35);
+}
+return();
+
+
+// messages
+#message 1 "You are in front of Adams Hall."
+#message 2 "Adams Hall is a mostly freshman dorm. Even still, you've never had reason to set foot in it."
+#message 3 "You see nothing good."
+#message 4 "A bush is a bush is a bush."
+#message 5 "There's nothing important."
+#message 6 "You don't need to go in there, so don't bother trying."
+#message 7 "The street is hard and black, just like John Hol... umm, nevermind."
+#message 8 "There's nothing important about the trees."
+#message 9 "There's nothing important about it."
+#message 10 "You should stop talking to yourself."

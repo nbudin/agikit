@@ -1,0 +1,62 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+
+  if (v1 == 185) {
+    position(o0, 75, 165);
+  }
+
+  if (v1 == 190) {
+    position(o0, 120, 112);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're inside the front entrance of the Fine Arts building.");
+}
+
+if (said("examine", "arts") || said("examine", "building")) {
+  print("It's John's home away from home.");
+}
+
+if (said("examine", "floor")) {
+  print("You see a worn, ugly rug.");
+}
+
+if (said("examine", "carpet")) {
+  print("You see a worn, ugly rug.");
+}
+
+if (said("examine", "d") || said("o", "d")) {
+  print("It leads out back to a big student parking lot. You don't need to go there.");
+}
+
+if (said("examine", "wall")) {
+  print("There's nothing special about the walls, besides being pale and ugly.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 3) {
+  new.room(185);
+}
+
+if (f3) {
+  new.room(190);
+}
+return();
+
+
+// messages
+#message 1 "You're inside the front entrance of the Fine Arts building."
+#message 2 "It's John's home away from home."
+#message 3 "You see a worn, ugly rug."
+#message 4 "It leads out back to a big student parking lot. You don't need to go there."
+#message 5 "There's nothing special about the walls, besides being pale and ugly."
+#message 6 "You should stop talking to yourself."

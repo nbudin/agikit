@@ -1,0 +1,122 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+  reset(f100);
+
+  if (v1 == 127) {
+    position(o0, 85, 165);
+  }
+
+  if (v1 == 194) {
+    position(o0, 6, 60);
+    v6 = 3;
+  }
+
+  if (v1 == 153) {
+    position(o0, 115, 55);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in front of Lippitt Hall.");
+}
+
+if (said("examine", "lippitt") || said("examine", "building")) {
+  print("It's an old building. The front door is open.");
+}
+
+if (said("examine", "d") || said("o", "d")) {
+  print("It's open.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "window")) {
+  print("There's nothing interesting to see in there.");
+}
+
+if (said("examine", "bush")) {
+  print("Na' ga' do it!.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("You see a sidewalk. Wow.");
+}
+
+if (said("examine", "tree")) {
+  print("You see some trees. Wow.");
+}
+
+if (said("examine", "bulletin board")) {
+  print("You often peruse the messages, but there's never anything interesting.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 4) {
+  reset(f100);
+  new.room(138);
+}
+
+if (v2 == 2) {
+  reset(f100);
+  new.room(140);
+}
+
+if (v2 == 3) {
+  reset(f100);
+  new.room(127);
+}
+
+if (v2 == 1) {
+  reset(f100);
+  new.room(153);
+}
+
+if (f3) {
+  if (v50 != 0) {
+    if (!f100) {
+      print("You aren't authorized to go in there.  Only people who work there can enter.");
+      set(f100);
+    }
+  } else {
+    if (f154) {
+      reset(f100);
+      new.room(194);
+    } else {
+      if (!f100) {
+        print("You aren't authorized to go in there.  Only people who work there can enter.");
+        set(f100);
+      }
+    }
+  }
+}
+
+Address307:
+return();
+
+
+// messages
+#message 1 "You're in front of Lippitt Hall."
+#message 2 "It's an old building. The front door is open."
+#message 3 "It's open."
+#message 4 "You see nothing important."
+#message 5 "There's nothing interesting to see in there."
+#message 6 "Na' ga' do it!."
+#message 7 "You see a sidewalk. Wow."
+#message 8 "You see some trees. Wow."
+#message 9 "You often peruse the messages, but there's never anything interesting."
+#message 10 "You should stop talking to yourself."
+#message 11 "You aren't authorized to go in there.  Only people who work there can enter."

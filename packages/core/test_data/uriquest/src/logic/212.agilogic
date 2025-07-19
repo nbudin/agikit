@@ -1,0 +1,60 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+
+  if (v1 == 211) {
+    position(o0, 37, 122);
+    v6 = 3;
+  }
+
+  if (v1 == 213) {
+    position(o0, 120, 122);
+    v6 = 7;
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("This is a hallway inside of Bressler Hall.");
+}
+
+if (said("examine", "hall")) {
+  print("It's concrete, dirty, and ugly.");
+}
+
+if (said("examine", "d")) {
+  print("The doors lead to rooms.");
+}
+
+if (said("o", "d") || said("knock", "d")) {
+  print("Nah, you don't know any of these people.");
+}
+
+if (said("examine", "wall") || said("examine", "floor") || said("examine", "ceiling")) {
+  print("They're pretty much the same as the rest of the dismal dorm.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if ((f3) && (posn(o0, 1, 60, 60, 150))) {
+  new.room(211);
+}
+
+if ((f3) && (posn(o0, 61, 60, 159, 150))) {
+  new.room(213);
+}
+return();
+
+
+// messages
+#message 1 "This is a hallway inside of Bressler Hall."
+#message 2 "It's concrete, dirty, and ugly."
+#message 3 "The doors lead to rooms."
+#message 4 "Nah, you don't know any of these people."
+#message 5 "They're pretty much the same as the rest of the dismal dorm."
+#message 6 "You should stop talking to yourself."

@@ -1,0 +1,64 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(39);
+
+  if (v1 == 127) {
+    position(o0, 35, 45);
+    v6 = 5;
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're on a street in the middle of campus.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "road")) {
+  print("It's flat and black.");
+}
+
+if (said("examine", "bench") || said("sit", "bench")) {
+  print("You have a game to solve, there's no time for sitting.");
+}
+
+if (said("examine", "tree")) {
+  print("It's just a tree.");
+}
+
+if (said("examine", "bush")) {
+  print("Bushes, nothing more.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  new.room(127);
+}
+
+if (v2 == 4) {
+  new.room(114);
+}
+
+if (v2 == 2) {
+  new.room(116);
+}
+return();
+
+
+// messages
+#message 1 "You're on a street in the middle of campus."
+#message 2 "You see nothing important."
+#message 3 "It's flat and black."
+#message 4 "You have a game to solve, there's no time for sitting."
+#message 5 "It's just a tree."
+#message 6 "Bushes, nothing more."
+#message 7 "You should stop talking to yourself."

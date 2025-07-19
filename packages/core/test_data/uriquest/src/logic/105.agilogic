@@ -1,0 +1,84 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(52);
+
+  if (v1 == 104) {
+    position(o0, 70, 58);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You are on a path connecting the library and the student Union.");
+}
+
+if (said("examine", "library")) {
+  print("It's a really big building with lots of books in it. Mostly, it's just used by students to take naps in between classes.");
+}
+
+if (said("examine", "davis") || said("examine", "building")) {
+  print("Off to the right, you see Davis Hall.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "flagpole") || said("climb", "flagpole")) {
+  print("It's just a pole. You really have no idea what it is for. You don't need to do anything with it.");
+}
+
+if (said("examine", "bench") || said("sit", "bench")) {
+  print("You have no time to be toying with the bench.");
+}
+
+if (said("examine", "bush")) {
+  print("Heh heh... you said \"bush\".");
+}
+
+if (said("examine", "path")) {
+  print("This path runs from the library to the Union.");
+}
+
+if (said("examine", "memorial union")) {
+  print("You can't see it from here.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It leads to financial aid. SHUDDER.");
+}
+
+if (said("examine", "tree")) {
+  print("Trees! Yes, trees! For the love of God, they're just trees!");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 3) {
+  new.room(106);
+}
+
+if (v2 == 1) {
+  new.room(104);
+}
+return();
+
+
+// messages
+#message 1 "You are on a path connecting the library and the student Union."
+#message 2 "It's a really big building with lots of books in it. Mostly, it's just used by students to take naps in between classes."
+#message 3 "Off to the right, you see Davis Hall."
+#message 4 "You see nothing important."
+#message 5 "It's just a pole. You really have no idea what it is for. You don't need to do anything with it."
+#message 6 "You have no time to be toying with the bench."
+#message 7 "Heh heh... you said \"bush\"."
+#message 8 "This path runs from the library to the Union."
+#message 9 "You can't see it from here."
+#message 10 "It leads to financial aid. SHUDDER."
+#message 11 "Trees! Yes, trees! For the love of God, they're just trees!"
+#message 12 "You should stop talking to yourself."

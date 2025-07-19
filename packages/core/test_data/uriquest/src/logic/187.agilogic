@@ -1,0 +1,173 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+
+  if (v1 == 186) {
+    position(o0, 71, 165);
+    v6 = 1;
+  }
+  animate.obj(o1);
+  load.view(68);
+  set.view(o1, 68);
+  position(o1, 71, 83);
+  start.cycling(o1);
+  draw(o1);
+  set(f110);
+  draw(o0);
+  show.pic();
+}
+
+if (f110) {
+  move.obj(o1, 74, 101, 1, f111);
+}
+
+if (f111) {
+  reset(f110);
+  reset(f111);
+  stop.cycling(o1);
+}
+
+if (said("buy", "alcohol") || said("acquire", "alcohol")) {
+  if (posn(o0, 66, 110, 90, 113)) {
+    if (!f175) {
+      print("\"OK. Let me just take a look at your ID...\" says the clerk.");
+      set(f115);
+    } else {
+      print("You already got what you need. Leave well enough alone.");
+    }
+  } else {
+    print("Get closer to the clerk.");
+  }
+}
+
+if (f115) {
+  reset(f115);
+
+  if (has(i10)) {
+    print("\"HEY!!\" he exclaims. \"Who are you tryin' to fool? You're not 21 yet!! Get the hell out of here!\"");
+  } else {
+    if (has(i11)) {
+      print("\"OK.\" he says. \"I'll go get that for ya.\"");
+      start.cycling(o1);
+      program.control();
+      set(f116);
+    } else {
+      print("\"HEY!!\" he exclaims. \"Who are you tryin' to fool? You don't have an ID card! Get the hell out of here!\"");
+    }
+  }
+}
+
+if (f116) {
+  move.obj(o1, 53, 95, 1, f112);
+}
+
+if (f112) {
+  reset(f116);
+  move.obj(o1, 74, 101, 1, f113);
+}
+
+if (f113) {
+  reset(f112);
+  reset(f113);
+  stop.cycling(o1);
+  player.control();
+  set(f114);
+}
+
+if (f114) {
+  reset(f114);
+  set.loop(o1, 2);
+  draw(o1);
+  set(f175);
+  drop(i8);
+  get(i14);
+  v3 += 1;
+  load.sound(12);
+  sound(12, f153);
+  print("\"Here ya go, buddy.\" says the clerk. \"Let me take that cash off your hands. Have a nice day!\"");
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're inside of Patsy's Package Store.");
+}
+
+if (said("examine", "patsys") || said("examine", "building")) {
+  print("You see alot of liquor.");
+}
+
+if (said("examine", "bum")) {
+  print("You see a friendly clerk waiting to serve you.");
+}
+
+if (said("chat", "bum")) {
+  print("\"How can I help ya?\" asks the man.");
+}
+
+if (said("examine", "poster")) {
+  print("They're just your typical liquor store posters.");
+}
+
+if (said("examine", "wall")) {
+  print("You see some posters on the wall.");
+}
+
+if (said("examine", "guinness") || said("buy", "guinness")) {
+  print("A man after my own heart. But alas, it's not required for the mission at hand.");
+}
+
+if (said("examine", "shelf")) {
+  print("There's liquor on the shelves, but what you really want is behind the counter.");
+}
+
+if (said("examine", "counter")) {
+  print("It's a long hard piece of wood. Err... nevermind.");
+}
+
+if (said("examine", "behind", "counter")) {
+  print("There's more liquor back there.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 3) {
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+  erase(o1);
+  new.room(186);
+}
+return();
+
+
+// messages
+#message 1 "\"OK. Let me just take a look at your ID...\" says the clerk."
+#message 2 "You already got what you need. Leave well enough alone."
+#message 3 "Get closer to the clerk."
+#message 4 "\"HEY!!\" he exclaims. \"Who are you tryin' to fool? You're not 21 yet!! Get the hell out of here!\""
+#message 5 "\"OK.\" he says. \"I'll go get that for ya.\""
+#message 6 "\"HEY!!\" he exclaims. \"Who are you tryin' to fool? You don't have an ID card! Get the hell out of here!\""
+#message 7 "\"Here ya go, buddy.\" says the clerk. \"Let me take that cash off your hands. Have a nice day!\""
+#message 8 "You're inside of Patsy's Package Store."
+#message 9 "You see alot of liquor."
+#message 10 "You see a friendly clerk waiting to serve you."
+#message 11 "\"How can I help ya?\" asks the man."
+#message 12 "They're just your typical liquor store posters."
+#message 13 "You see some posters on the wall."
+#message 14 "A man after my own heart. But alas, it's not required for the mission at hand."
+#message 15 "There's liquor on the shelves, but what you really want is behind the counter."
+#message 16 "It's a long hard piece of wood. Err... nevermind."
+#message 17 "There's more liquor back there."
+#message 18 "You should stop talking to yourself."

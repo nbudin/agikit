@@ -1,0 +1,97 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(55);
+  reset(f100);
+
+  if (v1 == 103) {
+    position(o0, 77, 58);
+  }
+
+  if (v1 == 116) {
+    position(o0, 152, 145);
+    v6 = 7;
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You are on a path connecting the library and the student Union.");
+}
+
+if (said("examine", "library") || said("examine", "building")) {
+  print("It's a really big building with lots of books in it. Mostly, it's just used by students to take naps in between classes.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "flagpole") || said("climb", "flagpole")) {
+  print("It's just a pole. You really have no idea what it is for. You don't need to do anything with it.");
+}
+
+if (said("examine", "bush")) {
+  print("Heh heh... you said \"bush\".");
+}
+
+if (said("examine", "path")) {
+  print("This path runs from the library to the Union.");
+}
+
+if (said("examine", "memorial union")) {
+  print("You can't see it from here.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It leads to financial aid. SHUDDER.");
+}
+
+if (said("examine", "tree")) {
+  print("Trees! Yes, trees! For the love of God, they're just trees!");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 3) {
+  reset(f100);
+  new.room(105);
+}
+
+if (v2 == 2) {
+  reset(f100);
+  new.room(116);
+}
+
+if (v2 == 4) {
+  if (!f100) {
+    print("This leads to Financial Aid.  You are already paying off enough loans as it is.  Let's stay on the path for now, ok?");
+    set(f100);
+  }
+}
+
+Address230:
+
+if (v2 == 1) {
+  reset(f100);
+  new.room(103);
+}
+return();
+
+
+// messages
+#message 1 "You are on a path connecting the library and the student Union."
+#message 2 "It's a really big building with lots of books in it. Mostly, it's just used by students to take naps in between classes."
+#message 3 "You see nothing important."
+#message 4 "It's just a pole. You really have no idea what it is for. You don't need to do anything with it."
+#message 5 "Heh heh... you said \"bush\"."
+#message 6 "This path runs from the library to the Union."
+#message 7 "You can't see it from here."
+#message 8 "It leads to financial aid. SHUDDER."
+#message 9 "Trees! Yes, trees! For the love of God, they're just trees!"
+#message 10 "You should stop talking to yourself."
+#message 11 "This leads to Financial Aid.  You are already paying off enough loans as it is.  Let's stay on the path for now, ok?"

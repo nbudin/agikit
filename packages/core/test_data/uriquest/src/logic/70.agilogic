@@ -1,0 +1,67 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(40);
+
+  if (v1 == 82) {
+    position(o0, 120, 45);
+  }
+
+  if (v1 == 58) {
+    position(o0, 120, 165);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in back of Hutchinson Hall.");
+}
+
+if (said("examine", "hutchinson") || said("examine", "building")) {
+  print("It's a dorm like any other.");
+}
+
+if (said("examine", "road")) {
+  print("There's nothing important about it.");
+}
+
+if (said("examine", "bush")) {
+  print("There's nothing interesting about them.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing interesting.");
+}
+
+if (said("examine", "path")) {
+  print("There's nothing interesting about it.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  new.room(82);
+}
+
+if (v2 == 4) {
+  new.room(69);
+}
+
+if (v2 == 3) {
+  new.room(58);
+}
+return();
+
+
+// messages
+#message 1 "You're in back of Hutchinson Hall."
+#message 2 "It's a dorm like any other."
+#message 3 "There's nothing important about it."
+#message 4 "There's nothing interesting about them."
+#message 5 "You see nothing interesting."
+#message 6 "There's nothing interesting about it."
+#message 7 "You should stop talking to yourself."

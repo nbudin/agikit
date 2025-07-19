@@ -1,0 +1,106 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+  reset(f100);
+
+  if (v1 == 52) {
+    position(o0, 80, 51);
+    v6 = 5;
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("This is the intersection near Aldrich Hall.");
+}
+
+if (said("examine", "lot") || said("examine", "student", "lot")) {
+  print("It's where students park their cars.");
+}
+
+if (said("examine", "intersection")) {
+  print("There's nothing special about it.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "road")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("There's nothing important about it.");
+}
+
+if (said("examine", "tree")) {
+  print("There's nothing important about it.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  reset(f100);
+  new.room(52);
+}
+
+if (v2 == 4) {
+  if (!f100) {
+    print("You don't need to go that way.  This game is big enough as it is.");
+    set(f100);
+  }
+}
+
+Address178:
+
+if (v2 == 3) {
+  reset(f100);
+  v2 = 1;
+  get.posn(o0, v52, v53);
+  erase(o0);
+  v54 = 167;
+  v53 = 159;
+  v53 -= v52;
+
+  if (v53 != 6) {
+    v53 -= 7;
+  } else {
+    v53 = 0;
+  }
+  position.v(o0, v53, v54);
+
+  if (v6 == 5) {
+    v6 = 1;
+  }
+
+  if (v6 == 6) {
+    v6 = 2;
+  }
+
+  if (v6 == 4) {
+    v6 = 8;
+  }
+  new.room(25);
+}
+
+if (v2 == 2) {
+  reset(f100);
+  new.room(38);
+}
+return();
+
+
+// messages
+#message 1 "This is the intersection near Aldrich Hall."
+#message 2 "It's where students park their cars."
+#message 3 "There's nothing special about it."
+#message 4 "You see nothing important."
+#message 5 "There's nothing important about it."
+#message 6 "You should stop talking to yourself."
+#message 7 "You don't need to go that way.  This game is big enough as it is."

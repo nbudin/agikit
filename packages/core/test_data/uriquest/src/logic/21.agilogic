@@ -1,0 +1,379 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f100);
+  reset(f102);
+  reset(f103);
+  reset(f101);
+  reset(f118);
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  reset(f125);
+  reset(f126);
+  reset(f127);
+  reset(f128);
+  reset(f130);
+  reset(f129);
+  reset(f131);
+  v51 = 21;
+  animate.obj(o1);
+  load.view(40);
+  set.view(o1, 40);
+  set.loop(o1, 0);
+  set.cel(o1, 3);
+  ignore.blocks(o1);
+  ignore.objs(o1);
+  position(o1, 36, 163);
+  set.priority(o1, 15);
+  stop.cycling(o1);
+  draw(o1);
+  v56 = 2;
+  v55 = 8;
+  animate.obj(o2);
+  load.view(80);
+  set.view(o2, 80);
+  set.loop(o2, 0);
+  set.cel(o2, 0);
+  cycle.time(o2, v56);
+  step.time(o2, v56);
+  position(o2, 38, 73);
+  start.cycling(o2);
+  draw(o2);
+  animate.obj(o3);
+  load.view(81);
+  set.view(o3, 81);
+  set.loop(o3, 0);
+  set.cel(o3, 0);
+  cycle.time(o3, v55);
+  step.time(o3, v55);
+  position(o3, 60, 79);
+  stop.cycling(o3);
+  draw(o3);
+  animate.obj(o4);
+  load.view(82);
+  set.view(o4, 82);
+  set.loop(o4, 0);
+  set.cel(o4, 0);
+  cycle.time(o4, v56);
+  step.time(o4, v56);
+  position(o4, 86, 74);
+  start.cycling(o4);
+  draw(o4);
+  animate.obj(o5);
+  load.view(83);
+  set.view(o5, 83);
+  set.loop(o5, 0);
+  set.cel(o5, 0);
+  ignore.blocks(o5);
+  ignore.objs(o5);
+  cycle.time(o5, v55);
+  step.time(o5, v55);
+  position(o5, 121, 95);
+  stop.cycling(o5);
+  draw(o5);
+
+  if (v1 == 20) {
+    ignore.blocks(o0);
+    ignore.objs(o0);
+    position(o0, 39, 165);
+    set.loop(o0, 3);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f100);
+    program.control();
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("do", "laundry") || said("clean", "dirty blanket") || said("clean", "dirty blanket") || said("clean", "laundry") || said("clean", "laundry") || said("use", "coin") || said("attach", "coin", "machine") || said("use", "washing", "machine") || said("clean", "blanket") || said("clean", "blanket")) {
+  if (has(i17)) {
+    if (has(i15)) {
+      if (has(i18)) {
+        if (has(i21)) {
+          if (has(i22)) {
+            if (has(i23)) {
+              if (has(i24)) {
+                set(f120);
+              } else {
+                print("You need 12 quarters to do laundry.");
+              }
+            } else {
+              print("You need 12 quarters to do laundry.");
+            }
+          } else {
+            print("You need 12 quarters to do laundry.");
+          }
+        } else {
+          print("You need 12 quarters to do laundry.");
+        }
+      } else {
+        print("You need some fabric softener first.");
+      }
+    } else {
+      print("You need some laundry detergent first.");
+    }
+  } else {
+    print("You have nothing you need to wash.");
+  }
+}
+
+if (f120) {
+  reset(f120);
+
+  if (has(i25)) {
+    if (has(i26)) {
+      if (has(i27)) {
+        if (has(i28)) {
+          if (has(i29)) {
+            if (has(i30)) {
+              if (has(i31)) {
+                if (has(i32)) {
+                  if (posn(o0, 110, 106, 123, 120)) {
+                    program.control();
+                    prevent.input();
+                    set(f121);
+                  } else {
+                    print("Get a little bit closer to the empty machine.");
+                  }
+                } else {
+                  print("You need 12 quarters to do laundry.");
+                }
+              } else {
+                print("You need 12 quarters to do laundry.");
+              }
+            } else {
+              print("You need 12 quarters to do laundry.");
+            }
+          } else {
+            print("You need 12 quarters to do laundry.");
+          }
+        } else {
+          print("You need 12 quarters to do laundry.");
+        }
+      } else {
+        print("You need 12 quarters to do laundry.");
+      }
+    } else {
+      print("You need 12 quarters to do laundry.");
+    }
+  } else {
+    print("You need 12 quarters to do laundry.");
+  }
+}
+
+if (f121) {
+  reset(f121);
+  drop(i17);
+  drop(i21);
+  drop(i22);
+  drop(i23);
+  drop(i24);
+  drop(i25);
+  drop(i26);
+  drop(i15);
+  set.priority(o5, 15);
+  load.sound(3);
+  sound(3, f153);
+  end.of.loop(o5, f131);
+}
+
+if (f131) {
+  reset(f131);
+  set.loop(o5, 1);
+  set.cel(o5, 0);
+  load.sound(22);
+  sound(22, f122);
+}
+
+if (f122) {
+  reset(f122);
+  load.sound(4);
+  sound(4, f153);
+  end.of.loop(o5, f123);
+}
+
+if (f123) {
+  move.obj(o0, 60, 110, 1, f124);
+}
+
+if (f124) {
+  reset(f123);
+  move.obj(o0, 42, 82, 1, f129);
+}
+
+if (f129) {
+  reset(f124);
+  move.obj(o0, 52, 82, 1, f125);
+}
+
+if (f125) {
+  reset(f129);
+  reset(f125);
+  drop(i27);
+  drop(i28);
+  drop(i29);
+  drop(i30);
+  drop(i31);
+  drop(i32);
+  drop(i18);
+  erase(o5);
+  program.control();
+  load.sound(3);
+  sound(3, f153);
+  end.of.loop(o3, f126);
+}
+
+if (f126) {
+  reset(f126);
+  set.loop(o3, 1);
+  set.cel(o3, 0);
+  cycle.time(o3, v56);
+  step.time(o3, v56);
+  start.cycling(o3);
+  load.sound(21);
+  sound(21, f127);
+}
+
+if (f127) {
+  reset(f127);
+  stop.cycling(o3);
+  cycle.time(o3, v55);
+  step.time(o3, v55);
+  set.loop(o3, 2);
+  set.cel(o3, 0);
+  draw(o3);
+  set(f128);
+}
+
+if (f128) {
+  reset(f128);
+  load.sound(4);
+  sound(4, f153);
+  end.of.loop(o3, f130);
+}
+
+if (f130) {
+  reset(f130);
+  v3 += 1;
+  load.sound(12);
+  sound(12, f153);
+  print("Using the laundry detergent, the fabric softener, and the 12 quarters, you've successfully transformed the puke blanket into a clean blanket.");
+  get(i34);
+  player.control();
+  accept.input();
+}
+
+if (f100) {
+  move.obj(o0, 39, 150, 1, f101);
+}
+
+if (f101) {
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o1, f118);
+  reset(f101);
+  reset(f100);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (said("o", "d")) {
+  if (posn(o0, 35, 157, 54, 168)) {
+    program.control();
+    load.sound(3);
+    sound(3, f153);
+    end.of.loop(o1, f103);
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (f103) {
+  move.obj(o0, 39, 163, 1, f102);
+}
+
+if (f102) {
+  reset(f103);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  move.obj(o0, 39, 168, 1, f104);
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("This is the much dreaded laundry room of Aldrich Hall. Several students are washing and drying their clothes. Basically, all there is to see are some washers and dryers.");
+}
+
+if (said("examine", "washer")) {
+  print("It's used to wash clothes.");
+}
+
+if (said("examine", "dryer")) {
+  print("It's used to dry clothes.");
+}
+
+if (said("examine", "window")) {
+  print("You see the area behind Aldrich Hall.");
+}
+
+if (said("examine", "d")) {
+  print("It's used to enter and exit the room.");
+}
+
+if (said("examine", "floor") || said("examine", "ceiling") || said("examine", "wall")) {
+  print("There's nothing special about it.");
+}
+
+if (f3) {
+  reset(f100);
+  reset(f102);
+  reset(f103);
+  reset(f101);
+  reset(f118);
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  reset(f125);
+  reset(f126);
+  reset(f127);
+  reset(f128);
+  reset(f130);
+  reset(f129);
+  reset(f131);
+  erase(o1);
+  erase(o2);
+  erase(o3);
+  erase(o4);
+  erase(o5);
+  new.room(20);
+}
+return();
+
+
+// messages
+#message 1 "You need 12 quarters to do laundry."
+#message 2 "You need some fabric softener first."
+#message 3 "You need some laundry detergent first."
+#message 4 "You have nothing you need to wash."
+#message 5 "Get a little bit closer to the empty machine."
+#message 6 "Using the laundry detergent, the fabric softener, and the 12 quarters, you've successfully transformed the puke blanket into a clean blanket."
+#message 7 "You should stop talking to yourself."
+#message 8 "This is the much dreaded laundry room of Aldrich Hall. Several students are washing and drying their clothes. Basically, all there is to see are some washers and dryers."
+#message 9 "It's used to wash clothes."
+#message 10 "It's used to dry clothes."
+#message 11 "You see the area behind Aldrich Hall."
+#message 12 "It's used to enter and exit the room."
+#message 13 "There's nothing special about it."
+#message 50 "You're not close enough."

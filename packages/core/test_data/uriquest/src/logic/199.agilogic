@@ -1,0 +1,279 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f100);
+  reset(f101);
+  reset(f102);
+  reset(f103);
+  reset(f104);
+  reset(f105);
+  reset(f106);
+  reset(f107);
+  reset(f108);
+  reset(f110);
+  reset(f109);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f115);
+  reset(f114);
+  reset(f116);
+  v55 = 8;
+  animate.obj(o1);
+  load.view(94);
+  set.view(o1, 94);
+  position(o1, 30, 35);
+  fix.loop(o1);
+  set.loop(o1, 0);
+  set.cel(o1, 0);
+  cycle.time(o1, v55);
+  step.time(o1, v55);
+  stop.cycling(o1);
+  draw(o1);
+  set(f101);
+  set(f104);
+  v52 = 60;
+  program.control();
+  prevent.input();
+  show.pic();
+  load.sound(26);
+  sound(26, f100);
+}
+
+if (f101) {
+  reset(f101);
+  end.of.loop(o1, f102);
+}
+
+if (f102) {
+  reset(f102);
+  set(f103);
+}
+
+if (f103) {
+  if (!f116) {
+    v52 -= 1;
+  }
+}
+
+Address132:
+
+if (v52 == 5) {
+  if (f114) {
+    v52 = 220;
+    reset(f114);
+    reset(f103);
+    set(f116);
+    clear.lines(4, 21, 0);
+    set.text.attribute(13, 0);
+    display(11, 5, "Thanks for playing URI Quest!");
+    display(12, 9, "I hope you enjoyed it!");
+  }
+
+  if (f115) {
+    v52 = 180;
+    reset(f115);
+    set(f114);
+    clear.lines(4, 21, 0);
+    set.text.attribute(13, 0);
+    display(9, 5, "And last but not least I would");
+    display(10, 13, "like to thank:");
+    set.text.attribute(15, 0);
+    display(14, 5, "Me, for being such a cool guy.");
+  }
+
+  if (f113) {
+    v52 = 255;
+    reset(f113);
+    set(f115);
+    clear.lines(4, 21, 0);
+    set.text.attribute(13, 0);
+    display(8, 13, "Special Thanks:");
+    set.text.attribute(15, 0);
+    display(10, 1, "Peter Kelly");
+    display(11, 2, "author of AGI Studio");
+    display(12, 1, "Lance Ewing");
+    display(13, 2, "author of PICEDIT, MF2ROL and ROL2SND");
+    display(14, 1, "Anders Olsson");
+    display(15, 2, "author of AGISB");
+    display(16, 1, "Sierra On-Line");
+    display(17, 2, "for making all of this possible");
+    display(18, 1, "URI");
+    display(19, 2, "for graduating me");
+    display(20, 1, "Ed Salamy");
+    display(21, 2, "for suggesting that I make this game");
+  }
+
+  if (f112) {
+    v52 = 120;
+    reset(f112);
+    set(f113);
+    clear.lines(4, 21, 0);
+    set.text.attribute(13, 0);
+    display(9, 11, "Quality Assurance:");
+    set.text.attribute(15, 0);
+    display(14, 14, "Jeff Carroll");
+  }
+
+  if (f111) {
+    v52 = 220;
+    reset(f111);
+    set(f112);
+    clear.lines(4, 21, 0);
+    set.text.attribute(13, 0);
+    display(9, 4, "Other music originally heard in:");
+    set.text.attribute(15, 0);
+    display(11, 9, "The Legend of Zelda");
+    display(12, 9, "Metroid");
+    display(13, 9, "Super Mario Bros.");
+    display(14, 9, "Super Mario Bros. 2");
+    display(15, 9, "Wizards & Warriors");
+    display(16, 9, "Phantasy Star I");
+    display(17, 9, "Wolfenstein 3D");
+    display(18, 9, "Jeopardy");
+    display(19, 9, "The Star Wars Trilogy");
+  }
+
+  if (f110) {
+    v52 = 160;
+    reset(f110);
+    set(f111);
+    clear.lines(4, 21, 0);
+    set.text.attribute(13, 0);
+    display(9, 7, "Some music borrowed from:");
+    set.text.attribute(15, 0);
+    display(13, 11, "King's Quest II");
+    display(14, 11, "Police Quest I");
+  }
+
+  if (f109) {
+    v52 = 180;
+    reset(f109);
+    set(f110);
+    clear.lines(4, 21, 0);
+    set.text.attribute(13, 0);
+    display(9, 13, "Original Music:");
+    set.text.attribute(15, 0);
+    display(11, 14, "Jeff Carroll");
+    set.text.attribute(13, 0);
+    display(15, 6, "\"URI Fight Song\" Title Theme");
+    display(16, 13, "performed by:");
+    set.text.attribute(15, 0);
+    display(18, 14, "Jeff Carroll");
+  }
+
+  if (f107) {
+    v52 = 200;
+    reset(f107);
+    set(f109);
+    clear.lines(4, 21, 0);
+    set.text.attribute(13, 0);
+    display(9, 6, "Some graphics borrowed from:");
+    set.text.attribute(15, 0);
+    display(13, 11, "King's Quest II");
+    display(14, 11, "King's Quest IV");
+    display(15, 11, "Space Quest I");
+    display(16, 11, "Police Quest I");
+    display(17, 11, "Leisure Suit Larry I");
+  }
+
+  if (f106) {
+    v52 = 120;
+    reset(f106);
+    set(f107);
+    clear.lines(4, 21, 0);
+    set.text.attribute(13, 0);
+    display(9, 11, "Art & Animation by:");
+    set.text.attribute(15, 0);
+    display(14, 14, "Jeff Carroll");
+  }
+
+  if (f105) {
+    v52 = 120;
+    reset(f105);
+    set(f106);
+    clear.lines(4, 21, 0);
+    set.text.attribute(13, 0);
+    display(9, 13, "Programming by:");
+    set.text.attribute(15, 0);
+    display(14, 14, "Jeff Carroll");
+  }
+
+  if (f104) {
+    v52 = 120;
+    reset(f104);
+    set(f105);
+    clear.lines(4, 21, 0);
+    set.text.attribute(13, 0);
+    display(9, 4, "URI Quest was written, produced");
+    display(10, 12, "and directed by:");
+    set.text.attribute(15, 0);
+    display(14, 14, "Jeff Carroll");
+  }
+}
+
+Address601:
+
+if ((f100) && (f116)) {
+  reset(f100);
+  reset(f116);
+  erase(o1);
+  set(f14);
+  reset(f33);
+  load.sound(27);
+  sound(27, f153);
+  clear.lines(4, 21, 0);
+  set.text.attribute(15, 0);
+  display(12, 7, "JEFF CARROLL WILL RETURN....");
+}
+return();
+
+
+// messages
+#message 1 "Thanks for playing URI Quest!"
+#message 2 "I hope you enjoyed it!"
+#message 3 "And last but not least I would"
+#message 4 "like to thank:"
+#message 5 "Me, for being such a cool guy."
+#message 6 "Special Thanks:"
+#message 7 "Peter Kelly"
+#message 8 "author of AGI Studio"
+#message 9 "Lance Ewing"
+#message 10 "author of PICEDIT, MF2ROL and ROL2SND"
+#message 11 "Anders Olsson"
+#message 12 "author of AGISB"
+#message 13 "Sierra On-Line"
+#message 14 "for making all of this possible"
+#message 15 "URI"
+#message 16 "for graduating me"
+#message 17 "Ed Salamy"
+#message 18 "for suggesting that I make this game"
+#message 19 "Quality Assurance:"
+#message 20 "Jeff Carroll"
+#message 21 "Other music originally heard in:"
+#message 22 "The Legend of Zelda"
+#message 23 "Metroid"
+#message 24 "Super Mario Bros."
+#message 25 "Super Mario Bros. 2"
+#message 26 "Wizards & Warriors"
+#message 27 "Phantasy Star I"
+#message 28 "Wolfenstein 3D"
+#message 29 "Jeopardy"
+#message 30 "The Star Wars Trilogy"
+#message 31 "Some music borrowed from:"
+#message 32 "King's Quest II"
+#message 33 "Police Quest I"
+#message 34 "Original Music:"
+#message 35 "\"URI Fight Song\" Title Theme"
+#message 36 "performed by:"
+#message 37 "Some graphics borrowed from:"
+#message 38 "King's Quest IV"
+#message 39 "Space Quest I"
+#message 40 "Leisure Suit Larry I"
+#message 41 "Art & Animation by:"
+#message 42 "Programming by:"
+#message 43 "URI Quest was written, produced"
+#message 44 "and directed by:"
+#message 45 "JEFF CARROLL WILL RETURN...."

@@ -1,0 +1,99 @@
+if (v35 != 255) {
+  accept.input();
+  cancel.line();
+  program.control();
+  clear.lines(23, 24, 0);
+  v36 = 50;
+  load.sound(9);
+  sound(9, f153);
+
+  if (v35 == 1) {
+    print("You are now dead. Didn't anybody ever tell you not to commit suicide?");
+    print("Although I must admit.... that was pretty God damn funny!");
+  }
+
+  if (v35 == 2) {
+    print("Oh no!!!!!! You've let Jen catch you!  Now you have to suffer through her following you around all day like a lost puppy.  You'll never finish the game that way!!!");
+  }
+
+  if (v35 == 3) {
+    print("Oh no!!!!!! Some typical drunken frat-boy has just run you over!! Either be more careful, or take it as a sign not to go that way!");
+  }
+
+  if (v35 == 4) {
+    print("Oh no!!!!!! You've let the evil psycho janitor catch you!!! You're in for it now! He's gonna beat you over the head and crack your skull open with his broom. You're gonna have to restart or restore now, dumb-ass.");
+  }
+
+  if (v35 == 5) {
+    print("Oh nice, dipshit! There's a roomful of, err..., people, here waiting to hear you and John play and you don't even have an instrument! Real swift!");
+  }
+
+  if (v35 == 6) {
+    print("Oh nice, dipshit! There's a beautiful girl here who is ready to go out with you and you don't even have any cash to take her anywhere!!! Nice going! Real swift!");
+  }
+
+  if (v35 == 7) {
+    print("Oh nice, dipshit! There's a beautiful girl here who is ready to go out with you and you smell like an amazing pile of shit! She is never going to go out with you now, you disgusting pig!!");
+  }
+
+  if (v35 == 8) {
+    print("\"A-HA! I thought not, you pansy ass loser! Now get out of my face!\" Ed says.");
+    print("Oh nice, dipshit! You're finally given a chance at revenge, and you just stand there like a deer caught in headlights. Game over, man. Game over.");
+  }
+
+  if (v35 == 9) {
+    print("Oh nice, dipshit! You just failed your test! I mean, really! Who comes to a Calculus test without their calculator???!!");
+  }
+  v35 = 255;
+}
+v36--;
+
+if (v36 == 1) {
+  print("Thank you for playing this game. Better luck next time!");
+}
+
+if (controller(c19)) {
+  menu.input();
+}
+
+if (controller(c2) || said("help")) {
+  call(92);
+}
+
+if (controller(c5) || said("restore", "game") || said("restore")) {
+  restore.game();
+}
+
+if (controller(c7) || said("restart", "game") || said("restart")) {
+  restart.game();
+}
+
+if (controller(c10) || said("inv")) {
+  status();
+}
+
+if (controller(c1) || said("quit")) {
+  stop.sound();
+  quit(0);
+}
+
+if (f2 && !f4) {
+  print("You are dead! You can only restore, restart, quit the game or view your inventory.");
+}
+return();
+
+
+// messages
+#message 1 "You are now dead. Didn't anybody ever tell you not to commit suicide?"
+#message 2 "Although I must admit.... that was pretty God damn funny!"
+#message 3 "Oh no!!!!!! You've let Jen catch you!  Now you have to suffer through her following you around all day like a lost puppy.  You'll never finish the game that way!!!"
+#message 4 "Oh no!!!!!! Some typical drunken frat-boy has just run you over!! Either be more careful, or take it as a sign not to go that way!"
+#message 5 "Oh no!!!!!! You've let the evil psycho janitor catch you!!! You're in for it now! He's gonna beat you over the head and crack your skull open with his broom. You're gonna have to restart or restore now, dumb-ass."
+#message 6 "Oh nice, dipshit! There's a roomful of, err..., people, here waiting to hear you and John play and you don't even have an instrument! Real swift!"
+#message 7 "Oh nice, dipshit! There's a beautiful girl here who is ready to go out with you and you don't even have any cash to take her anywhere!!! Nice going! Real swift!"
+#message 8 "Oh nice, dipshit! There's a beautiful girl here who is ready to go out with you and you smell like an amazing pile of shit! She is never going to go out with you now, you disgusting pig!!"
+#message 9 "\"A-HA! I thought not, you pansy ass loser! Now get out of my face!\" Ed says."
+#message 10 "Oh nice, dipshit! You're finally given a chance at revenge, and you just stand there like a deer caught in headlights. Game over, man. Game over."
+#message 11 "Oh nice, dipshit! You just failed your test! I mean, really! Who comes to a Calculus test without their calculator???!!"
+#message 12 "Thank you for playing this game. Better luck next time!"
+#message 13 "You are dead! You can only restore, restart, quit the game or view your inventory."

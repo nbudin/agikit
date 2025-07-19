@@ -1,0 +1,110 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+
+  if (v1 == 60) {
+    position(o0, 84, 41);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You are at the very bottom of campus. This is the side of Butterfield dining hall.");
+}
+
+if (said("examine", "dining hall") || said("examine", "butterfield")) {
+  print("It's nickname is butternut or butterfuck, depending on your mood.");
+}
+
+if (said("examine", "d") || said("o", "d")) {
+  print("It's for staff only.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "road")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("There's nothing important about it.");
+}
+
+if (said("examine", "path")) {
+  print("It leads up campus.");
+}
+
+if (said("examine", "lot")) {
+  print("It's an empty staff parking lot.");
+}
+
+if (said("examine", "bush")) {
+  print("There's nothing important about these bushes.");
+}
+
+if (said("examine", "boulder")) {
+  print("There's nothing important about it.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (f3) {
+  new.room(60);
+}
+
+if (v2 == 4) {
+  new.room(44);
+}
+
+if (v2 == 3) {
+  v2 = 1;
+  get.posn(o0, v52, v53);
+  erase(o0);
+  v54 = 167;
+  v53 = 159;
+  v53 -= v52;
+
+  if (v53 != 6) {
+    v53 -= 7;
+  } else {
+    v53 = 0;
+  }
+  position.v(o0, v53, v54);
+
+  if (v6 == 5) {
+    v6 = 1;
+  }
+
+  if (v6 == 6) {
+    v6 = 2;
+  }
+
+  if (v6 == 4) {
+    v6 = 8;
+  }
+  new.room(32);
+}
+
+if (v2 == 2) {
+  new.room(46);
+}
+return();
+
+
+// messages
+#message 1 "You are at the very bottom of campus. This is the side of Butterfield dining hall."
+#message 2 "It's nickname is butternut or butterfuck, depending on your mood."
+#message 3 "It's for staff only."
+#message 4 "You see nothing important."
+#message 5 "There's nothing important about it."
+#message 6 "It leads up campus."
+#message 7 "It's an empty staff parking lot."
+#message 8 "There's nothing important about these bushes."
+#message 9 "You should stop talking to yourself."

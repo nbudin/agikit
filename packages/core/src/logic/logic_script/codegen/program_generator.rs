@@ -396,7 +396,7 @@ mod tests {
                     .expect("Failed to generate script");
 
                 let expected = uriquest
-                    .read_file_utf8(&format!("{}.agilogic", $resource_number))
+                    .read_file_utf8(&format!("src/logic/{}.agilogic", $resource_number))
                     .unwrap();
 
                 assert_eq!(expected, generated_script);
@@ -407,5 +407,6 @@ mod tests {
     logic_smoke_test!(logic_0_test, 0);
     logic_smoke_test!(logic_13_test, 13);
     logic_smoke_test!(logic_93_test, 93);
+    logic_smoke_test!(logic_99_test, 99);
     logic_smoke_test!(logic_100_test, 100);
 }

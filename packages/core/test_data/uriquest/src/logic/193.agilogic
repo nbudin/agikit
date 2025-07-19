@@ -1,0 +1,131 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f100);
+  reset(f101);
+  reset(f102);
+  reset(f103);
+  animate.obj(o2);
+  load.view(51);
+  set.view(o2, 51);
+  set.loop(o2, 0);
+  set.cel(o2, 0);
+  position(o2, 54, 118);
+  ignore.blocks(o2);
+  ignore.objs(o2);
+  set.priority(o2, 6);
+  stop.cycling(o2);
+  draw(o2);
+  draw(o0);
+  show.pic();
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (said("examine", "locker") || said("examine", "john", "locker")) {
+  print("One of these lockers belongs to John.");
+}
+
+if (said("o", "locker") || said("o", "john", "locker")) {
+  if (posn(o0, 59, 147, 65, 149)) {
+    if (v50 == 2) {
+      if (f178) {
+        set(f100);
+      } else {
+        print("You can't remember the combination. DOH!");
+      }
+    } else {
+      print("You aren't John, how would you know the combination?");
+    }
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (f100) {
+  print("8...");
+  print("10...");
+  print("22...");
+  reset(f100);
+  load.sound(3);
+  sound(3, f153);
+  end.of.loop(o2, f101);
+  set(f102);
+}
+
+if ((f102) && (f101)) {
+  reset(f102);
+  reset(f101);
+
+  if (!f179) {
+    set(f179);
+    get(i16);
+    v3 += 5;
+    load.sound(12);
+    sound(12, f153);
+    print("Aha!! Oh how foolish Ed can be. He once gave John a key to his room, in case he lost his own. John takes Ed's room key from his locker.");
+  } else {
+    print("It's empty.");
+  }
+  set(f103);
+}
+
+if (f103) {
+  reset(f103);
+  print("John closes the locker.");
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o2, f101);
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in a hallway inside the Fine Arts building. There are lockers here.");
+}
+
+if (said("examine", "arts") || said("examine", "building")) {
+  print("It's John's home away from home.");
+}
+
+if (said("examine", "floor")) {
+  print("You see a worn, ugly rug.");
+}
+
+if (said("examine", "carpet")) {
+  print("You see a worn, ugly rug.");
+}
+
+if (said("examine", "wall")) {
+  print("There's nothing special about the walls, besides being pale and ugly.");
+}
+
+if (v2 == 2) {
+  reset(f100);
+  reset(f101);
+  reset(f102);
+  reset(f103);
+  erase(o2);
+  new.room(192);
+}
+return();
+
+
+// messages
+#message 1 "You should stop talking to yourself."
+#message 2 "One of these lockers belongs to John."
+#message 3 "You can't remember the combination. DOH!"
+#message 4 "You aren't John, how would you know the combination?"
+#message 5 "You're not close enough."
+#message 6 "8..."
+#message 7 "10..."
+#message 8 "22..."
+#message 9 "Aha!! Oh how foolish Ed can be. He once gave John a key to his room, in case he lost his own. John takes Ed's room key from his locker."
+#message 10 "It's empty."
+#message 11 "John closes the locker."
+#message 12 "You're in a hallway inside the Fine Arts building. There are lockers here."
+#message 13 "It's John's home away from home."
+#message 14 "You see a worn, ugly rug."
+#message 15 "There's nothing special about the walls, besides being pale and ugly."

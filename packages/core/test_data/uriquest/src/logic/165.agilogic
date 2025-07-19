@@ -1,0 +1,86 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+
+  if (v1 == 164) {
+    position(o0, 51, 77);
+  }
+
+  if (v1 == 177) {
+    position(o0, 110, 52);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in front of Bliss Hall.");
+}
+
+if (said("examine", "bliss") || said("examine", "building")) {
+  print("This is an engineering building.");
+}
+
+if (said("examine", "d") || said("o", "d")) {
+  print("Although it would be cool if you could go in every door in this game, you can't.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "window")) {
+  print("There's nothing interesting to see in there.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It's a sidewalk, a lonely sidewalk.");
+}
+
+if (said("examine", "road")) {
+  print("It leads to the top of campus.");
+}
+
+if (said("examine", "tree")) {
+  print("It is a tree, just a tree, I swear.");
+}
+
+if (said("examine", "bush")) {
+  print("The bushes serve no purpose.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 2) {
+  new.room(166);
+}
+
+if (f3) {
+  new.room(164);
+}
+
+if (v2 == 1) {
+  new.room(177);
+}
+
+if (v2 == 3) {
+  new.room(153);
+}
+return();
+
+
+// messages
+#message 1 "You're in front of Bliss Hall."
+#message 2 "This is an engineering building."
+#message 3 "Although it would be cool if you could go in every door in this game, you can't."
+#message 4 "You see nothing important."
+#message 5 "There's nothing interesting to see in there."
+#message 6 "It's a sidewalk, a lonely sidewalk."
+#message 7 "It leads to the top of campus."
+#message 8 "It is a tree, just a tree, I swear."
+#message 9 "The bushes serve no purpose."
+#message 10 "You should stop talking to yourself."

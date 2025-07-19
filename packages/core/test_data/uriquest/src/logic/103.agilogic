@@ -1,0 +1,69 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(55);
+
+  if (v1 == 102) {
+    position(o0, 77, 58);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You are on a path near the front of the library.");
+}
+
+if (said("examine", "library") || said("examine", "building")) {
+  print("It's a really big building with lots of books in it. Mostly, it's just used by students to take naps in between classes.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "bench") || said("sit", "bench")) {
+  print("You have no time for benches, you're on a mission!");
+}
+
+if (said("examine", "bush")) {
+  print("Heh heh... you said \"bush\".");
+}
+
+if (said("examine", "path")) {
+  print("This path runs from the library to the Union.");
+}
+
+if (said("examine", "tree")) {
+  print("Trees! Yes, trees! For the love of God, they're just trees!");
+}
+
+if (said("examine", "memorial union")) {
+  print("You can't see it from here.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 3) {
+  new.room(104);
+}
+
+if (v2 == 1) {
+  new.room(102);
+}
+return();
+
+
+// messages
+#message 1 "You are on a path near the front of the library."
+#message 2 "It's a really big building with lots of books in it. Mostly, it's just used by students to take naps in between classes."
+#message 3 "You see nothing important."
+#message 4 "You have no time for benches, you're on a mission!"
+#message 5 "Heh heh... you said \"bush\"."
+#message 6 "This path runs from the library to the Union."
+#message 7 "Trees! Yes, trees! For the love of God, they're just trees!"
+#message 8 "You can't see it from here."
+#message 9 "You should stop talking to yourself."

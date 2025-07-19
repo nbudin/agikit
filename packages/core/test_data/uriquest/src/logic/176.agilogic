@@ -1,0 +1,139 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+
+  if (v1 == 164) {
+    position(o0, 40, 165);
+  }
+  reset(f100);
+  reset(f101);
+  reset(f102);
+  animate.obj(o1);
+  load.view(48);
+  set.view(o1, 48);
+  set.loop(o1, 0);
+  set.cel(o1, 0);
+  set.priority(o1, 10);
+  v55 = 1;
+  cycle.time(o1, v55);
+  position(o1, 0, 100);
+  start.cycling(o1);
+  animate.obj(o2);
+  load.view(49);
+  set.view(o2, 49);
+  set.loop(o1, 0);
+  set.cel(o1, 0);
+  set.priority(o2, 9);
+  position(o2, 50, 100);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in the eastern part of campus on Upper College Road.");
+}
+
+if (said("examine", "planetarium") || said("examine", "building")) {
+  print("You see the small URI planetarium here. You wonder if anyone has ever actually been in it.");
+}
+
+if (said("examine", "d") || said("o", "d")) {
+  print("As cool as that would be to go in there, you have no urge to be brainwashed.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It's just a sidewalk.");
+}
+
+if (said("examine", "road")) {
+  print("Upper College Road runs along the top part of campus.");
+}
+
+if (said("cross", "road")) {
+  print("Just try it... I dare ya.");
+}
+
+if (said("examine", "tree")) {
+  print("The trees around this area always smell like rancid shit. You try to avoid coming through here as much as possible.");
+}
+
+if (said("smell", "tree")) {
+  print("EEEEWWWWW!!!!!");
+}
+
+if (said("examine", "bush")) {
+  print("There's nothing special about the bushes. Well, maybe George.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (f3) {
+  program.control();
+  ignore.objs(o0);
+  ignore.objs(o1);
+  move.obj(o0, 75, 100, 1, f100);
+}
+
+if (f100) {
+  set.loop(o0, 1);
+  set.cel(o0, 0);
+  load.sound(18);
+  sound(18, f153);
+  draw(o1);
+  move.obj(o1, 25, 100, 1, f101);
+  reset(f100);
+}
+
+if (f101) {
+  erase(o0);
+  draw(o2);
+  move.obj(o1, 150, 100, 1, f102);
+  reset(f101);
+}
+
+if (f102) {
+  reset(f102);
+  erase(o1);
+  v35 = 3;
+}
+
+if (v2 == 2) {
+  erase(o1);
+  erase(o2);
+  new.room(177);
+}
+
+if (v2 == 4) {
+  erase(o1);
+  erase(o2);
+  new.room(175);
+}
+
+if (v2 == 3) {
+  erase(o1);
+  erase(o2);
+  new.room(164);
+}
+return();
+
+
+// messages
+#message 1 "You're in the eastern part of campus on Upper College Road."
+#message 2 "You see the small URI planetarium here. You wonder if anyone has ever actually been in it."
+#message 3 "As cool as that would be to go in there, you have no urge to be brainwashed."
+#message 4 "You see nothing important."
+#message 5 "It's just a sidewalk."
+#message 6 "Upper College Road runs along the top part of campus."
+#message 7 "Just try it... I dare ya."
+#message 8 "The trees around this area always smell like rancid shit. You try to avoid coming through here as much as possible."
+#message 9 "EEEEWWWWW!!!!!"
+#message 10 "There's nothing special about the bushes. Well, maybe George."
+#message 11 "You should stop talking to yourself."

@@ -1,0 +1,504 @@
+if (f5) {
+  if (f168) {
+    position(o0, 40, 130);
+    v50 = 1;
+    load.view(1);
+    set.view(o0, 1);
+    start.cycling(o0);
+    reset(f168);
+    v0 = 199;
+    load.pic(v0);
+    draw.pic(v0);
+    discard.pic(v0);
+    show.pic();
+    print("The next morning...");
+    print("We find Ed in his dorm room. Although the day has only begun, things do not look promising. Ed's wallet is missing. Let's see if we can go out and find it now, shall we?");
+    v0 = 209;
+  }
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  reset(f119);
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  reset(f125);
+  v55 = 3;
+
+  if (v50 == 1) {
+    animate.obj(o2);
+    load.view(60);
+    set.view(o2, 60);
+    set.loop(o2, 0);
+    set.cel(o2, 0);
+    ignore.blocks(o2);
+    ignore.objs(o2);
+    position(o2, 105, 103);
+    set.priority(o2, 4);
+    cycle.time(o2, v55);
+    start.cycling(o2);
+    draw(o2);
+  }
+
+  if (v1 == 205) {
+    ignore.blocks(o0);
+    position(o0, 105, 157);
+    set.loop(o0, 3);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f107);
+    program.control();
+  }
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  animate.obj(o1);
+  load.view(59);
+  set.view(o1, 59);
+  set.loop(o1, 0);
+
+  if (f107) {
+    set.cel(o1, 2);
+  } else {
+    set.cel(o1, 0);
+  }
+  ignore.blocks(o1);
+  ignore.objs(o1);
+  position(o1, 103, 158);
+  set.priority(o1, 15);
+  stop.cycling(o1);
+  draw(o1);
+  v52 = 50;
+  v53 = 200;
+  show.pic();
+  draw(o0);
+
+  if (v50 == 2) {
+    if (f157) {
+      animate.obj(o3);
+      load.view(1);
+      set.view(o3, 1);
+      set.loop(o3, 0);
+      position(o3, 30, 135);
+      stop.cycling(o3);
+      draw(o3);
+      animate.obj(o4);
+      load.view(73);
+      set.view(o4, 73);
+      set.loop(o4, 0);
+      set.cel(o4, 0);
+      position(o4, 30, 135);
+      stop.cycling(o4);
+      program.control();
+      set(f119);
+    } else {
+      print("Hmm. Ed's not here right now. Maybe you should go do some more stuff and come back later.");
+    }
+  }
+}
+
+Address252:
+
+if (f119) {
+  move.obj(o0, 42, 135, 1, f120);
+}
+
+if (f120) {
+  reset(f119);
+  reset(f120);
+  print("\"So Ed...\" begins John. \"We finally meet face to face, you scummy piece of shit.\"");
+  print("\"You should have known not to fuck with me.\" he continues.");
+  print("\"This is a fuckin' joke, man.\" Ed replies.");
+  print("\"I should put a bullet in your head and watch the bile leak out of your ass, then bring a fuckin' muskrat to lick it up.\" John continues, ignoring Ed's words.");
+  print("\"I should flush your head down the toilet and feed your balls to banthas.\" John says.");
+  print("\"You stole my penny, and your face is making me sick.\" John finishes.");
+  print("Ed replies \"I'll never admit to anything. You're all talk anyways. I'll give you 10 seconds to do something besides call me names or else you forever hold your peace. Show me what you're made of, pansy boy!\"");
+  program.control();
+  set(f121);
+}
+
+if (f121) {
+  v53 -= 1;
+}
+
+if (v53 == 5) {
+  reset(f121);
+  v35 = 8;
+}
+
+if (said("use", "racket") || said("use", "racket", "ed") || said("hit", "ed", "racket") || said("hit", "racket")) {
+  if (has(i3)) {
+    if (f121) {
+      reset(f121);
+      v3 += 4;
+      load.sound(1);
+      sound(1, f153);
+      print("John whips out his tennis racket...");
+      erase(o3);
+      erase(o0);
+      v56 = 4;
+      cycle.time(o4, v56);
+      step.time(o4, v56);
+      draw(o4);
+      set(f122);
+    } else {
+      print("Huh?");
+    }
+  } else {
+    print("You don't have it!");
+  }
+}
+
+if (f122) {
+  reset(f122);
+  end.of.loop(o4, f123);
+}
+
+if (f123) {
+  reset(f123);
+  set.cel(o4, 0);
+  set(f124);
+}
+
+if (f124) {
+  reset(f124);
+  end.of.loop(o4, f125);
+}
+
+if (f125) {
+  reset(f125);
+  print("\"OOOOWWW!\" screams Ed. \"Ok, ok. I took your damn penny!\"");
+  print("\"Give it back!\" John demands.");
+  print("\"I can't.\" Ed replies. \"I gave it to some drunk. I'm sorry. Are we cool, man?\"");
+  print("\"Yeah, I guess so.\" John replies. \"So what's new?\"");
+  print("\"Well, last night Jeff and I came back here to hang out after the drinking game.\" Ed says. \"Everything was going fine until Jeff puked all over my roommate's blanket!\"");
+  print("\"No way!\" John says.");
+  print("\"Yes, way!\" replies Ed. \"So here's my problem... My roommate is coming back tomorrow, and he'll kill me if he finds puke all over his blanket. So I was thinking...\"");
+  print("\"That we should give it to Ziggy to wash?\" John asks. ");
+  print("\"No, but that sounds even better!!\" Ed says.");
+  print("\"Cool.\" John says. \"Are you going to meet with us for dinner and play that new game later?\"");
+  v3 += 2;
+  load.sound(12);
+  sound(12, f153);
+  print("\"Yeah, sounds good.\" Ed says. \"Here, take this puke blanket. Tell Sigurd that he can't play the game with us if he doesn't wash it by dinner time.\"");
+  print("\"Ok, no problem.\" John replies. \"See ya later!\"");
+  print("\"See ya\" Ed says. \"Before you go, give me my room key back, you bastard.\"");
+  print("\"Damn!\" John replies. \"I was hoping you wouldn't remember that. See ya.\"");
+  drop(i16);
+  get(i17);
+  erase(o3);
+  erase(o4);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  reset(f119);
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  reset(f125);
+  new.room(205);
+}
+
+if (!f169) {
+  v52 -= 1;
+}
+
+if ((!f169) && ((v52 == 5))) {
+  load.sound(7);
+  sound(7, f153);
+  print("Your phone is ringing.");
+  v52 = 100;
+}
+
+if (said("answer", "phone") || said("acquire", "phone")) {
+  if (!f169) {
+    if (posn(o0, 128, 132, 139, 135)) {
+      set(f169);
+      print("\"Hello?\" you say.");
+      print("\"Hey Ed. It's me, Jeff.\" says the voice.");
+      print("\"Oh, hi Jeff, what's up?\" you reply.");
+      print("\"Not much. Listen...\" Jeff says. \"Do you feel up to some Star Wars drinking game tonight?\"");
+      print("\"Sure, why the heck not.\" you say. \"What do you need from me?\"");
+      print("\"Well, it would be really cool if you could get some vodka and orange juice. Do you think you can handle that?\" asks Jeff.");
+      print("\"No problem.\" you say. \"It's all good.\"");
+      print("\"Great. I'll leave you a message saying where and when to meet.\" Jeff says. \"And I bet John will let you borrow his car.\"");
+      print("\"Cool.\" you say. \"See ya later!\"");
+      v3 += 1;
+      load.sound(1);
+      sound(1, f153);
+      print("\"See ya.\" replies Jeff as he hangs up.");
+    } else {
+      print("Get closer, you idiot.");
+    }
+  } else {
+    print("It's not ringing!");
+  }
+}
+
+if (said("examine", "eds schedule") || said("read", "eds schedule")) {
+  if (posn(o0, 110, 115, 137, 134)) {
+    print("Today:\n\nGo to Keaney Gym.\n\nParty.");
+  
+    if (!f170) {
+      v3 += 2;
+      load.sound(1);
+      sound(1, f153);
+      set(f170);
+    }
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+Address673:
+
+if (said("examine", "ed", "desk") || said("examine", "b", "desk")) {
+  print("Ed's schedule sits on his desk.");
+}
+
+if (said("acquire", "eds schedule")) {
+  print("Nah. You don't need it.");
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("416N is Ed's dorm room. He lives here with his friend Jeff (No, not me, another Jeff). It's just your average, everyday dorm room. It's got two desks, two beds, a lovely window to look out, and posters.");
+}
+
+if (said("examine", "d")) {
+  print("It's used to enter and exit the room.");
+}
+
+if (said("examine", "floor") || said("examine", "ceiling")) {
+  print("There's nothing special about it.");
+}
+
+if (said("examine", "wall")) {
+  print("There are some posters, but not much else (besides cracks).");
+}
+
+if (said("examine", "crack") || said("examine", "crack", "wall")) {
+  print("There is nothing special about them.");
+}
+
+if (said("examine", "poster")) {
+  print("The usual dorm room fare: naked chicks, beer, etc...");
+}
+
+if (said("examine", "shelf")) {
+  print("The shelves contain some books, some X-wing add-ons, and a single black shoe. (Don't ask)");
+}
+
+if (said("examine", "book") || said("acquire", "book")) {
+  print("The books don't interest you.");
+}
+
+if (said("examine", "addons") || said("acquire", "addons")) {
+  print("It doesn't interest you.");
+}
+
+if (said("examine", "shoe") || said("acquire", "shoe")) {
+  print("Nah.");
+}
+
+if (said("examine", "phone")) {
+  print("It's your average phone.");
+}
+
+if (said("examine", "heater")) {
+  print("It's of no concern.");
+}
+
+if (said("examine", "jeff") || said("examine", "bum") || said("chat", "jeff") || said("chat", "bum")) {
+  if (v50 == 1) {
+    print("Ed's roommate Jeff is completely engrossed in his porn downloading. Leave him alone.");
+  } else {
+    print("He's not here.");
+  }
+}
+
+if (said("examine", "computer")) {
+  print("Jeff's computer is inferior to the other Jeff's computer. But they can both just as easily be used for the only thing they need to be used for: downloading porn from gopher.");
+}
+
+if (said("examine", "window") || said("examine", "tree")) {
+  print("Outside the window, you notice a large tree. Ed and Jeff have taken it upon themselves to throw as much stuff into that tree as possible. Some of it has fallen on the ground underneath their window.");
+}
+
+if (said("turn on", "computer") || said("use", "computer")) {
+  print("You don't have time for that!");
+}
+
+if (said("examine", "naked", "chick") || said("examine", "chick")) {
+  print("Don't you wish you could see a close-up? Forget it.");
+}
+
+if (said("examine", "bed") || said("examine", "desk")) {
+  print("Which one?");
+}
+
+if (said("examine", "jeff", "desk") || said("examine", "t", "desk")) {
+  print("Jeff's computer is inferior to the other Jeff's computer. But they can both just as easily be used for the only thing they need to be used for: downloading porn from gopher.");
+}
+
+if (said("o", "jeff", "desk") || said("o", "t", "desk")) {
+  print("There's nothing you need or want in it.");
+}
+
+if (said("o", "ed", "desk") || said("o", "b", "desk")) {
+  print("There's nothing you need or want in it.");
+}
+
+if (said("examine", "ed", "bed") || said("examine", "b", "bed") || said("examine", "blue", "bed")) {
+  print("Ed's bed is on the bottom. It sees a fair amount of action.");
+}
+
+if (said("examine", "jeff", "bed") || said("examine", "t", "bed") || said("examine", "green", "bed")) {
+  print("Jeff's bed is on the top. Curiously, it doesn't smell so good.");
+}
+
+if (said("smell", "jeff", "bed") || said("smell", "t", "bed") || said("smell", "green", "bed")) {
+  print("YUCK!");
+}
+
+if (said("acquire", "bed") || said("sleep") || said("go", "sleep") || said("go", "bed") || said("sleep", "bed") || said("sleep", "ed", "bed") || said("sleep", "b", "bed") || said("sleep", "jeff", "bed") || said("sleep", "t", "bed")) {
+  print("You don't need to.");
+}
+
+if (f107) {
+  move.obj(o0, 105, 152, 1, f112);
+}
+
+if (f112) {
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o1, f118);
+  reset(f112);
+  reset(f107);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (said("o", "ed", "d") || said("o", "b", "d") || said("o", "d") || said("o", "room", "d")) {
+  if (posn(o0, 100, 152, 115, 158)) {
+    program.control();
+    load.sound(3);
+    sound(3, f153);
+    end.of.loop(o1, f101);
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (f101) {
+  move.obj(o0, 105, 152, 1, f100);
+}
+
+if (f100) {
+  reset(f101);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  move.obj(o0, 105, 159, 1, f111);
+}
+
+if (f3) {
+  erase(o1);
+  erase(o2);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  reset(f119);
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  reset(f125);
+  new.room(205);
+}
+return();
+
+
+// messages
+#message 1 "The next morning..."
+#message 2 "We find Ed in his dorm room. Although the day has only begun, things do not look promising. Ed's wallet is missing. Let's see if we can go out and find it now, shall we?"
+#message 3 "Hmm. Ed's not here right now. Maybe you should go do some more stuff and come back later."
+#message 4 "\"So Ed...\" begins John. \"We finally meet face to face, you scummy piece of shit.\""
+#message 5 "\"You should have known not to fuck with me.\" he continues."
+#message 6 "\"This is a fuckin' joke, man.\" Ed replies."
+#message 7 "\"I should put a bullet in your head and watch the bile leak out of your ass, then bring a fuckin' muskrat to lick it up.\" John continues, ignoring Ed's words."
+#message 8 "\"I should flush your head down the toilet and feed your balls to banthas.\" John says."
+#message 9 "\"You stole my penny, and your face is making me sick.\" John finishes."
+#message 10 "Ed replies \"I'll never admit to anything. You're all talk anyways. I'll give you 10 seconds to do something besides call me names or else you forever hold your peace. Show me what you're made of, pansy boy!\""
+#message 11 "John whips out his tennis racket..."
+#message 12 "Huh?"
+#message 13 "You don't have it!"
+#message 14 "\"OOOOWWW!\" screams Ed. \"Ok, ok. I took your damn penny!\""
+#message 15 "\"Give it back!\" John demands."
+#message 16 "\"I can't.\" Ed replies. \"I gave it to some drunk. I'm sorry. Are we cool, man?\""
+#message 17 "\"Yeah, I guess so.\" John replies. \"So what's new?\""
+#message 18 "\"Well, last night Jeff and I came back here to hang out after the drinking game.\" Ed says. \"Everything was going fine until Jeff puked all over my roommate's blanket!\""
+#message 19 "\"No way!\" John says."
+#message 20 "\"Yes, way!\" replies Ed. \"So here's my problem... My roommate is coming back tomorrow, and he'll kill me if he finds puke all over his blanket. So I was thinking...\""
+#message 21 "\"That we should give it to Ziggy to wash?\" John asks. "
+#message 22 "\"No, but that sounds even better!!\" Ed says."
+#message 23 "\"Cool.\" John says. \"Are you going to meet with us for dinner and play that new game later?\""
+#message 24 "\"Yeah, sounds good.\" Ed says. \"Here, take this puke blanket. Tell Sigurd that he can't play the game with us if he doesn't wash it by dinner time.\""
+#message 25 "\"Ok, no problem.\" John replies. \"See ya later!\""
+#message 26 "\"See ya\" Ed says. \"Before you go, give me my room key back, you bastard.\""
+#message 27 "\"Damn!\" John replies. \"I was hoping you wouldn't remember that. See ya.\""
+#message 28 "Your phone is ringing."
+#message 29 "\"Hello?\" you say."
+#message 30 "\"Hey Ed. It's me, Jeff.\" says the voice."
+#message 31 "\"Oh, hi Jeff, what's up?\" you reply."
+#message 32 "\"Not much. Listen...\" Jeff says. \"Do you feel up to some Star Wars drinking game tonight?\""
+#message 33 "\"Sure, why the heck not.\" you say. \"What do you need from me?\""
+#message 34 "\"Well, it would be really cool if you could get some vodka and orange juice. Do you think you can handle that?\" asks Jeff."
+#message 35 "\"No problem.\" you say. \"It's all good.\""
+#message 36 "\"Great. I'll leave you a message saying where and when to meet.\" Jeff says. \"And I bet John will let you borrow his car.\""
+#message 37 "\"Cool.\" you say. \"See ya later!\""
+#message 38 "\"See ya.\" replies Jeff as he hangs up."
+#message 39 "Get closer, you idiot."
+#message 40 "It's not ringing!"
+#message 41 "Today:\n\nGo to Keaney Gym.\n\nParty."
+#message 42 "Ed's schedule sits on his desk."
+#message 43 "Nah. You don't need it."
+#message 44 "416N is Ed's dorm room. He lives here with his friend Jeff (No, not me, another Jeff). It's just your average, everyday dorm room. It's got two desks, two beds, a lovely window to look out, and posters."
+#message 45 "It's used to enter and exit the room."
+#message 46 "There's nothing special about it."
+#message 47 "There are some posters, but not much else (besides cracks)."
+#message 48 "There is nothing special about them."
+#message 49 "The usual dorm room fare: naked chicks, beer, etc..."
+#message 50 "You're not close enough."
+#message 51 "The shelves contain some books, some X-wing add-ons, and a single black shoe. (Don't ask)"
+#message 52 "The books don't interest you."
+#message 53 "It doesn't interest you."
+#message 54 "Nah."
+#message 55 "It's your average phone."
+#message 56 "It's of no concern."
+#message 57 "Ed's roommate Jeff is completely engrossed in his porn downloading. Leave him alone."
+#message 58 "He's not here."
+#message 59 "Jeff's computer is inferior to the other Jeff's computer. But they can both just as easily be used for the only thing they need to be used for: downloading porn from gopher."
+#message 60 "Outside the window, you notice a large tree. Ed and Jeff have taken it upon themselves to throw as much stuff into that tree as possible. Some of it has fallen on the ground underneath their window."
+#message 61 "You don't have time for that!"
+#message 62 "Don't you wish you could see a close-up? Forget it."
+#message 63 "Which one?"
+#message 64 "There's nothing you need or want in it."
+#message 65 "Ed's bed is on the bottom. It sees a fair amount of action."
+#message 66 "Jeff's bed is on the top. Curiously, it doesn't smell so good."
+#message 67 "YUCK!"
+#message 68 "You don't need to."

@@ -1,0 +1,77 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(65);
+
+  if (v1 == 180) {
+    position(o0, 100, 67);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're near Washburn Hall.");
+}
+
+if (said("examine", "building") || said("examine", "washburn")) {
+  print("It's a big, old stone building.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "window")) {
+  print("There's nothing interesting to see in there.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("They're sidewalks, lonely sidewalks.");
+}
+
+if (said("examine", "tree")) {
+  print("They're just trees, I swear.");
+}
+
+if (said("examine", "bush")) {
+  print("The bushes serve no purpose.");
+}
+
+if (said("examine", "road")) {
+  print("It goes up to the top of campus.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 2) {
+  new.room(169);
+}
+
+if (v2 == 4) {
+  new.room(167);
+}
+
+if (v2 == 3) {
+  new.room(156);
+}
+
+if (v2 == 1) {
+  new.room(180);
+}
+return();
+
+
+// messages
+#message 1 "You're near Washburn Hall."
+#message 2 "It's a big, old stone building."
+#message 3 "You see nothing important."
+#message 4 "There's nothing interesting to see in there."
+#message 5 "They're sidewalks, lonely sidewalks."
+#message 6 "They're just trees, I swear."
+#message 7 "The bushes serve no purpose."
+#message 8 "It goes up to the top of campus."
+#message 9 "You should stop talking to yourself."

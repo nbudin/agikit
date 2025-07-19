@@ -1,0 +1,325 @@
+if (f5) {
+  v0 = 93;
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  v0 = 8;
+  reset(f100);
+  reset(f101);
+  reset(f102);
+  reset(f103);
+  reset(f104);
+  reset(f105);
+  reset(f106);
+  reset(f107);
+  reset(f108);
+  reset(f109);
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+  reset(f117);
+  reset(f118);
+  reset(f119);
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  reset(f125);
+  reset(f126);
+  reset(f127);
+  reset(f128);
+  reset(f129);
+  reset(f130);
+  reset(f131);
+  reset(f132);
+  reset(f133);
+  reset(f134);
+  reset(f135);
+  reset(f136);
+  reset(f137);
+  reset(f138);
+  reset(f139);
+  reset(f140);
+  reset(f141);
+  reset(f142);
+  reset(f143);
+  reset(f144);
+  reset(f145);
+  reset(f146);
+  reset(f147);
+  reset(f148);
+  reset(f149);
+  reset(f150);
+  reset(f151);
+  reset(f152);
+  reset(f153);
+  animate.obj(o0);
+  load.view(0);
+  set.view(o0, 0);
+  position(o0, 95, 140);
+  set.loop(o0, 2);
+  v6 = 0;
+  start.cycling(o0);
+  draw(o0);
+  v55 = 8;
+  animate.obj(o1);
+  load.view(93);
+  set.view(o1, 93);
+  position(o1, 4, 35);
+  fix.loop(o1);
+  set.loop(o1, 0);
+  set.cel(o1, 0);
+  cycle.time(o1, v55);
+  step.time(o1, v55);
+  stop.cycling(o1);
+  draw(o1);
+  load.sound(25);
+  sound(25, f100);
+  program.control();
+  prevent.input();
+  set(f101);
+  set.text.attribute(13, 0);
+  show.pic();
+}
+
+if (f101) {
+  reset(f101);
+  end.of.loop(o1, f102);
+}
+
+if (f102) {
+  reset(f102);
+  display(20, 18, "Jeff");
+  set(f103);
+}
+
+if (f103) {
+  move.obj(o0, 55, 140, 1, f104);
+}
+
+if (f104) {
+  reset(f103);
+  move.obj(o0, 55, 133, 1, f105);
+}
+
+if (f105) {
+  reset(f104);
+  move.obj(o0, 95, 133, 1, f106);
+}
+
+if (f106) {
+  reset(f105);
+  move.obj(o0, 95, 140, 1, f107);
+}
+
+if (f107) {
+  reset(f106);
+  reset(f107);
+  erase(o0);
+  load.view(1);
+  set.view(o0, 1);
+  draw(o0);
+  clear.lines(20, 21, 0);
+  display(20, 18, "Ed");
+  set(f108);
+}
+
+if (f108) {
+  move.obj(o0, 55, 140, 1, f109);
+}
+
+if (f109) {
+  reset(f108);
+  move.obj(o0, 55, 133, 1, f110);
+}
+
+if (f110) {
+  reset(f109);
+  move.obj(o0, 95, 133, 1, f111);
+}
+
+if (f111) {
+  reset(f110);
+  move.obj(o0, 95, 140, 1, f112);
+}
+
+if (f112) {
+  reset(f111);
+  reset(f112);
+  erase(o0);
+  load.view(2);
+  set.view(o0, 2);
+  draw(o0);
+  clear.lines(20, 21, 0);
+  display(20, 18, "John");
+  set(f113);
+}
+
+if (f113) {
+  move.obj(o0, 55, 140, 1, f114);
+}
+
+if (f114) {
+  reset(f113);
+  move.obj(o0, 55, 133, 1, f115);
+}
+
+if (f115) {
+  reset(f114);
+  move.obj(o0, 95, 133, 1, f116);
+}
+
+if (f116) {
+  reset(f115);
+  move.obj(o0, 95, 140, 1, f117);
+}
+
+if (f117) {
+  reset(f116);
+  reset(f117);
+  erase(o0);
+  load.view(3);
+  set.view(o0, 3);
+  draw(o0);
+  clear.lines(20, 21, 0);
+  display(20, 18, "Ziggy");
+  set(f118);
+}
+
+if (f118) {
+  move.obj(o0, 55, 140, 1, f119);
+}
+
+if (f119) {
+  reset(f118);
+  move.obj(o0, 55, 133, 1, f120);
+}
+
+if (f120) {
+  reset(f119);
+  move.obj(o0, 95, 133, 1, f121);
+}
+
+if (f121) {
+  reset(f120);
+  move.obj(o0, 95, 140, 1, f122);
+}
+
+if (f122) {
+  reset(f121);
+  reset(f122);
+  erase(o0);
+  load.view(14);
+  set.view(o0, 14);
+  draw(o0);
+  clear.lines(20, 21, 0);
+  display(20, 18, "Neal");
+  set(f123);
+}
+
+if (f123) {
+  move.obj(o0, 55, 140, 1, f124);
+}
+
+if (f124) {
+  reset(f123);
+  move.obj(o0, 55, 133, 1, f125);
+}
+
+if (f125) {
+  reset(f124);
+  move.obj(o0, 95, 133, 1, f126);
+}
+
+if (f126) {
+  reset(f125);
+  move.obj(o0, 95, 140, 1, f127);
+}
+
+if (f127) {
+  reset(f126);
+  reset(f127);
+  erase(o0);
+  load.view(26);
+  set.view(o0, 26);
+  draw(o0);
+  clear.lines(20, 21, 0);
+  display(20, 18, "Liz");
+  set(f128);
+}
+
+if (f128) {
+  move.obj(o0, 55, 140, 1, f129);
+}
+
+if (f129) {
+  reset(f128);
+  move.obj(o0, 55, 133, 1, f130);
+}
+
+if (f130) {
+  reset(f129);
+  move.obj(o0, 95, 133, 1, f131);
+}
+
+if (f131) {
+  reset(f130);
+  move.obj(o0, 95, 140, 1, f132);
+}
+
+if (f132) {
+  reset(f131);
+  reset(f132);
+  erase(o0);
+  load.view(28);
+  set.view(o0, 28);
+  draw(o0);
+  clear.lines(20, 21, 0);
+  display(20, 18, "Cindy");
+  set(f133);
+}
+
+if (f133) {
+  move.obj(o0, 55, 140, 1, f134);
+}
+
+if (f134) {
+  reset(f133);
+  move.obj(o0, 55, 133, 1, f135);
+}
+
+if (f135) {
+  reset(f134);
+  move.obj(o0, 95, 133, 1, f136);
+}
+
+if (f136) {
+  reset(f135);
+  move.obj(o0, 95, 140, 1, f152);
+}
+
+if ((f152) && (f100)) {
+  reset(f100);
+  reset(f151);
+  set(f152);
+  erase(o0);
+  erase(o1);
+  new.room(199);
+}
+return();
+
+
+// messages
+#message 1 "Jeff"
+#message 2 "Ed"
+#message 3 "John"
+#message 4 "Ziggy"
+#message 5 "Neal"
+#message 6 "Liz"
+#message 7 "Cindy"

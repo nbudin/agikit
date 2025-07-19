@@ -1,0 +1,71 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+
+  if (v1 == 119) {
+    position(o0, 70, 165);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're on a path behind Quinn Hall.");
+}
+
+if (said("examine", "quinn") || said("examine", "building")) {
+  print("It's a big stone building, just like most of the others on campus.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "tree")) {
+  print("Yes, there is a tree here.");
+}
+
+if (said("examine", "road")) {
+  print("It's a street like any other.");
+}
+
+if (said("examine", "path")) {
+  print("It leads across campus.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It leads across campus.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  new.room(143);
+}
+
+if (v2 == 4) {
+  new.room(130);
+}
+
+if (v2 == 2) {
+  new.room(132);
+}
+
+if (v2 == 3) {
+  new.room(119);
+}
+return();
+
+
+// messages
+#message 1 "You're on a path behind Quinn Hall."
+#message 2 "It's a big stone building, just like most of the others on campus."
+#message 3 "You see nothing important."
+#message 4 "Yes, there is a tree here."
+#message 5 "It's a street like any other."
+#message 6 "It leads across campus."
+#message 7 "You should stop talking to yourself."

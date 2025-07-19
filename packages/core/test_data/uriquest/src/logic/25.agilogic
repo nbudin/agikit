@@ -1,0 +1,102 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+
+  if (v1 == 36) {
+    position(o0, 90, 85);
+    v6 = 6;
+  }
+  reset(f100);
+  draw(o0);
+  show.pic();
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("Right near Aldrich Hall, you spy the student parking lot. There is also some weird stone thing here.");
+}
+
+if (said("examine", "lot") || said("examine", "student", "lot")) {
+  print("It's where students park their cars.");
+}
+
+if (said("examine", "stone thing") || said("examine", "weird", "stone thing")) {
+  print("Nobody seems to know what it is, and nobody really cares. It's not important.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "road")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("There's nothing important about it.");
+}
+
+if (f3) {
+  reset(f100);
+  new.room(36);
+}
+
+if (v2 == 2) {
+  if (!f100) {
+    print("You don't need to go that way.  This game is big enough as it is.");
+    set(f100);
+  }
+}
+
+Address175:
+
+if (v2 == 3) {
+  reset(f100);
+  v2 = 1;
+  get.posn(o0, v52, v53);
+  erase(o0);
+  v54 = 167;
+  v53 = 159;
+  v53 -= v52;
+
+  if (v53 != 6) {
+    v53 -= 7;
+  } else {
+    v53 = 0;
+  }
+  position.v(o0, v53, v54);
+
+  if (v6 == 5) {
+    v6 = 1;
+  }
+
+  if (v6 == 6) {
+    v6 = 2;
+  }
+
+  if (v6 == 4) {
+    v6 = 8;
+  }
+  new.room(37);
+}
+
+if (v2 == 4) {
+  reset(f100);
+  new.room(24);
+}
+return();
+
+
+// messages
+#message 1 "You should stop talking to yourself."
+#message 2 "Right near Aldrich Hall, you spy the student parking lot. There is also some weird stone thing here."
+#message 3 "It's where students park their cars."
+#message 4 "Nobody seems to know what it is, and nobody really cares. It's not important."
+#message 5 "You see nothing important."
+#message 6 "There's nothing important about it."
+#message 7 "You don't need to go that way.  This game is big enough as it is."

@@ -664,6 +664,7 @@ mod tests {
         project::Project,
         resources::ResourceType,
         test_data::uriquest,
+        test_utils::write_and_edit,
     };
 
     use petgraph::{Direction, prelude::StableDiGraph};
@@ -684,6 +685,9 @@ mod tests {
         let statements = generator.generate_statements()?;
         let statement_graph =
             LogicScriptStatementGraph::try_from_statements(&statements, IdentifierMap::builtins())?;
+
+        write_and_edit(".dot", &statement_graph.to_dot(&context));
+
         let generated_statements = statement_graph.to_statements()?;
 
         Ok((statements, generated_statements))
@@ -705,6 +709,7 @@ mod tests {
     logic_smoke_test!(logic_0_test, 0);
     logic_smoke_test!(logic_13_test, 13);
     logic_smoke_test!(logic_93_test, 93);
+    logic_smoke_test!(logic_99_test, 99);
     logic_smoke_test!(logic_100_test, 100);
 
     #[test]

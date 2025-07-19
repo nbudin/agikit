@@ -1,0 +1,101 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(43);
+  animate.obj(o1);
+  load.view(43);
+  set.view(o1, 43);
+  start.cycling(o1);
+  set.priority(o1, 4);
+  position(o1, 74, 90);
+  draw(o1);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're at the very bottom of campus. It's all uphill from here.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "road")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("There's nothing important about it.");
+}
+
+if (said("examine", "path")) {
+  print("There's nothing important about it.");
+}
+
+if (said("examine", "tree")) {
+  print("There's nothing important about these trees.");
+}
+
+if (said("examine", "brook")) {
+  print("There's nothing important about it.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  erase(o1);
+  new.room(55);
+}
+
+if (v2 == 4) {
+  erase(o1);
+  new.room(39);
+}
+
+if (v2 == 3) {
+  v2 = 1;
+  get.posn(o0, v52, v53);
+  erase(o0);
+  v54 = 167;
+  v53 = 159;
+  v53 -= v52;
+
+  if (v53 != 6) {
+    v53 -= 7;
+  } else {
+    v53 = 0;
+  }
+  position.v(o0, v53, v54);
+
+  if (v6 == 5) {
+    v6 = 1;
+  }
+
+  if (v6 == 6) {
+    v6 = 2;
+  }
+
+  if (v6 == 4) {
+    v6 = 8;
+  }
+  erase(o1);
+  new.room(27);
+}
+
+if (v2 == 2) {
+  erase(o1);
+  new.room(41);
+}
+return();
+
+
+// messages
+#message 1 "You're at the very bottom of campus. It's all uphill from here."
+#message 2 "You see nothing important."
+#message 3 "There's nothing important about it."
+#message 4 "There's nothing important about these trees."
+#message 5 "You should stop talking to yourself."

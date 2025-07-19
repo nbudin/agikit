@@ -1,0 +1,100 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+
+  if ((f189) && (f188) && (f158)) {
+    ignore.blocks(o0);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You are outside Roger Williams Dining Hall (Rojo's for short).");
+}
+
+if (said("examine", "dining hall")) {
+  print("It's a dining hall.");
+}
+
+if (said("examine", "d") || said("examine", "ramp")) {
+  print("You can't go in that way, it's for staff only. So don't worry about it.");
+}
+
+if (said("examine", "floor")) {
+  print("There's nothing important.");
+}
+
+if (said("o", "d")) {
+  print("You can't. It's for staff only.");
+}
+
+if (said("examine", "road")) {
+  print("There's nothing important.");
+}
+
+if (said("examine", "wall")) {
+  print("There's nothing important about it.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("There's nothing important about it.");
+}
+
+if (f3) {
+  new.room(207);
+}
+
+if (v2 == 2) {
+  new.room(26);
+}
+
+if (v2 == 3) {
+  v2 = 1;
+  get.posn(o0, v52, v53);
+  erase(o0);
+  v54 = 167;
+  v53 = 159;
+  v53 -= v52;
+
+  if (v53 != 6) {
+    v53 -= 7;
+  } else {
+    v53 = 0;
+  }
+  position.v(o0, v53, v54);
+
+  if (v6 == 5) {
+    v6 = 1;
+  }
+
+  if (v6 == 6) {
+    v6 = 2;
+  }
+
+  if (v6 == 4) {
+    v6 = 8;
+  }
+  new.room(40);
+}
+
+if (v2 == 4) {
+  new.room(28);
+}
+return();
+
+
+// messages
+#message 1 "You should stop talking to yourself."
+#message 2 "You are outside Roger Williams Dining Hall (Rojo's for short)."
+#message 3 "It's a dining hall."
+#message 4 "You can't go in that way, it's for staff only. So don't worry about it."
+#message 5 "There's nothing important."
+#message 6 "You can't. It's for staff only."
+#message 7 "There's nothing important about it."

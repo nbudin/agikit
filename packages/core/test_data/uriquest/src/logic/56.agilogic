@@ -1,0 +1,62 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+
+  if (v1 == 68) {
+    position(o0, 130, 55);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in an area near Hope Dining Hall.");
+}
+
+if (said("examine", "hope") || said("examine", "building")) {
+  print("They serve the most disgusting greasy food on campus. John is a regular there.");
+}
+
+if (said("examine", "road")) {
+  print("It leads further up campus.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "tree")) {
+  print("There's nothing important about the trees.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  new.room(68);
+}
+
+if (v2 == 4) {
+  new.room(55);
+}
+
+if (v2 == 3) {
+  new.room(41);
+}
+
+if (v2 == 2) {
+  new.room(57);
+}
+return();
+
+
+// messages
+#message 1 "You're in an area near Hope Dining Hall."
+#message 2 "They serve the most disgusting greasy food on campus. John is a regular there."
+#message 3 "It leads further up campus."
+#message 4 "You see nothing important."
+#message 5 "There's nothing important about the trees."
+#message 6 "You should stop talking to yourself."

@@ -1,0 +1,169 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f105);
+  reset(f100);
+  reset(f102);
+  reset(f103);
+  reset(f101);
+  reset(f118);
+  v51 = 23;
+  animate.obj(o1);
+  load.view(41);
+  set.view(o1, 41);
+  set.loop(o1, 0);
+
+  if (v1 == 22) {
+    set.cel(o1, 0);
+  } else {
+    set.cel(o1, 3);
+  }
+  ignore.blocks(o1);
+  ignore.objs(o1);
+  position(o1, 68, 167);
+  set.priority(o1, 15);
+  stop.cycling(o1);
+  draw(o1);
+
+  if (v1 == 22) {
+    ignore.blocks(o0);
+    ignore.objs(o0);
+    position(o0, 61, 72);
+    set.loop(o0, 2);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f100);
+    program.control();
+  }
+
+  if (v1 == 24) {
+    ignore.blocks(o0);
+    ignore.objs(o0);
+    position(o0, 70, 165);
+    set.loop(o0, 3);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f105);
+    program.control();
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (f100) {
+  move.obj(o0, 61, 85, 1, f104);
+}
+
+if (f104) {
+  reset(f100);
+  reset(f104);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (f105) {
+  move.obj(o0, 70, 155, 1, f101);
+}
+
+if (f101) {
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o1, f118);
+  reset(f101);
+  reset(f105);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (said("o", "d")) {
+  if (posn(o0, 60, 157, 90, 167)) {
+    program.control();
+    load.sound(3);
+    sound(3, f153);
+    end.of.loop(o1, f103);
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (f103) {
+  move.obj(o0, 70, 160, 1, f102);
+}
+
+if (f102) {
+  reset(f103);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  move.obj(o0, 70, 168, 1, f104);
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("This is the foyer just inside the main entrance to Aldrich Hall.");
+}
+
+if (said("examine", "d")) {
+  print("It's used to enter and exit the building.");
+}
+
+if (said("examine", "wall")) {
+  print("Not much to see. There's a message board on the right wall.");
+}
+
+if (said("examine", "desk")) {
+  print("It's empty.");
+}
+
+if (said("examine", "board") || said("examine", "message", "board") || said("read", "board") || said("read", "message", "board")) {
+  print("There's nothing good to read.");
+}
+
+if (said("examine", "ceiling") || said("examine", "floor")) {
+  print("There's nothing to see.");
+}
+
+if ((f3) && (posn(o0, 67, 163, 83, 167))) {
+  reset(f105);
+  reset(f100);
+  reset(f102);
+  reset(f103);
+  reset(f101);
+  reset(f118);
+  erase(o1);
+  new.room(24);
+}
+
+if ((f3) && (posn(o0, 55, 64, 99, 86))) {
+  reset(f105);
+  reset(f100);
+  reset(f102);
+  reset(f103);
+  reset(f101);
+  reset(f118);
+  erase(o1);
+
+  if (((v50 == 1)) && (f174) && (f175)) {
+    new.room(218);
+  } else {
+    new.room(22);
+  }
+}
+return();
+
+
+// messages
+#message 1 "You should stop talking to yourself."
+#message 2 "This is the foyer just inside the main entrance to Aldrich Hall."
+#message 3 "It's used to enter and exit the building."
+#message 4 "Not much to see. There's a message board on the right wall."
+#message 5 "It's empty."
+#message 6 "There's nothing good to read."
+#message 7 "There's nothing to see."
+#message 50 "You're not close enough."

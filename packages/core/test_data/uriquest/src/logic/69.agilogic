@@ -1,0 +1,97 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(40);
+  reset(f110);
+
+  if (v1 == 81) {
+    position(o0, 100, 45);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in back of Hutchinson Hall.");
+}
+
+if (said("examine", "hutchinson") || said("examine", "building")) {
+  print("It's a dorm like any other.");
+}
+
+if (said("examine", "road")) {
+  print("There's nothing important about it.");
+}
+
+if (said("examine", "tree")) {
+  print("There's nothing interesting about them.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (said("examine", "floor")) {
+  if (posn(o0, 52, 80, 159, 100)) {
+    if (has(i21)) {
+      print("There's nothing there.");
+    } else {
+      set(f110);
+      print("Well, well, well. In the shade of the dorm, you spy a nice shiny quarter!");
+    }
+  } else {
+    print("Hmm... You don't see anything in this particular spot...");
+  }
+}
+
+if (said("acquire", "coin")) {
+  if (f110) {
+    if (v50 == 3) {
+      if (has(i21)) {
+        print("You already found it.");
+      } else {
+        if (posn(o0, 52, 80, 159, 100)) {
+          get(i21);
+          v3 += 1;
+          load.sound(12);
+          sound(12, f153);
+          print("You take the quarter.");
+        } else {
+          print("Get closer.");
+        }
+      }
+    } else {
+      print("Nah. You don't need it for anything.");
+    }
+  } else {
+    print("Huh?");
+  }
+}
+
+if (v2 == 1) {
+  reset(f110);
+  new.room(81);
+}
+
+if (v2 == 2) {
+  reset(f110);
+  new.room(70);
+}
+return();
+
+
+// messages
+#message 1 "You're in back of Hutchinson Hall."
+#message 2 "It's a dorm like any other."
+#message 3 "There's nothing important about it."
+#message 4 "There's nothing interesting about them."
+#message 5 "You should stop talking to yourself."
+#message 6 "There's nothing there."
+#message 7 "Well, well, well. In the shade of the dorm, you spy a nice shiny quarter!"
+#message 8 "Hmm... You don't see anything in this particular spot..."
+#message 9 "You already found it."
+#message 10 "You take the quarter."
+#message 11 "Get closer."
+#message 12 "Nah. You don't need it for anything."
+#message 13 "Huh?"

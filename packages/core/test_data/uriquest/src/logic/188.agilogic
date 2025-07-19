@@ -1,0 +1,400 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f110);
+  reset(f113);
+  reset(f112);
+  reset(f111);
+  reset(f126);
+  reset(f127);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+  reset(f117);
+  reset(f118);
+  reset(f119);
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  reset(f125);
+  reset(f128);
+  reset(f129);
+  reset(f130);
+
+  if (v1 == 51) {
+    position(o0, 70, 165);
+    v6 = 1;
+  }
+  v55 = 3;
+  v56 = 2;
+  animate.obj(o1);
+  load.view(55);
+  set.view(o1, 55);
+  set.loop(o1, 0);
+  set.cel(o1, 0);
+  ignore.blocks(o1);
+  ignore.objs(o1);
+  position(o1, 36, 58);
+  set.priority(o1, 5);
+  cycle.time(o1, v55);
+  start.cycling(o1);
+  draw(o1);
+  animate.obj(o2);
+  load.view(56);
+  set.view(o2, 56);
+  set.loop(o2, 0);
+  set.cel(o2, 0);
+  ignore.blocks(o2);
+  ignore.objs(o2);
+  position(o2, 83, 55);
+  set.priority(o2, 5);
+  cycle.time(o2, v56);
+  start.cycling(o2);
+  draw(o2);
+  animate.obj(o3);
+  load.view(65);
+  set.view(o3, 65);
+  set.loop(o3, 2);
+  set.cel(o3, 0);
+  position(o3, 51, 105);
+  stop.cycling(o3);
+  draw(o3);
+  show.pic();
+  draw(o0);
+}
+
+if (f3) {
+  if (!f110) {
+    if (!f111) {
+      print("\"Hey you!\" says the gruff-lookin' dude. \"Unless you give me some ID, you can't come in here!\"");
+      set(f111);
+    }
+  } else {
+    if (!f112) {
+      print("\"Hey you!\" says the gruff-lookin' dude. \"You can't leave without your ID. What was your name again?\"");
+      set(f112);
+    }
+  }
+}
+
+Address200:
+
+if (said("chat", "bum")) {
+  if (!f110) {
+    if (f111) {
+      print("\"Give me your student ID card if you want to get in.\" says the man.");
+    } else {
+      print("He seems to be ignoring you.");
+    }
+  } else {
+    if (f112) {
+      print("\"What was your name again?\" ask the dude.");
+    } else {
+      print("He seems to be ignoring you.");
+    }
+  }
+}
+
+if (said("give", "id", "bum") || said("give", "id")) {
+  if (f110) {
+    print("You don't have one!!!");
+  } else {
+    if (posn(o0, 49, 114, 59, 118)) {
+      if (has(i10)) {
+        set(f113);
+      } else {
+        if (has(i11)) {
+          print("Are you kidding? You've got a fake ID now! You wanna KEEP it!");
+        } else {
+          print("You can't fool this computer! You don't have an ID card!");
+        }
+      }
+    } else {
+      print("Try getting closer first.");
+    }
+  }
+}
+
+if (f113) {
+  program.control();
+  print("\"Ok. Hold on a sec. Let me take that ID card.\" the guy says.");
+  reset(f113);
+  ignore.blocks(o3);
+  ignore.objs(o3);
+  start.cycling(o3);
+  set(f114);
+}
+
+if (f114) {
+  move.obj(o3, 114, 93, 1, f115);
+}
+
+if (f115) {
+  reset(f114);
+  move.obj(o3, 70, 105, 1, f116);
+}
+
+if (f116) {
+  reset(f115);
+  reset(f116);
+  observe.blocks(o3);
+  observe.objs(o3);
+  stop.cycling(o3);
+  set.loop(o3, 3);
+  draw(o3);
+  ignore.blocks(o0);
+  set(f112);
+  set(f111);
+  set(f117);
+}
+
+if (f117) {
+  move.obj(o0, 51, 116, 1, f118);
+}
+
+if (f118) {
+  reset(f117);
+  move.obj(o0, 51, 104, 1, f119);
+}
+
+if (f119) {
+  reset(f118);
+  reset(f119);
+  reset(f112);
+  reset(f111);
+  observe.blocks(o0);
+  set(f110);
+  drop(i10);
+  player.control();
+}
+
+if (f110) {
+  if (said("brickman")) {
+    if (posn(o0, 68, 103, 80, 107)) {
+      set(f126);
+      set(f127);
+    } else {
+      print("Get closer and tell him.");
+    }
+  }
+}
+
+Address470:
+
+if (f110) {
+  if (said("ed")) {
+    if (posn(o0, 68, 103, 80, 107)) {
+      set(f126);
+    } else {
+      print("Get closer and tell him.");
+    }
+  }
+}
+
+Address501:
+
+if (f126) {
+  program.control();
+  print("\"Ok. Hold on a sec. Let me get your ID card.\" the guy says.");
+  reset(f126);
+  ignore.blocks(o3);
+  ignore.objs(o3);
+  start.cycling(o3);
+  set(f120);
+}
+
+if (f120) {
+  move.obj(o3, 114, 93, 1, f121);
+}
+
+if (f121) {
+  reset(f120);
+  move.obj(o3, 70, 105, 1, f122);
+}
+
+if (f122) {
+  reset(f121);
+  reset(f122);
+  stop.cycling(o3);
+  set.loop(o3, 3);
+  draw(o3);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  set(f112);
+  set(f111);
+  set(f123);
+}
+
+if (f123) {
+  move.obj(o0, 51, 105, 1, f124);
+}
+
+if (f124) {
+  reset(f123);
+  move.obj(o0, 51, 118, 1, f125);
+}
+
+if (f125) {
+  reset(f124);
+  reset(f125);
+  reset(f112);
+  reset(f111);
+  observe.blocks(o0);
+  observe.objs(o0);
+  reset(f110);
+  start.cycling(o3);
+  set(f128);
+}
+
+if (f128) {
+  move.obj(o3, 51, 105, 1, f129);
+}
+
+if (f129) {
+  reset(f128);
+  reset(f129);
+  observe.blocks(o3);
+  observe.objs(o3);
+  stop.cycling(o3);
+  set.loop(o3, 2);
+  draw(o3);
+  set(f130);
+}
+
+if (f130) {
+  player.control();
+  reset(f130);
+
+  if (f127) {
+    reset(f127);
+    get(i11);
+    v3 += 5;
+    load.sound(12);
+    sound(12, f153);
+    print("Nice job!! Now you've got a fake ID to buy some alcohol.");
+  } else {
+    get(i10);
+  }
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're inside Keaney Gym.");
+}
+
+if (said("examine", "gym") || said("examine", "building")) {
+  print("There's lots of great things you can do in the gym. Unfortunately, you can't do any of them in this game. Sorry.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing special.");
+}
+
+if (said("examine", "bum")) {
+  print("His job is to stand there and take ID cards all day. Wow.");
+}
+
+if (said("examine", "folks")) {
+  print("They are exercising.");
+}
+
+if (said("examine", "window")) {
+  print("You see people exercising and having fun.");
+}
+
+if (said("exercise") || said("use", "machine") || said("use", "exercise", "machine")) {
+  print("You're a bit pooped after walking all the way over here. You don't feel like it anymore.");
+}
+
+if (said("examine", "pocket")) {
+  if (f110) {
+    print("You see yours and a bunch of other ID's.");
+  } else {
+    print("Huh?");
+  }
+}
+
+if (said("examine", "other id")) {
+  if (f110) {
+    print("You look over all the ID's. Nothing too interesting... wait! Here's something... Mark Brickman, age 22. He's the spitting image of you!");
+  } else {
+    print("Huh?");
+  }
+}
+
+if (said("acquire", "other id")) {
+  if (f110) {
+    print("You can't. That weird dude is watching you.");
+  } else {
+    print("Huh?");
+  }
+}
+
+if (said("examine", "wall")) {
+  if (f110) {
+    print("On the wall in here, you see a bunch of pockets.");
+  } else {
+    print("You see nothing on the walls outside of the gym.");
+  }
+}
+
+if (v2 == 3) {
+  reset(f110);
+  reset(f113);
+  reset(f112);
+  reset(f111);
+  reset(f126);
+  reset(f127);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+  reset(f117);
+  reset(f118);
+  reset(f119);
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  reset(f125);
+  reset(f128);
+  reset(f129);
+  reset(f130);
+  erase(o1);
+  erase(o2);
+  erase(o3);
+  new.room(51);
+}
+return();
+
+
+// messages
+#message 1 "\"Hey you!\" says the gruff-lookin' dude. \"Unless you give me some ID, you can't come in here!\""
+#message 2 "\"Hey you!\" says the gruff-lookin' dude. \"You can't leave without your ID. What was your name again?\""
+#message 3 "\"Give me your student ID card if you want to get in.\" says the man."
+#message 4 "He seems to be ignoring you."
+#message 5 "\"What was your name again?\" ask the dude."
+#message 6 "You don't have one!!!"
+#message 7 "Are you kidding? You've got a fake ID now! You wanna KEEP it!"
+#message 8 "You can't fool this computer! You don't have an ID card!"
+#message 9 "Try getting closer first."
+#message 10 "\"Ok. Hold on a sec. Let me take that ID card.\" the guy says."
+#message 11 "Get closer and tell him."
+#message 12 "\"Ok. Hold on a sec. Let me get your ID card.\" the guy says."
+#message 13 "Nice job!! Now you've got a fake ID to buy some alcohol."
+#message 14 "You're inside Keaney Gym."
+#message 15 "There's lots of great things you can do in the gym. Unfortunately, you can't do any of them in this game. Sorry."
+#message 16 "You see nothing special."
+#message 17 "His job is to stand there and take ID cards all day. Wow."
+#message 18 "They are exercising."
+#message 19 "You see people exercising and having fun."
+#message 20 "You're a bit pooped after walking all the way over here. You don't feel like it anymore."
+#message 21 "You see yours and a bunch of other ID's."
+#message 22 "Huh?"
+#message 23 "You look over all the ID's. Nothing too interesting... wait! Here's something... Mark Brickman, age 22. He's the spitting image of you!"
+#message 24 "You can't. That weird dude is watching you."
+#message 25 "On the wall in here, you see a bunch of pockets."
+#message 26 "You see nothing on the walls outside of the gym."

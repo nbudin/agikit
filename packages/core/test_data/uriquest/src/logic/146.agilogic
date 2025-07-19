@@ -1,0 +1,117 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+  reset(f101);
+  reset(f100);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine", "floor")) {
+  if (posn(o0, 108, 92, 125, 94)) {
+    if (has(i24)) {
+      print("You don't see anything in this particular spot.");
+    } else {
+      set(f101);
+      print("Well, well, well. Between the two bushes, you spy a golden bridle! Wait, sorry, I mean, a nice shiny quarter!");
+    }
+  } else {
+    print("Hmm... You don't see anything in this particular spot.");
+  }
+}
+
+if (said("acquire", "coin")) {
+  if (f101) {
+    if (v50 == 3) {
+      if (has(i24)) {
+        print("You already found it.");
+      } else {
+        if (posn(o0, 108, 92, 125, 94)) {
+          get(i24);
+          v3 += 1;
+          load.sound(12);
+          sound(12, f153);
+          print("You take the quarter.");
+        } else {
+          print("Get closer.");
+        }
+      }
+    } else {
+      print("Nah. You don't need it for anything.");
+    }
+  } else {
+    print("Huh?");
+  }
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in a quaint area near Green Hall.");
+}
+
+if (said("examine", "green") || said("examine", "building")) {
+  print("It's the building in the distance.");
+}
+
+if (said("examine", "lot")) {
+  print("There's a staff parking lot here.");
+}
+
+if (said("examine", "bush")) {
+  print("There's nothing hidden in the bushes that you can see.");
+}
+
+if (said("examine", "tree")) {
+  print("There are trees around.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 4) {
+  reset(f101);
+  reset(f100);
+  new.room(145);
+}
+
+if (v2 == 2) {
+  if (!f100) {
+    print("You don't need to go that way.  This game is big enough as it is.");
+    set(f100);
+  }
+}
+
+Address253:
+
+if (v2 == 3) {
+  reset(f101);
+  reset(f100);
+  new.room(134);
+}
+
+if (v2 == 1) {
+  reset(f101);
+  reset(f100);
+  new.room(160);
+}
+return();
+
+
+// messages
+#message 1 "You don't see anything in this particular spot."
+#message 2 "Well, well, well. Between the two bushes, you spy a golden bridle! Wait, sorry, I mean, a nice shiny quarter!"
+#message 3 "Hmm... You don't see anything in this particular spot."
+#message 4 "You already found it."
+#message 5 "You take the quarter."
+#message 6 "Get closer."
+#message 7 "Nah. You don't need it for anything."
+#message 8 "Huh?"
+#message 9 "You're in a quaint area near Green Hall."
+#message 10 "It's the building in the distance."
+#message 11 "There's a staff parking lot here."
+#message 12 "There's nothing hidden in the bushes that you can see."
+#message 13 "There are trees around."
+#message 14 "You should stop talking to yourself."
+#message 15 "You don't need to go that way.  This game is big enough as it is."

@@ -1,0 +1,55 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're on a street near Roosevelt Hall.");
+}
+
+if (said("examine", "roosevelt") || said("examine", "building")) {
+  print("It's a building like any other.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "road")) {
+  print("Nothing too interesting about it.");
+}
+
+if (said("examine", "bush")) {
+  print("Just a bush, nothing more.");
+}
+
+if (said("examine", "window")) {
+  print("You can't see anything in there.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 2) {
+  new.room(81);
+}
+
+if (v2 == 4) {
+  new.room(79);
+}
+return();
+
+
+// messages
+#message 1 "You're on a street near Roosevelt Hall."
+#message 2 "It's a building like any other."
+#message 3 "You see nothing important."
+#message 4 "Nothing too interesting about it."
+#message 5 "Just a bush, nothing more."
+#message 6 "You can't see anything in there."
+#message 7 "You should stop talking to yourself."

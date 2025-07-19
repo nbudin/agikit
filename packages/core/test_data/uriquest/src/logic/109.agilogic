@@ -1,0 +1,86 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(60);
+
+  if (v1 == 108) {
+    position(o0, 75, 65);
+  }
+
+  if (v1 == 121) {
+    position(o0, 150, 145);
+    v6 = 7;
+  }
+
+  if (v1 == 86) {
+    position(o0, 30, 110);
+    v6 = 3;
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You are on a street near the Memorial Union.");
+}
+
+if (said("examine", "memorial union") || said("examine", "building")) {
+  print("Basically, the student Union is the center of all activity on campus.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "bush")) {
+  print("Heh heh... you said \"bush\".");
+}
+
+if (said("examine", "tree")) {
+  print("Yes, there is a tree here.");
+}
+
+if (said("examine", "road")) {
+  print("This is a closed off street, so you don't have to worry about drunk frat boys running you over.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("Unlike transformers, there's nothing more to it than meets the eye.");
+}
+
+if (said("examine", "wall")) {
+  print("Unlike transformers, there's nothing more to it than meets the eye.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 3) {
+  new.room(110);
+}
+
+if (v2 == 1) {
+  new.room(108);
+}
+
+if (f3) {
+  new.room(86);
+}
+
+if (v2 == 2) {
+  new.room(121);
+}
+return();
+
+
+// messages
+#message 1 "You are on a street near the Memorial Union."
+#message 2 "Basically, the student Union is the center of all activity on campus."
+#message 3 "You see nothing important."
+#message 4 "Heh heh... you said \"bush\"."
+#message 5 "Yes, there is a tree here."
+#message 6 "This is a closed off street, so you don't have to worry about drunk frat boys running you over."
+#message 7 "Unlike transformers, there's nothing more to it than meets the eye."
+#message 8 "You should stop talking to yourself."

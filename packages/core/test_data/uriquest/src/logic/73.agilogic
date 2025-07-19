@@ -1,0 +1,54 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(40);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're near the Union.");
+}
+
+if (said("examine", "memorial union") || said("examine", "building")) {
+  print("It's right there at the top of your screen.");
+}
+
+if (said("examine", "floor")) {
+  print("It's your typical uninteresting ground.");
+}
+
+if (said("examine", "tree")) {
+  print("There's nothing interesting about the trees.");
+}
+
+if (said("examine", "fence")) {
+  print("Yup. That most certainly is a fence.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 2) {
+  new.room(74);
+}
+
+if (v2 == 4) {
+  new.room(72);
+}
+
+if (v2 == 3) {
+  new.room(61);
+}
+return();
+
+
+// messages
+#message 1 "You're near the Union."
+#message 2 "It's right there at the top of your screen."
+#message 3 "It's your typical uninteresting ground."
+#message 4 "There's nothing interesting about the trees."
+#message 5 "Yup. That most certainly is a fence."
+#message 6 "You should stop talking to yourself."

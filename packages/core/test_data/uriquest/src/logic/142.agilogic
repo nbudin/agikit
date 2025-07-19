@@ -1,0 +1,73 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're on the right side of the quad.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "path")) {
+  print("It leads across the quad.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("There's nothing special about it.");
+}
+
+if (said("examine", "quad")) {
+  print("It's a big, green quadrilateral.");
+}
+
+if (said("examine", "tree")) {
+  print("You see some trees. Wow.");
+}
+
+if (said("examine", "road")) {
+  print("It goes up to the top of campus.");
+}
+
+if (said("examine", "building")) {
+  print("You see a building in the distance.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 4) {
+  new.room(141);
+}
+
+if (v2 == 2) {
+  new.room(143);
+}
+
+if (v2 == 3) {
+  new.room(130);
+}
+
+if (v2 == 1) {
+  new.room(156);
+}
+return();
+
+
+// messages
+#message 1 "You're on the right side of the quad."
+#message 2 "You see nothing important."
+#message 3 "It leads across the quad."
+#message 4 "There's nothing special about it."
+#message 5 "It's a big, green quadrilateral."
+#message 6 "You see some trees. Wow."
+#message 7 "It goes up to the top of campus."
+#message 8 "You see a building in the distance."
+#message 9 "You should stop talking to yourself."

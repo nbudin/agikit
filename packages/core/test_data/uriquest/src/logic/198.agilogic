@@ -1,0 +1,238 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(77);
+  reset(f101);
+  reset(f102);
+  reset(f103);
+  reset(f104);
+  reset(f106);
+  reset(f107);
+  reset(f108);
+  reset(f109);
+  reset(f110);
+  reset(f105);
+
+  if (v1 == 197) {
+    position(o0, 38, 82);
+    v6 = 5;
+  }
+
+  if (!f162) {
+    if (f155) {
+      animate.obj(o1);
+      load.view(63);
+      set.view(o1, 63);
+      set.loop(o1, 2);
+      set.cel(o1, 0);
+      position(o1, 45, 145);
+      set.priority(o1, 12);
+      start.cycling(o1);
+      draw(o1);
+    }
+  }
+
+Address85:
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("This is Tyler 109. There are a bunch of computer terminals here.");
+}
+
+if (said("examine", "computer")) {
+  print("They're WYSE monochrome screen terminals. Half of them are always broken.");
+}
+
+if (said("use", "computer")) {
+  print("You don't feel like checking your email at the moment.");
+}
+
+if (said("turn on", "computer")) {
+  print("They're always on.");
+}
+
+if (said("examine", "floor")) {
+  print("You see an ugly, dirty floor.");
+}
+
+if (said("examine", "wall")) {
+  print("The walls are ugly and depressing.");
+}
+
+if (said("examine", "table")) {
+  print("There are manuals for things like CMS, SAS, and VMS on the table. None of these things are important for this game.");
+}
+
+if (said("examine", "cms")) {
+  print("There are manuals for things like CMS, SAS, and VMS on the table. None of these things are important for this game.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if ((!f162) && (f155)) {
+  if (said("chat", "bum")) {
+    if (posn(o0, 33, 132, 55, 140)) {
+      print("\"Hey man\", you say. \"What are you up to?\"");
+      print("\"Not much. Just downloading some stuff from Gopher.\", replies the kid.");
+      print("\"Cool. So what's your name?\" you ask.");
+      print("He replies \"Dave. But my screen name is EVK102.\"");
+      print("\"Oh!!! So you're the famous EVK that is online on our VMS mainframe all the time!\" you exclaim.");
+      print("\"Uuhhhhh... yeah, I guess so.\" replies EVK.");
+      print("\"So what are you downloading?\" you ask.");
+      print("\"Well, there is this new game that is coming out today. It's supposed to be really cool!\" says EVK. \"It is called Wolfenstein or something like that.\"");
+      print("\"Hmmm, sounds interesting.\" you say.");
+      print("\"Well, it's finished downloading. Now I have to go home and ftp it to my computer from the URI mainframe.  See ya later!\" remarks EVK.");
+      v3 += 1;
+      load.sound(1);
+      sound(1, f153);
+      print("\"See ya!\" you say.");
+      set(f105);
+    } else {
+      print("Get closer, he can't hear you.");
+    }
+  }
+}
+
+Address276:
+
+if ((!f162) && (f155)) {
+  if (said("examine", "bum")) {
+    print("A lone computer geek sits typing away at one of the terminals.  He looks a bit young to be in college.");
+  }
+}
+
+Address301:
+
+if (f105) {
+  program.control();
+  ignore.blocks(o1);
+  ignore.objs(o1);
+  move.obj(o1, 40, 110, 1, f103);
+}
+
+if (f103) {
+  reset(f105);
+  move.obj(o1, 40, 79, 1, f104);
+}
+
+if (f104) {
+  reset(f103);
+  set.priority(o1, 4);
+  move.obj(o1, 10, 79, 1, f106);
+}
+
+if (f106) {
+  reset(f104);
+  reset(f106);
+  erase(o1);
+  animate.obj(o2);
+  load.view(28);
+  set.view(o2, 28);
+  set.loop(o2, 1);
+  set.cel(o2, 0);
+  position(o2, 10, 79);
+  start.cycling(o2);
+  set.priority(o2, 4);
+  ignore.blocks(o2);
+  ignore.objs(o2);
+  draw(o2);
+  set(f101);
+}
+
+if (f101) {
+  move.obj(o2, 40, 79, 1, f107);
+}
+
+if (f107) {
+  reset(f101);
+  move.obj(o2, 38, 115, 1, f102);
+}
+
+if (f102) {
+  print("A young, pretty girl walks in.");
+  print("\"How YOU doin?\", you say, ever so smoothly.");
+  print("\"Uuhh, fine, thanks.\", she replies.");
+  print("\"I'm Jeff. I haven't seen you around here before. What's your name?\", you ask.");
+  print("\"Cindy.\", she replies. \"Are you the same Jeff that knows my friend Kathy?\"");
+  print("\"YES! So you must be her sister's friend, Cindy. She's mentioned you.\", you reply.");
+  print("\"Well, uhh.. I just came here to see if she was around. I guess I'll be on my way then...\", says Cindy.");
+  print("\"Wait! Umm. I have this gig tonight at my dorm, but uh... if you're not busy after...\" you stutter.");
+  print("\"You wanna get together?\", Cindy finishes.");
+  print("\"Uhh, yeah that would be great.\", you say.");
+  print("\"OK then.  I'll meet you at your dorm...\"");
+  print("\"Aldrich\", you say.");
+  print("\"Aldrich. Tonight. See you then, Jeff.\", she says.");
+  v3 += 1;
+  load.sound(1);
+  sound(1, f153);
+  print("\"See ya!\", you say.");
+  reset(f107);
+  reset(f102);
+  set(f108);
+}
+
+if (f108) {
+  move.obj(o2, 40, 79, 1, f109);
+}
+
+if (f109) {
+  reset(f108);
+  move.obj(o2, 10, 79, 1, f110);
+}
+
+if (f110) {
+  reset(f109);
+  reset(f110);
+  stop.cycling(o2);
+  erase(o2);
+  player.control();
+  set(f162);
+}
+
+if (v2 == 1) {
+  new.room(197);
+}
+return();
+
+
+// messages
+#message 1 "This is Tyler 109. There are a bunch of computer terminals here."
+#message 2 "They're WYSE monochrome screen terminals. Half of them are always broken."
+#message 3 "You don't feel like checking your email at the moment."
+#message 4 "They're always on."
+#message 5 "You see an ugly, dirty floor."
+#message 6 "The walls are ugly and depressing."
+#message 7 "There are manuals for things like CMS, SAS, and VMS on the table. None of these things are important for this game."
+#message 8 "You should stop talking to yourself."
+#message 9 "\"Hey man\", you say. \"What are you up to?\""
+#message 10 "\"Not much. Just downloading some stuff from Gopher.\", replies the kid."
+#message 11 "\"Cool. So what's your name?\" you ask."
+#message 12 "He replies \"Dave. But my screen name is EVK102.\""
+#message 13 "\"Oh!!! So you're the famous EVK that is online on our VMS mainframe all the time!\" you exclaim."
+#message 14 "\"Uuhhhhh... yeah, I guess so.\" replies EVK."
+#message 15 "\"So what are you downloading?\" you ask."
+#message 16 "\"Well, there is this new game that is coming out today. It's supposed to be really cool!\" says EVK. \"It is called Wolfenstein or something like that.\""
+#message 17 "\"Hmmm, sounds interesting.\" you say."
+#message 18 "\"Well, it's finished downloading. Now I have to go home and ftp it to my computer from the URI mainframe.  See ya later!\" remarks EVK."
+#message 19 "\"See ya!\" you say."
+#message 20 "Get closer, he can't hear you."
+#message 21 "A lone computer geek sits typing away at one of the terminals.  He looks a bit young to be in college."
+#message 22 "A young, pretty girl walks in."
+#message 23 "\"How YOU doin?\", you say, ever so smoothly."
+#message 24 "\"Uuhh, fine, thanks.\", she replies."
+#message 25 "\"I'm Jeff. I haven't seen you around here before. What's your name?\", you ask."
+#message 26 "\"Cindy.\", she replies. \"Are you the same Jeff that knows my friend Kathy?\""
+#message 27 "\"YES! So you must be her sister's friend, Cindy. She's mentioned you.\", you reply."
+#message 28 "\"Well, uhh.. I just came here to see if she was around. I guess I'll be on my way then...\", says Cindy."
+#message 29 "\"Wait! Umm. I have this gig tonight at my dorm, but uh... if you're not busy after...\" you stutter."
+#message 30 "\"You wanna get together?\", Cindy finishes."
+#message 31 "\"Uhh, yeah that would be great.\", you say."
+#message 32 "\"OK then.  I'll meet you at your dorm...\""
+#message 33 "\"Aldrich\", you say."
+#message 34 "\"Aldrich. Tonight. See you then, Jeff.\", she says."
+#message 35 "\"See ya!\", you say."

@@ -1,0 +1,102 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f110);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine", "monument")) {
+  if (posn(o0, 124, 100, 143, 104)) {
+    if (has(i25)) {
+      print("You don't see anything on this particular side of the statue.");
+    } else {
+      set(f110);
+      print("Well, well, well. Behind the statue, you spy a nice shiny quarter!");
+    }
+  } else {
+    print("You don't see anything on this particular side of the statue.");
+  }
+}
+
+if (said("acquire", "coin")) {
+  if (f110) {
+    if (v50 == 3) {
+      if (has(i25)) {
+        print("You already found it.");
+      } else {
+        if (posn(o0, 124, 100, 143, 104)) {
+          get(i25);
+          v3 += 1;
+          load.sound(12);
+          sound(12, f153);
+          print("You take the quarter.");
+        } else {
+          print("Get closer.");
+        }
+      }
+    } else {
+      print("Nah. You don't need it for anything.");
+    }
+  } else {
+    print("Huh?");
+  }
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in the engineering quad. There's some stupid-ass statue here. You have no clue what it's for.");
+}
+
+if (said("examine", "engineering") || said("examine", "building")) {
+  print("This is the engineering complex.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "window")) {
+  print("There's nothing interesting to see in there.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It goes through the engineering quad.");
+}
+
+if (said("examine", "tree")) {
+  print("It is a tree, just a tree, I swear.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 2) {
+  reset(f110);
+  new.room(164);
+}
+
+if (v2 == 4) {
+  reset(f110);
+  new.room(162);
+}
+return();
+
+
+// messages
+#message 1 "You don't see anything on this particular side of the statue."
+#message 2 "Well, well, well. Behind the statue, you spy a nice shiny quarter!"
+#message 3 "You already found it."
+#message 4 "You take the quarter."
+#message 5 "Get closer."
+#message 6 "Nah. You don't need it for anything."
+#message 7 "Huh?"
+#message 8 "You're in the engineering quad. There's some stupid-ass statue here. You have no clue what it's for."
+#message 9 "This is the engineering complex."
+#message 10 "You see nothing important."
+#message 11 "There's nothing interesting to see in there."
+#message 12 "It goes through the engineering quad."
+#message 13 "It is a tree, just a tree, I swear."
+#message 14 "You should stop talking to yourself."

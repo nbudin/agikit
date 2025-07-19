@@ -1,0 +1,195 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(70);
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+  reset(f117);
+  reset(f118);
+  reset(f119);
+
+  if (v1 == 125) {
+    position(o0, 75, 72);
+    v6 = 5;
+  }
+
+  if (!f188) {
+    if (((v50 == 3)) && (f181)) {
+      animate.obj(o1);
+      load.view(77);
+      set.view(o1, 77);
+      set.loop(o1, 0);
+      set.cel(o1, 0);
+      ignore.objs(o1);
+      ignore.blocks(o1);
+      v55 = 3;
+      cycle.time(o1, v55);
+      step.time(o1, v55);
+      position(o1, 22, 131);
+      stop.cycling(o1);
+      animate.obj(o2);
+      load.view(76);
+      set.view(o2, 76);
+      set.loop(o2, 3);
+      set.cel(o2, 1);
+      v56 = 2;
+      cycle.time(o2, v56);
+      step.time(o2, v56);
+      position(o2, 73, 156);
+      stop.cycling(o2);
+      draw(o2);
+      prevent.input();
+      set(f110);
+    }
+  }
+
+Address133:
+  draw(o0);
+  show.pic();
+}
+
+if (f110) {
+  reset(f110);
+  print("\"Ah, Sigurd!\" Professor Laffer says. \"I was about to give up on you!\"");
+  print("\"I'm sorry I'm late, Professor.\" Ziggy says.");
+  print("\"No matter.\" says Professor Laffer. \"Come and get your test. I'll just wander around the room until you are done.\"");
+  program.control();
+  set(f111);
+}
+
+if (f111) {
+  move.obj(o0, 73, 133, 1, f112);
+}
+
+if (f112) {
+  reset(f111);
+  move.obj(o0, 40, 131, 1, f113);
+}
+
+if (f113) {
+  reset(f112);
+  reset(f113);
+  erase(o0);
+  draw(o1);
+  start.cycling(o1);
+  start.cycling(o2);
+  set(f114);
+  load.sound(20);
+  sound(20, f119);
+}
+
+if (f114) {
+  wander(o2);
+}
+
+if (f119) {
+  reset(f119);
+  reset(f114);
+  erase(o1);
+  set.loop(o0, 0);
+  draw(o0);
+  set(f115);
+}
+
+if (f115) {
+  reset(f115);
+
+  if (has(i5)) {
+    print("Well, with the help of your calculator, you were able to program in all the formulas you needed to memorize. Cheating always makes passing easy. Nice job!!");
+    v3 += 1;
+    load.sound(1);
+    sound(1, f153);
+    print("I'll even give you a point for that! Good work.");
+    print("\"I'm all done, Professor Laffer!\" Ziggy says.");
+    print("\"Very good, Sigurd. Have a nice day.\" responds Professor Laffer.");
+    set(f188);
+    ignore.objs(o0);
+    accept.input();
+    set(f116);
+  } else {
+    v35 = 9;
+  }
+}
+
+if (f116) {
+  move.obj(o0, 71, 100, 1, f117);
+}
+
+if (f117) {
+  reset(f116);
+  move.obj(o0, 71, 68, 1, f118);
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're inside of a classroom in Ballantine Hall.");
+}
+
+if (said("examine", "ballantine") || said("examine", "class")) {
+  print("You're in it and it's empty.");
+}
+
+if (said("o", "desk") || said("o", "bureau") || said("o", "desk", "bureau")) {
+  print("There's nothing in the drawers.");
+}
+
+if (said("examine", "floor")) {
+  print("You see an ugly, dirty floor.");
+}
+
+if (said("examine", "desk")) {
+  print("There's nothing special about the desks.");
+}
+
+if (said("sit", "desk")) {
+  print("You sit enough when you go to class, you don't need to do it in your spare time.");
+}
+
+if (said("examine", "wall")) {
+  print("Yes, they're pretty ugly.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+  reset(f117);
+  reset(f118);
+  reset(f119);
+  erase(o2);
+  observe.objs(o0);
+  player.control();
+  new.room(125);
+}
+return();
+
+
+// messages
+#message 1 "\"Ah, Sigurd!\" Professor Laffer says. \"I was about to give up on you!\""
+#message 2 "\"I'm sorry I'm late, Professor.\" Ziggy says."
+#message 3 "\"No matter.\" says Professor Laffer. \"Come and get your test. I'll just wander around the room until you are done.\""
+#message 4 "Well, with the help of your calculator, you were able to program in all the formulas you needed to memorize. Cheating always makes passing easy. Nice job!!"
+#message 5 "I'll even give you a point for that! Good work."
+#message 6 "\"I'm all done, Professor Laffer!\" Ziggy says."
+#message 7 "\"Very good, Sigurd. Have a nice day.\" responds Professor Laffer."
+#message 8 "You're inside of a classroom in Ballantine Hall."
+#message 9 "You're in it and it's empty."
+#message 10 "There's nothing in the drawers."
+#message 11 "You see an ugly, dirty floor."
+#message 12 "There's nothing special about the desks."
+#message 13 "You sit enough when you go to class, you don't need to do it in your spare time."
+#message 14 "Yes, they're pretty ugly."
+#message 15 "You should stop talking to yourself."

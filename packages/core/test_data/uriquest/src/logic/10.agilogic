@@ -1,0 +1,937 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f109);
+  reset(f108);
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  reset(f125);
+  reset(f128);
+  reset(f129);
+  reset(f130);
+  reset(f131);
+  reset(f132);
+  reset(f133);
+  reset(f110);
+  reset(f126);
+  reset(f127);
+
+  if (!(v1 > 9)) {
+    position(o0, 40, 110);
+    v50 = 0;
+    status.line.on();
+    accept.input();
+    v0 = 199;
+    load.pic(v0);
+    draw.pic(v0);
+    discard.pic(v0);
+    show.pic();
+    print("The year: 1993");
+    print("The setting: The University of Rhode Island (a.k.a. URI)");
+  }
+  v51 = 10;
+  load.view(18);
+  set.view(o2, 18);
+  animate.obj(o2);
+  set.cel(o2, 0);
+  stop.cycling(o2);
+  position(o2, 44, 75);
+  set.priority(o2, 5);
+  draw(o2);
+  load.view(17);
+  set.view(o1, 17);
+  animate.obj(o1);
+  set.cel(o1, 0);
+  stop.cycling(o1);
+  position(o1, 44, 75);
+  set.priority(o1, 7);
+  draw(o1);
+  load.view(19);
+  set.view(o4, 19);
+  animate.obj(o4);
+  set.cel(o4, 0);
+  stop.cycling(o4);
+  position(o4, 80, 75);
+  set.priority(o4, 5);
+  draw(o4);
+  set.view(o3, 17);
+  animate.obj(o3);
+  set.cel(o3, 0);
+  stop.cycling(o3);
+  position(o3, 80, 75);
+  set.priority(o3, 7);
+  draw(o3);
+  load.view(20);
+  set.view(o5, 20);
+  animate.obj(o5);
+  set.cel(o5, 0);
+  stop.cycling(o5);
+  position(o5, 56, 69);
+  set.priority(o5, 8);
+  draw(o5);
+  set.view(o6, 20);
+  animate.obj(o6);
+  set.cel(o6, 0);
+  stop.cycling(o6);
+  position(o6, 56, 84);
+  set.priority(o6, 8);
+  draw(o6);
+  animate.obj(o7);
+  load.view(16);
+  set.view(o7, 16);
+  set.loop(o7, 0);
+  set.cel(o7, 0);
+  position(o7, 20, 113);
+  ignore.blocks(o7);
+  ignore.objs(o7);
+  set.priority(o7, 10);
+  stop.cycling(o7);
+  draw(o7);
+
+  if (!f166) {
+    if ((f155) && (f161) && (f165) && (f152)) {
+      animate.obj(o10);
+      load.view(2);
+      set.view(o10, 2);
+      set.loop(o10, 1);
+      set.cel(o10, 0);
+      position(o10, 100, 90);
+      ignore.blocks(o10);
+      ignore.objs(o10);
+      stop.cycling(o10);
+      draw(o10);
+      set(f126);
+      program.control();
+    }
+  }
+
+Address287:
+
+  if (!f172) {
+    if (f169) {
+      animate.obj(o10);
+      load.view(2);
+      set.view(o10, 2);
+      set.loop(o10, 1);
+      set.cel(o10, 0);
+      position(o10, 100, 90);
+      ignore.blocks(o10);
+      ignore.objs(o10);
+      stop.cycling(o10);
+      draw(o10);
+      set(f127);
+    }
+  }
+
+Address327:
+  animate.obj(o8);
+  load.view(24);
+  set.view(o8, 24);
+  set.loop(o8, 0);
+  set.cel(o8, 0);
+  position(o8, 46, 80);
+  set.priority(o8, 4);
+  ignore.objs(o8);
+  stop.cycling(o8);
+
+  if (obj.in.room(i2, v51)) {
+    draw(o8);
+  }
+  animate.obj(o9);
+  load.view(35);
+  set.view(o9, 35);
+  set.loop(o9, 0);
+  set.cel(o9, 0);
+  position(o9, 83, 82);
+  set.priority(o9, 4);
+  ignore.objs(o9);
+  stop.cycling(o9);
+
+  if (obj.in.room(i3, v51)) {
+    draw(o9);
+  }
+
+  if (v1 == 11) {
+    program.control();
+    show.pic();
+    end.of.loop(o7, f112);
+    reset(f111);
+    ignore.blocks(o0);
+    position(o0, 21, 110);
+    draw(o0);
+    move.obj(o0, 32, 110, 0, f115);
+  } else {
+    if (f176) {
+      reset(f176);
+      load.view(2);
+      set.view(o0, 2);
+      set.loop(o0, 2);
+      v50 = 2;
+      v6 = 0;
+      position(o0, 125, 135);
+      observe.blocks(o0);
+      observe.objs(o0);
+      v0 = 10;
+      load.pic(v0);
+      draw.pic(v0);
+      discard.pic(v0);
+      set.horizon(0);
+      draw(o0);
+      show.pic();
+      print("\"There is a disturbance in the force.\" John states, to no one in particular.");
+      print("\"Something is not quite right....\" John continues. ");
+      load.sound(2);
+      sound(2, f153);
+      print("\"A-HA!!!\" exclaims John.");
+      print("\"Someone has stolen one of my precious pennies!!!\" John says. \"And I have a pretty damn good idea who did it...\"");
+      print("\"That bastard, Ed!!!\" John screams. \"I WILL HAVE MY REVENGE!!!!\"");
+      print("\"Hey!\" adds John. \"What the hell?? My laundry detergent is missing too!!\"");
+      load.sound(2);
+      sound(2, f153);
+      print("\"I will reclaim my penny and detergent, if it's the last thing I do!\" John states. \"By the Force, this I swear!!\"");
+      print("Sheesh... dramatic much? Anyways... get going, you have detergent to find and revenge to take out on Ed.");
+    } else {
+      load.view(39);
+      set.view(o0, 39);
+      v50 = 0;
+      reset(f150);
+      set(f151);
+      set(f160);
+      v0 = 10;
+      load.pic(v0);
+      draw.pic(v0);
+      discard.pic(v0);
+      set.horizon(0);
+      draw(o0);
+      show.pic();
+      print("As we begin our game, we find Jeff in his dorm room. He is just about to start off his day, but there is one small problem...");
+      load.sound(2);
+      sound(2, f153);
+      print("His pants are missing.");
+      print("Conveniently (for this game), all of his other pants are dirty, and there's no time to do laundry. Oh well... just another typical day in the life of a college student. Anyway... let's get going!");
+      print("Hey wait a minute... What's that up in the menu bar? An option called ABOUT URI QUEST. Hmm.... I wonder what that does?");
+      print("If you press the ESC key, a menu bar will appear, then you'll see what I'm talking about. There is also an option to bring up instructions for the game. Give it a try, why don'cha?");
+    }
+  }
+}
+
+if (f115) {
+  reset(f115);
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o7, f111);
+  reset(f112);
+  observe.blocks(o0);
+  player.control();
+}
+
+if (f126) {
+  program.control();
+  start.cycling(o10);
+  move.obj(o10, 65, 110, 1, f120);
+}
+
+if (f120) {
+  reset(f126);
+  print("\"Hey Jeff. Glad you could make it.\" says John, sarcastically. \"Our gig is in ten minutes. Do whatever you have to do to get ready and meet me in the lounge. See ya in a few.\"");
+  v3 += 1;
+  load.sound(1);
+  sound(1, f153);
+  print("\"See ya.\", you say.");
+  set(f121);
+}
+
+if (f121) {
+  reset(f120);
+  move.obj(o10, 30, 120, 1, f122);
+}
+
+if (f122) {
+  reset(f121);
+  reset(f122);
+  load.sound(3);
+  sound(3, f153);
+  end.of.loop(o7, f123);
+}
+
+if (f123) {
+  move.obj(o10, 25, 115, 1, f124);
+}
+
+if (f124) {
+  reset(f123);
+  reset(f124);
+  erase(o10);
+  set(f166);
+  load.sound(4);
+  sound(4, f153);
+  player.control();
+  reverse.loop(o7, f125);
+}
+
+if (f127) {
+  start.cycling(o10);
+  move.obj(o10, 65, 110, 1, f128);
+}
+
+if (f128) {
+  reset(f126);
+  print("\"Hey Ed. Jeff said you'd probably stop by.\" says John. \"Here are my car keys. Don't drive like a dick, ok?\"");
+  get(i12);
+  v3 += 1;
+  load.sound(12);
+  sound(12, f153);
+  print("\"I have to go practice now. Whatever you do, DON'T TOUCH ANY OF MY STUFF, or I'll have to kill you.\" John says as he leaves.");
+  set(f129);
+}
+
+if (f129) {
+  reset(f128);
+  move.obj(o10, 30, 120, 1, f130);
+}
+
+if (f130) {
+  reset(f129);
+  reset(f130);
+  load.sound(3);
+  sound(3, f153);
+  end.of.loop(o7, f131);
+}
+
+if (f131) {
+  move.obj(o10, 25, 115, 1, f132);
+}
+
+if (f132) {
+  reset(f131);
+  reset(f132);
+  erase(o10);
+  set(f172);
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o7, f133);
+}
+
+if (said("o", "d")) {
+  if (posn(o0, 20, 105, 30, 115)) {
+    program.control();
+    load.sound(3);
+    sound(3, f153);
+    end.of.loop(o7, f110);
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (f110) {
+  move.obj(o0, 30, 110, 1, f109);
+}
+
+if (f109) {
+  reset(f110);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  move.obj(o0, 20, 110, 1, f108);
+}
+
+if (said("examine") || said("look around") || said("examine", "room")) {
+  print("This is Jeff & John's dorm room. C200A, Aldrich Hall. It's pretty typical as far as dorm rooms are concerned. There are two desks, two closets, two drawers, two beds, a mirror, a push pin board and lots of other nifty crap.");
+}
+
+if (said("examine", "desk") || said("examine", "a", "desk") || said("c", "bureau") || said("examine", "bed") || said("examine", "closet") || said("examine", "bureau") || said("o", "closet") || said("c", "closet") || said("o", "bureau")) {
+  print("Which one? There are two.");
+}
+
+if (said("examine", "jeff", "bed") || said("examine", "left", "bed") || said("examine", "blue", "bed")) {
+  print("Jeff's bed is, (amazingly enough), where Jeff sleeps.");
+}
+
+if (said("examine", "john", "bed") || said("examine", "right", "bed") || said("examine", "green", "bed")) {
+  print("John's bed is, (amazingly enough), where John sleeps.");
+}
+
+if (said("examine", "jeff", "desk") || said("examine", "on top", "jeff", "desk") || said("examine", "left", "desk") || said("examine", "on top", "left", "desk")) {
+  if (posn(o0, 63, 134, 92, 141)) {
+    print("Jeff's mighty 486SX computer sits proudly on the desktop. Curiously, there are no books to be seen anywhere.");
+  } else {
+    print("Get closer.");
+  }
+}
+
+if (said("examine", "john", "desk") || said("examine", "on top", "john", "desk") || said("examine", "right", "desk") || said("examine", "on top", "right", "desk")) {
+  if (posn(o0, 109, 134, 134, 141)) {
+    if (v50 == 2) {
+      if (!f178) {
+        set(f178);
+        v3 += 3;
+        load.sound(1);
+        sound(1, f153);
+        print("Scribbled on a piece of paper is John's music department locker combination. 8-10-22. You memorize this and put the paper back on the desk.");
+      } else {
+        print("You've already memorized John's locker combination.");
+      }
+    } else {
+      print("Only John would be interested in that stuff.");
+    }
+  } else {
+    print("Get closer.");
+  }
+}
+
+if (said("acquire", "paper") || said("acquire", "pen")) {
+  print("You don't need to.");
+}
+
+if (said("use", "computer") || said("turn on", "computer") || said("turn", "computer")) {
+  print("You don't need to... yet.");
+}
+
+if (said("sit") || said("sit", "chair") || said("use", "chair") || said("acquire", "chair") || said("sit", "left", "chair") || said("sit", "right", "chair") || said("use", "left", "chair") || said("use", "right", "chair") || said("use", "jeff", "chair") || said("use", "john", "chair") || said("sit", "jeff", "chair") || said("sit", "john", "chair")) {
+  print("You don't need to sit down.");
+}
+
+if (said("examine", "chair") || said("examine", "left", "chair") || said("examine", "right", "chair") || said("examine", "jeff", "chair") || said("examine", "john", "chair")) {
+  print("Ordinary dorm chairs, nothing more.");
+}
+
+if (said("use", "television") || said("turn on", "television") || said("turn", "television")) {
+  print("You don't need to... yet.");
+}
+
+if (said("examine", "wall")) {
+  print("There are some posters covering them. Jeff has a flag on his side.");
+}
+
+if (said("examine", "computer")) {
+  print("It's a powerful 486 machine.");
+}
+
+if (said("examine", "coupon") || said("acquire", "coupon")) {
+  print("They're not important.");
+}
+
+if (said("examine", "board")) {
+  print("It's one of those corkboard things with push pins all over it.  Amidst the plethora of pizza delivery coupons are a couple of useful items: Jeff's schedule and a directory.");
+}
+
+if (said("examine", "directory") || said("read", "directory")) {
+  if (posn(o0, 80, 126, 93, 141)) {
+    print("Jeff & John - C200A Aldrich\n\nZiggy - C200B Aldrich\n\nEd & Jeff - 416 Bressler\n\nLiz - C400A Aldrich\n\nJeff, Work - Lippitt Hall\n\nNeal - 325 Bressler\n\nJohn, Class/Work - Fine Arts");
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (said("acquire", "directory")) {
+  print("Nah.  You already know where all those places are.");
+}
+
+if (said("examine", "eds schedule") || said("read", "eds schedule")) {
+  if (posn(o0, 80, 126, 93, 141)) {
+    print("Today:\n\nSkip class\n\nGo to work\n\nskip class.\n\neat.");
+  
+    if (!f154) {
+      v3 += 1;
+      load.sound(1);
+      sound(1, f153);
+      set(f154);
+    }
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+Address1502:
+
+if (said("acquire", "eds schedule")) {
+  print("Nah.  You don't need it.");
+}
+
+if (said("examine", "poster")) {
+  print("There are a couple of Led Zeppelin ones and John has a Van Halen one. They really aren't of much interest.");
+}
+
+if (said("examine", "flag")) {
+  print("It's the good ole' Union Jack. Proudly displayed in honor of the many British bands who made music great.");
+}
+
+if (said("examine", "television")) {
+  print("It's pretty old, but it works. It's mostly used for the weekly ritual known only as 'Lois'.");
+}
+
+if (said("examine", "floor")) {
+  print("John's beer drenched carpet covers most of the floor. Other than that, There's not much to look at.");
+}
+
+if (said("examine", "mirror")) {
+  print("My, you're a handsome devil!");
+}
+
+if (said("examine", "ceiling")) {
+  print("It's pretty nondescript.");
+}
+
+if (said("examine", "carpet")) {
+  print("It's pretty beaten up. It's also been stained one too many times by Ziggy \"I never spill anything\" Velken.");
+}
+
+if (said("examine", "shelf")) {
+  print("The shelves contain lots of knick-knacks and other useless stuff. John's precious pyramid of pennies is atop the shelf dividing the two desks.");
+}
+
+if (said("acquire", "bed") || said("sleep") || said("go", "sleep") || said("go", "bed") || said("sleep", "bed")) {
+  print("You don't need to.. yet.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (said("o", "closet") || said("o", "bureau")) {
+  print("Which one?");
+}
+
+if (said("o", "left", "closet") || said("o", "jeff", "closet")) {
+  if (posn(o0, 43, 85, 53, 90)) {
+    if (!f101) {
+      load.sound(3);
+      sound(3, f153);
+      end.of.loop(o1, f100);
+      set(f101);
+    } else {
+      print("It's already open.");
+    }
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (said("c", "left", "closet") || said("c", "jeff", "closet")) {
+  if (posn(o0, 43, 85, 53, 90)) {
+    if (f101) {
+      load.sound(4);
+      sound(4, f153);
+      reverse.loop(o1, f100);
+      reset(f101);
+    } else {
+      print("It's already closed.");
+    }
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (said("o", "right", "closet") || said("o", "john", "closet")) {
+  if (posn(o0, 79, 85, 89, 90)) {
+    if (!f103) {
+      load.sound(3);
+      sound(3, f153);
+      end.of.loop(o3, f102);
+      set(f103);
+    } else {
+      print("It's already open.");
+    }
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (said("c", "right", "closet") || said("c", "john", "closet")) {
+  if (posn(o0, 79, 85, 89, 90)) {
+    if (f103) {
+      load.sound(4);
+      sound(4, f153);
+      reverse.loop(o3, f102);
+      reset(f103);
+    } else {
+      print("It's already closed.");
+    }
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (said("o", "t", "bureau") || said("o", "jeff", "bureau")) {
+  if (posn(o0, 58, 85, 76, 90)) {
+    if (!f105) {
+      load.sound(3);
+      sound(3, f153);
+      end.of.loop(o5, f104);
+      set(f105);
+    } else {
+      print("It's already open.");
+    }
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (said("c", "t", "bureau") || said("c", "jeff", "bureau")) {
+  if (posn(o0, 58, 85, 76, 90)) {
+    if (f105) {
+      load.sound(4);
+      sound(4, f153);
+      reverse.loop(o5, f104);
+      reset(f105);
+    } else {
+      print("It's already closed.");
+    }
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (said("o", "b", "bureau") || said("o", "john", "bureau")) {
+  if (posn(o0, 58, 85, 76, 90)) {
+    if (!f107) {
+      load.sound(3);
+      sound(3, f153);
+      end.of.loop(o6, f106);
+      set(f107);
+    } else {
+      print("It's already open.");
+    }
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (said("c", "b", "bureau") || said("c", "john", "bureau")) {
+  if (posn(o0, 58, 85, 76, 90)) {
+    if (f107) {
+      load.sound(4);
+      sound(4, f153);
+      reverse.loop(o6, f106);
+      reset(f107);
+    } else {
+      print("It's already closed.");
+    }
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (said("examine", "t", "bureau") || said("examine", "jeff", "bureau")) {
+  if (posn(o0, 58, 85, 76, 90)) {
+    if (f105) {
+      if (v50 == 3) {
+        if (!f183) {
+          print("Hey, there's some orange juice in there!");
+        } else {
+          print("You already got what you need.");
+        }
+      } else {
+        print("There's nothing good in there right now. Maybe later on.");
+      }
+    } else {
+      print("It's not open.");
+    }
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (said("examine", "b", "bureau") || said("examine", "john", "bureau")) {
+  if (posn(o0, 58, 85, 76, 90)) {
+    if (f107) {
+      if (v50 == 3) {
+        if (!f184) {
+          print("Hey, there's some chewing gum in there!");
+        } else {
+          print("You already got what you need.");
+        }
+      } else {
+        print("There's nothing good in there right now. Maybe later on.");
+      }
+    } else {
+      print("It's not open.");
+    }
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (said("acquire", "juice")) {
+  if (posn(o0, 58, 85, 76, 90)) {
+    if (f105) {
+      if (v50 == 3) {
+        if (!f183) {
+          set(f183);
+          v3 += 1;
+          load.sound(12);
+          sound(12, f153);
+          get(i13);
+          print("You take the orange juice from the drawer.");
+        } else {
+          print("You already got it.");
+        }
+      } else {
+        print("Huh?");
+      }
+    } else {
+      print("Huh?");
+    }
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (said("acquire", "bubble gum")) {
+  if (posn(o0, 58, 85, 76, 90)) {
+    if (f107) {
+      if (v50 == 3) {
+        if (!f184) {
+          set(f184);
+          v3 += 1;
+          load.sound(12);
+          sound(12, f153);
+          get(i19);
+          print("You take the chewing gum from the drawer.");
+        } else {
+          print("You already got it.");
+        }
+      } else {
+        print("Huh?");
+      }
+    } else {
+      print("Huh?");
+    }
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (said("examine", "left", "closet") || said("examine", "jeff", "closet")) {
+  if (posn(o0, 43, 85, 53, 90)) {
+    if (f101) {
+      if (obj.in.room(i2, v51)) {
+        print("You see Jeff's acoustic guitar behind some clothes.");
+      } else {
+        print("You see nothing you need.");
+      }
+    } else {
+      print("It's not open. You can't see inside.");
+    }
+  } else {
+    print("Get closer.");
+  }
+}
+
+if (said("acquire", "acoustic guitar") || said("acquire", "jeff", "acoustic guitar")) {
+  if (v50 == 0) {
+    if (obj.in.room(i2, v51)) {
+      if (f101 && posn(o0, 43, 85, 53, 90)) {
+        v3 += 1;
+        load.sound(12);
+        sound(12, f153);
+        print("Ok.");
+        erase(o8);
+        get(i2);
+      } else {
+        print("You can't get it from here.");
+      }
+    } else {
+      reset(f4);
+    }
+  } else {
+    print("You don't need it.");
+  }
+}
+
+if (said("examine", "right", "closet") || said("examine", "john", "closet")) {
+  if (posn(o0, 79, 85, 89, 90)) {
+    if (f103) {
+      if (obj.in.room(i3, v51)) {
+        print("You see John's tennis racket behind some clothes.");
+      } else {
+        print("You see nothing you need.");
+      }
+    } else {
+      print("It's not open. You can't see inside.");
+    }
+  } else {
+    print("Get closer.");
+  }
+}
+
+if (said("acquire", "racket") || said("acquire", "john", "racket")) {
+  if (v50 == 2) {
+    if (obj.in.room(i3, v51)) {
+      if (f103 && posn(o0, 79, 85, 89, 90)) {
+        v3 += 1;
+        load.sound(12);
+        sound(12, f153);
+        print("Ok.");
+        erase(o9);
+        get(i3);
+      } else {
+        print("You can't get it from here.");
+      }
+    } else {
+      reset(f4);
+    }
+  } else {
+    print("You don't need it.");
+  }
+}
+
+if (said("examine", "pyramid") || said("examine", "pennies") || said("examine", "pyramid", "pennies")) {
+  if (obj.in.room(i4, v51)) {
+    print("John has painstakingly built a pyramid of pennies on top of the shelf that divides the two desks.  It is his masterpiece, and he freaks out if even one penny is out of place. There is one penny precariously perched at the apex.");
+  } else {
+    reset(f4);
+  }
+}
+
+if (said("examine", "pyramid") || said("examine", "pyramid", "pennies")) {
+  print("John has painstakingly built a pyramid of pennies on top of the shelf that divides the two desks.  It is his masterpiece, and he freaks out if even one penny is out of place.");
+}
+
+if (said("acquire", "pennies")) {
+  if (v50 == 1) {
+    if (obj.in.room(i4, v51)) {
+      if (posn(o0, 80, 119, 98, 129)) {
+        v3 += 1;
+        load.sound(12);
+        sound(12, f153);
+        print("Feeling devious, you decide to remove just one penny from John's masterpiece.");
+        get(i4);
+      } else {
+        print("You can't get it from here.");
+      }
+    } else {
+      reset(f4);
+    }
+  } else {
+    print("You don't need it.");
+  }
+}
+
+if (said("examine", "behind", "flag") || said("examine", "behind", "jeff", "flag")) {
+  print("Nah. What could POSSIBLY be behind there? Forget it.");
+}
+
+if (f3) {
+  reset(f109);
+  reset(f108);
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f100);
+  reset(f101);
+  reset(f102);
+  reset(f103);
+  reset(f104);
+  reset(f105);
+  reset(f106);
+  reset(f107);
+  reset(f108);
+  reset(f109);
+  reset(f110);
+  reset(f115);
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  reset(f125);
+  reset(f128);
+  reset(f129);
+  reset(f130);
+  reset(f131);
+  reset(f132);
+  reset(f133);
+  reset(f127);
+  reset(f126);
+  erase(o1);
+  erase(o2);
+  erase(o3);
+  erase(o4);
+  erase(o5);
+  erase(o6);
+  erase(o7);
+  new.room(11);
+}
+return();
+
+
+// messages
+#message 1 "The year: 1993"
+#message 2 "The setting: The University of Rhode Island (a.k.a. URI)"
+#message 3 "\"There is a disturbance in the force.\" John states, to no one in particular."
+#message 4 "\"Something is not quite right....\" John continues. "
+#message 5 "\"A-HA!!!\" exclaims John."
+#message 6 "\"Someone has stolen one of my precious pennies!!!\" John says. \"And I have a pretty damn good idea who did it...\""
+#message 7 "\"That bastard, Ed!!!\" John screams. \"I WILL HAVE MY REVENGE!!!!\""
+#message 8 "\"Hey!\" adds John. \"What the hell?? My laundry detergent is missing too!!\""
+#message 9 "\"I will reclaim my penny and detergent, if it's the last thing I do!\" John states. \"By the Force, this I swear!!\""
+#message 10 "Sheesh... dramatic much? Anyways... get going, you have detergent to find and revenge to take out on Ed."
+#message 11 "As we begin our game, we find Jeff in his dorm room. He is just about to start off his day, but there is one small problem..."
+#message 12 "His pants are missing."
+#message 13 "Conveniently (for this game), all of his other pants are dirty, and there's no time to do laundry. Oh well... just another typical day in the life of a college student. Anyway... let's get going!"
+#message 14 "Hey wait a minute... What's that up in the menu bar? An option called ABOUT URI QUEST. Hmm.... I wonder what that does?"
+#message 15 "If you press the ESC key, a menu bar will appear, then you'll see what I'm talking about. There is also an option to bring up instructions for the game. Give it a try, why don'cha?"
+#message 16 "\"Hey Jeff. Glad you could make it.\" says John, sarcastically. \"Our gig is in ten minutes. Do whatever you have to do to get ready and meet me in the lounge. See ya in a few.\""
+#message 17 "\"See ya.\", you say."
+#message 18 "\"Hey Ed. Jeff said you'd probably stop by.\" says John. \"Here are my car keys. Don't drive like a dick, ok?\""
+#message 19 "\"I have to go practice now. Whatever you do, DON'T TOUCH ANY OF MY STUFF, or I'll have to kill you.\" John says as he leaves."
+#message 20 "This is Jeff & John's dorm room. C200A, Aldrich Hall. It's pretty typical as far as dorm rooms are concerned. There are two desks, two closets, two drawers, two beds, a mirror, a push pin board and lots of other nifty crap."
+#message 21 "Which one? There are two."
+#message 22 "Jeff's bed is, (amazingly enough), where Jeff sleeps."
+#message 23 "John's bed is, (amazingly enough), where John sleeps."
+#message 24 "Jeff's mighty 486SX computer sits proudly on the desktop. Curiously, there are no books to be seen anywhere."
+#message 25 "Get closer."
+#message 26 "Scribbled on a piece of paper is John's music department locker combination. 8-10-22. You memorize this and put the paper back on the desk."
+#message 27 "You've already memorized John's locker combination."
+#message 28 "Only John would be interested in that stuff."
+#message 29 "You don't need to."
+#message 30 "You don't need to... yet."
+#message 31 "You don't need to sit down."
+#message 32 "Ordinary dorm chairs, nothing more."
+#message 33 "There are some posters covering them. Jeff has a flag on his side."
+#message 34 "It's a powerful 486 machine."
+#message 35 "They're not important."
+#message 36 "It's one of those corkboard things with push pins all over it.  Amidst the plethora of pizza delivery coupons are a couple of useful items: Jeff's schedule and a directory."
+#message 37 "Jeff & John - C200A Aldrich\n\nZiggy - C200B Aldrich\n\nEd & Jeff - 416 Bressler\n\nLiz - C400A Aldrich\n\nJeff, Work - Lippitt Hall\n\nNeal - 325 Bressler\n\nJohn, Class/Work - Fine Arts"
+#message 38 "Nah.  You already know where all those places are."
+#message 39 "Today:\n\nSkip class\n\nGo to work\n\nskip class.\n\neat."
+#message 40 "Nah.  You don't need it."
+#message 41 "There are a couple of Led Zeppelin ones and John has a Van Halen one. They really aren't of much interest."
+#message 42 "It's the good ole' Union Jack. Proudly displayed in honor of the many British bands who made music great."
+#message 43 "It's pretty old, but it works. It's mostly used for the weekly ritual known only as 'Lois'."
+#message 44 "John's beer drenched carpet covers most of the floor. Other than that, There's not much to look at."
+#message 45 "My, you're a handsome devil!"
+#message 46 "It's pretty nondescript."
+#message 47 "It's pretty beaten up. It's also been stained one too many times by Ziggy \"I never spill anything\" Velken."
+#message 48 "The shelves contain lots of knick-knacks and other useless stuff. John's precious pyramid of pennies is atop the shelf dividing the two desks."
+#message 49 "You don't need to.. yet."
+#message 50 "You're not close enough."
+#message 51 "You should stop talking to yourself."
+#message 52 "Which one?"
+#message 53 "It's already open."
+#message 54 "It's already closed."
+#message 55 "Hey, there's some orange juice in there!"
+#message 56 "You already got what you need."
+#message 57 "There's nothing good in there right now. Maybe later on."
+#message 58 "It's not open."
+#message 59 "Hey, there's some chewing gum in there!"
+#message 60 "You take the orange juice from the drawer."
+#message 61 "You already got it."
+#message 62 "Huh?"
+#message 63 "You take the chewing gum from the drawer."
+#message 64 "You see Jeff's acoustic guitar behind some clothes."
+#message 65 "You see nothing you need."
+#message 66 "It's not open. You can't see inside."
+#message 67 "Ok."
+#message 68 "You can't get it from here."
+#message 69 "You don't need it."
+#message 70 "You see John's tennis racket behind some clothes."
+#message 71 "John has painstakingly built a pyramid of pennies on top of the shelf that divides the two desks.  It is his masterpiece, and he freaks out if even one penny is out of place. There is one penny precariously perched at the apex."
+#message 72 "John has painstakingly built a pyramid of pennies on top of the shelf that divides the two desks.  It is his masterpiece, and he freaks out if even one penny is out of place."
+#message 73 "Feeling devious, you decide to remove just one penny from John's masterpiece."
+#message 74 "Nah. What could POSSIBLY be behind there? Forget it."

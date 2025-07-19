@@ -1,0 +1,57 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+
+  if (v1 == 189) {
+    position(o0, 25, 112);
+  }
+
+  if (v1 == 191) {
+    position(o0, 120, 112);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in a hallway inside the Fine Arts building.");
+}
+
+if (said("examine", "arts") || said("examine", "building")) {
+  print("It's John's home away from home.");
+}
+
+if (said("examine", "floor")) {
+  print("You see a worn, ugly rug.");
+}
+
+if (said("examine", "carpet")) {
+  print("You see a worn, ugly rug.");
+}
+
+if (said("examine", "wall")) {
+  print("There's nothing special about the walls, besides being pale and ugly.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if ((f3) && (posn(o0, 1, 1, 80, 160))) {
+  new.room(189);
+}
+
+if ((f3) && (posn(o0, 81, 1, 158, 160))) {
+  new.room(191);
+}
+return();
+
+
+// messages
+#message 1 "You're in a hallway inside the Fine Arts building."
+#message 2 "It's John's home away from home."
+#message 3 "You see a worn, ugly rug."
+#message 4 "There's nothing special about the walls, besides being pale and ugly."
+#message 5 "You should stop talking to yourself."

@@ -1,0 +1,82 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(38);
+
+  if (v1 == 111) {
+    position(o0, 1, 80);
+  }
+
+  if (v1 == 124) {
+    position(o0, 140, 40);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're on a street near the library.");
+}
+
+if (said("examine", "library") || said("examine", "building")) {
+  print("It's a really big building with lots of books in it. Mostly, it's just used by students to take naps in between classes.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "road")) {
+  print("It's flat and black.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("There's nothing interesting about it.");
+}
+
+if (said("examine", "wall")) {
+  print("It's there to keep people from falling in the water.");
+}
+
+if (said("examine", "brook")) {
+  print("Forget water, it looks more like raw sewage.");
+}
+
+if (said("examine", "bush")) {
+  print("Bushes, nothing more.");
+}
+
+if (said("examine", "path")) {
+  print("It leads around the little pond.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  new.room(124);
+}
+
+if (v2 == 4) {
+  new.room(111);
+}
+
+if (v2 == 2) {
+  new.room(113);
+}
+return();
+
+
+// messages
+#message 1 "You're on a street near the library."
+#message 2 "It's a really big building with lots of books in it. Mostly, it's just used by students to take naps in between classes."
+#message 3 "You see nothing important."
+#message 4 "It's flat and black."
+#message 5 "There's nothing interesting about it."
+#message 6 "It's there to keep people from falling in the water."
+#message 7 "Forget water, it looks more like raw sewage."
+#message 8 "Bushes, nothing more."
+#message 9 "It leads around the little pond."
+#message 10 "You should stop talking to yourself."

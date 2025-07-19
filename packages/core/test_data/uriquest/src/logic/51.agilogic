@@ -1,0 +1,133 @@
+if (f5) {
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+
+  if (v1 == 50) {
+    position(o0, 75, 165);
+  }
+
+  if (v1 == 188) {
+    ignore.blocks(o0);
+    position(o0, 64, 111);
+    set.loop(o0, 2);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f107);
+    program.control();
+  }
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  animate.obj(o1);
+  load.view(50);
+  set.view(o1, 50);
+  set.loop(o1, 0);
+
+  if (f107) {
+    set.cel(o1, 2);
+  } else {
+    set.cel(o1, 0);
+  }
+  ignore.blocks(o1);
+  ignore.objs(o1);
+  position(o1, 62, 113);
+  set.priority(o1, 4);
+  stop.cycling(o1);
+  draw(o1);
+  show.pic();
+  draw(o0);
+}
+
+if (f107) {
+  move.obj(o0, 64, 120, 1, f112);
+}
+
+if (f112) {
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o1, f118);
+  reset(f112);
+  reset(f107);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (said("o", "gym", "d") || said("o", "t", "d") || said("o", "d") || said("o", "building", "d")) {
+  if (posn(o0, 61, 114, 81, 119)) {
+    program.control();
+    load.sound(3);
+    sound(3, f153);
+    end.of.loop(o1, f101);
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (f101) {
+  move.obj(o0, 66, 118, 1, f100);
+}
+
+if (f100) {
+  reset(f101);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  move.obj(o0, 66, 108, 1, f111);
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You are in front of Keaney Gym.");
+}
+
+if (said("examine", "gym") || said("examine", "building")) {
+  print("It's where the jocks hang out.");
+}
+
+if (said("examine", "floor")) {
+  print("There's nothing important.");
+}
+
+if (said("examine", "path")) {
+  print("There's nothing important about it.");
+}
+
+if (said("examine", "d")) {
+  print("Yup, it's most certainly a door.");
+}
+
+if (f3) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  new.room(188);
+}
+
+if (v2 == 3) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  new.room(50);
+}
+return();
+
+
+// messages
+#message 1 "You are in front of Keaney Gym."
+#message 2 "It's where the jocks hang out."
+#message 3 "There's nothing important."
+#message 4 "There's nothing important about it."
+#message 5 "Yup, it's most certainly a door."
+#message 50 "You're not close enough."

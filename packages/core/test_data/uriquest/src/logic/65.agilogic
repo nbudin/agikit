@@ -1,0 +1,120 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+
+  if (v1 == 77) {
+    position(o0, 5, 55);
+  }
+  reset(f110);
+
+  if (!has(i28)) {
+    animate.obj(o1);
+    load.view(75);
+    set.view(o1, 75);
+    position(o1, 70, 120);
+    set.priority(o1, 4);
+    ignore.blocks(o1);
+    ignore.objs(o1);
+    stop.cycling(o1);
+    draw(o1);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine", "floor")) {
+  if (posn(o0, 60, 110, 80, 130)) {
+    if (has(i28)) {
+      print("You see nothing good.");
+    } else {
+      set(f110);
+      print("Well, well, well. On the ground, you spy a nice shiny quarter!");
+    }
+  } else {
+    print("You see nothing in this particular spot.");
+  }
+}
+
+if (said("acquire", "coin")) {
+  if (f110) {
+    if (v50 == 3) {
+      if (has(i28)) {
+        print("You already got it.");
+      } else {
+        if (posn(o0, 60, 110, 80, 130)) {
+          get(i28);
+          erase(o1);
+          v3 += 1;
+          load.sound(12);
+          sound(12, f153);
+          print("You take the quarter.");
+        } else {
+          print("Get closer.");
+        }
+      }
+    } else {
+      print("Nah. You don't need it for anything.");
+    }
+  } else {
+    print("Huh?");
+  }
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in front of Tucker Hall.");
+}
+
+if (said("examine", "tucker") || said("examine", "building")) {
+  print("It's a dorm like any other.");
+}
+
+if (said("examine", "road")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("There's nothing important about it.");
+}
+
+if (said("examine", "window")) {
+  print("You see nothing good in there.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  reset(f110);
+  new.room(77);
+}
+
+if (v2 == 2) {
+  reset(f110);
+  new.room(66);
+}
+
+if (v2 == 4) {
+  reset(f110);
+  new.room(64);
+}
+return();
+
+
+// messages
+#message 1 "You see nothing good."
+#message 2 "Well, well, well. On the ground, you spy a nice shiny quarter!"
+#message 3 "You see nothing in this particular spot."
+#message 4 "You already got it."
+#message 5 "You take the quarter."
+#message 6 "Get closer."
+#message 7 "Nah. You don't need it for anything."
+#message 8 "Huh?"
+#message 9 "You're in front of Tucker Hall."
+#message 10 "It's a dorm like any other."
+#message 11 "You see nothing important."
+#message 12 "There's nothing important about it."
+#message 13 "You see nothing good in there."
+#message 14 "You should stop talking to yourself."

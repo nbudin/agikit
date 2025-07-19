@@ -9,6 +9,7 @@ if (f5) {
     status.line.on();
     accept.input();
   }
+
   draw(o0);
   show.pic();
 }
@@ -32,6 +33,7 @@ if (v2 == 3) {
 if (v2 == 4) {
   new.room(10);
 }
+
 return();
 
 

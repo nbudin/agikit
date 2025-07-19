@@ -1,0 +1,77 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(40);
+
+  if (v1 == 66) {
+    position(o0, 150, 165);
+  }
+
+  if (v1 == 101) {
+    position(o0, 50, 50);
+    v6 = 5;
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're on a street behind Tucker Hall.");
+}
+
+if (said("examine", "tucker") || said("examine", "building")) {
+  print("It's a dorm like any other.");
+}
+
+if (said("examine", "library")) {
+  print("It's a library like any other.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "road")) {
+  print("A small roadway veers off towards the Library.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("There's nothing interesting about it.");
+}
+
+if (said("examine", "tree")) {
+  print("There's nothing important about the trees.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  new.room(101);
+}
+
+if (v2 == 2) {
+  new.room(79);
+}
+
+if (v2 == 4) {
+  new.room(77);
+}
+
+if (v2 == 3) {
+  new.room(66);
+}
+return();
+
+
+// messages
+#message 1 "You're on a street behind Tucker Hall."
+#message 2 "It's a dorm like any other."
+#message 3 "It's a library like any other."
+#message 4 "You see nothing important."
+#message 5 "A small roadway veers off towards the Library."
+#message 6 "There's nothing interesting about it."
+#message 7 "There's nothing important about the trees."
+#message 8 "You should stop talking to yourself."

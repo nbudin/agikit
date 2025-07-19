@@ -1,0 +1,35 @@
+if (f5) {
+  trace.info(95, 3, 10);
+  set.key(0, 59, c2);
+  set.key(0, 60, c16);
+  set.key(19, 0, c16);
+  set.key(0, 61, c9);
+  set.key(5, 0, c9);
+  set.key(0, 62, c4);
+  set.key(0, 63, c3);
+  set.key(0, 64, c12);
+  set.key(0, 65, c5);
+  set.key(0, 67, c7);
+  set.key(9, 0, c10);
+  set.key(0, 32, c14);
+  set.key(10, 0, c15);
+  set.key(3, 0, c17);
+  set.key(0, 44, c1);
+  set.key(45, 0, c26);
+  set.key(43, 0, c27);
+  set.key(27, 0, c19);
+  set(f8);
+  v15 = 3;
+  v23 = 15;
+  configure.screen(1, 22, 0);
+  set.string(s0, "URI>");
+  set.cursor.char("_");
+  v7 = 173;
+  v10 = 1;
+}
+return();
+
+
+// messages
+#message 1 "URI>"
+#message 2 "_"

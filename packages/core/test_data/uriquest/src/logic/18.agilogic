@@ -1,0 +1,220 @@
+if (f5) {
+  reset(f102);
+  reset(f103);
+  reset(f106);
+  reset(f112);
+  reset(f109);
+  reset(f111);
+  reset(f118);
+  reset(f114);
+
+  if (v1 == 19) {
+    ignore.blocks(o0);
+    position(o0, 127, 130);
+    set.loop(o0, 1);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f106);
+    program.control();
+  }
+
+  if (v1 == 16) {
+    ignore.blocks(o0);
+    position(o0, 20, 135);
+    set.loop(o0, 2);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f113);
+    program.control();
+  }
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  animate.obj(o2);
+  load.view(22);
+  set.view(o2, 22);
+  set.loop(o2, 0);
+
+  if (f106) {
+    set.cel(o2, 3);
+  } else {
+    set.cel(o2, 0);
+  }
+  ignore.blocks(o2);
+  position(o2, 126, 131);
+  ignore.objs(o2);
+  set.priority(o2, 11);
+  stop.cycling(o2);
+  draw(o2);
+  show.pic();
+  draw(o0);
+}
+
+if (f113) {
+  move.obj(o0, 20, 145, 1, f112);
+}
+
+if (f112) {
+  reset(f112);
+  reset(f113);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (f106) {
+  move.obj(o0, 118, 130, 1, f109);
+}
+
+if (f109) {
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o2, f118);
+  reset(f109);
+  reset(f106);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("This is the hallway outside of Liz's dorm room. There are three doors. This hallway is a bit cleaner than most.");
+}
+
+if (said("examine", "d")) {
+  print("On the right is Liz's dorm room.  At the top is the bathroom. The exit to the stairwell is on the left.");
+}
+
+if (said("examine", "bath room", "d") || said("examine", "t", "d") || said("examine", "bath room")) {
+  print("It's the one right near Liz's room, on the same side of the hall as the stairwell exit.");
+}
+
+if (said("examine", "room", "d") || said("examine", "right", "d") || said("examine", "elizabeth", "d")) {
+  print("A chalkboard is mounted on it.");
+}
+
+if (said("examine", "bulletin board") || said("read", "bulletin board")) {
+  if (posn(o0, 117, 121, 140, 134)) {
+    print("It says nothing important.");
+  } else {
+    print("Get a little closer.");
+  }
+}
+
+if (said("examine", "floor")) {
+  print("There are some holes in the dingy carpet. Nothing out of the ordinary.");
+}
+
+if (said("examine", "wall")) {
+  print("There are some cracks in the hideously painted walls. In other words, your typical dorm walls.");
+}
+
+if (said("acquire", "anyword")) {
+  print("You don't need it.");
+}
+
+if (said("o", "bath room", "d") || said("o", "t", "d") || said("o", "bath room")) {
+  print("You don't need to go in there.");
+}
+
+if (said("knock", "bath room", "d") || said("knock", "t", "d") || said("knock", "bath room")) {
+  if (posn(o0, 83, 114, 98, 118)) {
+    print("\"GO AWAY!\" someone yells.");
+  } else {
+    print("Get a little closer.");
+  }
+}
+
+if (said("c", "bath room", "d") || said("c", "t", "d")) {
+  print("It's already closed.");
+}
+
+if (said("o", "room", "d") || said("o", "right", "d") || said("o", "elizabeth", "d") || said("o", "room")) {
+  if (f114) {
+    if (posn(o0, 123, 124, 138, 133)) {
+      program.control();
+      load.sound(3);
+      sound(3, f153);
+      end.of.loop(o2, f103);
+    } else {
+      print("You're not close enough.");
+    }
+  } else {
+    print("You can't just walk into someone's room uninvited!");
+  }
+}
+
+if (f103) {
+  move.obj(o0, 123, 134, 1, f102);
+}
+
+if (f102) {
+  reset(f103);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  move.obj(o0, 138, 128, 1, f111);
+}
+
+if (said("knock", "room", "d") || said("knock", "right", "d") || said("knock", "elizabeth", "d") || said("knock", "building", "d") || said("knock", "building", "room")) {
+  if (posn(o0, 117, 121, 140, 134)) {
+    print("\"Come on in!\" Liz says.");
+    set(f114);
+  } else {
+    print("Get a little closer.");
+  }
+}
+
+if (said("c", "room", "d") || said("c", "right", "d") || said("c", "elizabeth", "d")) {
+  print("It's already closed.");
+}
+
+if (said("knock", "d") || said("o", "d")) {
+  print("Which one?");
+}
+
+if ((f3) && posn(o0, 16, 119, 28, 131)) {
+  erase(o2);
+  reset(f102);
+  reset(f103);
+  reset(f106);
+  reset(f113);
+  reset(f112);
+  reset(f109);
+  reset(f114);
+  reset(f118);
+  new.room(16);
+}
+
+if ((f3) && posn(o0, 123, 120, 140, 130)) {
+  erase(o2);
+  reset(f102);
+  reset(f103);
+  reset(f106);
+  reset(f113);
+  reset(f112);
+  reset(f109);
+  reset(f114);
+  reset(f118);
+  new.room(19);
+}
+return();
+
+
+// messages
+#message 1 "This is the hallway outside of Liz's dorm room. There are three doors. This hallway is a bit cleaner than most."
+#message 2 "On the right is Liz's dorm room.  At the top is the bathroom. The exit to the stairwell is on the left."
+#message 3 "It's the one right near Liz's room, on the same side of the hall as the stairwell exit."
+#message 4 "A chalkboard is mounted on it."
+#message 5 "It says nothing important."
+#message 6 "Get a little closer."
+#message 7 "There are some holes in the dingy carpet. Nothing out of the ordinary."
+#message 8 "There are some cracks in the hideously painted walls. In other words, your typical dorm walls."
+#message 9 "You don't need it."
+#message 10 "You don't need to go in there."
+#message 11 "\"GO AWAY!\" someone yells."
+#message 12 "It's already closed."
+#message 13 "You can't just walk into someone's room uninvited!"
+#message 14 "\"Come on in!\" Liz says."
+#message 15 "Which one?"
+#message 50 "You're not close enough."

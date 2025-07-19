@@ -1,0 +1,55 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're between Crawford Hall and Lippitt Hall.");
+}
+
+if (said("examine", "crawford") || said("examine", "lippitt") || said("examine", "building")) {
+  print("The buildings tower above you.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "window")) {
+  print("There's nothing interesting to see in there.");
+}
+
+if (said("examine", "ladder")) {
+  print("It's quite high and imposing.");
+}
+
+if (said("examine", "road")) {
+  print("This street is flat and hard.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 2) {
+  new.room(152);
+}
+
+if (v2 == 4) {
+  new.room(150);
+}
+return();
+
+
+// messages
+#message 1 "You're between Crawford Hall and Lippitt Hall."
+#message 2 "The buildings tower above you."
+#message 3 "You see nothing important."
+#message 4 "There's nothing interesting to see in there."
+#message 5 "It's quite high and imposing."
+#message 6 "This street is flat and hard."
+#message 7 "You should stop talking to yourself."

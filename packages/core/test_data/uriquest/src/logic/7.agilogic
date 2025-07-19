@@ -1,0 +1,62 @@
+if (f5) {
+  reset(f14);
+  set(f33);
+  v0 = 199;
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  v0 = 7;
+  reset(f102);
+  reset(f101);
+  set(f100);
+  v55 = 6;
+  animate.obj(o6);
+  load.view(88);
+  set.view(o6, 88);
+  position(o6, 50, 160);
+  set.loop(o6, 0);
+  set.cel(o6, 0);
+  cycle.time(o6, v55);
+  step.time(o6, v55);
+  draw(o6);
+  load.sound(13);
+  sound(13, f102);
+  program.control();
+  show.pic();
+}
+
+if (f100) {
+  reset(f100);
+  end.of.loop(o6, f101);
+}
+
+if ((f101) && (f102)) {
+  reset(f101);
+  print("My Lord!! What's this???");
+  print("Can it be? Can it really be?");
+  print("Protruding from the wall, like some mystical bas relief, is an image of what can only possibly be the Holy Grail itself!");
+  print("Through the ages, many have searched for the Grail, but all have failed...");
+  print("All failed except one person, that is. That one person must have decided to hide the grail once and for all by burying it within the walls of a dorm in some obscure Rhode Island university. Ingenious!");
+  print("And now the responsibility of hiding the true final resting place of the Holy Grail is in the hands of Jeff and John.");
+  print("What a noble quest the game plot turned out to be after all!");
+  print("Congratulations on solving URI Quest!!! Pat yourself on the back.");
+  print("So sit back, watch the credits, and relax! You've earned it.");
+  erase(o6);
+  erase(o0);
+  prevent.input();
+  new.room(8);
+}
+return();
+
+
+// messages
+#message 1 "My Lord!! What's this???"
+#message 2 "Can it be? Can it really be?"
+#message 3 "Protruding from the wall, like some mystical bas relief, is an image of what can only possibly be the Holy Grail itself!"
+#message 4 "Through the ages, many have searched for the Grail, but all have failed..."
+#message 5 "All failed except one person, that is. That one person must have decided to hide the grail once and for all by burying it within the walls of a dorm in some obscure Rhode Island university. Ingenious!"
+#message 6 "And now the responsibility of hiding the true final resting place of the Holy Grail is in the hands of Jeff and John."
+#message 7 "What a noble quest the game plot turned out to be after all!"
+#message 8 "Congratulations on solving URI Quest!!! Pat yourself on the back."
+#message 9 "So sit back, watch the credits, and relax! You've earned it."

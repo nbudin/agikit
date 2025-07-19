@@ -1,0 +1,124 @@
+if (f5) {
+  reset(f110);
+  v0 = 90;
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  v0 = 5;
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+  reset(f118);
+  reset(f117);
+  v52 = 100;
+  set(f110);
+  v55 = 3;
+  v56 = 7;
+  animate.obj(o1);
+  load.view(86);
+  set.view(o1, 86);
+  position(o1, 65, 167);
+  set.loop(o1, 0);
+  set.cel(o1, 0);
+  cycle.time(o1, v55);
+  step.time(o1, v55);
+  start.cycling(o1);
+  draw(o1);
+  animate.obj(o2);
+  load.view(85);
+  set.view(o2, 85);
+  position(o2, 60, 88);
+  set.loop(o2, 0);
+  set.cel(o2, 0);
+  cycle.time(o2, v56);
+  step.time(o2, v56);
+  start.cycling(o2);
+  draw(o2);
+  program.control();
+  prevent.input();
+  load.sound(24);
+  sound(24, f117);
+  show.pic();
+}
+
+if (!f118) {
+  v52 -= 1;
+}
+
+if (v52 == 5) {
+  if (f116) {
+    v52 = 100;
+    reset(f116);
+    set(f118);
+    print("\"Well, if I'm right, when we're done playing Wolfenstein, this game should be all over. Playing Wolfenstein has to be the ultimate goal of URI Quest.\" Jeff says.");
+  }
+
+  if (f115) {
+    v52 = 100;
+    reset(f115);
+    set(f116);
+    print("Everybody looks at Ziggy strangely.");
+  }
+
+  if (f114) {
+    v52 = 100;
+    reset(f114);
+    set(f115);
+    print("\"What's goin on?\" Ziggy says. \"The earth is gonna shake tonight!\"");
+  }
+
+  if (f113) {
+    v52 = 100;
+    reset(f113);
+    set(f114);
+    print("\"This game rocks!!\" Ed says. \"I can't believe it was free!\"");
+  }
+
+  if (f112) {
+    v52 = 100;
+    reset(f112);
+    set(f113);
+    print("\"This game is freaky!\" John says. \"Mommy!\"");
+  }
+
+  if (f111) {
+    v52 = 100;
+    reset(f111);
+    set(f112);
+    print("\"Pretty damn cool, indeed!\" Jeff adds. \"I've never seen anything like it!\"");
+  }
+
+  if (f110) {
+    v52 = 100;
+    reset(f110);
+    set(f111);
+    print("\"Whoa, cool!\" Neal says.");
+  }
+}
+
+Address235:
+
+if ((f117) && (f118)) {
+  reset(f117);
+  stop.cycling(o2);
+  stop.cycling(o1);
+  erase(o1);
+  erase(o2);
+  new.room(6);
+}
+return();
+
+
+// messages
+#message 1 "\"Well, if I'm right, when we're done playing Wolfenstein, this game should be all over. Playing Wolfenstein has to be the ultimate goal of URI Quest.\" Jeff says."
+#message 2 "Everybody looks at Ziggy strangely."
+#message 3 "\"What's goin on?\" Ziggy says. \"The earth is gonna shake tonight!\""
+#message 4 "\"This game rocks!!\" Ed says. \"I can't believe it was free!\""
+#message 5 "\"This game is freaky!\" John says. \"Mommy!\""
+#message 6 "\"Pretty damn cool, indeed!\" Jeff adds. \"I've never seen anything like it!\""
+#message 7 "\"Whoa, cool!\" Neal says."

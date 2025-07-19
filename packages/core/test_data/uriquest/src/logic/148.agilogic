@@ -1,0 +1,150 @@
+if (f5) {
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+
+  if (v1 == 135) {
+    position(o0, 137, 165);
+    v6 = 1;
+  }
+
+  if (v1 == 197) {
+    ignore.blocks(o0);
+    position(o0, 46, 45);
+    set.loop(o0, 2);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f107);
+    program.control();
+  }
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  animate.obj(o1);
+  load.view(46);
+  set.view(o1, 46);
+  set.loop(o1, 0);
+
+  if (f107) {
+    set.cel(o1, 2);
+  } else {
+    set.cel(o1, 0);
+  }
+  ignore.blocks(o1);
+  ignore.objs(o1);
+  position(o1, 45, 45);
+  set.priority(o1, 4);
+  stop.cycling(o1);
+  draw(o1);
+  show.pic();
+  draw(o0);
+}
+
+if (f107) {
+  move.obj(o0, 46, 50, 1, f112);
+}
+
+if (f112) {
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o1, f118);
+  reset(f112);
+  reset(f107);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in front of Tyler Hall.");
+}
+
+if (said("examine", "woodward")) {
+  print("You have no idea what goes on in there. You really don't care, either.");
+}
+
+if (said("examine", "tyler") || said("examine", "building")) {
+  print("It's the computer science and mathematics building. Jeff's home away from home.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "lot")) {
+  print("It's for staff and frat boy parking.");
+}
+
+if (said("examine", "window")) {
+  print("There's nothing interesting to see in there.");
+}
+
+if (said("o", "tyler", "d") || said("o", "tyler") || said("o", "d") || said("o", "building", "d")) {
+  if (posn(o0, 40, 40, 61, 49)) {
+    program.control();
+    load.sound(3);
+    sound(3, f153);
+    end.of.loop(o1, f101);
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (f101) {
+  move.obj(o0, 46, 47, 1, f100);
+}
+
+if (f100) {
+  reset(f101);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  move.obj(o0, 46, 40, 1, f111);
+}
+
+if ((f3) && (posn(o0, 40, 40, 61, 49))) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  new.room(197);
+}
+
+if ((f3) && (posn(o0, 119, 162, 159, 167))) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  new.room(135);
+}
+
+if (v2 == 4) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  new.room(147);
+}
+return();
+
+
+// messages
+#message 1 "You're in front of Tyler Hall."
+#message 2 "You have no idea what goes on in there. You really don't care, either."
+#message 3 "It's the computer science and mathematics building. Jeff's home away from home."
+#message 4 "You see nothing important."
+#message 5 "It's for staff and frat boy parking."
+#message 6 "There's nothing interesting to see in there."
+#message 50 "You're not close enough."

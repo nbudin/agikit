@@ -1,0 +1,69 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+
+  if (v1 == 111) {
+    position(o0, 60, 55);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're on a street going up campus. The back of the library is to your right.");
+}
+
+if (said("examine", "library") || said("examine", "building")) {
+  print("It's a really big building with lots of books in it. Mostly, it's just used by students to take naps in between classes.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "road")) {
+  print("You see nothing interesting about it.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("There's nothing interesting about it.");
+}
+
+if (said("examine", "tree")) {
+  print("There's nothing important about the tree.");
+}
+
+if (said("examine", "bush")) {
+  print("Bushes, nothing more.");
+}
+
+if (said("examine", "window")) {
+  print("You can't see up there.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 3) {
+  new.room(76);
+}
+
+if (v2 == 1) {
+  new.room(111);
+}
+return();
+
+
+// messages
+#message 1 "You're on a street going up campus. The back of the library is to your right."
+#message 2 "It's a really big building with lots of books in it. Mostly, it's just used by students to take naps in between classes."
+#message 3 "You see nothing important."
+#message 4 "You see nothing interesting about it."
+#message 5 "There's nothing interesting about it."
+#message 6 "There's nothing important about the tree."
+#message 7 "Bushes, nothing more."
+#message 8 "You can't see up there."
+#message 9 "You should stop talking to yourself."

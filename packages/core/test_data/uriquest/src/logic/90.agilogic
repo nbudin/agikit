@@ -1,0 +1,659 @@
+if (f2 && (v9 == 0) && !f4) {
+  if (said("use", "chewed gum", "line") || said("use", "bubble gum", "line") || said("use", "line", "chewed gum") || said("use", "line", "bubble gum") || said("attach", "chewed gum", "line") || said("attach", "bubble gum", "line") || said("attach", "line", "chewed gum") || said("attach", "line", "bubble gum")) {
+    if (has(i35) && has(i20)) {
+      get(i33);
+      drop(i35);
+      drop(i20);
+      load.sound(1);
+      sound(1, f153);
+      print("For some unknown reason, you decide to stick the chewed gum on the end of the string, creating a fishing line of sorts.");
+    } else {
+      print("Last time I checked, you don't have those things.");
+    }
+  }
+
+  if (said("o", "billfold")) {
+    if (has(i9)) {
+      get(i10);
+      get(i8);
+      drop(i9);
+      v3 += 3;
+      load.sound(12);
+      sound(12, f153);
+      print("You open your wallet and discover some cash and your id card. Nice going! Being an ever so anal adventure game player, you decide to discard the empty wallet now.");
+    } else {
+      print("Last time I checked, you don't have a wallet.");
+    }
+  }
+
+  if (said("chew", "bubble gum")) {
+    if (has(i19)) {
+      get(i35);
+      drop(i19);
+      v3 += 1;
+      load.sound(12);
+      sound(12, f153);
+      print("You chew the gum until it becomes mushy and gross. The chewing gum is now chewed gum.");
+    } else {
+      print("Last time I checked, you don't have any chewable gum.");
+    }
+  }
+
+  if (said("die")) {
+    if (v50 == 0) {
+      load.view(10);
+      set.view(o0, 10);
+    }
+  
+    if (v50 == 1) {
+      load.view(11);
+      set.view(o0, 11);
+    }
+  
+    if (v50 == 2) {
+      load.view(12);
+      set.view(o0, 12);
+    }
+  
+    if (v50 == 3) {
+      load.view(13);
+      set.view(o0, 13);
+    }
+    program.control();
+    stop.motion(o0);
+    v35 = 1;
+  }
+
+  if (said("examine", "campus")) {
+    if (has(i6)) {
+      show.obj(225);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "campus")) {
+    if (has(i6)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "condom")) {
+    if (has(i1)) {
+      show.obj(220);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "condom")) {
+    if (has(i1)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "acoustic guitar")) {
+    if (has(i2)) {
+      show.obj(221);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "acoustic guitar")) {
+    if (has(i2)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "pennies")) {
+    if (has(i4)) {
+      show.obj(222);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "pennies")) {
+    if (has(i4)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "racket")) {
+    if (has(i3)) {
+      show.obj(223);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "racket")) {
+    if (has(i3)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "calculator")) {
+    if (has(i5)) {
+      show.obj(224);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "calculator")) {
+    if (has(i5)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "backup tape")) {
+    if (has(i7)) {
+      show.obj(226);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "backup tape")) {
+    if (has(i7)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "cash")) {
+    if (has(i8)) {
+      show.obj(227);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "cash")) {
+    if (has(i8)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "billfold")) {
+    if (has(i9)) {
+      show.obj(228);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "billfold")) {
+    if (has(i9)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "id")) {
+    if (has(i10)) {
+      show.obj(229);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "id")) {
+    if (has(i10)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "fake id")) {
+    if (has(i11)) {
+      show.obj(230);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "fake id")) {
+    if (has(i11)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "car keys")) {
+    if (has(i12)) {
+      show.obj(231);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "car keys")) {
+    if (has(i12)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "juice")) {
+    if (has(i13)) {
+      show.obj(232);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "juice")) {
+    if (has(i13)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "alcohol")) {
+    if (has(i14)) {
+      show.obj(233);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "alcohol")) {
+    if (has(i14)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "detergent")) {
+    if (has(i15)) {
+      show.obj(234);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "detergent")) {
+    if (has(i15)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "eds key")) {
+    if (has(i16)) {
+      show.obj(235);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "eds key")) {
+    if (has(i16)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "dirty blanket")) {
+    if (has(i17)) {
+      show.obj(236);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "dirty blanket")) {
+    if (has(i17)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "fabric softener")) {
+    if (has(i18)) {
+      show.obj(237);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "fabric softener")) {
+    if (has(i18)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "bubble gum")) {
+    if (has(i19)) {
+      show.obj(238);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "bubble gum")) {
+    if (has(i19)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "line")) {
+    if (has(i20)) {
+      show.obj(239);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "line")) {
+    if (has(i20)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "quarter01")) {
+    if (has(i21)) {
+      show.obj(240);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "quarter01")) {
+    if (has(i21)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "quarter02")) {
+    if (has(i22)) {
+      show.obj(241);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "quarter02")) {
+    if (has(i22)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "quarter03")) {
+    if (has(i23)) {
+      show.obj(242);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "quarter03")) {
+    if (has(i23)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "quarter04")) {
+    if (has(i24)) {
+      show.obj(243);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "quarter04")) {
+    if (has(i24)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "quarter05")) {
+    if (has(i25)) {
+      show.obj(244);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "quarter05")) {
+    if (has(i25)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "quarter06")) {
+    if (has(i26)) {
+      show.obj(245);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "quarter06")) {
+    if (has(i26)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "quarter07")) {
+    if (has(i27)) {
+      show.obj(246);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "quarter07")) {
+    if (has(i27)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "quarter08")) {
+    if (has(i28)) {
+      show.obj(247);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "quarter08")) {
+    if (has(i28)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "quarter09")) {
+    if (has(i29)) {
+      show.obj(248);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "quarter09")) {
+    if (has(i29)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "quarter10")) {
+    if (has(i30)) {
+      show.obj(249);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "quarter10")) {
+    if (has(i30)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "quarter11")) {
+    if (has(i31)) {
+      show.obj(250);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "quarter11")) {
+    if (has(i31)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "quarter12")) {
+    if (has(i32)) {
+      show.obj(251);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "quarter12")) {
+    if (has(i32)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "fish hook")) {
+    if (has(i33)) {
+      show.obj(252);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "fish hook")) {
+    if (has(i33)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "blanket")) {
+    if (has(i34)) {
+      show.obj(253);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "blanket")) {
+    if (has(i34)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "chewed gum")) {
+    if (has(i35)) {
+      show.obj(254);
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("acquire", "chewed gum")) {
+    if (has(i35)) {
+      print("You already have it.");
+    } else {
+      reset(f4);
+    }
+  }
+
+  if (said("examine", "anyword") || said("examine", "anyword", "anyword")) {
+    print("Huh?");
+  }
+
+  if (said("climb", "anyword") || said("climb", "anyword", "anyword")) {
+    print("Nah.");
+  }
+
+  if (said("acquire", "anyword") || said("acquire", "anyword", "anyword")) {
+    print("You can't get that here!");
+  }
+
+  if (said("use", "anyword") || said("use", "anyword", "anyword")) {
+    print("What do you want me to do with it?");
+  }
+}
+
+Address1940:
+return();
+
+
+// messages
+#message 1 "For some unknown reason, you decide to stick the chewed gum on the end of the string, creating a fishing line of sorts."
+#message 2 "Last time I checked, you don't have those things."
+#message 3 "You open your wallet and discover some cash and your id card. Nice going! Being an ever so anal adventure game player, you decide to discard the empty wallet now."
+#message 4 "Last time I checked, you don't have a wallet."
+#message 5 "You chew the gum until it becomes mushy and gross. The chewing gum is now chewed gum."
+#message 6 "Last time I checked, you don't have any chewable gum."
+#message 7 "You already have it."
+#message 8 "Huh?"
+#message 9 "Nah."
+#message 10 "You can't get that here!"
+#message 11 "What do you want me to do with it?"

@@ -1,0 +1,60 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+
+  if (v1 == 126) {
+    position(o0, 80, 165);
+    v6 = 1;
+  }
+
+  if (v1 == 208) {
+    position(o0, 30, 85);
+    v6 = 3;
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're inside of Ballantine Hall.");
+}
+
+if (said("examine", "ballantine") || said("examine", "building")) {
+  print("You're in it.");
+}
+
+if (said("examine", "floor")) {
+  print("You see an ugly tiled floor.");
+}
+
+if (said("examine", "tiles")) {
+  print("There's nothing special about them.");
+}
+
+if (said("examine", "wall")) {
+  print("Yes, they're pretty ugly.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 3) {
+  new.room(126);
+}
+
+if (f3) {
+  new.room(208);
+}
+return();
+
+
+// messages
+#message 1 "You're inside of Ballantine Hall."
+#message 2 "You're in it."
+#message 3 "You see an ugly tiled floor."
+#message 4 "There's nothing special about them."
+#message 5 "Yes, they're pretty ugly."
+#message 6 "You should stop talking to yourself."

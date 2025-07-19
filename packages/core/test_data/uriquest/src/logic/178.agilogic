@@ -1,0 +1,114 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f100);
+  reset(f101);
+  reset(f102);
+  animate.obj(o1);
+  load.view(48);
+  set.view(o1, 48);
+  set.loop(o1, 0);
+  set.cel(o1, 0);
+  set.priority(o1, 10);
+  v55 = 1;
+  cycle.time(o1, v55);
+  position(o1, 0, 100);
+  start.cycling(o1);
+  animate.obj(o2);
+  load.view(49);
+  set.view(o2, 49);
+  set.loop(o1, 0);
+  set.cel(o1, 0);
+  set.priority(o2, 9);
+  position(o2, 70, 100);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in the eastern part of campus on Upper College Road.");
+}
+
+if (said("examine", "building")) {
+  print("It's nothing important.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It's just a sidewalk.");
+}
+
+if (said("examine", "road")) {
+  print("Upper College Road runs along the top part of campus.");
+}
+
+if (said("cross", "road")) {
+  print("Just try it... I dare ya.");
+}
+
+if (said("examine", "tree")) {
+  print("The trees are of no concern.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (f3) {
+  program.control();
+  ignore.objs(o0);
+  ignore.objs(o1);
+  move.obj(o0, 95, 100, 1, f100);
+}
+
+if (f100) {
+  set.loop(o0, 1);
+  set.cel(o0, 0);
+  load.sound(18);
+  sound(18, f153);
+  draw(o1);
+  move.obj(o1, 45, 100, 1, f101);
+  reset(f100);
+}
+
+if (f101) {
+  erase(o0);
+  draw(o2);
+  move.obj(o1, 150, 100, 1, f102);
+  reset(f101);
+}
+
+if (f102) {
+  reset(f102);
+  erase(o1);
+  v35 = 3;
+}
+
+if (v2 == 2) {
+  erase(o1);
+  erase(o2);
+  new.room(179);
+}
+
+if (v2 == 4) {
+  erase(o1);
+  erase(o2);
+  new.room(177);
+}
+return();
+
+
+// messages
+#message 1 "You're in the eastern part of campus on Upper College Road."
+#message 2 "It's nothing important."
+#message 3 "You see nothing important."
+#message 4 "It's just a sidewalk."
+#message 5 "Upper College Road runs along the top part of campus."
+#message 6 "Just try it... I dare ya."
+#message 7 "The trees are of no concern."
+#message 8 "You should stop talking to yourself."

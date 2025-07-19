@@ -1,0 +1,73 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(40);
+
+  if (v1 == 129) {
+    position(o0, 100, 45);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're on a street in the middle of campus between Davis Hall and the Carlotti building.");
+}
+
+if (said("examine", "davis")) {
+  print("You're not really sure what goes on in there, nor are you eager to find out.");
+}
+
+if (said("examine", "carlotti") || said("examine", "building")) {
+  print("It's the administration building. It holds no secrets for you.");
+}
+
+if (said("examine", "d") || said("o", "d")) {
+  print("You have no need to go in there. Don't bother trying.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "road")) {
+  print("It's flat and black.");
+}
+
+if (said("examine", "bush")) {
+  print("They're little fat green things.");
+}
+
+if (said("examine", "window")) {
+  print("There's nothing good to see in there.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  new.room(129);
+}
+
+if (v2 == 4) {
+  new.room(116);
+}
+
+if (v2 == 2) {
+  new.room(118);
+}
+return();
+
+
+// messages
+#message 1 "You're on a street in the middle of campus between Davis Hall and the Carlotti building."
+#message 2 "You're not really sure what goes on in there, nor are you eager to find out."
+#message 3 "It's the administration building. It holds no secrets for you."
+#message 4 "You have no need to go in there. Don't bother trying."
+#message 5 "You see nothing important."
+#message 6 "It's flat and black."
+#message 7 "They're little fat green things."
+#message 8 "There's nothing good to see in there."
+#message 9 "You should stop talking to yourself."

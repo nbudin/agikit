@@ -1,0 +1,138 @@
+if (f5) {
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+
+  if (v1 == 86) {
+    position(o0, 75, 165);
+  }
+
+  if (v1 == 206) {
+    ignore.blocks(o0);
+    position(o0, 85, 126);
+    set.loop(o0, 2);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f107);
+    program.control();
+  }
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  animate.obj(o1);
+  load.view(52);
+  set.view(o1, 52);
+  set.loop(o1, 0);
+
+  if (f107) {
+    set.cel(o1, 2);
+  } else {
+    set.cel(o1, 0);
+  }
+  ignore.blocks(o1);
+  ignore.objs(o1);
+  position(o1, 81, 120);
+  set.priority(o1, 4);
+  stop.cycling(o1);
+  draw(o1);
+  show.pic();
+  draw(o0);
+}
+
+if (f107) {
+  move.obj(o0, 85, 130, 1, f112);
+}
+
+if (f112) {
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o1, f118);
+  reset(f112);
+  reset(f107);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're just outside of the Union.");
+}
+
+if (said("examine", "memorial union") || said("examine", "building")) {
+  print("It, along with the rest of campus, is curiously empty today.");
+}
+
+if (said("examine", "floor")) {
+  print("You see ugly, dirty cement.");
+}
+
+if (said("examine", "cement")) {
+  print("There's nothing special about it.");
+}
+
+if (said("examine", "bulletin board")) {
+  print("You look through the postings, but see nothing of interest.");
+}
+
+if (said("examine", "wall")) {
+  print("Yes, they're pretty ugly. There's a bulletin board on the left wall.");
+}
+
+if (said("o", "memorial union", "d") || said("o", "memorial union") || said("o", "d") || said("o", "building", "d")) {
+  if (posn(o0, 80, 117, 98, 127)) {
+    program.control();
+    load.sound(3);
+    sound(3, f153);
+    end.of.loop(o1, f101);
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (f101) {
+  move.obj(o0, 85, 126, 1, f100);
+}
+
+if (f100) {
+  reset(f101);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  move.obj(o0, 85, 116, 1, f111);
+}
+
+if (f3) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  new.room(206);
+}
+
+if (v2 == 3) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  new.room(86);
+}
+return();
+
+
+// messages
+#message 1 "You're just outside of the Union."
+#message 2 "It, along with the rest of campus, is curiously empty today."
+#message 3 "You see ugly, dirty cement."
+#message 4 "There's nothing special about it."
+#message 5 "You look through the postings, but see nothing of interest."
+#message 6 "Yes, they're pretty ugly. There's a bulletin board on the left wall."
+#message 50 "You're not close enough."

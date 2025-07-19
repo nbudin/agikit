@@ -447,8 +447,8 @@ mod tests {
             .expect("Failed to generate ASM code");
 
         let expected_asm = uriquest_dir()
-            .read_file_utf8("0.agiasm")
-            .expect("Failed to read uriquest/0.agiasm file");
+            .read_file_utf8("src/logic/0.agiasm")
+            .expect("Failed to read uriquest/src/logic/0.agiasm file");
 
         assert_eq!(expected_asm, generated_asm);
     }

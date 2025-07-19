@@ -1,0 +1,471 @@
+if (f5) {
+  reset(f100);
+  reset(f101);
+  reset(f102);
+  reset(f103);
+  reset(f104);
+  reset(f105);
+  reset(f106);
+  reset(f107);
+  reset(f111);
+  reset(f112);
+  reset(f108);
+  reset(f109);
+  reset(f110);
+  reset(f111);
+  reset(f118);
+
+  if (v1 == 10) {
+    ignore.blocks(o0);
+    position(o0, 127, 130);
+    set.loop(o0, 1);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f106);
+    program.control();
+  }
+
+  if (v1 == 12) {
+    ignore.blocks(o0);
+    position(o0, 85, 114);
+    set.loop(o0, 2);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f107);
+    program.control();
+  }
+
+  if (v1 == 13) {
+    ignore.blocks(o0);
+    position(o0, 114, 165);
+    set.loop(o0, 3);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f111);
+    program.control();
+  }
+
+  if (v1 == 14) {
+    ignore.blocks(o0);
+    position(o0, 20, 135);
+    set.loop(o0, 2);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f113);
+    program.control();
+  }
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  animate.obj(o1);
+  load.view(21);
+  set.view(o1, 21);
+  set.loop(o1, 0);
+
+  if (f107) {
+    set.cel(o1, 3);
+  } else {
+    set.cel(o1, 0);
+  }
+  ignore.blocks(o1);
+  position(o1, 84, 112);
+  ignore.objs(o1);
+  set.priority(o1, 10);
+  stop.cycling(o1);
+  draw(o1);
+  animate.obj(o2);
+  load.view(22);
+  set.view(o2, 22);
+  set.loop(o2, 0);
+
+  if (f106) {
+    set.cel(o2, 3);
+  } else {
+    set.cel(o2, 0);
+  }
+  ignore.blocks(o2);
+  position(o2, 126, 131);
+  ignore.objs(o2);
+  set.priority(o2, 11);
+  stop.cycling(o2);
+  draw(o2);
+  animate.obj(o3);
+  load.view(23);
+  set.view(o3, 23);
+  set.loop(o3, 0);
+
+  if (f111) {
+    set.cel(o3, 3);
+  } else {
+    set.cel(o3, 0);
+  }
+  ignore.blocks(o3);
+  position(o3, 112, 166);
+  ignore.objs(o3);
+  set.priority(o3, 15);
+  stop.cycling(o3);
+  draw(o3);
+  show.pic();
+  draw(o0);
+}
+
+if (f113) {
+  move.obj(o0, 20, 145, 1, f112);
+}
+
+if (f112) {
+  reset(f112);
+  reset(f113);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (f107) {
+  move.obj(o0, 85, 122, 1, f108);
+}
+
+if (f108) {
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o1, f118);
+  reset(f108);
+  reset(f107);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (f106) {
+  move.obj(o0, 118, 130, 1, f109);
+}
+
+if (f109) {
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o2, f118);
+  reset(f109);
+  reset(f106);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (f111) {
+  move.obj(o0, 114, 150, 1, f110);
+}
+
+if (f110) {
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o3, f118);
+  reset(f110);
+  reset(f111);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("This is the hallway outside of Jeff & John's dorm room. There are four doors. Pizza boxes and beer bottles are strewn about.  How typical.");
+}
+
+if (said("examine", "d")) {
+  print("On the right is Jeff & John's dorm room.  At the top is the bathroom.  At the bottom is Ziggy's room, and the exit to the stairwell is on the left.");
+}
+
+if (said("examine", "sigurd", "d") || said("examine", "b", "d")) {
+  print("It's the one right near Jeff & John's room, on the opposite side of the hall as the stairwell exit.");
+}
+
+if (said("examine", "bath room", "d") || said("examine", "t", "d") || said("examine", "bath room")) {
+  print("It's the one right near Jeff & John's room, on the same side of the hall as the stairwell exit.");
+}
+
+if (said("examine", "room", "d") || said("examine", "right", "d") || said("examine", "jeff", "d") || said("examine", "john", "d")) {
+  print("A chalkboard is mounted on it.");
+}
+
+if (said("examine", "bulletin board") || said("read", "bulletin board")) {
+  if (posn(o0, 117, 121, 140, 134)) {
+    if (v50 == 0) {
+      print("Jeff,\n\nWe're playing a gig in the lounge tonight. Meet me in our room beforehand.\n\n-John");
+    
+      if (!f155) {
+        v3 += 2;
+        load.sound(1);
+        sound(1, f153);
+        set(f155);
+      }
+    }
+  
+  Address583:
+  
+    if (v50 == 1) {
+      print("Ed,\n\nThere's a sale on vodka and OJ at Patsy's Package Store today. Get the stuff there, and meet John and I in the Aldrich lounge tonight.\n\n-Jeff");
+    
+      if (!f156) {
+        v3 += 2;
+        load.sound(1);
+        sound(1, f153);
+        set(f156);
+      }
+    }
+  
+  Address609:
+  
+    if (v50 == 2) {
+      print("John,\n\nMeet us at Rojo's for dinner tonight. We're gonna come back to the room afterwards to play a new game that is supposed to be really cool.\n\n-Jeff");
+    
+      if (!f157) {
+        v3 += 2;
+        load.sound(1);
+        sound(1, f153);
+        set(f157);
+      }
+    }
+  
+  Address635:
+  
+    if (v50 == 3) {
+      print("Ziggy,\n\nMeet us at Rojo's for dinner tonight. But don't even think about coming if that puke blanket isn't washed and dried.\n\n-John");
+    
+      if (!f158) {
+        v3 += 1;
+        load.sound(1);
+        sound(1, f153);
+        set(f158);
+      }
+    }
+  } else {
+    print("Get a little closer.");
+  }
+}
+
+Address666:
+
+if (said("examine", "floor")) {
+  print("There are some holes in the carpet, a couple of empty beer bottles , and an old pizza box.  In other words, your typical dorm hallway.");
+}
+
+if (said("examine", "wall")) {
+  print("There are some cracks in the hideously painted walls. In other words, your typical dorm walls.");
+}
+
+if (said("examine", "beer") || said("examine", "bottle") || said("examine", "beer", "bottle")) {
+  print("They're the remnants of a party last weekend.  They are also empty, which in layman's terms means useless.");
+}
+
+if (said("examine", "box") || said("examine", "pizza") || said("examine", "pizza", "box")) {
+  print("Pizza... the fifth food group. Ugh... Domino's. Someone here has bad taste.  ");
+}
+
+if (said("acquire", "anyword")) {
+  print("You don't need it.");
+}
+
+if (said("o", "bath room", "d") || said("o", "t", "d") || said("o", "bath room")) {
+  if (posn(o0, 84, 114, 96, 118)) {
+    program.control();
+    load.sound(3);
+    sound(3, f153);
+    end.of.loop(o1, f101);
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (f101) {
+  move.obj(o0, 88, 117, 1, f100);
+}
+
+if (f100) {
+  reset(f101);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  move.obj(o0, 88, 95, 1, f111);
+}
+
+if (said("knock", "bath room", "d") || said("knock", "t", "d") || said("knock", "bath room")) {
+  print("Just try walking in.");
+}
+
+if (said("c", "bath room", "d") || said("c", "t", "d")) {
+  print("It's already closed.");
+}
+
+if (said("o", "room", "d") || said("o", "right", "d") || said("o", "jeff", "d") || said("o", "john", "d") || said("o", "building", "d") || said("o", "building", "room") || said("o", "room")) {
+  if (posn(o0, 123, 124, 138, 133)) {
+    program.control();
+    load.sound(3);
+    sound(3, f153);
+    end.of.loop(o2, f103);
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (f103) {
+  move.obj(o0, 123, 134, 1, f102);
+}
+
+if (f102) {
+  reset(f103);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  move.obj(o0, 138, 128, 1, f111);
+}
+
+if (said("knock", "room", "d") || said("knock", "right", "d") || said("knock", "jeff", "d") || said("knock", "john", "d") || said("knock", "building", "d") || said("knock", "building", "room")) {
+  print("Just try walking in.");
+}
+
+if (said("c", "room", "d") || said("c", "right", "d") || said("c", "jeff", "d") || said("c", "john", "d")) {
+  print("It's already closed.");
+}
+
+if (said("o", "sigurd", "d") || said("o", "b", "d") || said("o", "sigurd")) {
+  if (posn(o0, 111, 159, 124, 167)) {
+    program.control();
+    load.sound(3);
+    sound(3, f153);
+    end.of.loop(o3, f105);
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (f105) {
+  move.obj(o0, 114, 163, 1, f104);
+}
+
+if (f104) {
+  reset(f105);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  move.obj(o0, 114, 167, 1, f111);
+}
+
+if (said("knock", "sigurd", "d") || said("knock", "b", "d")) {
+  print("Just try walking in.");
+}
+
+if (said("c", "sigurd", "d") || said("c", "b", "d")) {
+  print("It's already closed.");
+}
+
+if (said("knock", "d") || said("o", "d")) {
+  print("Which one?");
+}
+
+if ((f3) && posn(o0, 16, 119, 28, 131)) {
+  erase(o1);
+  erase(o2);
+  erase(o3);
+  reset(f100);
+  reset(f101);
+  reset(f102);
+  reset(f103);
+  reset(f104);
+  reset(f105);
+  reset(f106);
+  reset(f107);
+  reset(f111);
+  reset(f113);
+  reset(f112);
+  reset(f108);
+  reset(f109);
+  reset(f110);
+  reset(f118);
+  new.room(14);
+}
+
+if ((f3) && posn(o0, 85, 107, 95, 112)) {
+  erase(o1);
+  erase(o2);
+  erase(o3);
+  reset(f100);
+  reset(f101);
+  reset(f102);
+  reset(f103);
+  reset(f104);
+  reset(f105);
+  reset(f106);
+  reset(f107);
+  reset(f111);
+  reset(f113);
+  reset(f112);
+  reset(f108);
+  reset(f109);
+  reset(f110);
+  reset(f118);
+  new.room(12);
+}
+
+if ((f3) && posn(o0, 112, 165, 124, 167)) {
+  erase(o1);
+  erase(o2);
+  erase(o3);
+  reset(f100);
+  reset(f101);
+  reset(f102);
+  reset(f103);
+  reset(f104);
+  reset(f105);
+  reset(f106);
+  reset(f107);
+  reset(f111);
+  reset(f113);
+  reset(f112);
+  reset(f108);
+  reset(f109);
+  reset(f110);
+  reset(f118);
+  new.room(13);
+}
+
+if ((f3) && posn(o0, 123, 120, 140, 130)) {
+  erase(o1);
+  erase(o2);
+  erase(o3);
+  reset(f100);
+  reset(f101);
+  reset(f102);
+  reset(f103);
+  reset(f104);
+  reset(f105);
+  reset(f106);
+  reset(f107);
+  reset(f111);
+  reset(f113);
+  reset(f112);
+  reset(f108);
+  reset(f109);
+  reset(f110);
+  reset(f118);
+  new.room(10);
+}
+return();
+
+
+// messages
+#message 1 "This is the hallway outside of Jeff & John's dorm room. There are four doors. Pizza boxes and beer bottles are strewn about.  How typical."
+#message 2 "On the right is Jeff & John's dorm room.  At the top is the bathroom.  At the bottom is Ziggy's room, and the exit to the stairwell is on the left."
+#message 3 "It's the one right near Jeff & John's room, on the opposite side of the hall as the stairwell exit."
+#message 4 "It's the one right near Jeff & John's room, on the same side of the hall as the stairwell exit."
+#message 5 "A chalkboard is mounted on it."
+#message 6 "Jeff,\n\nWe're playing a gig in the lounge tonight. Meet me in our room beforehand.\n\n-John"
+#message 7 "Ed,\n\nThere's a sale on vodka and OJ at Patsy's Package Store today. Get the stuff there, and meet John and I in the Aldrich lounge tonight.\n\n-Jeff"
+#message 8 "John,\n\nMeet us at Rojo's for dinner tonight. We're gonna come back to the room afterwards to play a new game that is supposed to be really cool.\n\n-Jeff"
+#message 9 "Ziggy,\n\nMeet us at Rojo's for dinner tonight. But don't even think about coming if that puke blanket isn't washed and dried.\n\n-John"
+#message 10 "Get a little closer."
+#message 11 "There are some holes in the carpet, a couple of empty beer bottles , and an old pizza box.  In other words, your typical dorm hallway."
+#message 12 "There are some cracks in the hideously painted walls. In other words, your typical dorm walls."
+#message 13 "They're the remnants of a party last weekend.  They are also empty, which in layman's terms means useless."
+#message 14 "Pizza... the fifth food group. Ugh... Domino's. Someone here has bad taste.  "
+#message 15 "You don't need it."
+#message 16 "Just try walking in."
+#message 17 "It's already closed."
+#message 18 "Which one?"
+#message 50 "You're not close enough."

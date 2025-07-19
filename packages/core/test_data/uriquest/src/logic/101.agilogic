@@ -1,0 +1,82 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(77);
+
+  if (v1 == 89) {
+    position(o0, 75, 80);
+  }
+
+  if (v1 == 78) {
+    position(o0, 1, 90);
+    v6 = 3;
+  }
+
+  if (v1 == 113) {
+    position(o0, 150, 120);
+    v6 = 7;
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("This is the front of the library.");
+}
+
+if (said("examine", "library") || said("examine", "building")) {
+  print("It's a really big building with lots of books in it. Mostly, it's just used by students to take naps in between classes.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "wall")) {
+  print("You see nothing interesting about the walls.");
+}
+
+if (said("examine", "column")) {
+  print("There's nothing interesting about the columns.");
+}
+
+if (said("examine", "d")) {
+  print("It's open and waiting for you.");
+}
+
+if (said("examine", "window")) {
+  print("You see some students snoozing inside.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 3) {
+  new.room(102);
+}
+
+if (v2 == 4) {
+  new.room(78);
+}
+
+if (v2 == 2) {
+  new.room(113);
+}
+
+if (v2 == 1) {
+  new.room(89);
+}
+return();
+
+
+// messages
+#message 1 "This is the front of the library."
+#message 2 "It's a really big building with lots of books in it. Mostly, it's just used by students to take naps in between classes."
+#message 3 "You see nothing important."
+#message 4 "You see nothing interesting about the walls."
+#message 5 "There's nothing interesting about the columns."
+#message 6 "It's open and waiting for you."
+#message 7 "You see some students snoozing inside."
+#message 8 "You should stop talking to yourself."

@@ -1,0 +1,66 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(45);
+
+  if (v1 == 71) {
+    position(o0, 131, 50);
+  }
+
+  if (v1 == 44) {
+    position(o0, 121, 165);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You are on a path going up campus.");
+}
+
+if (said("examine", "path")) {
+  print("It leads further up campus.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "bush")) {
+  print("There's nothing important about the bushes.");
+}
+
+if (said("examine", "lamp")) {
+  print("It helps people see at night.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  new.room(71);
+}
+
+if (v2 == 2) {
+  new.room(60);
+}
+
+if (v2 == 4) {
+  new.room(58);
+}
+
+if (v2 == 3) {
+  new.room(44);
+}
+return();
+
+
+// messages
+#message 1 "You are on a path going up campus."
+#message 2 "It leads further up campus."
+#message 3 "You see nothing important."
+#message 4 "There's nothing important about the bushes."
+#message 5 "It helps people see at night."
+#message 6 "You should stop talking to yourself."

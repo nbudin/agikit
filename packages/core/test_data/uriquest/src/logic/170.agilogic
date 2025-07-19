@@ -1,0 +1,64 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're near Independence Hall.");
+}
+
+if (said("examine", "building") || said("examine", "independence")) {
+  print("It's the English/Writing/Language department building. It's more modern than most of the buildings on campus.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing that interests you.");
+}
+
+if (said("examine", "window")) {
+  print("There's nothing important to see in there.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It's a sidewalk, nothing more.");
+}
+
+if (said("examine", "path")) {
+  print("It's just a path, nothing more.");
+}
+
+if (said("examine", "road")) {
+  print("It's flat, dark and hard. It leads to the visitor's parking lot.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 2) {
+  new.room(171);
+}
+
+if (v2 == 4) {
+  new.room(169);
+}
+
+if (v2 == 3) {
+  new.room(158);
+}
+return();
+
+
+// messages
+#message 1 "You're near Independence Hall."
+#message 2 "It's the English/Writing/Language department building. It's more modern than most of the buildings on campus."
+#message 3 "You see nothing that interests you."
+#message 4 "There's nothing important to see in there."
+#message 5 "It's a sidewalk, nothing more."
+#message 6 "It's just a path, nothing more."
+#message 7 "It's flat, dark and hard. It leads to the visitor's parking lot."
+#message 8 "You should stop talking to yourself."

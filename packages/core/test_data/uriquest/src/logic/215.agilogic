@@ -1,0 +1,267 @@
+if (f5) {
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f111);
+  reset(f118);
+  set(f115);
+
+  if (v1 == 214) {
+    ignore.blocks(o0);
+    position(o0, 105, 157);
+    set.loop(o0, 3);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f107);
+    program.control();
+  }
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  animate.obj(o1);
+  load.view(59);
+  set.view(o1, 59);
+  set.loop(o1, 0);
+
+  if (f107) {
+    set.cel(o1, 2);
+  } else {
+    set.cel(o1, 0);
+  }
+  ignore.blocks(o1);
+  ignore.objs(o1);
+  position(o1, 103, 158);
+  set.priority(o1, 15);
+  stop.cycling(o1);
+  draw(o1);
+  animate.obj(o2);
+  load.view(14);
+  set.view(o2, 14);
+  position(o2, 40, 130);
+  start.cycling(o2);
+  draw(o2);
+  show.pic();
+  draw(o0);
+}
+
+if (f107) {
+  move.obj(o0, 105, 152, 1, f112);
+}
+
+if (f112) {
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o1, f118);
+  reset(f112);
+  reset(f107);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (f115) {
+  move.obj(o2, 30, 125, 1, f113);
+}
+
+if (f113) {
+  reset(f115);
+  move.obj(o2, 80, 110, 1, f114);
+}
+
+if (f114) {
+  reset(f113);
+  reset(f114);
+  stop.cycling(o2);
+}
+
+if (said("o", "neal", "d") || said("o", "b", "d") || said("o", "d") || said("o", "room", "d")) {
+  if (posn(o0, 100, 152, 115, 158)) {
+    program.control();
+    load.sound(3);
+    sound(3, f153);
+    end.of.loop(o1, f101);
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (f101) {
+  move.obj(o0, 105, 152, 1, f100);
+}
+
+if (f100) {
+  reset(f101);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  move.obj(o0, 105, 159, 1, f111);
+}
+
+if (said("chat", "neal")) {
+  if (posn(o0, 75, 108, 100, 114)) {
+    if (!f165) {
+      if (f162) {
+        print("\"Hey Jeff, what's up?\" asks Neal.");
+        print("\"Not much, Tater. Not much.  Hey! actually...\" you start.");
+        print("\"I was in Tyler 109 today and I met the infamous EVK102!\" you continue.");
+        print("\"REALLY?\" asks Neal incredulously.");
+        print("\"Yep!  He mentioned that there's this new game coming out called Wolfenstein. It's supposed to be really cool.  I don't know how it can possibly be better than Space Quest 4, but I'm willing to give it a try.\" you say.");
+        print("\"Yeah, sounds cool.\" replies Tater.");
+        print("\"But since I'm going to be pretty busy over the next couple of days, do you think you can download it for us?  Then we can meet for dinner at Rojo's on Saturday and try it out on my computer afterwards.\" you say.");
+        print("\"Sounds good to me!\" replies Neal. \"I'll download it tomorrow and meet you at Rojo's for dinner on Saturday.\"");
+        set(f165);
+        v3 += 1;
+        load.sound(1);
+        sound(1, f153);
+        print("\"Cool, thanks! See you later!\" you say.");
+      } else {
+        print("\"Nice weather we're having.\" says Neal.");
+        print("\"Yep.\" you reply.");
+      }
+    } else {
+      print("\"I'll meet you for dinner in a couple of days, then.\", says Tater.");
+    }
+  } else {
+    print("Try getting closer.");
+  }
+}
+
+if (said("examine", "b", "desk") || said("examine", "right", "desk")) {
+  print("There's nothing important there.");
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("325S is Neal's dorm room. His roommate is never to be seen. It's just your average, everyday dorm room. It's got two desks, two beds, a lovely window to look out, and posters.");
+}
+
+if (said("examine", "d")) {
+  print("It's used to enter and exit the room.");
+}
+
+if (said("examine", "floor") || said("examine", "ceiling")) {
+  print("There's nothing special about it.");
+}
+
+if (said("examine", "wall")) {
+  print("There are some posters, but not much else (besides cracks).");
+}
+
+if (said("examine", "crack") || said("examine", "crack", "wall")) {
+  print("There is nothing special about them.");
+}
+
+if (said("examine", "poster")) {
+  print("The usual dorm room fare: naked chicks, etc... Neal has a Jackson Browne poster.");
+}
+
+if (said("examine", "jackson browne") || said("examine", "jackson browne", "poster")) {
+  print("Picture how interesting Jackson Browne is. Now picture something 1,000 times more interesting than that. Well, this poster is even more interesting than that. But it's still not as interesting as the shit you took this morning.");
+}
+
+if (said("examine", "heater")) {
+  print("It's of no concern.");
+}
+
+if (said("examine", "lot")) {
+  print("It's of no concern.");
+}
+
+if (said("examine", "neal") || said("examine", "bum")) {
+  print("He's from New York, and he likes to MUD alot.");
+}
+
+if (said("examine", "computer")) {
+  print("Neal's computer is inferior to Jeff's computer. He only uses it to MUD and MUSH anyways.");
+}
+
+if (said("examine", "window") || said("examine", "tree")) {
+  print("Outside the window, you have a lovely view of a parking lot.");
+}
+
+if (said("turn on", "computer") || said("use", "computer")) {
+  print("You don't have time for that!");
+}
+
+if (said("examine", "naked", "chick") || said("examine", "chick")) {
+  print("Don't you wish you could see a close-up? Forget it.");
+}
+
+if (said("examine", "bed") || said("examine", "desk")) {
+  print("Which one?");
+}
+
+if (said("examine", "neal", "desk") || said("examine", "t", "desk") || said("examine", "left", "desk")) {
+  print("Neal's computer sits on his desk.");
+}
+
+if (said("o", "neal", "desk") || said("o", "t", "desk") || said("examine", "left", "desk")) {
+  print("There's nothing you need or want in it.");
+}
+
+if (said("o", "right", "desk") || said("o", "b", "desk")) {
+  print("There's nothing you need or want in it.");
+}
+
+if (said("examine", "neal", "bed") || said("examine", "b", "bed") || said("examine", "blue", "bed") || said("examine", "left", "bed")) {
+  print("Neal's bed is messed up. His pillows are strewn across it.");
+}
+
+if (said("examine", "right", "bed") || said("examine", "t", "bed") || said("examine", "purple", "bed")) {
+  print("Neal's roommate's bed doesn't concern you.");
+}
+
+if (said("acquire", "bed") || said("sleep") || said("go", "sleep") || said("go", "bed") || said("sleep", "bed") || said("sleep", "neal", "bed") || said("sleep", "b", "bed") || said("sleep", "left", "bed") || said("sleep", "t", "bed") || said("sleep", "right", "bed")) {
+  print("You don't need to.");
+}
+
+if (f3) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  new.room(214);
+}
+return();
+
+
+// messages
+#message 1 "\"Hey Jeff, what's up?\" asks Neal."
+#message 2 "\"Not much, Tater. Not much.  Hey! actually...\" you start."
+#message 3 "\"I was in Tyler 109 today and I met the infamous EVK102!\" you continue."
+#message 4 "\"REALLY?\" asks Neal incredulously."
+#message 5 "\"Yep!  He mentioned that there's this new game coming out called Wolfenstein. It's supposed to be really cool.  I don't know how it can possibly be better than Space Quest 4, but I'm willing to give it a try.\" you say."
+#message 6 "\"Yeah, sounds cool.\" replies Tater."
+#message 7 "\"But since I'm going to be pretty busy over the next couple of days, do you think you can download it for us?  Then we can meet for dinner at Rojo's on Saturday and try it out on my computer afterwards.\" you say."
+#message 8 "\"Sounds good to me!\" replies Neal. \"I'll download it tomorrow and meet you at Rojo's for dinner on Saturday.\""
+#message 9 "\"Cool, thanks! See you later!\" you say."
+#message 10 "\"Nice weather we're having.\" says Neal."
+#message 11 "\"Yep.\" you reply."
+#message 12 "\"I'll meet you for dinner in a couple of days, then.\", says Tater."
+#message 13 "Try getting closer."
+#message 14 "There's nothing important there."
+#message 15 "325S is Neal's dorm room. His roommate is never to be seen. It's just your average, everyday dorm room. It's got two desks, two beds, a lovely window to look out, and posters."
+#message 16 "It's used to enter and exit the room."
+#message 17 "There's nothing special about it."
+#message 18 "There are some posters, but not much else (besides cracks)."
+#message 19 "There is nothing special about them."
+#message 20 "The usual dorm room fare: naked chicks, etc... Neal has a Jackson Browne poster."
+#message 21 "Picture how interesting Jackson Browne is. Now picture something 1,000 times more interesting than that. Well, this poster is even more interesting than that. But it's still not as interesting as the shit you took this morning."
+#message 22 "It's of no concern."
+#message 23 "He's from New York, and he likes to MUD alot."
+#message 24 "Neal's computer is inferior to Jeff's computer. He only uses it to MUD and MUSH anyways."
+#message 25 "Outside the window, you have a lovely view of a parking lot."
+#message 26 "You don't have time for that!"
+#message 27 "Don't you wish you could see a close-up? Forget it."
+#message 28 "Which one?"
+#message 29 "Neal's computer sits on his desk."
+#message 30 "There's nothing you need or want in it."
+#message 31 "Neal's bed is messed up. His pillows are strewn across it."
+#message 32 "Neal's roommate's bed doesn't concern you."
+#message 33 "You don't need to."
+#message 50 "You're not close enough."

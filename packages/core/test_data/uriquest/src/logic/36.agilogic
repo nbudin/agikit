@@ -1,0 +1,237 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+  reset(f117);
+  reset(f118);
+  reset(f119);
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+
+  if (v1 == 25) {
+    position(o0, 2, 165);
+    v6 = 2;
+  }
+
+  if (v1 == 186) {
+    position(o0, 70, 85);
+    v6 = 0;
+  }
+  animate.obj(o1);
+  load.view(66);
+  set.view(o1, 66);
+  set.loop(o1, 0);
+  stop.cycling(o1);
+  position(o1, 50, 80);
+  ignore.blocks(o1);
+  draw(o1);
+  draw(o0);
+  show.pic();
+}
+
+if (said("use", "automobile") || said("enter", "automobile") || said("drive", "automobile") || said("drive") || said("use", "john", "automobile") || said("enter", "john", "automobile") || said("drive", "john", "automobile")) {
+  if (posn(o0, 50, 80, 80, 88)) {
+    if (has(i12)) {
+      if (f156) {
+        set(f110);
+      } else {
+        print("Although you have the keys, it would also be helpful if you know where you have to drive to.");
+      }
+    } else {
+      print("Well, it would be helpful if you had keys.");
+    }
+  } else {
+    print("Get closer.");
+  }
+}
+
+if (f110) {
+  program.control();
+  erase(o0);
+
+  if (!f173) {
+    set(f173);
+    v3 += 2;
+    load.sound(1);
+    sound(1, f153);
+  }
+  print("You get in John's car, and set off for Patsy's Package Store.");
+  reset(f110);
+  start.cycling(o1);
+  load.sound(18);
+  sound(18, f118);
+  set(f111);
+}
+
+if (f111) {
+  move.obj(o1, 95, 80, 1, f112);
+}
+
+if (f112) {
+  reset(f112);
+  reset(f111);
+  erase(o1);
+  animate.obj(o2);
+  load.view(96);
+  set.view(o2, 96);
+  set.loop(o2, 0);
+  stop.cycling(o2);
+  ignore.blocks(o2);
+  position(o2, 95, 80);
+  draw(o2);
+  set(f120);
+}
+
+if (f120) {
+  move.obj(o2, 100, 75, 1, f113);
+}
+
+if (f113) {
+  reset(f120);
+  reset(f113);
+  erase(o2);
+  animate.obj(o1);
+  load.view(66);
+  set.view(o1, 66);
+  start.cycling(o1);
+  ignore.blocks(o1);
+  position(o1, 100, 75);
+  draw(o1);
+  set(f121);
+}
+
+if (f121) {
+  move.obj(o1, 100, 70, 1, f114);
+}
+
+if (f114) {
+  reset(f121);
+  move.obj(o1, 100, 115, 1, f115);
+}
+
+if (f115) {
+  reset(f114);
+  reset(f115);
+  erase(o1);
+  position(o2, 100, 115);
+  draw(o2);
+  set(f122);
+}
+
+if (f122) {
+  move.obj(o2, 90, 120, 1, f116);
+}
+
+if (f116) {
+  reset(f122);
+  reset(f116);
+  erase(o2);
+  ignore.blocks(o1);
+  position(o1, 90, 120);
+  draw(o1);
+  set(f123);
+}
+
+if (f123) {
+  reset(f123);
+  move.obj(o1, 0, 120, 1, f117);
+}
+
+if (f117) {
+  reset(f116);
+  reset(f117);
+  erase(o1);
+  player.control();
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+  reset(f117);
+  set(f119);
+}
+
+if (f119) {
+  if (f118) {
+    reset(f119);
+    reset(f118);
+    new.room(186);
+  }
+}
+
+Address455:
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("This is where the students of URI park their cars.");
+}
+
+if (said("examine", "automobile") || said("examine", "student", "automobile")) {
+  print("There's nothing special about them. John's red Ford Tempo is conveniently parked right here.");
+}
+
+if (said("examine", "automobile") || said("examine", "john", "automobile")) {
+  print("The Johnmobile. He's always willing to let someone borrow the mean red machine.");
+}
+
+if (said("examine", "lot")) {
+  print("This is the only parking lot at URI that is always filled.");
+}
+
+if (v2 == 3) {
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+  reset(f117);
+  reset(f118);
+  reset(f119);
+  erase(o1);
+  new.room(25);
+}
+
+if (v2 == 4) {
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+  reset(f117);
+  reset(f118);
+  reset(f119);
+  erase(o1);
+  new.room(25);
+}
+return();
+
+
+// messages
+#message 1 "Although you have the keys, it would also be helpful if you know where you have to drive to."
+#message 2 "Well, it would be helpful if you had keys."
+#message 3 "Get closer."
+#message 4 "You get in John's car, and set off for Patsy's Package Store."
+#message 5 "You should stop talking to yourself."
+#message 6 "This is where the students of URI park their cars."
+#message 7 "There's nothing special about them. John's red Ford Tempo is conveniently parked right here."
+#message 8 "The Johnmobile. He's always willing to let someone borrow the mean red machine."
+#message 9 "This is the only parking lot at URI that is always filled."

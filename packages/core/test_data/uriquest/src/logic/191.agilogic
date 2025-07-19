@@ -1,0 +1,158 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(80);
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+
+  if (v1 == 190) {
+    position(o0, 25, 112);
+  }
+
+  if (v1 == 192) {
+    position(o0, 85, 82);
+    v6 = 6;
+  }
+
+  if (((v50 == 3)) && (has(i4))) {
+    if (!f186) {
+      animate.obj(o1);
+      load.view(2);
+      set.view(o1, 2);
+      position(o1, 100, 82);
+      start.cycling(o1);
+      draw(o1);
+      program.control();
+      set(f110);
+    }
+  }
+
+Address91:
+  draw(o0);
+  show.pic();
+}
+
+if (f110) {
+  move.obj(o0, 50, 112, 1, f111);
+  move.obj(o1, 62, 112, 1, f112);
+}
+
+if ((f111) && (f112)) {
+  reset(f110);
+  stop.cycling(o1);
+  reset(f111);
+  reset(f112);
+  set(f113);
+}
+
+if (f113) {
+  reset(f113);
+  print("\"Hi John!\" Ziggy says. \"Guess what I found?\"");
+  print("\"A gun in your refrigerator?\" John asks.");
+  print("\"Uuuuh, no.\" Ziggy replies, perplexed. \"I found your penny!\"");
+  print("\"Holy shit!!!\" John replies. \"Where in the world did you get that????\"");
+  print("\"That's not important now. You promised me some laundry detergent if I found your penny.\" Ziggy says.");
+  v3 += 1;
+  load.sound(12);
+  sound(12, f153);
+  set(f186);
+  drop(i4);
+  get(i15);
+  print("\"Ok. Here it is.\" John says. \"Thanks again. I'll see you later.\"");
+  print("\"Bye, John.\" Ziggy says.");
+  start.cycling(o1);
+  program.control();
+  set(f114);
+}
+
+if (f114) {
+  move.obj(o1, 100, 82, 1, f115);
+}
+
+if (f115) {
+  reset(f114);
+  reset(f115);
+  erase(o0);
+  set(f116);
+}
+
+if (f116) {
+  reset(f116);
+  load.view(3);
+  set.view(o0, 3);
+  position(o0, 50, 112);
+  set.loop(o0, 0);
+  draw(o0);
+  player.control();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in a hallway inside the Fine Arts building.");
+}
+
+if (said("examine", "arts") || said("examine", "building")) {
+  print("It's John's home away from home.");
+}
+
+if (said("examine", "floor")) {
+  print("You see a worn, ugly rug.");
+}
+
+if (said("examine", "carpet")) {
+  print("You see a worn, ugly rug.");
+}
+
+if (said("examine", "wall")) {
+  print("There's nothing special about the walls, besides being pale and ugly.");
+}
+
+if (said("examine", "window")) {
+  print("You can see outside, but other than that, there's no big deal.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (f3) {
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  new.room(190);
+}
+
+if (v2 == 1) {
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  new.room(192);
+}
+return();
+
+
+// messages
+#message 1 "\"Hi John!\" Ziggy says. \"Guess what I found?\""
+#message 2 "\"A gun in your refrigerator?\" John asks."
+#message 3 "\"Uuuuh, no.\" Ziggy replies, perplexed. \"I found your penny!\""
+#message 4 "\"Holy shit!!!\" John replies. \"Where in the world did you get that????\""
+#message 5 "\"That's not important now. You promised me some laundry detergent if I found your penny.\" Ziggy says."
+#message 6 "\"Ok. Here it is.\" John says. \"Thanks again. I'll see you later.\""
+#message 7 "\"Bye, John.\" Ziggy says."
+#message 8 "You're in a hallway inside the Fine Arts building."
+#message 9 "It's John's home away from home."
+#message 10 "You see a worn, ugly rug."
+#message 11 "There's nothing special about the walls, besides being pale and ugly."
+#message 12 "You can see outside, but other than that, there's no big deal."
+#message 13 "You should stop talking to yourself."

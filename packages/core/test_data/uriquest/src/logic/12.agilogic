@@ -1,0 +1,433 @@
+if (f5) {
+  v100 = 100;
+  v55 = 2;
+  reset(f100);
+  reset(f103);
+  reset(f101);
+  reset(f102);
+  reset(f105);
+  reset(f104);
+  reset(f106);
+  reset(f107);
+  reset(f108);
+  reset(f109);
+  reset(f110);
+  reset(f112);
+  reset(f111);
+  reset(f113);
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  v51 = 12;
+  animate.obj(o1);
+  load.view(25);
+  set.view(o1, 25);
+  set.loop(o1, 0);
+  set.cel(o1, 0);
+  ignore.blocks(o1);
+  ignore.objs(o1);
+  position(o1, 74, 83);
+  set.priority(o1, 8);
+  stop.cycling(o1);
+  draw(o1);
+  animate.obj(o2);
+  load.view(29);
+  set.view(o2, 29);
+  set.loop(o2, 0);
+  set.cel(o2, 0);
+  ignore.blocks(o2);
+  ignore.objs(o2);
+  position(o2, 77, 80);
+  set.priority(o2, 7);
+  stop.cycling(o2);
+  draw(o2);
+  animate.obj(o3);
+  load.view(31);
+  set.view(o3, 31);
+  set.loop(o3, 0);
+  set.cel(o3, 0);
+  ignore.blocks(o3);
+  position(o3, 85, 124);
+  ignore.objs(o3);
+  set.priority(o3, 15);
+  stop.cycling(o3);
+  draw(o3);
+  set(f103);
+  ignore.blocks(o0);
+  program.control();
+  position(o0, 89, 120);
+  draw(o0);
+  show.pic();
+  end.of.loop(o3, f100);
+  set(f102);
+}
+
+if (f102) {
+  move.obj(o0, 89, 109, 1, f101);
+}
+
+if (f101) {
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o3, f103);
+  reset(f100);
+  reset(f102);
+  reset(f101);
+  observe.blocks(o0);
+  set(f104);
+  player.control();
+}
+
+if (said("o", "d") || said("o", "bath room", "d")) {
+  if (f104) {
+    if (posn(o0, 84, 112, 124, 167)) {
+      program.control();
+      load.sound(3);
+      sound(3, f153);
+      end.of.loop(o3, f100);
+      ignore.blocks(o0);
+      move.obj(o0, 89, 109, 1, f106);
+    } else {
+      print("You're not close enough.");
+    }
+  } else {
+    print("Not while you're naked, you dodo.");
+  }
+}
+
+if ((f100) && (f106)) {
+  move.obj(o0, 89, 167, 1, f106);
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room") || said("examine", "bath room")) {
+  print("This is Jeff, John and Ziggy's bathroom. It's got a toilet, a shower, a mirror, two sinks, and a cabinet.");
+}
+
+if (said("examine", "cabinet")) {
+  if (f108) {
+    print("There's a towel in there.");
+  } else {
+    print("You can't see anything in the cabinet. It's closed.");
+  }
+}
+
+if (said("examine", "mirror")) {
+  print("There you are... as dashing as ever.");
+}
+
+if (said("examine", "sink")) {
+  print("There's nothing unusual or interesting about the sinks.");
+}
+
+if (said("examine", "floor") || said("examine", "wall") || said("examine", "ceiling")) {
+  print("It's the same butt-ugly color the rest of the dorm has been decorated with.");
+}
+
+if (said("use", "sink") || said("clean", "hand") || said("clean", "face") || said("turn on", "faucet")) {
+  print("Nah.");
+}
+
+if (said("acquire", "sink")) {
+  print("Now, now. We all know adventure game characters can hold pretty much everything...... except the bathroom sink. Leave it alone.");
+}
+
+if (said("examine", "toilet")) {
+  print("The mighty throne of porcelain.");
+}
+
+if (said("examine", "shower")) {
+  print("It's just a shower. I hope you know what that is. The floors of all the showers at URI have turned a lovely shade of puke green, due to the abundance of disgusting chemicals in the water.");
+}
+
+if (said("use", "toilet") || said("pee") || said("crap") || said("acquire", "crap") || said("acquire", "pee") || said("flush", "toilet")) {
+  print("You don't need to right now.");
+}
+
+if (said("o", "cabinet")) {
+  if (!f108) {
+    if (posn(o0, 74, 83, 95, 87)) {
+      load.sound(3);
+      sound(3, f153);
+      end.of.loop(o1, f108);
+    } else {
+      print("You're not close enough.");
+    }
+  } else {
+    print("It's already open.");
+  }
+}
+
+if (said("c", "cabinet")) {
+  if (f108) {
+    if (posn(o0, 74, 83, 95, 87)) {
+      reset(f108);
+      load.sound(4);
+      sound(4, f153);
+      reverse.loop(o1, f113);
+    } else {
+      print("You're not close enough.");
+    }
+  } else {
+    print("It's already closed.");
+  }
+}
+
+if (said("acquire", "towel") || said("use", "towel")) {
+  if (!f104) {
+    if (v50 == 0) {
+      if (f108) {
+        if (posn(o0, 74, 83, 95, 87)) {
+          erase(o2);
+          program.control();
+          get.posn(o0, v101, v102);
+          erase(o0);
+          animate.obj(o6);
+          load.view(33);
+          set.view(o6, 33);
+          position.v(o6, v101, v102);
+          cycle.time(o6, v55);
+          start.cycling(o6);
+          draw(o6);
+          set(f109);
+        } else {
+          print("You're not close enough.");
+        }
+      } else {
+        print("What towel?");
+      }
+    } else {
+      print("You don't need it.");
+    }
+  } else {
+    print("You don't need it.");
+  }
+}
+
+if (f109) {
+  v100--;
+
+  if (v100 == 0) {
+    set(f110);
+    v100 = 100;
+    stop.cycling(o6);
+    erase(o6);
+    animate.obj(o0);
+    load.view(30);
+    set.view(o0, 30);
+    v6 = 0;
+    position.v(o0, v101, v102);
+    start.cycling(o0);
+    draw(o0);
+  }
+}
+
+Address721:
+
+if (f110) {
+  reset(f109);
+  reset(f105);
+  print("You quickly dry yourself off and return the towel to the cabinet.");
+  animate.obj(o2);
+  load.view(29);
+  set.view(o2, 29);
+  set.loop(o2, 0);
+  set.cel(o2, 0);
+  ignore.blocks(o2);
+  ignore.objs(o2);
+  position(o2, 77, 80);
+  set.priority(o2, 7);
+  stop.cycling(o2);
+  draw(o2);
+  reset(f110);
+  player.control();
+}
+
+if (said("naked") || said("remove", "clothes") || said("acquire", "naked") || said("acquire", "clothes", "a")) {
+  if (((v50 == 0)) && (f150)) {
+    if (f104) {
+      program.control();
+      erase(o0);
+      get.posn(o0, v101, v102);
+      animate.obj(o7);
+      load.view(34);
+      set.view(o7, 34);
+      set.cel(o7, 0);
+      position.v(o7, v101, v102);
+      cycle.time(o7, v55);
+      draw(o7);
+      end.of.loop(o7, f111);
+    } else {
+      print("You already are.");
+    }
+  } else {
+    print("Not right now.");
+  }
+}
+
+if (f111) {
+  erase(o7);
+  load.view(30);
+  set.view(o0, 30);
+  position.v(o0, v101, v102);
+  set.loop(o0, 2);
+  set.cel(o0, 0);
+  draw(o0);
+  player.control();
+  reset(f111);
+  reset(f104);
+}
+
+if (said("dress") || said("attach", "clothes") || said("acquire", "dress")) {
+  if (v50 == 0) {
+    if (!f104) {
+      if (!f105) {
+        program.control();
+        erase(o0);
+        get.posn(o0, v101, v102);
+        animate.obj(o7);
+        load.view(34);
+        set.view(o7, 34);
+        set.cel(o7, 12);
+        position.v(o7, v101, v102);
+        cycle.time(o7, v55);
+        draw(o7);
+        reverse.loop(o7, f112);
+      } else {
+        print("Don't you think you should dry off first?");
+      }
+    } else {
+      print("You already are.");
+    }
+  } else {
+    print("Not right now.");
+  }
+}
+
+if (f112) {
+  erase(o7);
+  load.view(0);
+  set.view(o0, 0);
+  position.v(o0, v101, v102);
+  set.loop(o0, 2);
+  set.cel(o0, 0);
+  draw(o0);
+  player.control();
+  reset(f112);
+  set(f104);
+}
+
+if (said("shower") || said("acquire", "shower") || said("use", "shower") || said("turn on", "shower")) {
+  if (v50 == 0) {
+    if (!f104) {
+      if (posn(o0, 48, 97, 64, 109)) {
+        program.control();
+        animate.obj(o4);
+        load.view(27);
+        set.view(o4, 27);
+        ignore.objs(o4);
+        set.priority(o4, 12);
+        position(o4, 50, 97);
+        start.cycling(o4);
+        draw(o4);
+        set(f107);
+        set(f105);
+        erase(o0);
+        animate.obj(o5);
+        load.view(32);
+        set.view(o5, 32);
+        ignore.objs(o5);
+        set.priority(o5, 13);
+        position(o5, 53, 100);
+        start.cycling(o5);
+        draw(o5);
+      } else {
+        print("You're not close enough.");
+      }
+    } else {
+      print("You can't do that when you have clothes on.");
+    }
+  } else {
+    print("Not right now.");
+  }
+}
+
+if (f107) {
+  v100--;
+
+  if (v100 == 0) {
+    v100 = 100;
+    reset(f107);
+    stop.cycling(o4);
+    erase(o4);
+    stop.cycling(o5);
+    erase(o5);
+    position(o0, 53, 100);
+    draw(o0);
+  
+    if (!f167) {
+      if (f166) {
+        set(f167);
+        v3 += 2;
+        load.sound(1);
+        sound(1, f153);
+        print("Realizing that you have a date right after the gig, you wisely decide to take a shower now.  Nice job!");
+      }
+    }
+  
+  Address1172:
+    player.control();
+  }
+}
+
+Address1173:
+
+if (f3) {
+  erase(o1);
+  erase(o2);
+  erase(o3);
+  reset(f100);
+  reset(f101);
+  reset(f102);
+  reset(f105);
+  reset(f104);
+  reset(f106);
+  reset(f109);
+  reset(f110);
+  reset(f112);
+  reset(f111);
+  reset(f113);
+  new.room(11);
+}
+return();
+
+
+// messages
+#message 1 "Not while you're naked, you dodo."
+#message 2 "You should stop talking to yourself."
+#message 3 "This is Jeff, John and Ziggy's bathroom. It's got a toilet, a shower, a mirror, two sinks, and a cabinet."
+#message 4 "There's a towel in there."
+#message 5 "You can't see anything in the cabinet. It's closed."
+#message 6 "There you are... as dashing as ever."
+#message 7 "There's nothing unusual or interesting about the sinks."
+#message 8 "It's the same butt-ugly color the rest of the dorm has been decorated with."
+#message 9 "Nah."
+#message 10 "Now, now. We all know adventure game characters can hold pretty much everything...... except the bathroom sink. Leave it alone."
+#message 11 "The mighty throne of porcelain."
+#message 12 "It's just a shower. I hope you know what that is. The floors of all the showers at URI have turned a lovely shade of puke green, due to the abundance of disgusting chemicals in the water."
+#message 13 "You don't need to right now."
+#message 14 "It's already open."
+#message 15 "It's already closed."
+#message 16 "What towel?"
+#message 17 "You don't need it."
+#message 18 "You quickly dry yourself off and return the towel to the cabinet."
+#message 19 "You already are."
+#message 20 "Not right now."
+#message 21 "Don't you think you should dry off first?"
+#message 22 "You can't do that when you have clothes on."
+#message 23 "Realizing that you have a date right after the gig, you wisely decide to take a shower now.  Nice job!"
+#message 50 "You're not close enough."

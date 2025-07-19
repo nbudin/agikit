@@ -1,0 +1,81 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+
+  if (v1 == 168) {
+    position(o0, 90, 55);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're on the right side of the quad.");
+}
+
+if (said("examine", "washburn") || said("examine", "building")) {
+  print("You see some buildings in the distance.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "quad")) {
+  print("It's a nice grassy area. There's not much here right now.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It leads to the top of the quad.");
+}
+
+if (said("examine", "path")) {
+  print("It leads to the top of the quad.");
+}
+
+if (said("examine", "tree")) {
+  print("It's amazing! There are trees here.");
+}
+
+if (said("examine", "bush")) {
+  print("There's nothing special about the bushes.");
+}
+
+if (said("examine", "road")) {
+  print("It leads to the top of campus.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 2) {
+  new.room(157);
+}
+
+if (v2 == 4) {
+  new.room(155);
+}
+
+if (v2 == 1) {
+  new.room(168);
+}
+
+if (v2 == 3) {
+  new.room(142);
+}
+return();
+
+
+// messages
+#message 1 "You're on the right side of the quad."
+#message 2 "You see some buildings in the distance."
+#message 3 "You see nothing important."
+#message 4 "It's a nice grassy area. There's not much here right now."
+#message 5 "It leads to the top of the quad."
+#message 6 "It's amazing! There are trees here."
+#message 7 "There's nothing special about the bushes."
+#message 8 "It leads to the top of campus."
+#message 9 "You should stop talking to yourself."

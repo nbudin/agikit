@@ -1,0 +1,91 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+  reset(f100);
+
+  if (v1 == 88) {
+    position(o0, 55, 165);
+  }
+
+  if (v1 == 112) {
+    position(o0, 120, 100);
+    v6 = 7;
+  }
+
+  if (v1 == 123) {
+    position(o0, 45, 55);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're on a street going up campus. The back of the library is to your right.");
+}
+
+if (said("examine", "library") || said("examine", "building")) {
+  print("It's a really big building with lots of books in it. Mostly, it's just used by students to take naps in between classes.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "road")) {
+  print("You see nothing interesting about it.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("There's nothing interesting about it.");
+}
+
+if (said("examine", "tree")) {
+  print("There's nothing important about the tree.");
+}
+
+if (said("examine", "bush")) {
+  print("Bushes, nothing more.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 4) {
+  if (!f100) {
+    print("You don't need to go that way.  This game is big enough as it is.");
+    set(f100);
+  }
+}
+
+Address187:
+
+if (v2 == 1) {
+  reset(f100);
+  new.room(123);
+}
+
+if (f3) {
+  reset(f100);
+  new.room(112);
+}
+
+if (v2 == 3) {
+  reset(f100);
+  new.room(88);
+}
+return();
+
+
+// messages
+#message 1 "You're on a street going up campus. The back of the library is to your right."
+#message 2 "It's a really big building with lots of books in it. Mostly, it's just used by students to take naps in between classes."
+#message 3 "You see nothing important."
+#message 4 "You see nothing interesting about it."
+#message 5 "There's nothing interesting about it."
+#message 6 "There's nothing important about the tree."
+#message 7 "Bushes, nothing more."
+#message 8 "You should stop talking to yourself."
+#message 9 "You don't need to go that way.  This game is big enough as it is."

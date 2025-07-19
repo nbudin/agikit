@@ -1,0 +1,175 @@
+if (f5) {
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+
+  if (v1 == 23) {
+    ignore.blocks(o0);
+    position(o0, 71, 67);
+    set.loop(o0, 2);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f107);
+    program.control();
+  }
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  animate.obj(o1);
+  load.view(42);
+  set.view(o1, 42);
+  set.loop(o1, 0);
+
+  if (f107) {
+    set.cel(o1, 2);
+  } else {
+    set.cel(o1, 0);
+  }
+  ignore.blocks(o1);
+  ignore.objs(o1);
+  position(o1, 70, 65);
+  set.priority(o1, 4);
+  stop.cycling(o1);
+  draw(o1);
+  show.pic();
+  draw(o0);
+}
+
+if (f107) {
+  move.obj(o0, 70, 80, 1, f112);
+}
+
+if (f112) {
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o1, f118);
+  reset(f112);
+  reset(f107);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (said("o", "aldrich", "d") || said("o", "t", "d") || said("o", "d") || said("o", "building", "d")) {
+  if (posn(o0, 69, 60, 82, 70)) {
+    program.control();
+    load.sound(3);
+    sound(3, f153);
+    end.of.loop(o1, f101);
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (f101) {
+  move.obj(o0, 72, 69, 1, f100);
+}
+
+if (f100) {
+  reset(f101);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  move.obj(o0, 72, 60, 1, f111);
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You are right outside of Aldrich Hall, the home of Jeff & John.");
+}
+
+if (said("examine", "aldrich") || said("examine", "building")) {
+  print("It's the home of Jeff & John.");
+}
+
+if (said("examine", "tree") || said("examine", "sidewalk")) {
+  print("There's nothing special about it.");
+}
+
+if (said("examine", "floor")) {
+  print("There's nothing important.");
+}
+
+if (said("examine", "road")) {
+  print("There's nothing important.");
+}
+
+if ((f3) && (posn(o0, 69, 60, 82, 70))) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  new.room(23);
+}
+
+if (v2 == 2) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  new.room(25);
+}
+
+if (v2 == 3) {
+  v2 = 1;
+  get.posn(o0, v52, v53);
+  erase(o0);
+  v54 = 167;
+  v53 = 159;
+  v53 -= v52;
+
+  if (v53 != 6) {
+    v53 -= 7;
+  } else {
+    v53 = 0;
+  }
+  position.v(o0, v53, v54);
+
+  if (v6 == 5) {
+    v6 = 1;
+  }
+
+  if (v6 == 6) {
+    v6 = 2;
+  }
+
+  if (v6 == 4) {
+    v6 = 8;
+  }
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  new.room(38);
+}
+
+if (v2 == 4) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  new.room(26);
+}
+return();
+
+
+// messages
+#message 1 "You are right outside of Aldrich Hall, the home of Jeff & John."
+#message 2 "It's the home of Jeff & John."
+#message 3 "There's nothing special about it."
+#message 4 "There's nothing important."
+#message 50 "You're not close enough."

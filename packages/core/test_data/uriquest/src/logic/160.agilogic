@@ -1,0 +1,91 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(65);
+
+  if (v1 == 172) {
+    position(o0, 120, 70);
+  }
+  reset(f100);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're near Green Hall.");
+}
+
+if (said("examine", "green") || said("examine", "building")) {
+  print("It's the building you see in the URI logos.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "stairs")) {
+  print("Don't worry about the steps.");
+}
+
+if (said("examine", "path")) {
+  print("It leads to the building.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It leads to the building.");
+}
+
+if (said("examine", "bush")) {
+  print("There's nothing special about the bushes.");
+}
+
+if (said("examine", "tree")) {
+  print("They're just trees.");
+}
+
+if (said("examine", "window")) {
+  print("You see nothing in there.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 2) {
+  if (!f100) {
+    print("You don't need to go that way.  This game is big enough as it is.");
+    set(f100);
+  }
+}
+
+Address186:
+
+if (v2 == 4) {
+  reset(f100);
+  new.room(159);
+}
+
+if (v2 == 1) {
+  reset(f100);
+  new.room(172);
+}
+
+if (v2 == 3) {
+  reset(f100);
+  new.room(146);
+}
+return();
+
+
+// messages
+#message 1 "You're near Green Hall."
+#message 2 "It's the building you see in the URI logos."
+#message 3 "You see nothing important."
+#message 4 "Don't worry about the steps."
+#message 5 "It leads to the building."
+#message 6 "There's nothing special about the bushes."
+#message 7 "They're just trees."
+#message 8 "You see nothing in there."
+#message 9 "You should stop talking to yourself."
+#message 10 "You don't need to go that way.  This game is big enough as it is."

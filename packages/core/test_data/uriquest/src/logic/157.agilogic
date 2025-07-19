@@ -1,0 +1,81 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+
+  if (v1 == 169) {
+    position(o0, 30, 55);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in front of Ranger Hall.");
+}
+
+if (said("examine", "ranger") || said("examine", "building")) {
+  print("It looks just like most of the old stone buildings on campus.");
+}
+
+if (said("examine", "d") || said("o", "d")) {
+  print("You have no need or desire to go in there.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It leads to the building.");
+}
+
+if (said("examine", "path")) {
+  print("It leads to the building.");
+}
+
+if (said("examine", "bush")) {
+  print("There's nothing special about the bushes.");
+}
+
+if (said("examine", "road")) {
+  print("It leads to the top of campus.");
+}
+
+if (said("examine", "window")) {
+  print("You see nothing in there.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 2) {
+  new.room(158);
+}
+
+if (v2 == 4) {
+  new.room(156);
+}
+
+if (v2 == 1) {
+  new.room(169);
+}
+
+if (v2 == 3) {
+  new.room(143);
+}
+return();
+
+
+// messages
+#message 1 "You're in front of Ranger Hall."
+#message 2 "It looks just like most of the old stone buildings on campus."
+#message 3 "You have no need or desire to go in there."
+#message 4 "You see nothing important."
+#message 5 "It leads to the building."
+#message 6 "There's nothing special about the bushes."
+#message 7 "It leads to the top of campus."
+#message 8 "You see nothing in there."
+#message 9 "You should stop talking to yourself."

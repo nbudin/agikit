@@ -1,0 +1,79 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(60);
+
+  if (v1 == 204) {
+    position(o0, 73, 67);
+    v6 = 4;
+  }
+
+  if (v1 == 202) {
+    position(o0, 40, 120);
+    v6 = 7;
+  }
+
+  if (v1 == 210) {
+    position(o0, 110, 120);
+    v6 = 7;
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room") || said("examine", "stair well")) {
+  print("This is the stairwell on the third floor of Bressler Hall.");
+}
+
+if (said("examine", "stairs")) {
+  print("They're concrete, dirty, and ugly.");
+}
+
+if (said("examine", "d")) {
+  print("It leads to the hallway on this floor.");
+}
+
+if (said("o", "d")) {
+  print("It's already open!");
+}
+
+if (said("examine", "window") || said("examine", "outside")) {
+  print("You can see outside.");
+}
+
+if (said("examine", "rail")) {
+  print("There isn't one! Either I was lazy drawing this room, or there really isn't one in the dorm. You make the call!");
+}
+
+if (said("examine", "wall") || said("examine", "floor") || said("examine", "ceiling")) {
+  print("They're pretty much the same as the rest of the dismal dorm.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if ((f3) && (posn(o0, 1, 60, 60, 150))) {
+  new.room(202);
+}
+
+if ((f3) && (posn(o0, 61, 60, 159, 150))) {
+  new.room(210);
+}
+
+if (v2 == 1) {
+  new.room(204);
+}
+return();
+
+
+// messages
+#message 1 "This is the stairwell on the third floor of Bressler Hall."
+#message 2 "They're concrete, dirty, and ugly."
+#message 3 "It leads to the hallway on this floor."
+#message 4 "It's already open!"
+#message 5 "You can see outside."
+#message 6 "There isn't one! Either I was lazy drawing this room, or there really isn't one in the dorm. You make the call!"
+#message 7 "They're pretty much the same as the rest of the dismal dorm."
+#message 8 "You should stop talking to yourself."

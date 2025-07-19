@@ -1,0 +1,63 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(60);
+
+  if (v1 == 49) {
+    position(o0, 75, 165);
+  }
+
+  if (v1 == 51) {
+    position(o0, 70, 65);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You are on the path to Keaney Gym.");
+}
+
+if (said("examine", "gym") || said("examine", "building")) {
+  print("You see it in the distance.");
+}
+
+if (said("examine", "floor")) {
+  print("There's nothing important.");
+}
+
+if (said("examine", "tree")) {
+  print("They're just trees.");
+}
+
+if (said("examine", "path")) {
+  print("There's nothing important about it.");
+}
+
+if (said("examine", "bush")) {
+  print("It's a shrubbery!!!");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  new.room(51);
+}
+
+if (v2 == 3) {
+  new.room(49);
+}
+return();
+
+
+// messages
+#message 1 "You are on the path to Keaney Gym."
+#message 2 "You see it in the distance."
+#message 3 "There's nothing important."
+#message 4 "They're just trees."
+#message 5 "There's nothing important about it."
+#message 6 "It's a shrubbery!!!"
+#message 7 "You should stop talking to yourself."

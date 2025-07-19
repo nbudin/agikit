@@ -1,0 +1,89 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(45);
+  animate.obj(o1);
+  load.view(45);
+  set.view(o1, 45);
+  v55 = 2;
+  cycle.time(o1, v55);
+  start.cycling(o1);
+  set.priority(o1, 4);
+  position(o1, 46, 131);
+  draw(o1);
+
+  if (v1 == 112) {
+    position(o0, 140, 165);
+  }
+
+  if (v1 == 136) {
+    position(o0, 75, 50);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in a nice and tranquil part of campus.");
+}
+
+if (said("jump", "brook") || said("enter", "brook")) {
+  print("YUCK!!!");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "bush")) {
+  print("Na' ga' do it!.");
+}
+
+if (said("examine", "tree")) {
+  print("Yes, there is a tree here.");
+}
+
+if (said("examine", "path")) {
+  print("It goes around the little pond.");
+}
+
+if (said("examine", "brook")) {
+  print("It's a little pond. A gross pond, but still just a pond.");
+}
+
+if (said("examine", "boulder")) {
+  print("You see a big rock. Yup, it's just a big rock.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  erase(o1);
+  new.room(136);
+}
+
+if (v2 == 4) {
+  erase(o1);
+  new.room(123);
+}
+
+if (v2 == 3) {
+  erase(o1);
+  new.room(112);
+}
+return();
+
+
+// messages
+#message 1 "You're in a nice and tranquil part of campus."
+#message 2 "YUCK!!!"
+#message 3 "You see nothing important."
+#message 4 "Na' ga' do it!."
+#message 5 "Yes, there is a tree here."
+#message 6 "It goes around the little pond."
+#message 7 "It's a little pond. A gross pond, but still just a pond."
+#message 8 "You see a big rock. Yup, it's just a big rock."
+#message 9 "You should stop talking to yourself."

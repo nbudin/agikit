@@ -1,0 +1,286 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f100);
+  reset(f105);
+  reset(f101);
+  reset(f106);
+  reset(f104);
+  reset(f107);
+  reset(f101);
+  reset(f102);
+  v51 = 22;
+
+  if (v1 == 20) {
+    ignore.blocks(o0);
+    ignore.objs(o0);
+    position(o0, 140, 57);
+    set.loop(o0, 1);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f100);
+    program.control();
+  }
+
+  if (v1 == 23) {
+    ignore.blocks(o0);
+    ignore.objs(o0);
+    position(o0, 20, 165);
+    set.loop(o0, 3);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f105);
+    program.control();
+  }
+
+  if ((f151) && ((v50 == 0))) {
+    animate.obj(o1);
+    load.view(37);
+    set.view(o1, 37);
+    set.loop(o1, 0);
+    set.cel(o1, 0);
+    position(o1, 55, 57);
+    start.cycling(o1);
+    draw(o1);
+  }
+  draw(o0);
+  show.pic();
+
+  if ((f151) && ((v50 == 0))) {
+    load.sound(2);
+    sound(2, f153);
+    print("Oh, shit!!! It's Jen, the little ugly gimp girl who's in love with Jeff! You'd better get out of this building, and quick! Hurry, before she catches you!");
+    set(f102);
+    load.sound(11);
+    set(f108);
+  }
+}
+
+Address150:
+
+if ((f151) && ((v50 == 0)) && (f102)) {
+  get.posn(o0, v100, v101);
+  v104 = v100;
+  v106 = v100;
+  v105 = v101;
+  v107 = v101;
+  v104 -= 10;
+  v105 -= 5;
+  v106 += 17;
+  v107 += 6;
+  get.posn(o1, v102, v103);
+
+  if (((v102 > v104)) && ((v102 < v106)) && ((v103 > v105)) && ((v103 < v107))) {
+    v35 = 2;
+    stop.motion(o1);
+    stop.motion(o0);
+    stop.cycling(o0);
+  }
+}
+
+Address232:
+
+if (f100) {
+  move.obj(o0, 130, 57, 1, f101);
+}
+
+if (f101) {
+  reset(f101);
+  reset(f100);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (f105) {
+  move.obj(o0, 20, 145, 1, f106);
+}
+
+if (f106) {
+  reset(f106);
+  reset(f105);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if ((f151) && ((v50 == 0)) && (f102)) {
+  if (!f101) {
+    follow.ego(o1, 0, f101);
+  
+    if (f108) {
+      sound(11, f108);
+    }
+  }
+}
+
+Address323:
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("This is the lounge in Aldrich Hall. Occasionally, students hang out here and watch tv.");
+}
+
+if (said("examine", "window")) {
+  print("You see the area behind Aldrich Hall.");
+}
+
+if (said("examine", "floor")) {
+  print("There's a tacky reddish carpet. A couple of chairs and a couch are in the main lounge.");
+}
+
+if (said("examine", "chair") || said("examine", "couch") || said("examine", "furniture")) {
+  print("They're just your typical pieces of furniture.");
+}
+
+if (said("sit", "chair") || said("sit", "couch") || said("sit", "furniture")) {
+  print("Nah.");
+}
+
+if (said("use", "chair") || said("use", "couch") || said("use", "furniture")) {
+  print("Nah.");
+}
+
+if (said("lay", "chair") || said("lay", "couch") || said("lay", "furniture")) {
+  print("Nah.");
+}
+
+if (said("examine", "carpet")) {
+  print("There's not much to see that you can't see already.");
+}
+
+if (said("examine", "a tower")) {
+  print("You don't need to go there.");
+}
+
+if (said("examine", "ceiling")) {
+  print("Nothing up there.");
+}
+
+if (said("examine", "wall")) {
+  print("The tv hangs from one of the walls. You can see the office through a window in another wall.");
+}
+
+if (said("examine", "television")) {
+  print("Sometimes people watch movies on it, but it mostly just hangs there.");
+}
+
+if (said("use", "television") || said("turn on", "television")) {
+  print("You have better things to do.");
+}
+
+if (said("examine", "office") || said("enter", "office")) {
+  print("You have better things to do.");
+}
+
+if (said("examine", "table")) {
+  print("There's nothing on it. Oh well.");
+}
+
+if ((f3) && (posn(o0, 147, 50, 151, 63))) {
+  reset(f100);
+  reset(f105);
+  reset(f101);
+  reset(f106);
+  reset(f104);
+  reset(f107);
+  reset(f101);
+  reset(f102);
+  reset(f108);
+  erase(o1);
+  new.room(20);
+}
+
+if ((f3) && (posn(o0, 0, 164, 50, 167))) {
+  if (v50 == 0) {
+    if (f150) {
+      if (f151) {
+        v3 += 2;
+        load.sound(1);
+        sound(1, f153);
+        print("Congratulations.  By deftly evading Jen, you have saved yourself from her dreaded company all day.  Nice job!  I'll even give you two points for that one!");
+        reset(f151);
+        reset(f100);
+        reset(f105);
+        reset(f101);
+        reset(f106);
+        reset(f104);
+        reset(f107);
+        reset(f101);
+        reset(f102);
+        reset(f108);
+        erase(o1);
+        new.room(23);
+      } else {
+        reset(f100);
+        reset(f100);
+        reset(f105);
+        reset(f101);
+        reset(f106);
+        reset(f104);
+        reset(f107);
+        reset(f101);
+        reset(f102);
+        reset(f108);
+        erase(o1);
+        new.room(23);
+      }
+    } else {
+      if (!f107) {
+        print("You can't leave without pants!");
+        set(f107);
+      }
+    }
+  } else {
+    reset(f100);
+    reset(f100);
+    reset(f105);
+    reset(f101);
+    reset(f106);
+    reset(f104);
+    reset(f107);
+    reset(f101);
+    reset(f102);
+    erase(o1);
+    reset(f108);
+    new.room(23);
+  }
+}
+
+Address772:
+
+if ((f3) && (posn(o0, 4, 43, 7, 61))) {
+  if (!f104) {
+    print("This leads to A and B towers. Most of the people there are complete losers. You don't need to go there.");
+    set(f104);
+  }
+}
+
+Address799:
+return();
+
+
+// messages
+#message 1 "Oh, shit!!! It's Jen, the little ugly gimp girl who's in love with Jeff! You'd better get out of this building, and quick! Hurry, before she catches you!"
+#message 2 "You should stop talking to yourself."
+#message 3 "This is the lounge in Aldrich Hall. Occasionally, students hang out here and watch tv."
+#message 4 "You see the area behind Aldrich Hall."
+#message 5 "There's a tacky reddish carpet. A couple of chairs and a couch are in the main lounge."
+#message 6 "They're just your typical pieces of furniture."
+#message 7 "Nah."
+#message 8 "There's not much to see that you can't see already."
+#message 9 "You don't need to go there."
+#message 10 "Nothing up there."
+#message 11 "The tv hangs from one of the walls. You can see the office through a window in another wall."
+#message 12 "Sometimes people watch movies on it, but it mostly just hangs there."
+#message 13 "You have better things to do."
+#message 14 "There's nothing on it. Oh well."
+#message 15 "Congratulations.  By deftly evading Jen, you have saved yourself from her dreaded company all day.  Nice job!  I'll even give you two points for that one!"
+#message 16 "You can't leave without pants!"
+#message 17 "This leads to A and B towers. Most of the people there are complete losers. You don't need to go there."
+#message 50 "You're not close enough."

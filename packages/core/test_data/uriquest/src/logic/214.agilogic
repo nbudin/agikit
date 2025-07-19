@@ -1,0 +1,134 @@
+if (f5) {
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+
+  if (v1 == 213) {
+    position(o0, 27, 122);
+    v6 = 3;
+  }
+
+  if (v1 == 215) {
+    ignore.blocks(o0);
+    position(o0, 39, 108);
+    set.loop(o0, 2);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f107);
+    program.control();
+  }
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(107);
+  animate.obj(o1);
+  load.view(58);
+  set.view(o1, 58);
+  set.loop(o1, 0);
+
+  if (f107) {
+    set.cel(o1, 2);
+  } else {
+    set.cel(o1, 0);
+  }
+  ignore.blocks(o1);
+  ignore.objs(o1);
+  position(o1, 38, 108);
+  set.priority(o1, 4);
+  stop.cycling(o1);
+  draw(o1);
+  show.pic();
+  draw(o0);
+}
+
+if (f107) {
+  move.obj(o0, 39, 112, 1, f112);
+}
+
+if (f112) {
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o1, f118);
+  reset(f112);
+  reset(f107);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (said("o", "neal", "d") || said("o", "t", "d") || said("o", "d") || said("o", "room", "d")) {
+  if (((v50 == 0)) && (f163)) {
+    if (posn(o0, 35, 108, 50, 112)) {
+      program.control();
+      load.sound(3);
+      sound(3, f153);
+      end.of.loop(o1, f101);
+    } else {
+      print("You're not close enough.");
+    }
+  } else {
+    print("You have no reason to go in there right now.");
+  }
+}
+
+if (f101) {
+  move.obj(o0, 39, 110, 1, f100);
+}
+
+if (f100) {
+  reset(f101);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  move.obj(o0, 39, 107, 1, f111);
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("This is the hallway just outside of Neal's room.");
+}
+
+if (said("examine", "hall")) {
+  print("It's concrete, dirty, and ugly.");
+}
+
+if (said("examine", "d")) {
+  print("The doors lead to rooms.");
+}
+
+if (said("examine", "wall") || said("examine", "floor") || said("examine", "ceiling")) {
+  print("They're pretty much the same as the rest of the dismal dorm.");
+}
+
+if (f3) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  new.room(213);
+}
+
+if (v2 == 1) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  new.room(215);
+}
+return();
+
+
+// messages
+#message 1 "You have no reason to go in there right now."
+#message 2 "This is the hallway just outside of Neal's room."
+#message 3 "It's concrete, dirty, and ugly."
+#message 4 "The doors lead to rooms."
+#message 5 "They're pretty much the same as the rest of the dismal dorm."
+#message 50 "You're not close enough."

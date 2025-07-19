@@ -1,0 +1,91 @@
+if (f5) {
+  v0 = 199;
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f100);
+  reset(f101);
+  reset(f102);
+  reset(f103);
+  reset(f104);
+  reset(f105);
+  reset(f110);
+  reset(f111);
+  v0 = 2;
+  v53 = 50;
+  v54 = 50;
+  v55 = 5;
+  animate.obj(o1);
+  load.view(87);
+  set.view(o1, 87);
+  position(o1, 35, 100);
+  set.loop(o1, 0);
+  set.cel(o1, 0);
+  cycle.time(o1, v55);
+  step.time(o1, v55);
+  stop.cycling(o1);
+  animate.obj(o2);
+  load.view(89);
+  set.view(o2, 89);
+  position(o2, 35, 100);
+  set.loop(o2, 0);
+  set.cel(o2, 0);
+  cycle.time(o2, v55);
+  step.time(o2, v55);
+  stop.cycling(o2);
+  draw(o1);
+  draw(o2);
+  program.control();
+  load.sound(13);
+  sound(13, f105);
+  show.pic();
+  set(f110);
+}
+
+if (f110) {
+  reset(f110);
+  end.of.loop(o1, f103);
+}
+
+if (f103) {
+  v53 -= 1;
+}
+
+if (f103) {
+  if (v53 == 5) {
+    reset(f103);
+    erase(o1);
+    set(f111);
+  }
+}
+
+Address147:
+
+if (f111) {
+  reset(f111);
+  end.of.loop(o2, f104);
+}
+
+if (f104) {
+  v54 -= 1;
+}
+
+if (((v54 < 5)) && (f105)) {
+  reset(f104);
+  erase(o2);
+  reset(f100);
+  reset(f101);
+  reset(f102);
+  reset(f103);
+  reset(f104);
+  reset(f105);
+  reset(f110);
+  reset(f111);
+  new.room(3);
+}
+return();
+
+
+// messages
+

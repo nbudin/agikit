@@ -1,0 +1,196 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  v55 = 4;
+
+  if (v50 == 3) {
+    animate.obj(o1);
+    load.view(67);
+    set.view(o1, 67);
+    cycle.time(o1, v55);
+    step.time(o1, v55);
+    start.cycling(o1);
+    position(o1, 6, 112);
+    draw(o1);
+    set(f120);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (f120) {
+  reset(f123);
+  move.obj(o1, 106, 145, 1, f121);
+}
+
+if (f121) {
+  reset(f120);
+  move.obj(o1, 35, 100, 1, f122);
+}
+
+if (f122) {
+  reset(f121);
+  move.obj(o1, 140, 130, 1, f123);
+}
+
+if (f123) {
+  reset(f122);
+  move.obj(o1, 6, 60, 1, f120);
+}
+
+if (v50 == 3) {
+  get.posn(o0, v100, v101);
+  v104 = v100;
+  v106 = v100;
+  v105 = v101;
+  v107 = v101;
+  v104 -= 15;
+  v105 -= 10;
+  v106 += 20;
+  v107 += 10;
+  get.posn(o1, v102, v103);
+
+  if (((v102 > v104)) && ((v102 < v106)) && ((v103 > v105)) && ((v103 < v107))) {
+    set(f124);
+  } else {
+    reset(f124);
+  }
+
+  if (said("give", "juice") || said("give", "juice", "bum")) {
+    if (f124) {
+      if (!f185) {
+        if (has(i13)) {
+          drop(i13);
+          set(f185);
+          print("\"Hey... Shthanksshh, mishterrrr.\" the drunk says. \"You're my h-h-hero! I don't h-h-have too shmuch ta offer ya excsh-eschept my only possesh-posseshion....\"");
+          print("\"Thish here penny.\" he finishes.");
+          v3 += 1;
+          load.sound(12);
+          sound(12, f153);
+          print("Shaking the lice off it, you take the penny from the drunk.");
+          get(i4);
+        } else {
+          print("You don't have any.");
+        }
+      } else {
+        print("He already has it. He's a happy drunk now.");
+      }
+    } else {
+      print("Try getting closer.");
+    }
+  }
+}
+
+Address260:
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in the middle of the quad.");
+}
+
+if (said("examine", "quad")) {
+  print("It's a big, green quadrilateral.");
+}
+
+if (v50 == 3) {
+  if (said("examine", "bum")) {
+    print("He's a stinking drunk.");
+  }
+}
+
+Address315:
+
+if (v50 == 3) {
+  if (said("chat", "bum")) {
+    print("\"Can ya schpare schome juice, mischter?\" the drunk guy says.");
+  }
+}
+
+Address334:
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "window")) {
+  print("There's nothing interesting to see in there.");
+}
+
+if (said("examine", "path")) {
+  print("They lead across the quad.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("They lead across the quad.");
+}
+
+if (said("examine", "tree")) {
+  print("You see some trees. Wow.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 4) {
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  erase(o1);
+  new.room(139);
+}
+
+if (v2 == 2) {
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  erase(o1);
+  new.room(141);
+}
+
+if (v2 == 3) {
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  erase(o1);
+  new.room(128);
+}
+
+if (v2 == 1) {
+  new.room(154);
+}
+return();
+
+
+// messages
+#message 1 "\"Hey... Shthanksshh, mishterrrr.\" the drunk says. \"You're my h-h-hero! I don't h-h-have too shmuch ta offer ya excsh-eschept my only possesh-posseshion....\""
+#message 2 "\"Thish here penny.\" he finishes."
+#message 3 "Shaking the lice off it, you take the penny from the drunk."
+#message 4 "You don't have any."
+#message 5 "He already has it. He's a happy drunk now."
+#message 6 "Try getting closer."
+#message 7 "You're in the middle of the quad."
+#message 8 "It's a big, green quadrilateral."
+#message 9 "He's a stinking drunk."
+#message 10 "\"Can ya schpare schome juice, mischter?\" the drunk guy says."
+#message 11 "You see nothing important."
+#message 12 "There's nothing interesting to see in there."
+#message 13 "They lead across the quad."
+#message 14 "You see some trees. Wow."
+#message 15 "You should stop talking to yourself."

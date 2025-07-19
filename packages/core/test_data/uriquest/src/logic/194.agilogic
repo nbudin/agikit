@@ -1,0 +1,115 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(118);
+
+  if (v1 == 139) {
+    position(o0, 31, 165);
+    v6 = 2;
+  }
+
+  if (v1 == 195) {
+    position(o0, 120, 120);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're inside Lippitt Hall at the Administrative Computer Center.");
+}
+
+if (said("examine", "administrative") || said("examine", "building")) {
+  print("It's where Jeff works.");
+}
+
+if (said("examine", "d") || said("o", "d")) {
+  print("The doors lead to the mainframe room. They're locked.");
+}
+
+if (said("examine", "floor")) {
+  print("You see a worn, ugly rug.");
+}
+
+if (said("examine", "carpet")) {
+  print("You see a worn, ugly rug.");
+}
+
+if (said("examine", "wall")) {
+  print("There's nothing special about the walls, besides being pale and ugly.");
+}
+
+if (said("examine", "window")) {
+  print("People get printouts there. It doesn't concern you.");
+}
+
+if (said("examine", "desk")) {
+  print("It's where Mary sits. There's nothing important about it.");
+}
+
+if (said("examine", "computer")) {
+  print("It's a 386. Jeff's computer kicks its ass.");
+}
+
+if (said("examine", "chick")) {
+  print("She is the secretary of this department.");
+}
+
+if (said("examine", "calendar")) {
+  print("And that would be important how?");
+}
+
+if (said("use", "computer")) {
+  print("Nah.");
+}
+
+if (said("examine", "cabinet") || said("o", "cabinet")) {
+  print("They contain records which you don't care about.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (said("chat", "chick")) {
+  if (!f159) {
+    print("\"Hi Jeff\", says Mary. \"Welcome to another day of work. Before you go sit in your cubicle, can you do me a favor? I need you to take this tape backup over to Tyler Hall dispatch. Thanks!\"");
+    v3 += 2;
+    load.sound(12);
+    sound(12, f153);
+    get(i7);
+    set(f159);
+    print("You take the data tape from Mary.");
+  } else {
+    print("\"Don't you have work to do?\", asks Mary.");
+  }
+}
+
+if (v2 == 3) {
+  new.room(139);
+}
+
+if (v2 == 1) {
+  new.room(195);
+}
+return();
+
+
+// messages
+#message 1 "You're inside Lippitt Hall at the Administrative Computer Center."
+#message 2 "It's where Jeff works."
+#message 3 "The doors lead to the mainframe room. They're locked."
+#message 4 "You see a worn, ugly rug."
+#message 5 "There's nothing special about the walls, besides being pale and ugly."
+#message 6 "People get printouts there. It doesn't concern you."
+#message 7 "It's where Mary sits. There's nothing important about it."
+#message 8 "It's a 386. Jeff's computer kicks its ass."
+#message 9 "She is the secretary of this department."
+#message 10 "And that would be important how?"
+#message 11 "Nah."
+#message 12 "They contain records which you don't care about."
+#message 13 "You should stop talking to yourself."
+#message 14 "\"Hi Jeff\", says Mary. \"Welcome to another day of work. Before you go sit in your cubicle, can you do me a favor? I need you to take this tape backup over to Tyler Hall dispatch. Thanks!\""
+#message 15 "You take the data tape from Mary."
+#message 16 "\"Don't you have work to do?\", asks Mary."

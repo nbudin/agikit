@@ -1,0 +1,78 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(55);
+
+  if (v1 == 164) {
+    position(o0, 90, 57);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're between Crawford Hall and Lippitt Hall.");
+}
+
+if (said("examine", "crawford") || said("examine", "lippitt") || said("examine", "building")) {
+  print("The buildings tower above you.");
+}
+
+if (said("o", "d") || said("examine", "d")) {
+  print("Let's just pretend it's locked.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "window")) {
+  print("There's nothing interesting to see in there.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It leads to the engineering quad.");
+}
+
+if (said("examine", "engineering")) {
+  print("It's up there between all those buildings.");
+}
+
+if (said("examine", "road")) {
+  print("This street is flat and hard.");
+}
+
+if (said("examine", "lot")) {
+  print("It's a staff parking lot.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 2) {
+  new.room(153);
+}
+
+if (v2 == 4) {
+  new.room(151);
+}
+
+if (v2 == 1) {
+  new.room(164);
+}
+return();
+
+
+// messages
+#message 1 "You're between Crawford Hall and Lippitt Hall."
+#message 2 "The buildings tower above you."
+#message 3 "Let's just pretend it's locked."
+#message 4 "You see nothing important."
+#message 5 "There's nothing interesting to see in there."
+#message 6 "It leads to the engineering quad."
+#message 7 "It's up there between all those buildings."
+#message 8 "This street is flat and hard."
+#message 9 "It's a staff parking lot."
+#message 10 "You should stop talking to yourself."

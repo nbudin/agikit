@@ -1,0 +1,82 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(40);
+
+  if (v1 == 130) {
+    position(o0, 105, 45);
+  }
+
+  if (v1 == 106) {
+    position(o0, 135, 165);
+    v6 = 1;
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in the middle of campus near the Carlotti building.");
+}
+
+if (said("examine", "carlotti") || said("examine", "building")) {
+  print("It's the administration building. It holds no secrets for you.");
+}
+
+if (said("examine", "d") || said("o", "d")) {
+  print("You have no need to go in there. Don't bother trying.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "road")) {
+  print("It's flat and black.");
+}
+
+if (said("examine", "bush")) {
+  print("They're little fat green things.");
+}
+
+if (said("examine", "tree")) {
+  print("Yes, there is a tree in the distance.");
+}
+
+if (said("examine", "window")) {
+  print("There's nothing good to see in there.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  new.room(130);
+}
+
+if (v2 == 4) {
+  new.room(117);
+}
+
+if (v2 == 2) {
+  new.room(119);
+}
+
+if (v2 == 3) {
+  new.room(106);
+}
+return();
+
+
+// messages
+#message 1 "You're in the middle of campus near the Carlotti building."
+#message 2 "It's the administration building. It holds no secrets for you."
+#message 3 "You have no need to go in there. Don't bother trying."
+#message 4 "You see nothing important."
+#message 5 "It's flat and black."
+#message 6 "They're little fat green things."
+#message 7 "Yes, there is a tree in the distance."
+#message 8 "There's nothing good to see in there."
+#message 9 "You should stop talking to yourself."

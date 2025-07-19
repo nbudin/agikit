@@ -1,0 +1,113 @@
+if (f5) {
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+  reset(f118);
+  v0 = 218;
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  v0 = 4;
+  animate.obj(o2);
+  load.view(1);
+  set.view(o2, 1);
+  position(o2, 86, 100);
+  set.loop(o2, 1);
+  ignore.objs(o2);
+  stop.cycling(o2);
+  draw(o2);
+  animate.obj(o1);
+  load.view(0);
+  set.view(o1, 0);
+  position(o1, 78, 123);
+  set.loop(o1, 2);
+  ignore.objs(o1);
+  stop.cycling(o1);
+  draw(o1);
+  animate.obj(o3);
+  load.view(2);
+  set.view(o3, 2);
+  position(o3, 43, 110);
+  set.loop(o3, 0);
+  ignore.objs(o3);
+  stop.cycling(o3);
+  draw(o3);
+  animate.obj(o4);
+  load.view(3);
+  set.view(o4, 3);
+  position(o4, 60, 95);
+  set.loop(o4, 2);
+  ignore.objs(o4);
+  stop.cycling(o4);
+  draw(o4);
+  animate.obj(o5);
+  load.view(14);
+  set.view(o5, 14);
+  position(o5, 103, 94);
+  set.loop(o5, 1);
+  ignore.objs(o5);
+  stop.cycling(o5);
+  draw(o5);
+  program.control();
+  prevent.input();
+  set(f110);
+  show.pic();
+}
+
+if (f110) {
+  reset(f110);
+  print("\"Well, here we are, the end of the game... uh, I mean... This is what we've been waiting for all week!\" Jeff says.");
+  print("\"Enough already!!\" Ed screams. \"Let's play the damn game!\"");
+  print("\"Alright, alright.\" Jeff says. \"Everybody gather 'round. Here we go...\"");
+  v3 += 25;
+  load.sound(1);
+  sound(1, f153);
+  start.cycling(o2);
+  start.cycling(o1);
+  start.cycling(o3);
+  start.cycling(o4);
+  start.cycling(o5);
+  set(f111);
+}
+
+if (f111) {
+  move.obj(o2, 83, 120, 1, f112);
+  move.obj(o1, 78, 141, 1, f113);
+  move.obj(o3, 68, 138, 1, f114);
+  move.obj(o4, 71, 128, 1, f115);
+  move.obj(o5, 77, 123, 1, f116);
+}
+
+if ((f112) && (f113) && (f114) && (f115) && (f116)) {
+  reset(f111);
+  stop.cycling(o2);
+  stop.cycling(o1);
+  stop.cycling(o3);
+  stop.cycling(o4);
+  stop.cycling(o5);
+  set(f118);
+}
+
+if (f118) {
+  print("\"Let the game begin...\" Jeff says.");
+  reset(f118);
+  erase(o2);
+  erase(o1);
+  erase(o3);
+  erase(o4);
+  erase(o5);
+  new.room(5);
+}
+return();
+
+
+// messages
+#message 1 "\"Well, here we are, the end of the game... uh, I mean... This is what we've been waiting for all week!\" Jeff says."
+#message 2 "\"Enough already!!\" Ed screams. \"Let's play the damn game!\""
+#message 3 "\"Alright, alright.\" Jeff says. \"Everybody gather 'round. Here we go...\""
+#message 4 "\"Let the game begin...\" Jeff says."

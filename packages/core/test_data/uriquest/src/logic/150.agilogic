@@ -1,0 +1,67 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(65);
+
+  if (v1 == 162) {
+    position(o0, 72, 68);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in the northeastern part of campus.");
+}
+
+if (said("examine", "engineering") || said("examine", "building")) {
+  print("This is the engineering complex.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "window")) {
+  print("There's nothing interesting to see in there.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It leads into the engineering quad.");
+}
+
+if (said("examine", "road")) {
+  print("This street is flat and hard.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 2) {
+  new.room(151);
+}
+
+if (v2 == 4) {
+  new.room(149);
+}
+
+if (v2 == 3) {
+  new.room(136);
+}
+
+if (v2 == 1) {
+  new.room(162);
+}
+return();
+
+
+// messages
+#message 1 "You're in the northeastern part of campus."
+#message 2 "This is the engineering complex."
+#message 3 "You see nothing important."
+#message 4 "There's nothing interesting to see in there."
+#message 5 "It leads into the engineering quad."
+#message 6 "This street is flat and hard."
+#message 7 "You should stop talking to yourself."

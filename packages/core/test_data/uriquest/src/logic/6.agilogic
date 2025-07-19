@@ -1,0 +1,387 @@
+if (f5) {
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+  reset(f117);
+  reset(f118);
+  reset(f119);
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  reset(f125);
+  reset(f126);
+  reset(f127);
+  reset(f128);
+  v0 = 91;
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  v0 = 6;
+  animate.obj(o1);
+  load.view(16);
+  set.view(o1, 16);
+  set.loop(o1, 0);
+  set.cel(o1, 0);
+  position(o1, 20, 113);
+  ignore.blocks(o1);
+  ignore.objs(o1);
+  set.priority(o1, 10);
+  stop.cycling(o1);
+  draw(o1);
+  animate.obj(o2);
+  load.view(1);
+  set.view(o2, 1);
+  position(o2, 83, 120);
+  set.loop(o2, 2);
+  ignore.objs(o2);
+  stop.cycling(o2);
+  draw(o2);
+  animate.obj(o0);
+  load.view(0);
+  set.view(o0, 0);
+  position(o0, 78, 141);
+  set.loop(o0, 2);
+  stop.cycling(o0);
+  draw(o0);
+  animate.obj(o3);
+  load.view(2);
+  set.view(o3, 2);
+  position(o3, 68, 138);
+  set.loop(o3, 2);
+  ignore.objs(o3);
+  stop.cycling(o3);
+  draw(o3);
+  animate.obj(o4);
+  load.view(3);
+  set.view(o4, 3);
+  position(o4, 71, 128);
+  set.loop(o4, 2);
+  ignore.objs(o4);
+  stop.cycling(o4);
+  draw(o4);
+  animate.obj(o5);
+  load.view(14);
+  set.view(o5, 14);
+  position(o5, 77, 123);
+  set.loop(o5, 2);
+  ignore.objs(o5);
+  stop.cycling(o5);
+  draw(o5);
+  program.control();
+  prevent.input();
+  v6 = 0;
+  set(f110);
+  show.pic();
+  v3 += 25;
+  stop.sound();
+  load.sound(1);
+  sound(1, f153);
+}
+
+if (f110) {
+  reset(f110);
+  program.control();
+  print("\"Well, that was cool.\" John says. \"I'm gonna go check my email. See you guys later.\"");
+  start.cycling(o3);
+  set(f111);
+}
+
+if (f111) {
+  move.obj(o3, 30, 120, 1, f112);
+}
+
+if (f112) {
+  reset(f111);
+  reset(f112);
+  load.sound(3);
+  sound(3, f153);
+  end.of.loop(o1, f113);
+}
+
+if (f113) {
+  move.obj(o3, 25, 115, 1, f114);
+}
+
+if (f114) {
+  reset(f113);
+  reset(f114);
+  erase(o3);
+  set(f115);
+}
+
+if (f115) {
+  reset(f115);
+  start.cycling(o4);
+  print("\"I'm going to go rent a movie.\" Ziggy says. \"Bye, guys.\"");
+  set(f116);
+}
+
+if (f116) {
+  move.obj(o4, 25, 115, 1, f117);
+}
+
+if (f117) {
+  reset(f116);
+  reset(f117);
+  erase(o4);
+  set(f118);
+}
+
+if (f118) {
+  reset(f118);
+  start.cycling(o5);
+  print("\"I have to go wash my pillow.\" Neal says. \"Later.\"");
+  set(f119);
+}
+
+if (f119) {
+  move.obj(o5, 25, 115, 1, f120);
+}
+
+if (f120) {
+  reset(f119);
+  reset(f120);
+  erase(o5);
+  set(f121);
+}
+
+if (f121) {
+  reset(f121);
+  start.cycling(o2);
+  print("\"I've gotta go put my roommate's blanket on his bed before he gets back.\" Ed says. \"See ya, Jeff.\"");
+  set(f122);
+}
+
+if (f122) {
+  move.obj(o2, 25, 115, 1, f123);
+}
+
+if (f123) {
+  reset(f122);
+  reset(f123);
+  erase(o2);
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o1, f124);
+}
+
+if (f124) {
+  reset(f124);
+  player.control();
+  accept.input();
+  print("\"Wait, this can't be the end!!!\" Jeff cries. \"We're still missing 23 points!\"");
+  print("\"That's because you haven't figured out what the point of this game is yet.\" the Narrator says.");
+  print("\"Wh-where is that voice coming from? Who are you?\" asks Jeff.");
+  print("\"I'm the Narrator of URI Quest.\" says the Narrator.");
+  print("\"Oh.. I see.\" Jeff says. \"But... what IS the goal of URI Quest?\"");
+  print("\"The end of the quest at hand is the end of a quest of the ages.\" the Narrator says.");
+  print("\"What are you, Yoda? I don't get it.\" Jeff replies.");
+  print("\"The answer lies in this room. Search it out, and all will be revealed!\" the Narrator says. \"It's all in your hands now... goodbye.\"");
+}
+
+if (said("o", "d")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine") || said("look around") || said("examine", "room")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "desk") || said("examine", "a", "desk") || said("c", "bureau") || said("examine", "bed") || said("examine", "closet") || said("examine", "bureau") || said("o", "closet") || said("c", "closet") || said("o", "bureau") || said("examine", "on top", "desk")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "jeff", "bed") || said("examine", "left", "bed") || said("examine", "blue", "bed")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "john", "bed") || said("examine", "right", "bed") || said("examine", "green", "bed")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "jeff", "desk") || said("examine", "on top", "jeff", "desk") || said("examine", "left", "desk", "on top", "left", "desk")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "john", "desk") || said("examine", "on top", "john", "desk") || said("examine", "right", "desk", "on top", "right", "desk")) {
+  print("Nope, that's not it.");
+}
+
+if (said("acquire", "paper") || said("acquire", "pen")) {
+  print("Nope, that's not it.");
+}
+
+if (said("use", "computer") || said("turn on", "computer")) {
+  print("Nope, that's not it.");
+}
+
+if (said("sit") || said("sit", "chair") || said("use", "chair") || said("acquire", "chair") || said("sit", "left", "chair") || said("sit", "right", "chair") || said("use", "left", "chair") || said("use", "right", "chair") || said("use", "jeff", "chair") || said("use", "john", "chair") || said("sit", "jeff", "chair") || said("sit", "john", "chair")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "chair") || said("examine", "left", "chair") || said("examine", "right", "chair") || said("examine", "jeff", "chair") || said("examine", "john", "chair")) {
+  print("Nope, that's not it.");
+}
+
+if (said("use", "television") || said("turn on", "television") || said("turn", "television", "a")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "wall")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "board")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "directory") || said("read", "directory")) {
+  print("Nope, that's not it.");
+}
+
+if (said("acquire", "directory")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "eds schedule") || said("read", "eds schedule")) {
+  print("Nope, that's not it.");
+}
+
+if (said("acquire", "eds schedule")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "poster")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "flag")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "television")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "floor")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "mirror")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "ceiling")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "carpet")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "shelf")) {
+  print("Nope, that's not it.");
+}
+
+if (said("acquire", "bed") || said("sleep") || said("go", "sleep") || said("go", "bed") || said("sleep", "bed")) {
+  print("Nope, that's not it.");
+}
+
+if (said("chat")) {
+  print("Nope, that's not it.");
+}
+
+if (said("o", "closet") || said("o", "bureau")) {
+  print("Nope, that's not it.");
+}
+
+if (said("o", "left", "closet") || said("o", "jeff", "closet")) {
+  print("Nope, that's not it.");
+}
+
+if (said("c", "left", "closet") || said("c", "jeff", "closet")) {
+  print("Nope, that's not it.");
+}
+
+if (said("o", "right", "closet") || said("o", "john", "closet")) {
+  print("Nope, that's not it.");
+}
+
+if (said("c", "right", "closet") || said("c", "john", "closet")) {
+  print("Nope, that's not it.");
+}
+
+if (said("o", "t", "bureau") || said("o", "jeff", "bureau")) {
+  print("Nope, that's not it.");
+}
+
+if (said("c", "t", "bureau") || said("c", "jeff", "bureau")) {
+  print("Nope, that's not it.");
+}
+
+if (said("o", "b", "bureau") || said("o", "john", "bureau")) {
+  print("Nope, that's not it.");
+}
+
+if (said("c", "b", "bureau") || said("c", "john", "bureau")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "t", "bureau") || said("examine", "jeff", "bureau")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "b", "bureau") || said("examine", "john", "bureau")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "left", "closet") || said("examine", "jeff", "closet")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "right", "closet") || said("examine", "john", "closet")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "pyramid") || said("examine", "pennies") || said("examine", "pyramid", "pennies")) {
+  print("Nope, that's not it.");
+}
+
+if (said("examine", "behind", "flag") || said("examine", "behind", "jeff", "flag")) {
+  v3 += 23;
+  load.sound(1);
+  sound(1, f125);
+  program.control();
+  prevent.input();
+}
+
+if (f125) {
+  reset(f125);
+  reset(f126);
+  reset(f127);
+  new.room(7);
+}
+return();
+
+
+// messages
+#message 1 "\"Well, that was cool.\" John says. \"I'm gonna go check my email. See you guys later.\""
+#message 2 "\"I'm going to go rent a movie.\" Ziggy says. \"Bye, guys.\""
+#message 3 "\"I have to go wash my pillow.\" Neal says. \"Later.\""
+#message 4 "\"I've gotta go put my roommate's blanket on his bed before he gets back.\" Ed says. \"See ya, Jeff.\""
+#message 5 "\"Wait, this can't be the end!!!\" Jeff cries. \"We're still missing 23 points!\""
+#message 6 "\"That's because you haven't figured out what the point of this game is yet.\" the Narrator says."
+#message 7 "\"Wh-where is that voice coming from? Who are you?\" asks Jeff."
+#message 8 "\"I'm the Narrator of URI Quest.\" says the Narrator."
+#message 9 "\"Oh.. I see.\" Jeff says. \"But... what IS the goal of URI Quest?\""
+#message 10 "\"The end of the quest at hand is the end of a quest of the ages.\" the Narrator says."
+#message 11 "\"What are you, Yoda? I don't get it.\" Jeff replies."
+#message 12 "\"The answer lies in this room. Search it out, and all will be revealed!\" the Narrator says. \"It's all in your hands now... goodbye.\""
+#message 13 "Nope, that's not it."

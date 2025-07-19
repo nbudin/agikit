@@ -1,0 +1,95 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+
+  if (v1 == 115) {
+    position(o0, 55, 165);
+  }
+
+  if (v1 == 139) {
+    position(o0, 85, 55);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're near Ballantine Hall.");
+}
+
+if (said("examine", "ballantine") || said("examine", "building")) {
+  print("Yup. Ballantine, like the beer.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "bush")) {
+  print("Na' ga' do it!.");
+}
+
+if (said("examine", "tree")) {
+  print("Yes, there is a tree here.");
+}
+
+if (said("examine", "path")) {
+  print("It leads to the door.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It leads to the door.");
+}
+
+if (said("examine", "road")) {
+  print("It's a street like any other.");
+}
+
+if (said("examine", "window")) {
+  print("You see nothing.");
+}
+
+if (said("examine", "rail")) {
+  print("Students usually sit on it. Now that doesn't mean you should try it.");
+}
+
+if (said("sit", "rail")) {
+  print("Didn't I tell you not to try that? Sheesh!");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  new.room(139);
+}
+
+if (v2 == 4) {
+  new.room(126);
+}
+
+if (v2 == 2) {
+  new.room(128);
+}
+
+if (f3) {
+  new.room(115);
+}
+return();
+
+
+// messages
+#message 1 "You're near Ballantine Hall."
+#message 2 "Yup. Ballantine, like the beer."
+#message 3 "You see nothing important."
+#message 4 "Na' ga' do it!."
+#message 5 "Yes, there is a tree here."
+#message 6 "It leads to the door."
+#message 7 "It's a street like any other."
+#message 8 "You see nothing."
+#message 9 "Students usually sit on it. Now that doesn't mean you should try it."
+#message 10 "Didn't I tell you not to try that? Sheesh!"
+#message 11 "You should stop talking to yourself."

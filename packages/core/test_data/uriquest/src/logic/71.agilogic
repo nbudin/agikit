@@ -1,0 +1,123 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(40);
+  reset(f110);
+
+  if (v1 == 83) {
+    position(o0, 25, 45);
+  }
+
+  if (v1 == 59) {
+    position(o0, 140, 165);
+  }
+
+  if (!f187) {
+    animate.obj(o1);
+    load.view(74);
+    set.view(o1, 74);
+    position(o1, 80, 110);
+    set.priority(o1, 4);
+    ignore.blocks(o1);
+    ignore.objs(o1);
+    stop.cycling(o1);
+    draw(o1);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine", "floor")) {
+  if (f187) {
+    print("You see nothing good.");
+  } else {
+    set(f110);
+    print("Well, well, well. On the ground of the empty parking lot, you spy a nice piece of string!");
+  }
+}
+
+if (said("acquire", "line")) {
+  if (f110) {
+    if (v50 == 3) {
+      if (f187) {
+        print("You already found it.");
+      } else {
+        if (posn(o0, 80, 100, 100, 110)) {
+          get(i20);
+          set(f187);
+          erase(o1);
+          v3 += 1;
+          load.sound(12);
+          sound(12, f153);
+          print("You take the string.");
+        } else {
+          print("Get closer.");
+        }
+      }
+    } else {
+      print("Nah. You don't need it for anything.");
+    }
+  } else {
+    print("Huh?");
+  }
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're near a staff parking lot. A path heads off towards the Union.");
+}
+
+if (said("examine", "memorial union") || said("examine", "building")) {
+  print("Follow the path and you'll find it.");
+}
+
+if (said("examine", "lot")) {
+  print("It's your typical staff parking lot.");
+}
+
+if (said("examine", "bush")) {
+  print("There's nothing interesting about the bushes.");
+}
+
+if (said("examine", "path")) {
+  print("There's nothing interesting about it.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  reset(f110);
+  erase(o1);
+  new.room(83);
+}
+
+if (v2 == 2) {
+  reset(f110);
+  erase(o1);
+  new.room(72);
+}
+
+if (v2 == 3) {
+  reset(f110);
+  erase(o1);
+  new.room(59);
+}
+return();
+
+
+// messages
+#message 1 "You see nothing good."
+#message 2 "Well, well, well. On the ground of the empty parking lot, you spy a nice piece of string!"
+#message 3 "You already found it."
+#message 4 "You take the string."
+#message 5 "Get closer."
+#message 6 "Nah. You don't need it for anything."
+#message 7 "Huh?"
+#message 8 "You're near a staff parking lot. A path heads off towards the Union."
+#message 9 "Follow the path and you'll find it."
+#message 10 "It's your typical staff parking lot."
+#message 11 "There's nothing interesting about the bushes."
+#message 12 "There's nothing interesting about it."
+#message 13 "You should stop talking to yourself."

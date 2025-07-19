@@ -1,0 +1,87 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+
+  if (v1 == 105) {
+    position(o0, 75, 55);
+  }
+
+  if (v1 == 118) {
+    position(o0, 155, 100);
+    v6 = 7;
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You are on a street near the Memorial Union.");
+}
+
+if (said("examine", "memorial union")) {
+  print("Basically, the student Union is the center of all activity on campus.");
+}
+
+if (said("examine", "white", "building") || said("examine", "building")) {
+  print("It's some building that serves you no purpose.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "bush")) {
+  print("Heh heh... you said \"bush\".");
+}
+
+if (said("examine", "tree")) {
+  print("Yes, there are trees in the distance.");
+}
+
+if (said("examine", "road")) {
+  print("This is a closed off street, so you don't have to worry about drunk frat boys running you over.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("Unlike transformers, there's nothing more to it than meets the eye.");
+}
+
+if (said("examine", "wall")) {
+  print("Unlike transformers, there's nothing more to it than meets the eye.");
+}
+
+if (said("examine", "bulletin board")) {
+  print("You read nothing interesting.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 3) {
+  new.room(107);
+}
+
+if (v2 == 1) {
+  new.room(105);
+}
+
+if (v2 == 2) {
+  new.room(118);
+}
+return();
+
+
+// messages
+#message 1 "You are on a street near the Memorial Union."
+#message 2 "Basically, the student Union is the center of all activity on campus."
+#message 3 "It's some building that serves you no purpose."
+#message 4 "You see nothing important."
+#message 5 "Heh heh... you said \"bush\"."
+#message 6 "Yes, there are trees in the distance."
+#message 7 "This is a closed off street, so you don't have to worry about drunk frat boys running you over."
+#message 8 "Unlike transformers, there's nothing more to it than meets the eye."
+#message 9 "You read nothing interesting."
+#message 10 "You should stop talking to yourself."

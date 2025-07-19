@@ -1,0 +1,127 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(87);
+
+  if (v1 == 200) {
+    position(o0, 85, 165);
+  }
+  reset(f100);
+  reset(f110);
+
+  if (!has(i26)) {
+    animate.obj(o1);
+    load.view(75);
+    set.view(o1, 75);
+    position(o1, 37, 98);
+    set.priority(o1, 4);
+    ignore.blocks(o1);
+    ignore.objs(o1);
+    stop.cycling(o1);
+    draw(o1);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're just inside of the Union.");
+}
+
+if (said("examine", "memorial union") || said("examine", "building")) {
+  print("It, along with the rest of campus, is curiously empty today. There's a quilt hanging on the far wall, and a table to the left.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing special.");
+}
+
+if (said("examine", "quilt")) {
+  print("There's always something lame hanging there. This is just another example.");
+}
+
+if (said("examine", "window")) {
+  print("You look through the window, but see nothing of interest.");
+}
+
+if (said("examine", "wall")) {
+  print("Yes, they're pretty ugly.");
+}
+
+if (said("examine", "table")) {
+  if (posn(o0, 34, 115, 49, 136)) {
+    if (has(i26)) {
+      print("There's nothing good on it.");
+    } else {
+      set(f110);
+      print("Well, well, well. On the table, you spy a nice shiny quarter!");
+    }
+  } else {
+    print("Try getting closer.");
+  }
+}
+
+if (said("acquire", "coin")) {
+  if (f110) {
+    if (v50 == 3) {
+      if (has(i26)) {
+        print("You already got it.");
+      } else {
+        if (posn(o0, 34, 115, 49, 136)) {
+          get(i26);
+          erase(o1);
+          v3 += 1;
+          load.sound(12);
+          sound(12, f153);
+          print("You take the quarter.");
+        } else {
+          print("Get closer.");
+        }
+      }
+    } else {
+      print("Nah. You don't need it for anything.");
+    }
+  } else {
+    print("Huh?");
+  }
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 3) {
+  reset(f100);
+  reset(f110);
+  new.room(200);
+}
+
+if (v2 == 1) {
+  if (!f100) {
+    print("You don't need to go that way.  As if I really want to draw the whole Union?");
+    set(f100);
+  }
+}
+
+Address307:
+return();
+
+
+// messages
+#message 1 "You're just inside of the Union."
+#message 2 "It, along with the rest of campus, is curiously empty today. There's a quilt hanging on the far wall, and a table to the left."
+#message 3 "You see nothing special."
+#message 4 "There's always something lame hanging there. This is just another example."
+#message 5 "You look through the window, but see nothing of interest."
+#message 6 "Yes, they're pretty ugly."
+#message 7 "There's nothing good on it."
+#message 8 "Well, well, well. On the table, you spy a nice shiny quarter!"
+#message 9 "Try getting closer."
+#message 10 "You already got it."
+#message 11 "You take the quarter."
+#message 12 "Get closer."
+#message 13 "Nah. You don't need it for anything."
+#message 14 "Huh?"
+#message 15 "You should stop talking to yourself."
+#message 16 "You don't need to go that way.  As if I really want to draw the whole Union?"

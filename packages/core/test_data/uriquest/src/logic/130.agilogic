@@ -1,0 +1,125 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+  reset(f110);
+
+  if (v1 == 118) {
+    position(o0, 120, 165);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're at the bottom of the quad near the Carlotti building. See that old cannon over there? There's this legend that says if there's a virgin in the graduating class, the cannon will fire at graduation. Needless to say, it's never gone off.");
+}
+
+if (said("examine", "carlotti") || said("examine", "building")) {
+  print("The administration building doesn't concern your quest.");
+}
+
+if (said("examine", "quad")) {
+  print("Aside from the Union, you will find the most number of URI students hanging out on the quad on any given day.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "tree")) {
+  print("Yes, there are trees here.");
+}
+
+if (said("examine", "road")) {
+  print("It's a street like any other.");
+}
+
+if (said("examine", "path")) {
+  print("It leads across the quad.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It leads across the quad.");
+}
+
+if (said("examine", "cannon")) {
+  if (posn(o0, 45, 50, 53, 53)) {
+    if (has(i23)) {
+      print("There's nothing good in there.");
+    } else {
+      set(f110);
+      print("Well, well, well. In the barrel of the cannon, you spy a nice shiny quarter!");
+    }
+  } else {
+    print("Hmm... You can't see anything in there from here.");
+  }
+}
+
+if (said("acquire", "coin")) {
+  if (f110) {
+    if (v50 == 3) {
+      if (has(i23)) {
+        print("You already found it.");
+      } else {
+        if (posn(o0, 45, 50, 53, 53)) {
+          get(i23);
+          v3 += 1;
+          load.sound(12);
+          sound(12, f153);
+          print("You take the quarter.");
+        } else {
+          print("Get closer.");
+        }
+      }
+    } else {
+      print("Nah. You don't need it for anything.");
+    }
+  } else {
+    print("Huh?");
+  }
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  new.room(142);
+}
+
+if (v2 == 4) {
+  reset(f110);
+  new.room(129);
+}
+
+if (v2 == 2) {
+  reset(f110);
+  new.room(131);
+}
+
+if (v2 == 3) {
+  reset(f110);
+  new.room(118);
+}
+return();
+
+
+// messages
+#message 1 "You're at the bottom of the quad near the Carlotti building. See that old cannon over there? There's this legend that says if there's a virgin in the graduating class, the cannon will fire at graduation. Needless to say, it's never gone off."
+#message 2 "The administration building doesn't concern your quest."
+#message 3 "Aside from the Union, you will find the most number of URI students hanging out on the quad on any given day."
+#message 4 "You see nothing important."
+#message 5 "Yes, there are trees here."
+#message 6 "It's a street like any other."
+#message 7 "It leads across the quad."
+#message 8 "There's nothing good in there."
+#message 9 "Well, well, well. In the barrel of the cannon, you spy a nice shiny quarter!"
+#message 10 "Hmm... You can't see anything in there from here."
+#message 11 "You already found it."
+#message 12 "You take the quarter."
+#message 13 "Get closer."
+#message 14 "Nah. You don't need it for anything."
+#message 15 "Huh?"
+#message 16 "You should stop talking to yourself."

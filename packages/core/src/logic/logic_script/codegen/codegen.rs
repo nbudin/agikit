@@ -315,7 +315,13 @@ impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
         context: &LogicScriptCodeGenerationContext<'_>,
         indent: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
-        let indent_line = |line: &str| -> String { format!("{}{}", " ".repeat(indent), line) };
+        let indent_line = |line: &str| -> String {
+            if line.trim().len() > 0 {
+                format!("{}{}", " ".repeat(indent), line)
+            } else {
+                line.trim_matches(' ').to_string()
+            }
+        };
 
         match self {
             LogicScriptStatement::Comment(comment) => {

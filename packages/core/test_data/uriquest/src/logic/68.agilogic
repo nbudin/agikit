@@ -1,0 +1,54 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+
+  if (v1 == 56) {
+    position(o0, 130, 165);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in back of Hope Dining Hall.");
+}
+
+if (said("examine", "hope") || said("examine", "building")) {
+  print("The smell of grease is nauseating.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing interesting.");
+}
+
+if (said("examine", "road")) {
+  print("There's nothing important about it.");
+}
+
+if (said("examine", "lot")) {
+  print("The staff parking lot is empty.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 4) {
+  new.room(67);
+}
+
+if (v2 == 3) {
+  new.room(56);
+}
+return();
+
+
+// messages
+#message 1 "You're in back of Hope Dining Hall."
+#message 2 "The smell of grease is nauseating."
+#message 3 "You see nothing interesting."
+#message 4 "There's nothing important about it."
+#message 5 "The staff parking lot is empty."
+#message 6 "You should stop talking to yourself."

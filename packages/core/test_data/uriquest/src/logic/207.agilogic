@@ -1,0 +1,142 @@
+if (f5) {
+  v0 = 199;
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  show.pic();
+  drop(i5);
+  drop(i6);
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+  reset(f118);
+  reset(f117);
+  print("Ziggy meets the others at Rojo's and they sit down for dinner.");
+  v0 = 207;
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  v55 = 6;
+  animate.obj(o1);
+  load.view(84);
+  set.view(o1, 84);
+  set.loop(o1, 0);
+  cycle.time(o1, v55);
+  position(o1, 40, 150);
+  start.cycling(o1);
+  draw(o1);
+  v52 = 250;
+  set(f110);
+  load.sound(23);
+  sound(23, f117);
+  program.control();
+  prevent.input();
+  show.pic();
+}
+
+if (!f118) {
+  v52 -= 1;
+}
+
+if (v52 == 5) {
+  if (f116) {
+    v52 = 250;
+    reset(f116);
+    set(f118);
+    print("\"Well, it's supposed to be.\" Jeff replies. \"I can't wait to try it.\"");
+    print("\"Hey, if you want to skip the rest of this song, type BEETHOVEN.\" John says.");
+    print("\"Why the hell did you just say that?\" Ed asks.");
+    print("\"I have no idea. It's like I was programmed to do it.\" John replies.");
+    accept.input();
+  }
+
+  if (f115) {
+    v52 = 250;
+    reset(f115);
+    set(f116);
+    print("\"Well, I hope this new game I downloaded is cool.\" Tater says.");
+  }
+
+  if (f114) {
+    v52 = 250;
+    reset(f114);
+    set(f115);
+    print("\"Well, my week was pretty dull.\" Ziggy says. \"I slept through all of my classes, missed a Calculus test, made it up today, and did laundry.\"");
+  }
+
+  if (f113) {
+    v52 = 250;
+    reset(f113);
+    set(f114);
+    print("\"I wish my week were so exciting.\" Ed says. \"All I did was get drunk. Hey, I guess my week wasn't so bad after all, then!\"");
+  }
+
+  if (f112) {
+    v52 = 250;
+    reset(f112);
+    set(f113);
+    print("\"Same here.\" John replies. \"Well, all except for the meeting a chick and getting laid part.\"");
+  }
+
+  if (f111) {
+    v52 = 250;
+    reset(f111);
+    set(f112);
+    print("\"Pretty good.\" Jeff says. \"I met a new chick, avoided doing work, got laid and played a concert for some real freaks.\"");
+  }
+
+  if (f110) {
+    v52 = 250;
+    reset(f110);
+    set(f111);
+    print("\"So how was your week, everybody?\" Neal asks.");
+  }
+}
+
+Address217:
+
+if (f118) {
+  if (said("beethoven")) {
+    stop.sound();
+    set(f117);
+  }
+}
+
+Address234:
+
+if ((f117) && (f118)) {
+  reset(f117);
+  print("\"Well, let's head back to the room now.\" John says.");
+  erase(o1);
+  v0 = 199;
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  show.pic();
+  print("They all head back to Jeff & John's room.");
+  print("A few minutes later...");
+  new.room(4);
+}
+return();
+
+
+// messages
+#message 1 "Ziggy meets the others at Rojo's and they sit down for dinner."
+#message 2 "\"Well, it's supposed to be.\" Jeff replies. \"I can't wait to try it.\""
+#message 3 "\"Hey, if you want to skip the rest of this song, type BEETHOVEN.\" John says."
+#message 4 "\"Why the hell did you just say that?\" Ed asks."
+#message 5 "\"I have no idea. It's like I was programmed to do it.\" John replies."
+#message 6 "\"Well, I hope this new game I downloaded is cool.\" Tater says."
+#message 7 "\"Well, my week was pretty dull.\" Ziggy says. \"I slept through all of my classes, missed a Calculus test, made it up today, and did laundry.\""
+#message 8 "\"I wish my week were so exciting.\" Ed says. \"All I did was get drunk. Hey, I guess my week wasn't so bad after all, then!\""
+#message 9 "\"Same here.\" John replies. \"Well, all except for the meeting a chick and getting laid part.\""
+#message 10 "\"Pretty good.\" Jeff says. \"I met a new chick, avoided doing work, got laid and played a concert for some real freaks.\""
+#message 11 "\"So how was your week, everybody?\" Neal asks."
+#message 12 "\"Well, let's head back to the room now.\" John says."
+#message 13 "They all head back to Jeff & John's room."
+#message 14 "A few minutes later..."

@@ -1,0 +1,91 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(48);
+
+  if (v1 == 111) {
+    position(o0, 85, 165);
+  }
+
+  if (v1 == 135) {
+    position(o0, 65, 53);
+  }
+
+  if (v1 == 147) {
+    position(o0, 5, 90);
+    v6 = 3;
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in a nice and tranquil part of campus.");
+}
+
+if (said("examine", "woodward") || said("examine", "building")) {
+  print("It's Woodward Hall. You notice nothing special about it.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "window")) {
+  print("There's nothing interesting to see in there.");
+}
+
+if (said("examine", "bush")) {
+  print("Na' ga' do it!.");
+}
+
+if (said("examine", "tree")) {
+  print("Yes, there is a tree here.");
+}
+
+if (said("examine", "path")) {
+  print("It goes around the little pond.");
+}
+
+if (said("examine", "brook")) {
+  print("It's a little pond. A gross pond, but still just a pond.");
+}
+
+if (said("examine", "boulder")) {
+  print("You see a big rock. Yup, it's just a big rock.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  new.room(135);
+}
+
+if (v2 == 4) {
+  new.room(147);
+}
+
+if (v2 == 2) {
+  new.room(124);
+}
+
+if (v2 == 3) {
+  new.room(111);
+}
+return();
+
+
+// messages
+#message 1 "You're in a nice and tranquil part of campus."
+#message 2 "It's Woodward Hall. You notice nothing special about it."
+#message 3 "You see nothing important."
+#message 4 "There's nothing interesting to see in there."
+#message 5 "Na' ga' do it!."
+#message 6 "Yes, there is a tree here."
+#message 7 "It goes around the little pond."
+#message 8 "It's a little pond. A gross pond, but still just a pond."
+#message 9 "You see a big rock. Yup, it's just a big rock."
+#message 10 "You should stop talking to yourself."

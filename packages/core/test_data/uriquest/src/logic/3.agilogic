@@ -1,0 +1,161 @@
+if (f5) {
+  reset(f110);
+  set.horizon(0);
+  status.line.off();
+  prevent.input();
+  program.control();
+  v101 = 245;
+  script.size(100);
+  load.view(4);
+  set.view(o3, 4);
+  animate.obj(o3);
+  position(o3, 1, 40);
+  set.priority(o3, 4);
+  draw(o3);
+  load.view(4);
+  set.view(o4, 4);
+  animate.obj(o4);
+  position(o4, 135, 130);
+  set.priority(o4, 4);
+  draw(o4);
+  load.view(5);
+  set.view(o5, 5);
+  animate.obj(o5);
+  position(o5, 15, 130);
+  set.priority(o5, 4);
+  draw(o5);
+  load.view(5);
+  set.view(o6, 5);
+  animate.obj(o6);
+  position(o6, 135, 10);
+  set.priority(o6, 4);
+  draw(o6);
+  v55 = 3;
+  load.view(95);
+  set.view(o7, 95);
+  animate.obj(o7);
+  position(o7, 6, 167);
+  set.priority(o7, 15);
+  cycle.time(o7, v55);
+  step.time(o7, v55);
+  start.cycling(o7);
+  draw(o7);
+  v10 = 2;
+  load.sound(0);
+  sound(0, f110);
+}
+wander(o3);
+wander(o4);
+wander(o5);
+wander(o6);
+v101--;
+
+if (v101 == 240) {
+  v102 = 1;
+  load.pic(v102);
+  draw.pic(v102);
+  discard.pic(v102);
+  show.pic();
+  load.view(7);
+  add.to.pic(7, 0, 0, 103, 111, 8, 4);
+  discard.view(7);
+  load.view(8);
+  add.to.pic(8, 0, 0, 1, 133, 8, 4);
+  discard.view(8);
+  load.view(9);
+  add.to.pic(9, 0, 0, 1, 155, 8, 4);
+  discard.view(9);
+}
+
+if (v101 == 200) {
+  v102 = 199;
+  load.pic(v102);
+  draw.pic(v102);
+  discard.pic(v102);
+  show.pic();
+  load.view(6);
+  set.view(o2, 6);
+  animate.obj(o2);
+  position(o2, 13, 110);
+  set.priority(o2, 10);
+  draw(o2);
+}
+
+if (v101 == 185) {
+  erase(o2);
+  v102 = 199;
+  load.pic(v102);
+  draw.pic(v102);
+  discard.pic(v102);
+  show.pic();
+  v102 = 2;
+  load.pic(v102);
+  draw.pic(v102);
+  discard.pic(v102);
+  show.pic();
+}
+
+if (v101 == 165) {
+  v102 = 3;
+  load.pic(v102);
+  draw.pic(v102);
+  discard.pic(v102);
+  show.pic();
+}
+
+if (v101 == 145) {
+  v102 = 4;
+  load.pic(v102);
+  draw.pic(v102);
+  discard.pic(v102);
+  show.pic();
+}
+
+if (v101 == 125) {
+  v102 = 5;
+  load.pic(v102);
+  draw.pic(v102);
+  discard.pic(v102);
+  show.pic();
+}
+
+if (((v101 == 105)) && (f110)) {
+  erase(o3);
+  erase(o4);
+  erase(o5);
+  erase(o6);
+  erase(o7);
+  reset(f110);
+  v10 = 1;
+  new.room(9);
+}
+
+if (have.key()) {
+  if (v19 == 82) {
+    stop.sound();
+    restore.game();
+  } else {
+    if (v19 == 114) {
+      stop.sound();
+      restore.game();
+    } else {
+      erase(o3);
+      erase(o4);
+      erase(o5);
+      erase(o6);
+      erase(o7);
+      reset(f110);
+      set(f14);
+      clear.lines(22, 24, 0);
+      stop.motion(o0);
+      reset(f33);
+      v10 = 1;
+      new.room(10);
+    }
+  }
+}
+return();
+
+
+// messages
+

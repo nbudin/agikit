@@ -1,0 +1,64 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+
+  if (v1 == 173) {
+    position(o0, 67, 55);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in the northeastern part of campus.");
+}
+
+if (said("examine", "kelley") || said("examine", "building")) {
+  print("Kelley Hall is on the right. It's one of the engineering buildings.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "window")) {
+  print("There's nothing interesting to see in there.");
+}
+
+if (said("examine", "bush")) {
+  print("Na' ga' do it!.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It's just a sidewalk.");
+}
+
+if (said("examine", "road")) {
+  print("This street continues on to the top of campus.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  new.room(173);
+}
+
+if (v2 == 3) {
+  new.room(149);
+}
+return();
+
+
+// messages
+#message 1 "You're in the northeastern part of campus."
+#message 2 "Kelley Hall is on the right. It's one of the engineering buildings."
+#message 3 "You see nothing important."
+#message 4 "There's nothing interesting to see in there."
+#message 5 "Na' ga' do it!."
+#message 6 "It's just a sidewalk."
+#message 7 "This street continues on to the top of campus."
+#message 8 "You should stop talking to yourself."

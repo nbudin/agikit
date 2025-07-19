@@ -1,0 +1,63 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+
+  if (v1 == 71) {
+    position(o0, 25, 165);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in a parking lot between Roosevelt Hall and the Union.");
+}
+
+if (said("examine", "roosevelt") || said("examine", "building") || said("examine", "memorial union")) {
+  print("It's a building like any other.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "lot")) {
+  print("It's just your average staff parking lot.");
+}
+
+if (said("examine", "bush")) {
+  print("Just bushes, nothing more.");
+}
+
+if (said("examine", "path")) {
+  print("There's nothing special about it.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 2) {
+  new.room(84);
+}
+
+if (v2 == 4) {
+  new.room(82);
+}
+
+if (v2 == 3) {
+  new.room(71);
+}
+return();
+
+
+// messages
+#message 1 "You're in a parking lot between Roosevelt Hall and the Union."
+#message 2 "It's a building like any other."
+#message 3 "You see nothing important."
+#message 4 "It's just your average staff parking lot."
+#message 5 "Just bushes, nothing more."
+#message 6 "There's nothing special about it."
+#message 7 "You should stop talking to yourself."

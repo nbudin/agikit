@@ -1,0 +1,108 @@
+if (f5) {
+  set.horizon(0);
+  status.line.off();
+  prevent.input();
+  program.control();
+  reset(f110);
+  load.sound(0);
+  sound(0, f110);
+  v100 = 1;
+  load.pic(v100);
+  draw.pic(v100);
+  discard.pic(v100);
+  load.view(7);
+  add.to.pic(7, 0, 0, 103, 111, 8, 4);
+  discard.view(7);
+  load.view(8);
+  add.to.pic(8, 0, 0, 1, 133, 8, 4);
+  discard.view(8);
+  load.view(9);
+  add.to.pic(9, 0, 0, 1, 155, 8, 4);
+  discard.view(9);
+  show.pic();
+  v30 = 2;
+  load.view(4);
+  set.view(o3, 4);
+  animate.obj(o3);
+  position(o3, 1, 40);
+  cycle.time(o3, v30);
+  set.priority(o3, 4);
+  draw(o3);
+  load.view(4);
+  set.view(o4, 4);
+  animate.obj(o4);
+  position(o4, 135, 130);
+  cycle.time(o4, v30);
+  set.priority(o4, 4);
+  draw(o4);
+  load.view(5);
+  set.view(o5, 5);
+  animate.obj(o5);
+  position(o5, 15, 130);
+  cycle.time(o5, v30);
+  set.priority(o5, 4);
+  draw(o5);
+  load.view(5);
+  set.view(o6, 5);
+  animate.obj(o6);
+  position(o6, 135, 10);
+  cycle.time(o6, v30);
+  set.priority(o6, 4);
+  draw(o6);
+  v55 = 3;
+  load.view(95);
+  set.view(o7, 95);
+  animate.obj(o7);
+  position(o7, 6, 167);
+  set.priority(o7, 15);
+  cycle.time(o7, v55);
+  step.time(o7, v55);
+  start.cycling(o7);
+  draw(o7);
+}
+wander(o3);
+wander(o4);
+wander(o5);
+wander(o6);
+
+if (f110) {
+  erase(o3);
+  erase(o4);
+  erase(o5);
+  erase(o6);
+  erase(o7);
+  reset(f110);
+  clear.lines(22, 24, 0);
+  stop.motion(o0);
+  new.room(3);
+}
+
+if (have.key()) {
+  if (v19 == 82) {
+    stop.sound();
+    restore.game();
+  } else {
+    if (v19 == 114) {
+      stop.sound();
+      restore.game();
+    } else {
+      erase(o3);
+      erase(o4);
+      erase(o5);
+      erase(o6);
+      erase(o7);
+      reset(f110);
+      set(f14);
+      clear.lines(22, 24, 0);
+      stop.motion(o0);
+      reset(f33);
+      v10 = 1;
+      new.room(10);
+    }
+  }
+}
+return();
+
+
+// messages
+

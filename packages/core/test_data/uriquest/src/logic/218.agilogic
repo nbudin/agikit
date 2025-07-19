@@ -1,0 +1,76 @@
+if (f5) {
+  v0 = 22;
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f111);
+  reset(f112);
+  animate.obj(o2);
+  load.view(2);
+  set.view(o2, 2);
+  set.loop(o2, 2);
+  position(o2, 10, 140);
+  stop.cycling(o2);
+  draw(o2);
+  animate.obj(o1);
+  load.view(0);
+  set.view(o1, 0);
+  set.loop(o1, 2);
+  position(o1, 25, 140);
+  stop.cycling(o1);
+  draw(o1);
+  position(o0, 20, 150);
+  set.loop(o0, 3);
+  v3 += 4;
+  load.sound(1);
+  sound(1, f153);
+  set(f110);
+  program.control();
+  prevent.input();
+  draw(o0);
+  show.pic();
+}
+
+if (f110) {
+  reset(f110);
+  print("\"It's about time you showed up, Ed.\" John says.");
+  print("\"Yeah, we've been waiting for 10 minutes now.\" adds Jeff.");
+  print("\"Sorry guys.\" Ed replies. \"I had to resort to some penny, I mean... uh, PETTY theft, to get the goods.\"");
+  print("\"Is it all good now?\" asks John.");
+  print("\"Oh, it's all good!\" replies Ed.");
+  print("\"Cool, we'll let's head up to the room then.\" Jeff says. \"Let the festivities begin!\"");
+  set(f111);
+}
+
+if (f111) {
+  reset(f111);
+  erase(o2);
+  erase(o1);
+  erase(o0);
+  v0 = 199;
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  show.pic();
+  set(f112);
+}
+
+if (f112) {
+  erase(o0);
+  reset(f112);
+  print("A few minutes later...");
+  reset(f110);
+  new.room(219);
+}
+return();
+
+
+// messages
+#message 1 "\"It's about time you showed up, Ed.\" John says."
+#message 2 "\"Yeah, we've been waiting for 10 minutes now.\" adds Jeff."
+#message 3 "\"Sorry guys.\" Ed replies. \"I had to resort to some penny, I mean... uh, PETTY theft, to get the goods.\""
+#message 4 "\"Is it all good now?\" asks John."
+#message 5 "\"Oh, it's all good!\" replies Ed."
+#message 6 "\"Cool, we'll let's head up to the room then.\" Jeff says. \"Let the festivities begin!\""
+#message 7 "A few minutes later..."

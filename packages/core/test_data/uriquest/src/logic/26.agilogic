@@ -1,0 +1,92 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You are between Aldrich Hall and Rojo's.");
+}
+
+if (said("examine", "aldrich") || said("examine", "building")) {
+  print("It's the home of Jeff & John.");
+}
+
+if (said("examine", "dining hall")) {
+  print("It's a dining hall.");
+}
+
+if (said("examine", "tree") || said("examine", "sidewalk")) {
+  print("There's nothing special about these trees.");
+}
+
+if (said("examine", "floor")) {
+  print("There's nothing important.");
+}
+
+if (said("examine", "road")) {
+  print("There's nothing important.");
+}
+
+if (said("examine", "wall")) {
+  print("There's nothing important about it.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("There's nothing important about it.");
+}
+
+if (v2 == 2) {
+  new.room(24);
+}
+
+if (v2 == 3) {
+  v2 = 1;
+  get.posn(o0, v52, v53);
+  erase(o0);
+  v54 = 167;
+  v53 = 159;
+  v53 -= v52;
+
+  if (v53 != 6) {
+    v53 -= 7;
+  } else {
+    v53 = 0;
+  }
+  position.v(o0, v53, v54);
+
+  if (v6 == 5) {
+    v6 = 1;
+  }
+
+  if (v6 == 6) {
+    v6 = 2;
+  }
+
+  if (v6 == 4) {
+    v6 = 8;
+  }
+  new.room(39);
+}
+
+if (v2 == 4) {
+  new.room(27);
+}
+return();
+
+
+// messages
+#message 1 "You are between Aldrich Hall and Rojo's."
+#message 2 "It's the home of Jeff & John."
+#message 3 "It's a dining hall."
+#message 4 "There's nothing special about these trees."
+#message 5 "There's nothing important."
+#message 6 "There's nothing important about it."
+#message 7 "You should stop talking to yourself."

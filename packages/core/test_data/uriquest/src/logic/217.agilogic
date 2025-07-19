@@ -1,0 +1,184 @@
+if (f5) {
+  v0 = 216;
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  v0 = 217;
+  position(o0, 118, 50);
+  stop.cycling(o0);
+  set(f100);
+  reset(f101);
+  reset(f102);
+  reset(f103);
+  reset(f104);
+  reset(f105);
+  reset(f106);
+  reset(f107);
+  reset(f108);
+  reset(f109);
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+  animate.obj(o2);
+  load.view(2);
+  set.view(o2, 2);
+  position(o2, 100, 50);
+  stop.cycling(o2);
+  draw(o2);
+  animate.obj(o1);
+  load.view(28);
+  set.view(o1, 28);
+  set.cel(o1, 0);
+  stop.cycling(o1);
+  prevent.input();
+  draw(o0);
+  show.pic();
+  print("\"Uhh... John? We didn't just see what we think we saw, right?\" you ask.");
+  print("\"Dude, I am getting the hell out of here!!!!!\" he replies.");
+  start.cycling(o2);
+}
+
+if (f100) {
+  program.control();
+  set(f101);
+}
+
+if (f101) {
+  reset(f100);
+  move.obj(o2, 100, 57, 1, f102);
+}
+
+if (f102) {
+  reset(f101);
+  move.obj(o2, 10, 57, 1, f103);
+}
+
+if (f103) {
+  reset(f102);
+  reset(f103);
+  erase(o2);
+  set.loop(o1, 3);
+  set.cel(o1, 0);
+  position(o1, 10, 165);
+  start.cycling(o1);
+  draw(o1);
+  set(f104);
+}
+
+if (f104) {
+  move.obj(o1, 45, 58, 1, f105);
+}
+
+if (f105) {
+  reset(f104);
+  move.obj(o1, 100, 58, 1, f106);
+}
+
+if (f106) {
+  reset(f105);
+  reset(f106);
+  stop.cycling(o1);
+  set(f107);
+}
+
+if (f107) {
+  reset(f107);
+
+  if (has(i8)) {
+    set(f108);
+  } else {
+    v35 = 6;
+  }
+}
+
+if (f108) {
+  reset(f108);
+
+  if (f167) {
+    set(f109);
+  } else {
+    v35 = 7;
+  }
+}
+
+if (f109) {
+  reset(f109);
+  print("\"Hi Cindy!\" you say. \"You are never going to believe what just happened. But I'll tell you about it later.  Let's go get some dinner.\"");
+  v3 += 3;
+  load.sound(1);
+  sound(1, f153);
+  print("\"Sounds good to me, Jeff!\" Cindy replies. \"Let's go!\"");
+  drop(i8);
+  drop(i2);
+  set(f110);
+}
+
+if (f110) {
+  move.obj(o0, 118, 90, 1, f111);
+}
+
+if (f111) {
+  reset(f110);
+  start.cycling(o1);
+  move.obj(o0, 80, 155, 1, f112);
+  follow.ego(o1, 1, f116);
+}
+
+if (f112) {
+  reset(f111);
+  move.obj(o0, 10, 155, 1, f113);
+  follow.ego(o1, 1, f116);
+}
+
+if (f113) {
+  reset(f112);
+  move.obj(o0, 10, 166, 1, f114);
+  follow.ego(o1, 1, f116);
+}
+
+if (f114) {
+  reset(f113);
+  erase(o0);
+  move.obj(o1, 10, 166, 1, f115);
+}
+
+if (f115) {
+  reset(f114);
+  reset(f115);
+  erase(o1);
+  print("Congratulations, Jeff. You've got some cash, and you're pretty clean. You're gonna get some tonight!!! Yahoo!");
+  set(f168);
+  reset(f100);
+  reset(f101);
+  reset(f102);
+  reset(f103);
+  reset(f104);
+  reset(f105);
+  reset(f106);
+  reset(f107);
+  reset(f108);
+  reset(f109);
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+  accept.input();
+  new.room(209);
+}
+return();
+
+
+// messages
+#message 1 "\"Uhh... John? We didn't just see what we think we saw, right?\" you ask."
+#message 2 "\"Dude, I am getting the hell out of here!!!!!\" he replies."
+#message 3 "\"Hi Cindy!\" you say. \"You are never going to believe what just happened. But I'll tell you about it later.  Let's go get some dinner.\""
+#message 4 "\"Sounds good to me, Jeff!\" Cindy replies. \"Let's go!\""
+#message 5 "Congratulations, Jeff. You've got some cash, and you're pretty clean. You're gonna get some tonight!!! Yahoo!"

@@ -1,0 +1,134 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(100);
+
+  if (v1 == 101) {
+    position(o0, 75, 165);
+  }
+  reset(f100);
+  reset(f110);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine", "coin return")) {
+  if (posn(o0, 14, 110, 26, 122)) {
+    if (has(i27)) {
+      print("There's nothing good in there.");
+    } else {
+      set(f110);
+      print("Well, well, well. In the coin return slot, you spy a nice shiny quarter!");
+    }
+  } else {
+    print("Hmm... You can't see anything in there from here.");
+  }
+}
+
+if (said("acquire", "coin")) {
+  if (f110) {
+    if (v50 == 3) {
+      if (has(i27)) {
+        print("You already found it.");
+      } else {
+        if (posn(o0, 14, 110, 26, 122)) {
+          get(i27);
+          v3 += 1;
+          load.sound(12);
+          sound(12, f153);
+          print("You take the quarter.");
+        } else {
+          print("Get closer.");
+        }
+      }
+    } else {
+      print("Nah. You don't need it for anything.");
+    }
+  } else {
+    print("Huh?");
+  }
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're just inside the entrance to the library.");
+}
+
+if (said("examine", "library") || said("examine", "building")) {
+  print("It's a really big building with lots of books in it. Mostly, it's just used by students to take naps in between classes.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "wall")) {
+  print("You see a phone and a message board.");
+}
+
+if (said("examine", "message") || said("examine", "message", "board")) {
+  print("You see nothing of interest.");
+}
+
+if (said("examine", "phone")) {
+  print("Well, it's a phone alright. It's got a handset, some buttons and a coin return slot.");
+}
+
+if (said("examine", "handset")) {
+  print("That's what you use to talk on the phone.");
+}
+
+if (said("examine", "button")) {
+  print("You press those to call people.");
+}
+
+if (said("press", "button")) {
+  print("That might make you look cool, but you'd still be a dork.");
+}
+
+if (said("use", "phone")) {
+  print("You have no one to call.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 3) {
+  reset(f110);
+  reset(f100);
+  new.room(101);
+}
+
+if (v2 == 1) {
+  if (!f100) {
+    print("You don't need to go that way.  As if I really want to draw all those books?");
+    set(f100);
+  }
+}
+
+Address334:
+return();
+
+
+// messages
+#message 1 "There's nothing good in there."
+#message 2 "Well, well, well. In the coin return slot, you spy a nice shiny quarter!"
+#message 3 "Hmm... You can't see anything in there from here."
+#message 4 "You already found it."
+#message 5 "You take the quarter."
+#message 6 "Get closer."
+#message 7 "Nah. You don't need it for anything."
+#message 8 "Huh?"
+#message 9 "You're just inside the entrance to the library."
+#message 10 "It's a really big building with lots of books in it. Mostly, it's just used by students to take naps in between classes."
+#message 11 "You see nothing important."
+#message 12 "You see a phone and a message board."
+#message 13 "You see nothing of interest."
+#message 14 "Well, it's a phone alright. It's got a handset, some buttons and a coin return slot."
+#message 15 "That's what you use to talk on the phone."
+#message 16 "You press those to call people."
+#message 17 "That might make you look cool, but you'd still be a dork."
+#message 18 "You have no one to call."
+#message 19 "You should stop talking to yourself."
+#message 20 "You don't need to go that way.  As if I really want to draw all those books?"

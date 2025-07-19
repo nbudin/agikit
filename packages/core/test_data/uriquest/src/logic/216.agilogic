@@ -1,0 +1,262 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  position(o0, 125, 55);
+  program.control();
+  v55 = 4;
+  v56 = 3;
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  reset(f125);
+  reset(f126);
+  set(f110);
+  animate.obj(o2);
+  load.view(119);
+  set.view(o2, 119);
+  set.cel(o2, 0);
+  position(o2, 97, 50);
+  cycle.time(o2, v56);
+  stop.cycling(o2);
+  draw(o2);
+  animate.obj(o1);
+  load.view(118);
+  set.view(o1, 118);
+  set.cel(o1, 0);
+  position(o1, 118, 50);
+  cycle.time(o1, v56);
+  stop.cycling(o1);
+  animate.obj(o3);
+  load.view(100);
+  set.view(o3, 100);
+  set.cel(o3, 0);
+  position(o3, 73, 80);
+  stop.cycling(o3);
+  cycle.time(o3, v55);
+  draw(o3);
+  animate.obj(o4);
+  load.view(102);
+  set.view(o4, 102);
+  set.cel(o4, 0);
+  position(o4, 100, 85);
+  stop.cycling(o4);
+  cycle.time(o4, v55);
+  draw(o4);
+  animate.obj(o5);
+  load.view(109);
+  set.view(o5, 109);
+  set.cel(o5, 0);
+  position(o5, 96, 109);
+  stop.cycling(o5);
+  cycle.time(o5, v55);
+  draw(o5);
+  animate.obj(o6);
+  load.view(103);
+  set.view(o6, 103);
+  set.cel(o6, 0);
+  position(o6, 80, 88);
+  stop.cycling(o6);
+  cycle.time(o6, v55);
+  draw(o6);
+  animate.obj(o7);
+  load.view(104);
+  set.view(o7, 104);
+  set.cel(o7, 0);
+  position(o7, 130, 90);
+  stop.cycling(o7);
+  cycle.time(o7, v55);
+  draw(o7);
+  animate.obj(o8);
+  load.view(105);
+  set.view(o8, 105);
+  set.cel(o8, 0);
+  position(o8, 87, 104);
+  stop.cycling(o8);
+  cycle.time(o8, v55);
+  draw(o8);
+  animate.obj(o11);
+  load.view(112);
+  set.view(o11, 112);
+  set.cel(o11, 0);
+  position(o11, 130, 121);
+  stop.cycling(o11);
+  cycle.time(o11, v55);
+  draw(o11);
+  animate.obj(o12);
+  load.view(113);
+  set.view(o12, 113);
+  set.cel(o12, 0);
+  position(o12, 101, 137);
+  stop.cycling(o12);
+  cycle.time(o12, v55);
+  draw(o12);
+  animate.obj(o13);
+  load.view(115);
+  set.view(o13, 115);
+  set.cel(o13, 0);
+  position(o13, 74, 125);
+  stop.cycling(o13);
+  cycle.time(o13, v55);
+  draw(o13);
+  animate.obj(o14);
+  load.view(117);
+  set.view(o14, 117);
+  set.cel(o14, 0);
+  position(o14, 128, 140);
+  stop.cycling(o14);
+  cycle.time(o14, v55);
+  draw(o14);
+  prevent.input();
+  draw(o0);
+  show.pic();
+}
+
+if (f110) {
+  if (has(i2)) {
+    move.obj(o0, 118, 50, 1, f120);
+  } else {
+    v6 = 0;
+    program.control();
+    v35 = 5;
+  }
+}
+
+if (f120) {
+  reset(f110);
+  erase(o0);
+  cycle.time(o1, v56);
+  draw(o1);
+  start.cycling(o1);
+  reset(f120);
+  set(f121);
+  program.control();
+}
+
+if (f121) {
+  reset(f121);
+  print("\"Welcome, ladies and gent..., uh.. Welcome, everyone!\" you say. \"John and I hope you enjoy the performance tonight. Let's start things off with a little number I'm sure everyone will recognize.\"");
+  print("\"And a 1, a 2, a 3, 4...\"");
+  load.sound(17);
+  sound(17, f122);
+  start.cycling(o1);
+  start.cycling(o2);
+  start.cycling(o3);
+  start.cycling(o4);
+  start.cycling(o5);
+  start.cycling(o6);
+  start.cycling(o7);
+  start.cycling(o8);
+  start.cycling(o11);
+  start.cycling(o12);
+  start.cycling(o13);
+  start.cycling(o14);
+}
+
+if (f122) {
+  reset(f122);
+  print("\"Thank you, thank you.\" you say. \"Let's continue with something a little more obscure...\"");
+  print("\"And a 1, a 2, a 3, 4...\"");
+  load.sound(16);
+  sound(16, f123);
+}
+
+if (f123) {
+  reset(f123);
+  load.sound(14);
+  sound(14, f124);
+}
+
+if (f124) {
+  reset(f124);
+  print("\"Thank you, thank you.\" you say. \"This will be our last song tonight. Thanks for coming, everyone!\"");
+  print("\"And a 1, a 2, a 3, 4...\"");
+  load.sound(15);
+  sound(15, f125);
+}
+
+if (f125) {
+  reset(f125);
+  stop.cycling(o1);
+  stop.cycling(o2);
+  stop.cycling(o3);
+  stop.cycling(o4);
+  stop.cycling(o5);
+  stop.cycling(o6);
+  stop.cycling(o7);
+  stop.cycling(o8);
+  stop.cycling(o11);
+  stop.cycling(o12);
+  stop.cycling(o13);
+  stop.cycling(o14);
+  print("\"Thank you, thank you.\" you say. \"John and I hope you enjoyed the show! Good night!\"");
+  set(f126);
+}
+
+if (f126) {
+  reset(f126);
+  erase(o1);
+  set.loop(o0, 2);
+  draw(o0);
+  load.sound(6);
+  shake.screen(1);
+  sound(6, f153);
+  erase(o3);
+  shake.screen(1);
+  sound(6, f153);
+  erase(o4);
+  shake.screen(1);
+  sound(6, f153);
+  erase(o5);
+  shake.screen(1);
+  sound(6, f153);
+  erase(o6);
+  shake.screen(1);
+  sound(6, f153);
+  erase(o7);
+  shake.screen(1);
+  sound(6, f153);
+  erase(o8);
+  shake.screen(1);
+  sound(6, f153);
+  erase(o9);
+  shake.screen(1);
+  sound(6, f153);
+  erase(o10);
+  shake.screen(1);
+  sound(6, f153);
+  erase(o11);
+  shake.screen(1);
+  sound(6, f153);
+  erase(o12);
+  shake.screen(1);
+  sound(6, f153);
+  erase(o13);
+  shake.screen(1);
+  sound(6, f153);
+  erase(o14);
+  shake.screen(1);
+  sound(6, f153);
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  reset(f125);
+  reset(f126);
+  erase(o1);
+  erase(o2);
+  new.room(217);
+}
+return();
+
+
+// messages
+#message 1 "\"Welcome, ladies and gent..., uh.. Welcome, everyone!\" you say. \"John and I hope you enjoy the performance tonight. Let's start things off with a little number I'm sure everyone will recognize.\""
+#message 2 "\"And a 1, a 2, a 3, 4...\""
+#message 3 "\"Thank you, thank you.\" you say. \"Let's continue with something a little more obscure...\""
+#message 4 "\"Thank you, thank you.\" you say. \"This will be our last song tonight. Thanks for coming, everyone!\""
+#message 5 "\"Thank you, thank you.\" you say. \"John and I hope you enjoyed the show! Good night!\""

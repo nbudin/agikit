@@ -1,0 +1,76 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+
+  if (v1 == 117) {
+    position(o0, 95, 165);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're at the bottom of the quad near Davis Hall.");
+}
+
+if (said("examine", "davis") || said("examine", "building")) {
+  print("You have no need to worry about this particular building, although it does play some nifty chimes and songs every hour.");
+}
+
+if (said("examine", "quad")) {
+  print("Aside from the Union, you will find the most number of URI students hanging out on the quad on any given day.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "tree")) {
+  print("Yes, there are trees here.");
+}
+
+if (said("examine", "path")) {
+  print("It leads across the quad.");
+}
+
+if (said("examine", "road")) {
+  print("It's a street like any other.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It leads across the quad.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  new.room(141);
+}
+
+if (v2 == 4) {
+  new.room(128);
+}
+
+if (v2 == 2) {
+  new.room(130);
+}
+
+if (v2 == 3) {
+  new.room(117);
+}
+return();
+
+
+// messages
+#message 1 "You're at the bottom of the quad near Davis Hall."
+#message 2 "You have no need to worry about this particular building, although it does play some nifty chimes and songs every hour."
+#message 3 "Aside from the Union, you will find the most number of URI students hanging out on the quad on any given day."
+#message 4 "You see nothing important."
+#message 5 "Yes, there are trees here."
+#message 6 "It leads across the quad."
+#message 7 "It's a street like any other."
+#message 8 "You should stop talking to yourself."

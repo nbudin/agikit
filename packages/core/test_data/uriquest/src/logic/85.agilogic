@@ -1,0 +1,82 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+
+  if (v1 == 84) {
+    position(o0, 117, 81);
+    v6 = 7;
+  }
+
+  if (v1 == 108) {
+    position(o0, 80, 165);
+    v6 = 1;
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in front of the Union.");
+}
+
+if (said("examine", "building") || said("examine", "memorial union")) {
+  print("The student Union is one of the major gathering areas on campus. It's always bustling with activity.");
+}
+
+if (said("examine", "d") || said("o", "d")) {
+  print("That's where the bookstore is. You have absolutely no will to go there.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "bush")) {
+  print("Just bushes, nothing more.");
+}
+
+if (said("examine", "path")) {
+  print("There's nothing special about it.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("There's nothing special about it.");
+}
+
+if (said("examine", "wall")) {
+  print("There's nothing special about it.");
+}
+
+if (said("examine", "window")) {
+  print("You see nothing special.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (f3) {
+  new.room(84);
+}
+
+if (v2 == 4) {
+  new.room(86);
+}
+
+if (v2 == 3) {
+  new.room(108);
+}
+return();
+
+
+// messages
+#message 1 "You're in front of the Union."
+#message 2 "The student Union is one of the major gathering areas on campus. It's always bustling with activity."
+#message 3 "That's where the bookstore is. You have absolutely no will to go there."
+#message 4 "You see nothing important."
+#message 5 "Just bushes, nothing more."
+#message 6 "There's nothing special about it."
+#message 7 "You see nothing special."
+#message 8 "You should stop talking to yourself."

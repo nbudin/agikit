@@ -1,0 +1,122 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f110);
+
+  if (v1 == 70) {
+    position(o0, 120, 165);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine", "dumpster")) {
+  if (posn(o0, 94, 81, 105, 83)) {
+    if (has(i22)) {
+      print("There's nothing good in there.");
+    } else {
+      set(f110);
+      print("Well, well, well. In the rancid trash, you spy a nice shiny quarter!");
+    }
+  } else {
+    print("Hmm... You can't see anything in there from here.");
+  }
+}
+
+if (said("acquire", "coin")) {
+  if (f110) {
+    if (v50 == 3) {
+      if (has(i22)) {
+        print("You already found it.");
+      } else {
+        if (posn(o0, 94, 81, 105, 83)) {
+          get(i22);
+          v3 += 1;
+          load.sound(12);
+          sound(12, f153);
+          print("You take the quarter.");
+        } else {
+          print("Get closer.");
+        }
+      }
+    } else {
+      print("Nah. You don't need it for anything.");
+    }
+  } else {
+    print("Huh?");
+  }
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in a parking lot near Roosevelt Hall.");
+}
+
+if (said("examine", "roosevelt") || said("examine", "building")) {
+  print("It's a building like any other.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "lot")) {
+  print("There's a dumpster and a tree in the parking lot.");
+}
+
+if (said("examine", "bush")) {
+  print("Just a bush, nothing more.");
+}
+
+if (said("examine", "window")) {
+  print("You can't see anything in there.");
+}
+
+if (said("examine", "tree")) {
+  print("There's nothing special about the tree.");
+}
+
+if (said("examine", "path")) {
+  print("There's nothing special about it.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 2) {
+  reset(f110);
+  new.room(83);
+}
+
+if (v2 == 4) {
+  reset(f110);
+  new.room(81);
+}
+
+if (f3) {
+  reset(f110);
+  new.room(70);
+}
+return();
+
+
+// messages
+#message 1 "There's nothing good in there."
+#message 2 "Well, well, well. In the rancid trash, you spy a nice shiny quarter!"
+#message 3 "Hmm... You can't see anything in there from here."
+#message 4 "You already found it."
+#message 5 "You take the quarter."
+#message 6 "Get closer."
+#message 7 "Nah. You don't need it for anything."
+#message 8 "Huh?"
+#message 9 "You're in a parking lot near Roosevelt Hall."
+#message 10 "It's a building like any other."
+#message 11 "You see nothing important."
+#message 12 "There's a dumpster and a tree in the parking lot."
+#message 13 "Just a bush, nothing more."
+#message 14 "You can't see anything in there."
+#message 15 "There's nothing special about the tree."
+#message 16 "There's nothing special about it."
+#message 17 "You should stop talking to yourself."

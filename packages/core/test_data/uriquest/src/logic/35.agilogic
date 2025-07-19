@@ -1,0 +1,151 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f110);
+  reset(f100);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine", "cubby holes") || said("examine", "cubby holes", "tree")) {
+  if (posn(o0, 108, 79, 117, 81)) {
+    if (has(i29)) {
+      print("There's nothing good in there.");
+    } else {
+      set(f110);
+      print("Well, well, well. In the hole, you spy a nice shiny quarter!");
+    }
+  } else {
+    print("Hmm... You can't see anything in there from here.");
+  }
+}
+
+if (said("acquire", "coin")) {
+  if (f110) {
+    if (v50 == 3) {
+      if (has(i29)) {
+        print("You already found it.");
+      } else {
+        if (posn(o0, 108, 79, 117, 81)) {
+          get(i29);
+          v3 += 1;
+          load.sound(12);
+          sound(12, f153);
+          print("You take the quarter.");
+        } else {
+          print("Get closer.");
+        }
+      }
+    } else {
+      print("Nah. You don't need it for anything.");
+    }
+  } else {
+    print("Huh?");
+  }
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You are in front of Adams Hall.");
+}
+
+if (said("examine", "adams") || said("examine", "building")) {
+  print("Adams Hall is a mostly freshman dorm. Even still, you've never had reason to set foot in it.");
+}
+
+if (said("examine", "window")) {
+  print("You see nothing good.");
+}
+
+if (said("examine", "bush")) {
+  print("A bush is a bush is a bush.");
+}
+
+if (said("examine", "floor")) {
+  print("There's nothing important.");
+}
+
+if (said("examine", "road")) {
+  print("The street continues behind the dorm, heading towards nowhere you need to go.");
+}
+
+if (said("examine", "tree")) {
+  print("Hey, there's a hole in the back of that tree! What is this, King's Quest?");
+}
+
+if (said("examine", "sidewalk")) {
+  print("There's nothing important about it.");
+}
+
+if (f3) {
+  if (!f100) {
+    print("You don't need to go that way.  This game is big enough as it is.");
+    set(f100);
+  }
+}
+
+Address285:
+
+if (v2 == 2) {
+  reset(f110);
+  reset(f100);
+  new.room(34);
+}
+
+if (v2 == 3) {
+  v2 = 1;
+  get.posn(o0, v52, v53);
+  erase(o0);
+  v54 = 167;
+  v53 = 159;
+  v53 -= v52;
+
+  if (v53 != 6) {
+    v53 -= 7;
+  } else {
+    v53 = 0;
+  }
+  position.v(o0, v53, v54);
+
+  if (v6 == 5) {
+    v6 = 1;
+  }
+
+  if (v6 == 6) {
+    v6 = 2;
+  }
+
+  if (v6 == 4) {
+    v6 = 8;
+  }
+  reset(f100);
+  reset(f110);
+  new.room(48);
+}
+return();
+
+
+// messages
+#message 1 "There's nothing good in there."
+#message 2 "Well, well, well. In the hole, you spy a nice shiny quarter!"
+#message 3 "Hmm... You can't see anything in there from here."
+#message 4 "You already found it."
+#message 5 "You take the quarter."
+#message 6 "Get closer."
+#message 7 "Nah. You don't need it for anything."
+#message 8 "Huh?"
+#message 9 "You should stop talking to yourself."
+#message 10 "You are in front of Adams Hall."
+#message 11 "Adams Hall is a mostly freshman dorm. Even still, you've never had reason to set foot in it."
+#message 12 "You see nothing good."
+#message 13 "A bush is a bush is a bush."
+#message 14 "There's nothing important."
+#message 15 "The street continues behind the dorm, heading towards nowhere you need to go."
+#message 16 "Hey, there's a hole in the back of that tree! What is this, King's Quest?"
+#message 17 "There's nothing important about it."
+#message 18 "You don't need to go that way.  This game is big enough as it is."

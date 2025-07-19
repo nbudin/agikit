@@ -1,0 +1,191 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+
+  if (v1 == 74) {
+    position(o0, 60, 55);
+  }
+
+  if (v1 == 201) {
+    ignore.blocks(o0);
+    position(o0, 76, 77);
+    set.loop(o0, 1);
+    set.cel(o0, 0);
+    v6 = 0;
+    set(f107);
+    program.control();
+  }
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  animate.obj(o1);
+  load.view(57);
+  set.view(o1, 57);
+  set.loop(o1, 0);
+
+  if (f107) {
+    set.cel(o1, 2);
+  } else {
+    set.cel(o1, 0);
+  }
+  ignore.blocks(o1);
+  ignore.objs(o1);
+  position(o1, 86, 76);
+  set.priority(o1, 4);
+  stop.cycling(o1);
+  draw(o1);
+  set(f120);
+
+  if (!has(i34)) {
+    if (f189) {
+      reset(f120);
+    }
+  } else {
+    reset(f120);
+  }
+
+Address132:
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You are at the side entrance to Bressler Hall.");
+}
+
+if (said("examine", "bressler") || said("examine", "building")) {
+  print("It's a dorm like any other.");
+}
+
+if (said("examine", "path")) {
+  print("It leads to Bressler Hall.");
+}
+
+if (said("examine", "d")) {
+  print("Yup, it's a door alright.");
+}
+
+if (said("examine", "window")) {
+  print("You can't see anything good.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "tree")) {
+  print("There's nothing important about the trees.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (f107) {
+  move.obj(o0, 70, 78, 1, f112);
+}
+
+if (f112) {
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o1, f118);
+  reset(f112);
+  reset(f107);
+  observe.blocks(o0);
+  observe.objs(o0);
+  player.control();
+}
+
+if (said("o", "bressler", "d") || said("o", "right", "d") || said("o", "d") || said("o", "building", "d")) {
+  if (posn(o0, 70, 70, 96, 79)) {
+    if (f120) {
+      program.control();
+      load.sound(3);
+      sound(3, f153);
+      end.of.loop(o1, f101);
+    } else {
+      print("Hmm. They seem to have locked the side door.");
+    }
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (f101) {
+  move.obj(o0, 77, 77, 1, f100);
+}
+
+if (f100) {
+  reset(f101);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  move.obj(o0, 88, 74, 1, f111);
+}
+
+if (f3) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  new.room(201);
+}
+
+if (v2 == 1) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  new.room(74);
+}
+
+if (v2 == 2) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  new.room(63);
+}
+
+if (v2 == 4) {
+  erase(o1);
+  reset(f100);
+  reset(f101);
+  reset(f107);
+  reset(f112);
+  reset(f111);
+  reset(f118);
+  reset(f120);
+  new.room(61);
+}
+return();
+
+
+// messages
+#message 1 "You are at the side entrance to Bressler Hall."
+#message 2 "It's a dorm like any other."
+#message 3 "It leads to Bressler Hall."
+#message 4 "Yup, it's a door alright."
+#message 5 "You can't see anything good."
+#message 6 "You see nothing important."
+#message 7 "There's nothing important about the trees."
+#message 8 "You should stop talking to yourself."
+#message 9 "Hmm. They seem to have locked the side door."
+#message 50 "You're not close enough."

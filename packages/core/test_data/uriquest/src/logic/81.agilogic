@@ -1,0 +1,69 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're on a street near Roosevelt Hall.");
+}
+
+if (said("examine", "roosevelt") || said("examine", "building")) {
+  print("It's a building like any other.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "road")) {
+  print("Nothing too interesting about it.");
+}
+
+if (said("examine", "lot")) {
+  print("It's an empty staff parking lot.");
+}
+
+if (said("examine", "bush")) {
+  print("Just a bush, nothing more.");
+}
+
+if (said("examine", "window")) {
+  print("You can't see anything in there.");
+}
+
+if (said("examine", "tree")) {
+  print("There's nothing special about the tree.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 2) {
+  new.room(82);
+}
+
+if (v2 == 4) {
+  new.room(80);
+}
+
+if (v2 == 3) {
+  new.room(69);
+}
+return();
+
+
+// messages
+#message 1 "You're on a street near Roosevelt Hall."
+#message 2 "It's a building like any other."
+#message 3 "You see nothing important."
+#message 4 "Nothing too interesting about it."
+#message 5 "It's an empty staff parking lot."
+#message 6 "Just a bush, nothing more."
+#message 7 "You can't see anything in there."
+#message 8 "There's nothing special about the tree."
+#message 9 "You should stop talking to yourself."

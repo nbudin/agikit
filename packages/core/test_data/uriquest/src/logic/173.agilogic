@@ -1,0 +1,58 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+
+  if (v1 == 185) {
+    position(o0, 70, 55);
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in the northeastern part of campus on Upper College Road.");
+}
+
+if (said("examine", "arts") || said("examine", "building")) {
+  print("You see the Fine Arts building across the street. There is some lame-ass piece of steel modern art on the lawn. You hate that shit.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It's just a sidewalk.");
+}
+
+if (said("examine", "road")) {
+  print("Upper College Road runs along the top part of campus.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 1) {
+  new.room(185);
+}
+
+if (v2 == 2) {
+  new.room(174);
+}
+
+if (v2 == 3) {
+  new.room(161);
+}
+return();
+
+
+// messages
+#message 1 "You're in the northeastern part of campus on Upper College Road."
+#message 2 "You see the Fine Arts building across the street. There is some lame-ass piece of steel modern art on the lawn. You hate that shit."
+#message 3 "You see nothing important."
+#message 4 "It's just a sidewalk."
+#message 5 "Upper College Road runs along the top part of campus."
+#message 6 "You should stop talking to yourself."

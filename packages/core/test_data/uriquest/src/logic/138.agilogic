@@ -1,0 +1,60 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're on the side of Lippitt Hall.");
+}
+
+if (said("examine", "lippitt") || said("examine", "building")) {
+  print("It's an old building. There's a door here.");
+}
+
+if (said("examine", "d") || said("o", "d")) {
+  print("You've heard stories about people that have been in there. Some dungeons could be called luxury apartments compared to the Lippitt Hall basement. Needless to say, you are NOT going in there.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "window")) {
+  print("There's nothing interesting to see in there.");
+}
+
+if (said("examine", "bush")) {
+  print("Na' ga' do it!.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("You see a sidewalk. Wow.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 4) {
+  new.room(137);
+}
+
+if (v2 == 2) {
+  new.room(139);
+}
+return();
+
+
+// messages
+#message 1 "You're on the side of Lippitt Hall."
+#message 2 "It's an old building. There's a door here."
+#message 3 "You've heard stories about people that have been in there. Some dungeons could be called luxury apartments compared to the Lippitt Hall basement. Needless to say, you are NOT going in there."
+#message 4 "You see nothing important."
+#message 5 "There's nothing interesting to see in there."
+#message 6 "Na' ga' do it!."
+#message 7 "You see a sidewalk. Wow."
+#message 8 "You should stop talking to yourself."

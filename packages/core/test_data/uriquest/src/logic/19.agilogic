@@ -1,0 +1,358 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  reset(f108);
+  reset(f109);
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f115);
+  reset(f117);
+  v51 = 19;
+  animate.obj(o7);
+  load.view(16);
+  set.view(o7, 16);
+  set.loop(o7, 0);
+  set.cel(o7, 0);
+  position(o7, 20, 113);
+  ignore.blocks(o7);
+  ignore.objs(o7);
+  set.priority(o7, 10);
+  stop.cycling(o7);
+  draw(o7);
+  animate.obj(o6);
+  load.view(26);
+  set.view(o6, 26);
+  set.loop(o6, 1);
+  set.cel(o6, 0);
+  position(o6, 100, 100);
+  start.cycling(o6);
+  draw(o6);
+
+  if (v1 == 18) {
+    program.control();
+    show.pic();
+    load.sound(3);
+    sound(3, f153);
+    end.of.loop(o7, f112);
+    reset(f111);
+    ignore.blocks(o0);
+    position(o0, 21, 110);
+    draw(o0);
+    move.obj(o0, 32, 110, 0, f115);
+  }
+}
+
+Address113:
+get.posn(o0, v100, v101);
+v104 = v100;
+v106 = v100;
+v105 = v101;
+v107 = v101;
+v104 -= 15;v105 -= 10;v106 += 20;v107 += 10;get.posn(o6, v102, v103);
+
+if (((v102 > v104)) && ((v102 < v106)) && ((v103 > v105)) && ((v103 < v107))) {
+  stop.cycling(o6);
+  stop.motion(o6);
+  set(f117);
+} else {
+  start.motion(o6);
+  start.cycling(o6);
+  reset(f117);
+}
+
+if (!f117) {
+  follow.ego(o6, 1, f117);
+}
+
+if (f115) {
+  reset(f115);
+  load.sound(4);
+  sound(4, f153);
+  reverse.loop(o7, f111);
+  reset(f112);
+  observe.blocks(o0);
+  player.control();
+}
+
+if (said("chat", "elizabeth")) {
+  if (f117) {
+    if (v50 == 0) {
+      if (!f150) {
+        print("She says \"Hi Jeff! You seem to be in need of some clothing in the lower region. You left your pants here last night. I'm feeling really nice today, so I'll give them back to you. Here you go!\"");
+        load.view(0);
+        set.view(o0, 0);
+        draw(o0);
+        set(f150);
+        v3 += 1;
+        load.sound(1);
+        sound(1, f153);
+        print("\"Gee, thanks, Liz.\", Jeff says.");
+      } else {
+        print("\"Nice to see you fully clothed again.\" Liz says.");
+      }
+    }
+  
+    if (v50 == 1) {
+      if (!f171) {
+        print("She says \"Hi Ed! You left your wallet here last night. I'm feeling really nice today, so I'll give it back to you. Here you go!\"");
+        get(i9);
+        set(f171);
+        v3 += 2;
+        load.sound(12);
+        sound(12, f153);
+        print("\"Gee, thanks, Liz.\", Ed says.");
+      } else {
+        print("\"I didn't take any cash from your wallet, I swear.\" Liz says.");
+      }
+    }
+  
+    if (v50 == 2) {
+      if (!f177) {
+        print("She says \"Hi John! You left your laundry detergent here last night. I'm feeling really nice today, so I'll give it back to you. Here you go!\"");
+        get(i15);
+        set(f177);
+        v3 += 3;
+        load.sound(12);
+        sound(12, f153);
+        print("\"Gee, thanks, Liz.\", John says.");
+      } else {
+        print("\"I didn't use any of your detergent, I swear.\" Liz says.");
+      }
+    }
+  
+    if (v50 == 3) {
+      if (!f182) {
+        print("She says \"Hi Sigurd! You left your fabric softener here last night. I'm feeling really nice today, so I'll give it back to you. Here you go!\"");
+        get(i18);
+        set(f182);
+        v3 += 1;
+        load.sound(12);
+        sound(12, f153);
+        print("\"Gee, thanks, Liz.\", Ziggy says.");
+      } else {
+        print("\"I didn't use any of your fabric softener, I swear.\" Liz says.");
+      }
+    }
+  } else {
+    print("Get closer.");
+  }
+}
+
+Address382:
+
+if (said("o", "d")) {
+  if (posn(o0, 20, 105, 30, 115)) {
+    program.control();
+    load.sound(3);
+    sound(3, f153);
+    end.of.loop(o7, f110);
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (f110) {
+  move.obj(o0, 30, 110, 1, f109);
+}
+
+if (f109) {
+  reset(f110);
+  ignore.blocks(o0);
+  ignore.objs(o0);
+  move.obj(o0, 20, 110, 1, f108);
+}
+
+if (said("examine", "elizabeth") || said("examine", "chick")) {
+  print("Liz is the local flirt of Aldrich Hall. She met Jeff on the first day they moved in, and was introduced to the rest of the group shortly thereafter. All in all, she's a very odd, but cool chick.");
+}
+
+if (said("fuck", "elizabeth") || said("kiss", "elizabeth")) {
+  print("You would like to, but you're on a mission. You have no idea what the mission is, but you don't yet have full points towards completing that mission. So get going!");
+}
+
+if (said("examine") || said("look around") || said("examine", "room")) {
+  print("This is Liz's dorm room. C400A, Aldrich Hall. It's pretty typical as far as chick dorm rooms are concerned. There are two desks, two closets, two drawers, two beds, a mirror, a push pin board and a bookshelf. Liz lives here with her roomate Stacy.");
+}
+
+if (said("examine", "desk") || said("examine", "a", "desk") || said("c", "bureau") || said("examine", "bed") || said("examine", "closet") || said("examine", "bureau") || said("o", "closet") || said("c", "closet") || said("o", "bureau") || said("examine", "on top", "desk")) {
+  print("Which one? There are two.");
+}
+
+if (said("examine", "elizabeth", "bed") || said("examine", "left", "bed") || said("examine", "pink", "bed")) {
+  print("It's where Liz sleeps.");
+}
+
+if (said("examine", "stacey", "bed") || said("examine", "right", "bed") || said("examine", "gray", "bed")) {
+  print("Stacy sleeps there (when she's here).");
+}
+
+if (said("examine", "elizabeth", "desk") || said("examine", "on top", "elizabeth", "desk") || said("examine", "left", "desk") || said("examine", "on top", "left", "desk")) {
+  print("Looks like Liz is writing a paper or something. It's nothing exciting.");
+}
+
+if (said("examine", "stacey", "desk") || said("examine", "on top", "stacey", "desk") || said("examine", "right", "desk") || said("examine", "on top", "right", "desk")) {
+  print("There's a book and some pencils. Definitely nothing you want.");
+}
+
+if (said("acquire", "book") || said("acquire", "pen") || said("acquire", "paper")) {
+  print("You don't need it!!!!");
+}
+
+if (said("sit") || said("sit", "chair") || said("use", "chair") || said("acquire", "chair") || said("sit", "left", "chair") || said("sit", "right", "chair") || said("use", "left", "chair") || said("use", "right", "chair") || said("use", "jeff", "chair") || said("use", "john", "chair") || said("sit", "jeff", "chair") || said("sit", "john", "chair")) {
+  print("You don't need to sit down.");
+}
+
+if (said("examine", "chair") || said("examine", "left", "chair") || said("examine", "right", "chair") || said("examine", "elizabeth", "chair") || said("examine", "stacey", "chair")) {
+  print("Ordinary dorm chairs, nothing more.");
+}
+
+if (said("examine", "wall")) {
+  print("There are some posters covering them. Artsy chick stuff.");
+}
+
+if (said("examine", "poster")) {
+  print("Just some chick stuff. It's not interesting.");
+}
+
+if (said("examine", "book case")) {
+  if (posn(o0, 119, 88, 140, 108)) {
+    print("You find a note. It reads:");
+    print("Are you enjoying the game so far? I hope so.\n\nCheers,\nJeff");
+  } else {
+    print("You're not close enough.");
+  }
+}
+
+if (said("examine", "floor")) {
+  print("There's not much to look at.");
+}
+
+if (said("examine", "mirror")) {
+  print("My, you're a handsome devil!");
+}
+
+if (said("examine", "ceiling")) {
+  print("It's pretty nondescript.");
+}
+
+if (said("examine", "shelf")) {
+  print("The shelves contain lots of knick-knacks and other useless stuff.");
+}
+
+if (said("acquire", "bed") || said("sleep") || said("go", "sleep") || said("go", "bed") || said("sleep", "bed")) {
+  print("You don't need to.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (said("o", "closet") || said("o", "bureau")) {
+  print("Which one?");
+}
+
+if (said("o", "left", "closet") || said("o", "elizabeth", "closet")) {
+  print("That would be rude!");
+}
+
+if (said("c", "left", "closet") || said("c", "elizabeth", "closet")) {
+  print("It's already closed.");
+}
+
+if (said("o", "right", "closet") || said("o", "stacey", "closet")) {
+  print("That would be rude!");
+}
+
+if (said("c", "right", "closet") || said("c", "stacey", "closet")) {
+  print("It's already closed.");
+}
+
+if (said("o", "t", "bureau") || said("o", "elizabeth", "bureau")) {
+  print("That would be rude!");
+}
+
+if (said("c", "t", "bureau") || said("c", "elizabeth", "bureau")) {
+  print("It's already closed.");
+}
+
+if (said("o", "b", "bureau") || said("o", "stacey", "bureau")) {
+  print("That would be rude!");
+}
+
+if (said("c", "b", "bureau") || said("c", "stacey", "bureau")) {
+  print("It's already closed.");
+}
+
+if (said("examine", "t", "bureau") || said("examine", "elizabeth", "bureau")) {
+  print("There's nothing to see in there.");
+}
+
+if (said("examine", "b", "bureau") || said("examine", "stacey", "bureau")) {
+  print("There's nothing to see in there.");
+}
+
+if (said("examine", "left", "closet") || said("examine", "elizabeth", "closet")) {
+  print("There's nothing to see in there.");
+}
+
+if (said("examine", "right", "closet") || said("examine", "stacey", "closet")) {
+  print("There's nothing to see in there.");
+}
+
+if (f3) {
+  reset(f108);
+  reset(f109);
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f115);
+  reset(f117);
+  erase(o7);
+  new.room(18);
+}
+return();
+
+
+// messages
+#message 1 "She says \"Hi Jeff! You seem to be in need of some clothing in the lower region. You left your pants here last night. I'm feeling really nice today, so I'll give them back to you. Here you go!\""
+#message 2 "\"Gee, thanks, Liz.\", Jeff says."
+#message 3 "\"Nice to see you fully clothed again.\" Liz says."
+#message 4 "She says \"Hi Ed! You left your wallet here last night. I'm feeling really nice today, so I'll give it back to you. Here you go!\""
+#message 5 "\"Gee, thanks, Liz.\", Ed says."
+#message 6 "\"I didn't take any cash from your wallet, I swear.\" Liz says."
+#message 7 "She says \"Hi John! You left your laundry detergent here last night. I'm feeling really nice today, so I'll give it back to you. Here you go!\""
+#message 8 "\"Gee, thanks, Liz.\", John says."
+#message 9 "\"I didn't use any of your detergent, I swear.\" Liz says."
+#message 10 "She says \"Hi Sigurd! You left your fabric softener here last night. I'm feeling really nice today, so I'll give it back to you. Here you go!\""
+#message 11 "\"Gee, thanks, Liz.\", Ziggy says."
+#message 12 "\"I didn't use any of your fabric softener, I swear.\" Liz says."
+#message 13 "Get closer."
+#message 14 "Liz is the local flirt of Aldrich Hall. She met Jeff on the first day they moved in, and was introduced to the rest of the group shortly thereafter. All in all, she's a very odd, but cool chick."
+#message 15 "You would like to, but you're on a mission. You have no idea what the mission is, but you don't yet have full points towards completing that mission. So get going!"
+#message 16 "This is Liz's dorm room. C400A, Aldrich Hall. It's pretty typical as far as chick dorm rooms are concerned. There are two desks, two closets, two drawers, two beds, a mirror, a push pin board and a bookshelf. Liz lives here with her roomate Stacy."
+#message 17 "Which one? There are two."
+#message 18 "It's where Liz sleeps."
+#message 19 "Stacy sleeps there (when she's here)."
+#message 20 "Looks like Liz is writing a paper or something. It's nothing exciting."
+#message 21 "There's a book and some pencils. Definitely nothing you want."
+#message 22 "You don't need it!!!!"
+#message 23 "You don't need to sit down."
+#message 24 "Ordinary dorm chairs, nothing more."
+#message 25 "There are some posters covering them. Artsy chick stuff."
+#message 26 "Just some chick stuff. It's not interesting."
+#message 27 "You find a note. It reads:"
+#message 28 "Are you enjoying the game so far? I hope so.\n\nCheers,\nJeff"
+#message 29 "There's not much to look at."
+#message 30 "My, you're a handsome devil!"
+#message 31 "It's pretty nondescript."
+#message 32 "The shelves contain lots of knick-knacks and other useless stuff."
+#message 33 "You don't need to."
+#message 34 "You should stop talking to yourself."
+#message 35 "Which one?"
+#message 36 "That would be rude!"
+#message 37 "It's already closed."
+#message 38 "There's nothing to see in there."
+#message 50 "You're not close enough."

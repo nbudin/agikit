@@ -1,0 +1,87 @@
+if (f5) {
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(50);
+
+  if (v1 == 109) {
+    position(o0, 85, 165);
+    v6 = 1;
+  }
+
+  if (v1 == 133) {
+    position(o0, 75, 55);
+    v6 = 5;
+  }
+  draw(o0);
+  show.pic();
+}
+
+if (said("examine") || said("examine", "a") || said("examine", "room")) {
+  print("You're in the middle of campus between Quinn Hall and Pastore Hall.");
+}
+
+if (said("examine", "quinn")) {
+  print("It's got a bunch of classrooms in it. Other than that, it's nothing special.");
+}
+
+if (said("examine", "pastore")) {
+  print("It's the chemistry building. Chemistry was never your favorite subject.");
+}
+
+if (said("examine", "d") || said("o", "d")) {
+  print("As much as you're dying to see what's in there, let's just pretend it's locked.");
+}
+
+if (said("examine", "floor")) {
+  print("You see nothing important.");
+}
+
+if (said("examine", "building")) {
+  print("Which one? Quinn or Pastore?");
+}
+
+if (said("examine", "window")) {
+  print("There's nothing good to see in there.");
+}
+
+if (said("examine", "path")) {
+  print("It goes up to the top of campus from here.");
+}
+
+if (said("examine", "sidewalk")) {
+  print("It goes up to the top of campus from here.");
+}
+
+if (said("chat")) {
+  print("You should stop talking to yourself.");
+}
+
+if (v2 == 4) {
+  new.room(120);
+}
+
+if (v2 == 2) {
+  new.room(122);
+}
+
+if (v2 == 3) {
+  new.room(109);
+}
+
+if (v2 == 1) {
+  new.room(133);
+}
+return();
+
+
+// messages
+#message 1 "You're in the middle of campus between Quinn Hall and Pastore Hall."
+#message 2 "It's got a bunch of classrooms in it. Other than that, it's nothing special."
+#message 3 "It's the chemistry building. Chemistry was never your favorite subject."
+#message 4 "As much as you're dying to see what's in there, let's just pretend it's locked."
+#message 5 "You see nothing important."
+#message 6 "Which one? Quinn or Pastore?"
+#message 7 "There's nothing good to see in there."
+#message 8 "It goes up to the top of campus from here."
+#message 9 "You should stop talking to yourself."

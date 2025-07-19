@@ -1,0 +1,390 @@
+if (f5) {
+  v0 = 218;
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  set.horizon(0);
+  load.sound(19);
+  v55 = 3;
+  v52 = 200;
+  reset(f100);
+  reset(f102);
+  reset(f103);
+  reset(f104);
+  reset(f105);
+  reset(f106);
+  reset(f107);
+  reset(f108);
+  reset(f109);
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+  reset(f117);
+  reset(f118);
+  reset(f119);
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  reset(f125);
+  reset(f126);
+  reset(f127);
+  reset(f128);
+  reset(f129);
+  reset(f130);
+  reset(f131);
+  reset(f132);
+  reset(f133);
+  reset(f134);
+  reset(f135);
+  reset(f136);
+  reset(f137);
+  reset(f138);
+  reset(f139);
+  animate.obj(o3);
+  load.view(69);
+  set.view(o3, 69);
+  set.loop(o3, 0);
+  set.cel(o3, 0);
+  position(o3, 128, 99);
+  cycle.time(o3, v55);
+  set.priority(o3, 13);
+  stop.cycling(o3);
+  draw(o3);
+  animate.obj(o2);
+  load.view(2);
+  set.view(o2, 2);
+  set.loop(o2, 2);
+  position(o2, 25, 120);
+  stop.cycling(o2);
+  draw(o2);
+  animate.obj(o1);
+  load.view(0);
+  set.view(o1, 0);
+  set.loop(o1, 0);
+  position(o1, 40, 105);
+  stop.cycling(o1);
+  draw(o1);
+  animate.obj(o4);
+  load.view(1);
+  set.view(o4, 1);
+  set.loop(o4, 0);
+  position(o4, 80, 115);
+  stop.cycling(o4);
+  draw(o4);
+  erase(o0);
+  set(f101);
+  program.control();
+  prevent.input();
+  show.pic();
+}
+
+if (f101) {
+  reset(f101);
+  print("\"OK. I think we're ready.\" Jeff says. \"Lights off?\"");
+  v0 = 219;
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  show.pic();
+  print("\"Check!\" replies John.");
+  print("\"Booze and juice?\" asks Jeff.");
+  print("\"Check!\" replies Ed.");
+  print("Jeff continues \"Are we all familiar with the rules? Whenever an event in this Star Wars drinking game checklist happens in the movie, we drink a shot. Understood?\"");
+  print("\"Understood!!\" Ed and John reply.");
+  print("\"John, would you care to put the tape in?\" Jeff asks.");
+  print("\"My pleasure, sir.\" John replies.");
+  start.cycling(o2);
+  ignore.objs(o2);
+  set(f100);
+}
+
+if (f100) {
+  move.obj(o2, 118, 105, 1, f102);
+}
+
+if (f102) {
+  reset(f100);
+  move.obj(o2, 60, 100, 1, f104);
+}
+
+if (f104) {
+  reset(f104);
+  reset(f102);
+  stop.cycling(o2);
+  load.view(70);
+  load.view(71);
+  load.view(72);
+  set.view(o1, 70);
+  set.view(o4, 71);
+  set.view(o2, 72);
+  set.loop(o1, 0);
+  set.cel(o1, 0);
+  set.loop(o2, 0);
+  set.cel(o2, 0);
+  set.loop(o4, 0);
+  set.cel(o4, 0);
+  draw(o1);
+  draw(o4);
+  draw(o2);
+  set(f103);
+  sound(19, f105);
+}
+
+if (f103) {
+  reset(f103);
+  cycle.time(o1, v55);
+  cycle.time(o2, v55);
+  cycle.time(o4, v55);
+  step.time(o1, v55);
+  step.time(o2, v55);
+  step.time(o4, v55);
+  start.cycling(o3);
+}
+
+if (f105) {
+  reset(f105);
+  print("\"...I have a bad feeling about this...\"");
+  set(f106);
+}
+
+if (f106) {
+  reset(f106);
+  end.of.loop(o2, f107);
+  end.of.loop(o4, f108);
+  end.of.loop(o1, f109);
+}
+
+if (f109) {
+  reset(f109);
+  print("\"...only Imperial stormtroopers are so precise...\"");
+  set(f110);
+}
+
+if (f110) {
+  reset(f110);
+  reverse.loop(o2, f111);
+  reverse.loop(o4, f112);
+  reverse.loop(o1, f113);
+}
+
+if (f113) {
+  reset(f113);
+  print("\"...Luke, it is your destiny...\"");
+  set(f114);
+}
+
+if (f114) {
+  reset(f114);
+  end.of.loop(o2, f115);
+  end.of.loop(o4, f116);
+  end.of.loop(o1, f117);
+}
+
+if (f117) {
+  reset(f117);
+  print("\"...she may not look like much, but she's got it where it counts...\"");
+  set(f118);
+}
+
+if (f118) {
+  reset(f118);
+  reverse.loop(o2, f119);
+  reverse.loop(o4, f120);
+  reverse.loop(o1, f121);
+}
+
+if (f121) {
+  reset(f121);
+  print("\"...but I was going to Toshi station to pick up some power converters...\"");
+  set(f122);
+}
+
+if (f122) {
+  reset(f122);
+  end.of.loop(o2, f123);
+  end.of.loop(o4, f124);
+  end.of.loop(o1, f125);
+}
+
+if (f125) {
+  reset(f125);
+  print("\"...when 900 years old you be, look as good, you will not...\"");
+  set(f126);
+}
+
+if (f126) {
+  reset(f126);
+  reverse.loop(o2, f127);
+  reverse.loop(o4, f128);
+  reverse.loop(o1, f129);
+}
+
+if (f129) {
+  reset(f129);
+  print("\"...it's our only hope...\"");
+  set(f130);
+}
+
+if (f130) {
+  reset(f130);
+  end.of.loop(o2, f131);
+  end.of.loop(o4, f132);
+  end.of.loop(o1, f133);
+}
+
+if (f133) {
+  reset(f133);
+  print("\"...you will bring captain Solo and the Wookie to me...\"");
+  set(f134);
+}
+
+if (f134) {
+  reset(f134);
+  reverse.loop(o2, f135);
+  reverse.loop(o4, f136);
+  reverse.loop(o1, f137);
+}
+
+if (f137) {
+  reset(f137);
+  erase(o3);
+  load.view(0);
+  set.view(o1, 0);
+  load.view(1);
+  set.view(o4, 1);
+  load.view(2);
+  set.view(o2, 2);
+  set.loop(o1, 1);
+  set.cel(o1, 0);
+  set.loop(o2, 1);
+  set.cel(o2, 0);
+  set.loop(o4, 0);
+  set.cel(o4, 0);
+  start.cycling(o1);
+  start.cycling(o4);
+  start.cycling(o2);
+  observe.blocks(o1);
+  observe.blocks(o2);
+  observe.blocks(o4);
+  observe.objs(o1);
+  observe.objs(o2);
+  observe.objs(o4);
+  draw(o1);
+  draw(o4);
+  draw(o2);
+  set(f138);
+}
+
+if (f138) {
+  if (v52 > 20) {
+    wander(o1);
+    wander(o2);
+    wander(o4);
+    v52 -= 1;
+  } else {
+    reset(f138);
+    set(f139);
+  }
+}
+
+if (f139) {
+  reset(f139);
+  print("\"Well, zthat was shertainly fun.\" proclaims Ed.");
+  print("\"I agr, agree.\" Jeff responds.");
+  print("\"I'm tired. I'm goin' to bed.\" John says.");
+  print("\"I'm not.\" Ed says. \"Letsch go back to my dorm and hang out.\"");
+  print("\"Yeah, that schounds cool.\" Jeff replies. \"Let's go.\"");
+  erase(o2);
+  erase(o1);
+  erase(o4);
+  v0 = 199;
+  load.pic(v0);
+  draw.pic(v0);
+  discard.pic(v0);
+  show.pic();
+  print("Jeff and Ed head back to Bressler.");
+  print("John goes to sleep.");
+  print("12 hours later, John wakes up and gets dressed.");
+  print("But something isn't quite right...");
+  reset(f100);
+  reset(f102);
+  reset(f103);
+  reset(f104);
+  reset(f105);
+  reset(f106);
+  reset(f107);
+  reset(f108);
+  reset(f109);
+  reset(f110);
+  reset(f111);
+  reset(f112);
+  reset(f113);
+  reset(f114);
+  reset(f115);
+  reset(f116);
+  reset(f117);
+  reset(f118);
+  reset(f119);
+  reset(f120);
+  reset(f121);
+  reset(f122);
+  reset(f123);
+  reset(f124);
+  reset(f125);
+  reset(f126);
+  reset(f127);
+  reset(f128);
+  reset(f129);
+  reset(f130);
+  reset(f131);
+  reset(f132);
+  reset(f133);
+  reset(f134);
+  reset(f135);
+  reset(f136);
+  reset(f137);
+  reset(f138);
+  reset(f139);
+  drop(i13);
+  drop(i14);
+  drop(i12);
+  drop(i11);
+  accept.input();
+  set(f176);
+  new.room(10);
+}
+return();
+
+
+// messages
+#message 1 "\"OK. I think we're ready.\" Jeff says. \"Lights off?\""
+#message 2 "\"Check!\" replies John."
+#message 3 "\"Booze and juice?\" asks Jeff."
+#message 4 "\"Check!\" replies Ed."
+#message 5 "Jeff continues \"Are we all familiar with the rules? Whenever an event in this Star Wars drinking game checklist happens in the movie, we drink a shot. Understood?\""
+#message 6 "\"Understood!!\" Ed and John reply."
+#message 7 "\"John, would you care to put the tape in?\" Jeff asks."
+#message 8 "\"My pleasure, sir.\" John replies."
+#message 9 "\"...I have a bad feeling about this...\""
+#message 10 "\"...only Imperial stormtroopers are so precise...\""
+#message 11 "\"...Luke, it is your destiny...\""
+#message 12 "\"...she may not look like much, but she's got it where it counts...\""
+#message 13 "\"...but I was going to Toshi station to pick up some power converters...\""
+#message 14 "\"...when 900 years old you be, look as good, you will not...\""
+#message 15 "\"...it's our only hope...\""
+#message 16 "\"...you will bring captain Solo and the Wookie to me...\""
+#message 17 "\"Well, zthat was shertainly fun.\" proclaims Ed."
+#message 18 "\"I agr, agree.\" Jeff responds."
+#message 19 "\"I'm tired. I'm goin' to bed.\" John says."
+#message 20 "\"I'm not.\" Ed says. \"Letsch go back to my dorm and hang out.\""
+#message 21 "\"Yeah, that schounds cool.\" Jeff replies. \"Let's go.\""
+#message 22 "Jeff and Ed head back to Bressler."
+#message 23 "John goes to sleep."
+#message 24 "12 hours later, John wakes up and gets dressed."
+#message 25 "But something isn't quite right..."
