@@ -26,7 +26,7 @@ use crate::logic::{
     logic_script::{
         codegen::{
             errors::LogicScriptCodeGenerationError,
-            node_label_map::{GetOrInsertLabelResult, LabeledNode, NodeLabelMap},
+            node_label_map::{LabeledNode, NodeLabelMap},
         },
         identifiers::IdentifierMap,
         statements::{
@@ -229,7 +229,6 @@ impl LogicScriptStatementGraph {
         });
         let dominator_tree = DominatorTree::from_graph(&traversal_filter, self.root_id);
         let mut dfs_post_order = DfsPostOrder::new(&traversal_filter, self.root_id);
-        let mut inserted_labels: Vec<(NodeIndex, String)> = vec![];
 
         while let Some(node_id) = dfs_post_order.next(&traversal_filter) {
             let generated_statement = self.node_to_statement(node_id)?;
@@ -313,13 +312,6 @@ impl LogicScriptStatementGraph {
                                 eprintln!(
                                     "node_id: {node_id:?} exit_ids: {exit_ids:?} target_label: {target_label:?}"
                                 );
-
-                                match target_label {
-                                    GetOrInsertLabelResult::Inserted(ref label) => {
-                                        inserted_labels.push((target_id, label.clone()))
-                                    }
-                                    _ => {}
-                                }
 
                                 subclause_statements.push((
                                     None,
