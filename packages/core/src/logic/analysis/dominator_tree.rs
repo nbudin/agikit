@@ -9,7 +9,7 @@ use petgraph::{
 };
 
 use crate::logic::analysis::{
-    invert_graph::InvertedGraph,
+    invert_graph::{InvertedGraph, InvertedGraphNode},
     node_reference::{NodeReference, ReferenceGraph},
 };
 
@@ -20,11 +20,20 @@ pub struct DominationAnalysis<Ix: IndexType = DefaultIx> {
 }
 
 impl<Ix: IndexType> DominationAnalysis<Ix> {
-    pub fn from_graph<N, E>(graph: &StableDiGraph<N, E, Ix>, root_id: NodeIndex<Ix>) -> Self {
+    pub fn from_graph<'a, G>(graph: &'a G, root_id: NodeIndex<Ix>) -> Self
+    where
+        &'a G: GraphBase<NodeId = NodeIndex<Ix>, EdgeId = EdgeIndex<Ix>>
+            + NodeCount
+            + Visitable
+            + IntoEdgesDirected,
+    {
         let dominator_tree = DominatorTree::from_graph(&graph, root_id);
         let reverse_cfg = InvertedGraph::from_graph(&graph, root_id);
-        let post_dominator_tree =
-            DominatorTree::from_graph(&reverse_cfg.reference_graph(), reverse_cfg.virtual_root_id);
+        let post_dominator_tree = DominatorTree::from_graph::<
+            StableDiGraph<InvertedGraphNode<Ix>, ()>,
+        >(
+            reverse_cfg.reference_graph(), reverse_cfg.virtual_root_id
+        );
 
         Self {
             dominator_tree,

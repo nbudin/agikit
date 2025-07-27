@@ -11,9 +11,10 @@ use crate::logic::{
         operators::{LogicScriptArithmeticOperator, LogicScriptUnaryAssignmentOperator},
         statements::{
             LogicScriptArithmeticAssignmentStatement, LogicScriptCommandCall, LogicScriptComment,
-            LogicScriptLabel, LogicScriptLeftIndirectAssignmentStatement,
+            LogicScriptLeftIndirectAssignmentStatement,
             LogicScriptRightIndirectAssignmentStatement, LogicScriptStatement,
-            LogicScriptUnaryOperationStatement, LogicScriptValueAssignmentStatement,
+            LogicScriptStatementBody, LogicScriptUnaryOperationStatement,
+            LogicScriptValueAssignmentStatement,
         },
     },
 };
@@ -91,18 +92,6 @@ impl GenerateLogicScript for LogicScriptComment {
         _options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         Ok(format!("//{}\n", self.comment))
-    }
-}
-
-impl GenerateLogicScript for LogicScriptLabel {
-    type Options = ();
-
-    fn generate_logic_script(
-        &self,
-        _context: &LogicScriptCodeGenerationContext<'_>,
-        _options: Self::Options,
-    ) -> Result<String, LogicScriptCodeGenerationError> {
-        Ok(format!("{}:", self.label))
     }
 }
 
@@ -306,7 +295,7 @@ impl GenerateLogicScript for LogicScriptRightIndirectAssignmentStatement {
 }
 
 impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
-    for LogicScriptStatement<Arg>
+    for LogicScriptStatementBody<Arg>
 {
     type Options = usize; // indentation level
 
@@ -324,21 +313,16 @@ impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
         };
 
         match self {
-            LogicScriptStatement::Comment(comment) => {
+            LogicScriptStatementBody::Comment(comment) => {
                 Ok(indent_line(&comment.generate_logic_script(context, ())?))
             }
-            LogicScriptStatement::Label(label) => Ok(format!(
-                "\n{}{}\n",
-                " ".repeat((indent.saturating_sub(2)).max(0)),
-                label.generate_logic_script(context, ())?,
-            )),
-            LogicScriptStatement::Directive(directive) => Ok(indent_line(
+            LogicScriptStatementBody::Directive(directive) => Ok(indent_line(
                 &directive.directive.generate_logic_script(context, ())?,
             )),
-            LogicScriptStatement::CommandCall(command_call) => Ok(indent_line(
+            LogicScriptStatementBody::CommandCall(command_call) => Ok(indent_line(
                 &command_call.generate_logic_script(context, ())?,
             )),
-            LogicScriptStatement::IfStatement(if_statement) => {
+            LogicScriptStatementBody::IfStatement(if_statement) => {
                 let generate_lines = |statements: &[Box<LogicScriptStatement<Arg>>]| -> Result<Vec<String>, LogicScriptCodeGenerationError> {
                   let mut branch_lines: Vec<String> = statements
                     .iter()
@@ -380,26 +364,53 @@ impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
 
                 Ok(lines.map(|line| indent_line(&line)).collect::<String>())
             }
-            LogicScriptStatement::UnaryOperation(unary_operation_statement) => Ok(indent_line(
+            LogicScriptStatementBody::UnaryOperation(unary_operation_statement) => Ok(indent_line(
                 &unary_operation_statement.generate_logic_script(context, ())?,
             )),
-            LogicScriptStatement::ValueAssignment(value_assignment_statement) => Ok(indent_line(
-                &value_assignment_statement.generate_logic_script(context, ())?,
-            )),
-            LogicScriptStatement::ArithmeticAssignment(arithmetic_assignment_statement) => Ok(
+            LogicScriptStatementBody::ValueAssignment(value_assignment_statement) => Ok(
+                indent_line(&value_assignment_statement.generate_logic_script(context, ())?),
+            ),
+            LogicScriptStatementBody::ArithmeticAssignment(arithmetic_assignment_statement) => Ok(
                 indent_line(&arithmetic_assignment_statement.generate_logic_script(context, ())?),
             ),
-            LogicScriptStatement::LeftIndirectAssignment(left_indirect_assignment_statement) => {
-                Ok(indent_line(
-                    &left_indirect_assignment_statement.generate_logic_script(context, ())?,
-                ))
-            }
-            LogicScriptStatement::RightIndirectAssignment(right_indirect_assignment_statement) => {
-                Ok(indent_line(
-                    &right_indirect_assignment_statement.generate_logic_script(context, ())?,
-                ))
-            }
+            LogicScriptStatementBody::LeftIndirectAssignment(
+                left_indirect_assignment_statement,
+            ) => Ok(indent_line(
+                &left_indirect_assignment_statement.generate_logic_script(context, ())?,
+            )),
+            LogicScriptStatementBody::RightIndirectAssignment(
+                right_indirect_assignment_statement,
+            ) => Ok(indent_line(
+                &right_indirect_assignment_statement.generate_logic_script(context, ())?,
+            )),
         }
+    }
+}
+
+impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
+    for LogicScriptStatement<Arg>
+{
+    type Options = usize; // indentation level
+
+    fn generate_logic_script(
+        &self,
+        context: &LogicScriptCodeGenerationContext<'_>,
+        indent: Self::Options,
+    ) -> Result<String, LogicScriptCodeGenerationError> {
+        let label_content = match &self.label {
+            Some(label) => format!(
+                "\n{}{}:\n",
+                " ".repeat((indent.saturating_sub(2)).max(0)),
+                label,
+            ),
+            None => "".to_string(),
+        };
+
+        Ok(format!(
+            "{}{}",
+            label_content,
+            self.body.generate_logic_script(context, indent)?
+        ))
     }
 }
 
@@ -417,15 +428,18 @@ impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
         self.iter()
             .map(|statement| {
                 let mut script = statement.generate_logic_script(context, options)?;
-                if (matches!(statement, LogicScriptStatement::IfStatement(_))
+                if (matches!(statement.body, LogicScriptStatementBody::IfStatement(_))
                     && matches!(
-                        prev_statement,
+                        prev_statement.map(|s| &s.body),
                         Some(
-                            LogicScriptStatement::IfStatement(_)
-                                | LogicScriptStatement::CommandCall(_)
+                            LogicScriptStatementBody::IfStatement(_)
+                                | LogicScriptStatementBody::CommandCall(_)
                         )
                     ))
-                    || matches!(prev_statement, Some(LogicScriptStatement::IfStatement(_)))
+                    || matches!(
+                        prev_statement.map(|s| &s.body),
+                        Some(LogicScriptStatementBody::IfStatement(_))
+                    )
                 {
                     script = format!("\n{}", script);
                 }

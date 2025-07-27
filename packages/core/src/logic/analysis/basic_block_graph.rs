@@ -17,7 +17,7 @@ use crate::logic::{
             DirectedNeighborEdgeUtils, Optimizable, OptimizationResult, RemoveNodePreservingEdges,
         },
     },
-    logic_script::codegen::errors::LogicScriptCodeGenerationError,
+    logic_script::codegen::{errors::LogicScriptCodeGenerationError, node_label_map::LabeledNode},
 };
 
 pub trait BasicBlockVisitor {
@@ -48,15 +48,16 @@ pub enum BasicBlock {
     Conditional(ConditionalBasicBlock),
 }
 
-impl BasicBlock {
-    pub fn label(&self) -> Option<&str> {
+impl LabeledNode for BasicBlock {
+    fn label(&self) -> Option<&str> {
         match self {
             BasicBlock::SinglePath(block) => block.label.as_deref(),
             BasicBlock::Conditional(block) => block.label.as_deref(),
         }
     }
 
-    pub fn set_label(&mut self, label: Option<String>) {
+    fn set_label(&mut self, label: Option<&str>) {
+        let label = label.map(|l| l.to_string());
         match self {
             BasicBlock::SinglePath(block) => block.label = label,
             BasicBlock::Conditional(block) => block.label = label,
@@ -383,7 +384,7 @@ pub fn remove_empty_block(
 
                 let new_target_block = graph.node_weight_mut(next_block_id).unwrap();
                 if new_target_block.label().is_none() && block_label.is_some() {
-                    new_target_block.set_label(block_label);
+                    new_target_block.set_label(block_label.as_deref());
                 }
 
                 for (_, source_id, weight) in incoming_edge_data {

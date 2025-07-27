@@ -4,8 +4,8 @@ use petgraph::{
     Directed, Direction,
     csr::{DefaultIx, IndexType},
     graph::NodeIndex,
-    prelude::StableDiGraph,
-    visit::{Dfs, EdgeRef},
+    prelude::{EdgeIndex, StableDiGraph},
+    visit::{Dfs, EdgeRef, GraphBase, IntoEdgesDirected, IntoNeighbors, Visitable},
 };
 
 use crate::logic::analysis::node_reference::{NodeReference, ReferenceGraph};
@@ -46,10 +46,13 @@ pub struct InvertedGraph<Ix: IndexType = DefaultIx> {
 }
 
 impl<Ix: IndexType> InvertedGraph<Ix> {
-    pub fn from_graph<'a, N, E>(
-        graph: &'a StableDiGraph<N, E, Ix>,
-        root_id: NodeIndex<Ix>,
-    ) -> Self {
+    pub fn from_graph<'a, G>(graph: &'a G, root_id: NodeIndex<Ix>) -> Self
+    where
+        &'a G: GraphBase<NodeId = NodeIndex<Ix>, EdgeId = EdgeIndex<Ix>>
+            + Visitable
+            + IntoNeighbors
+            + IntoEdgesDirected,
+    {
         let mut reverse_nodes_by_node_id = HashMap::new();
         let mut reverse_graph = StableDiGraph::new();
         let mut root_ids = HashSet::new();

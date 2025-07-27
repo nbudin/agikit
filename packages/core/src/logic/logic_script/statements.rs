@@ -7,6 +7,7 @@ use crate::logic::{
         LogicArgument, LogicBooleanExpression, LogicIdentifier, ParsedLogicArgument,
     },
     logic_script::{
+        codegen::node_label_map::LabeledNode,
         directives::LogicScriptDirective,
         operators::{LogicScriptArithmeticOperator, LogicScriptUnaryAssignmentOperator},
     },
@@ -74,14 +75,8 @@ pub struct LogicScriptKeyword {
     pub keyword: KeywordType,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct LogicScriptLabel {
-    pub label: String,
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, AsRefStr)]
-pub enum LogicScriptStatement<Arg: LogicArgument> {
-    Label(LogicScriptLabel),
+pub enum LogicScriptStatementBody<Arg: LogicArgument> {
     CommandCall(LogicScriptCommandCall<Arg>),
     IfStatement(LogicScriptIfStatement<Arg, Box<LogicScriptStatement<Arg>>>),
     Comment(LogicScriptComment),
@@ -93,9 +88,9 @@ pub enum LogicScriptStatement<Arg: LogicArgument> {
     RightIndirectAssignment(LogicScriptRightIndirectAssignmentStatement),
 }
 
-impl LogicScriptStatement<ParsedLogicArgument> {
+impl LogicScriptStatementBody<ParsedLogicArgument> {
     pub fn get_goto_target_label(&self) -> Option<&String> {
-        let LogicScriptStatement::CommandCall(statement) = self else {
+        let LogicScriptStatementBody::CommandCall(statement) = self else {
             return None;
         };
 
@@ -111,13 +106,41 @@ impl LogicScriptStatement<ParsedLogicArgument> {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LogicScriptStatement<Arg: LogicArgument> {
+    pub body: LogicScriptStatementBody<Arg>,
+    pub label: Option<String>,
+}
+
+impl<Arg: LogicArgument> LogicScriptStatement<Arg> {
+    pub fn new(body: LogicScriptStatementBody<Arg>, label: Option<String>) -> Self {
+        Self { body, label }
+    }
+}
+
+impl<Arg: LogicArgument> LabeledNode for LogicScriptStatement<Arg> {
+    fn label(&self) -> Option<&str> {
+        self.label.as_deref()
+    }
+
+    fn set_label(&mut self, label: Option<&str>) {
+        self.label = label.map(|s| s.to_string());
+    }
+}
+
+impl LogicScriptStatement<ParsedLogicArgument> {
+    pub fn get_goto_target_label(&self) -> Option<&String> {
+        self.body.get_goto_target_label()
+    }
+}
+
 #[cfg(feature = "dot")]
 impl LogicScriptStatement<ParsedLogicArgument> {
-    pub fn node_label(&self, context: &LogicScriptCodeGenerationContext) -> String {
+    pub fn dot_node_label(&self, context: &LogicScriptCodeGenerationContext) -> String {
         use crate::logic::logic_script::codegen::codegen::GenerateLogicScript;
 
-        let label = match self {
-            LogicScriptStatement::IfStatement(if_statement) => format!(
+        let label = match &self.body {
+            LogicScriptStatementBody::IfStatement(if_statement) => format!(
                 "if ({})",
                 if_statement
                     .conditions
@@ -138,13 +161,12 @@ impl LogicScriptStatement<ParsedLogicArgument> {
         }
     }
 
-    pub fn node_shape(&self) -> &str {
-        match self {
-            LogicScriptStatement::Directive(_) => "oval",
-            LogicScriptStatement::IfStatement(_) => "diamond",
-            LogicScriptStatement::Label(_) => "note",
-            LogicScriptStatement::Comment(_) => "parallelogram",
-            LogicScriptStatement::CommandCall(command_call) => {
+    pub fn dot_node_shape(&self) -> &str {
+        match &self.body {
+            LogicScriptStatementBody::Directive(_) => "oval",
+            LogicScriptStatementBody::IfStatement(_) => "diamond",
+            LogicScriptStatementBody::Comment(_) => "parallelogram",
+            LogicScriptStatementBody::CommandCall(command_call) => {
                 if command_call.command_name == "goto" {
                     "invtriangle"
                 } else {
@@ -155,9 +177,9 @@ impl LogicScriptStatement<ParsedLogicArgument> {
         }
     }
 
-    pub fn node_attrs(&self, context: &LogicScriptCodeGenerationContext) -> String {
-        let label = self.node_label(context);
-        let shape = self.node_shape();
+    pub fn dot_node_attrs(&self, context: &LogicScriptCodeGenerationContext) -> String {
+        let label = self.dot_node_label(context);
+        let shape = self.dot_node_shape();
 
         format!(
             "shape = {shape}, label = {}",

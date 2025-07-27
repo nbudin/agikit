@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashSet, VecDeque};
 #[cfg(feature = "dot")]
 use std::fmt::Debug;
 
@@ -14,7 +14,7 @@ use petgraph::{
 use crate::logic::logic_script::codegen::context::LogicScriptCodeGenerationContext;
 use crate::logic::{
     analysis::{
-        dominator_tree::DominatorTree,
+        dominator_tree::{DominationAnalysis, DominatorTree},
         optimization::{
             DirectedNeighborEdgeUtils, Optimizable, OptimizationPass, OptimizationResult,
             OptimizationVisitor, RemoveNodePreservingEdges,
@@ -24,11 +24,52 @@ use crate::logic::{
         LogicBooleanExpression, LogicIdentifier, LogicNotExpression, ParsedLogicArgument,
     },
     logic_script::{
-        codegen::errors::LogicScriptCodeGenerationError,
+        codegen::{
+            errors::LogicScriptCodeGenerationError,
+            node_label_map::{GetOrInsertLabelResult, LabeledNode, NodeLabelMap},
+        },
         identifiers::IdentifierMap,
-        statements::{LogicScriptCommandCall, LogicScriptIfStatement, LogicScriptStatement},
+        statements::{
+            LogicScriptCommandCall, LogicScriptIfStatement, LogicScriptStatement,
+            LogicScriptStatementBody,
+        },
     },
 };
+
+#[derive(Debug, Clone)]
+pub struct LogicScriptStatementGraphNode {
+    statement: LogicScriptStatement<ParsedLogicArgument>,
+}
+
+impl LogicScriptStatementGraphNode {
+    pub fn statement(&self) -> &LogicScriptStatement<ParsedLogicArgument> {
+        &self.statement
+    }
+
+    pub fn get_goto_target_label(&self) -> Option<&String> {
+        self.statement.get_goto_target_label()
+    }
+
+    pub fn node_attrs(&self, context: &LogicScriptCodeGenerationContext) -> String {
+        self.statement.dot_node_attrs(context)
+    }
+}
+
+impl From<LogicScriptStatement<ParsedLogicArgument>> for LogicScriptStatementGraphNode {
+    fn from(value: LogicScriptStatement<ParsedLogicArgument>) -> Self {
+        Self { statement: value }
+    }
+}
+
+impl LabeledNode for LogicScriptStatementGraphNode {
+    fn label(&self) -> Option<&str> {
+        self.statement.label()
+    }
+
+    fn set_label(&mut self, label: Option<&str>) {
+        self.statement.set_label(label);
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LogicScriptStatementGraphEdge {
@@ -40,17 +81,14 @@ pub enum LogicScriptStatementGraphEdge {
 }
 
 fn add_statements_to_graph<'a>(
-    graph: &mut StableDiGraph<
-        LogicScriptStatement<ParsedLogicArgument>,
-        LogicScriptStatementGraphEdge,
-    >,
+    graph: &mut StableDiGraph<LogicScriptStatementGraphNode, LogicScriptStatementGraphEdge>,
     statements: Box<dyn Iterator<Item = &'a LogicScriptStatement<ParsedLogicArgument>> + 'a>,
 ) -> (Vec<NodeIndex>, Vec<NodeIndex>) {
     let mut prev_node_id: Option<NodeIndex> = None;
     let mut block_exit_node_ids: Vec<NodeIndex> = vec![];
     let added_statements: Vec<_> = statements
         .map(|statement| {
-            let node_id = graph.add_node(statement.clone());
+            let node_id = graph.add_node(statement.clone().into());
 
             for block_exit_node_id in block_exit_node_ids.iter() {
                 graph.add_edge(
@@ -66,8 +104,8 @@ fn add_statements_to_graph<'a>(
             }
             prev_node_id = Some(node_id);
 
-            match statement {
-                LogicScriptStatement::IfStatement(if_statement) => {
+            match &statement.body {
+                LogicScriptStatementBody::IfStatement(if_statement) => {
                     let then_statements = if_statement
                         .then_statements
                         .iter()
@@ -114,11 +152,10 @@ fn add_statements_to_graph<'a>(
 
 #[derive(Debug, Clone)]
 pub struct LogicScriptStatementGraph {
-    pub graph:
-        StableDiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>,
+    pub graph: StableDiGraph<LogicScriptStatementGraphNode, LogicScriptStatementGraphEdge>,
     pub root_id: NodeIndex,
     pub identifiers: IdentifierMap,
-    pub node_ids_by_label: HashMap<String, NodeIndex>,
+    pub label_map: NodeLabelMap,
 }
 
 impl LogicScriptStatementGraph {
@@ -132,23 +169,14 @@ impl LogicScriptStatementGraph {
 
         let all_node_ids = Dfs::new(&graph, root_id).iter(&graph).collect::<Vec<_>>();
 
-        let node_ids_by_label: HashMap<String, NodeIndex> = all_node_ids
-            .iter()
-            .filter_map(|node_id| {
-                let Some(LogicScriptStatement::Label(label)) = graph.node_weight(*node_id) else {
-                    return None;
-                };
-
-                Some((label.label.clone(), *node_id))
-            })
-            .collect();
+        let label_map = NodeLabelMap::new(&graph, root_id);
 
         for node_id in all_node_ids.iter() {
-            let Some(statement) = graph.node_weight(*node_id) else {
+            let Some(node) = graph.node_weight(*node_id) else {
                 continue;
             };
 
-            let LogicScriptStatement::CommandCall(command_call) = statement else {
+            let LogicScriptStatementBody::CommandCall(command_call) = &node.statement().body else {
                 continue;
             };
 
@@ -156,19 +184,19 @@ impl LogicScriptStatementGraph {
                 continue;
             }
 
-            let Some(target_label) = statement.get_goto_target_label() else {
+            let Some(target_label) = node.get_goto_target_label() else {
                 return Err(LogicScriptCodeGenerationError::GotoWithNoTarget(
-                    statement.clone(),
+                    node.statement().clone(),
                 ));
             };
 
-            let Some(target_node_id) = node_ids_by_label.get(target_label) else {
+            let Some(target_node_id) = label_map.get_node_id_for_label(target_label) else {
                 continue;
             };
 
             graph.add_edge(
                 *node_id,
-                *target_node_id,
+                target_node_id,
                 LogicScriptStatementGraphEdge::GotoTarget,
             );
         }
@@ -177,12 +205,12 @@ impl LogicScriptStatementGraph {
             graph,
             root_id,
             identifiers,
-            node_ids_by_label,
+            label_map,
         })
     }
 
     pub fn to_statements(
-        &self,
+        &mut self,
     ) -> Result<Vec<LogicScriptStatement<ParsedLogicArgument>>, LogicScriptCodeGenerationError>
     {
         type StackItem = (NodeIndex, LogicScriptStatement<ParsedLogicArgument>);
@@ -201,12 +229,13 @@ impl LogicScriptStatementGraph {
         });
         let dominator_tree = DominatorTree::from_graph(&traversal_filter, self.root_id);
         let mut dfs_post_order = DfsPostOrder::new(&traversal_filter, self.root_id);
+        let mut inserted_labels: Vec<(NodeIndex, String)> = vec![];
 
         while let Some(node_id) = dfs_post_order.next(&traversal_filter) {
-            let statement = self.node_to_statement(node_id)?;
+            let generated_statement = self.node_to_statement(node_id)?;
 
-            let statement = match statement {
-                LogicScriptStatement::IfStatement(if_statement) => {
+            let statement = match &generated_statement.body {
+                LogicScriptStatementBody::IfStatement(if_statement) => {
                     let then_node_id = self.graph.directed_neighbor_node_id_of_type(
                         node_id,
                         Direction::Outgoing,
@@ -230,33 +259,17 @@ impl LogicScriptStatementGraph {
                                 subclause_node_id,
                                 None,
                             )
-                        {
-                            if let Some(LogicScriptStatement::Label(label)) =
-                                self.graph.node_weight(subclause_node_id)
-                                && label.label == "Address229"
-                            {
-                                eprintln!("Hi, it's me, I'm the problem");
-                            }
-
-                            if has_path_connecting(
+                            && !has_path_connecting(
                                 &no_then_filter,
                                 node_id,
                                 subclause_node_id,
                                 None,
-                            ) {
-                                return false;
-                            }
-
-                            if let Some(LogicScriptStatement::Label(label)) =
-                                self.graph.node_weight(subclause_node_id)
-                                && label.label == "Address229"
-                            {
-                                eprintln!("There are no other paths");
-                            }
-
-                            return dominator_tree.dominates(node_id, subclause_node_id);
+                            )
+                        {
+                            dominator_tree.dominates(node_id, subclause_node_id)
+                        } else {
+                            false
                         }
-                        return false;
                     };
                     let is_else_statement = |subclause_node_id| {
                         if let Some(else_node_id) = else_node_id
@@ -266,41 +279,106 @@ impl LogicScriptStatementGraph {
                                 subclause_node_id,
                                 None,
                             )
-                        {
-                            if has_path_connecting(
+                            && !has_path_connecting(
                                 &no_else_filter,
                                 node_id,
                                 subclause_node_id,
                                 None,
-                            ) {
-                                return false;
-                            }
-
-                            return dominator_tree.dominates(node_id, subclause_node_id);
+                            )
+                        {
+                            dominator_tree.dominates(node_id, subclause_node_id)
+                        } else {
+                            false
                         }
-                        return false;
+                    };
+                    let mut append_goto_if_needed = |subclause_statements: &mut Vec<(
+                        Option<NodeIndex>,
+                        Box<LogicScriptStatement<ParsedLogicArgument>>,
+                    )>| {
+                        if let Some((Some(last_statement_id), _)) = subclause_statements.last() {
+                            let exit_ids = self
+                                .graph
+                                .neighbors_directed(*last_statement_id, Direction::Outgoing)
+                                .collect::<Vec<_>>();
+
+                            let dominates_exit = exit_ids
+                                .iter()
+                                .all(|next_id| dominator_tree.dominates(node_id, *next_id));
+
+                            if !dominates_exit {
+                                let target_id = *exit_ids.first().unwrap();
+                                let target_label =
+                                    self.label_map.get_or_insert_label_for_node_id(target_id);
+
+                                eprintln!(
+                                    "node_id: {node_id:?} exit_ids: {exit_ids:?} target_label: {target_label:?}"
+                                );
+
+                                match target_label {
+                                    GetOrInsertLabelResult::Inserted(ref label) => {
+                                        inserted_labels.push((target_id, label.clone()))
+                                    }
+                                    _ => {}
+                                }
+
+                                subclause_statements.push((
+                                    None,
+                                    Box::new(LogicScriptStatement::new(
+                                        LogicScriptStatementBody::CommandCall(
+                                            LogicScriptCommandCall {
+                                                command_name: "goto".to_string(),
+                                                argument_list: vec![
+                                                    ParsedLogicArgument::Identifier(
+                                                        LogicIdentifier {
+                                                            name: target_label.label().to_string(),
+                                                        },
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        None,
+                                    )),
+                                ));
+                            }
+                        }
                     };
 
                     for (subclause_node_id, subclause_statement) in stack.into_iter() {
                         if is_then_statement(subclause_node_id) {
-                            then_statements.push(Box::new(subclause_statement));
+                            then_statements
+                                .push((Some(subclause_node_id), Box::new(subclause_statement)));
                         } else if is_else_statement(subclause_node_id) {
-                            else_statements.push(Box::new(subclause_statement));
+                            else_statements
+                                .push((Some(subclause_node_id), Box::new(subclause_statement)));
                         } else {
                             other_statements.push_back((subclause_node_id, subclause_statement));
                         }
                     }
 
+                    append_goto_if_needed(&mut then_statements);
+                    append_goto_if_needed(&mut else_statements);
+
                     stack = other_statements;
-                    LogicScriptStatement::IfStatement(LogicScriptIfStatement {
-                        conditions: if_statement.conditions,
-                        if_keyword: if_statement.if_keyword,
-                        else_keyword: if_statement.else_keyword,
-                        then_statements,
-                        else_statements,
-                    })
+                    LogicScriptStatement::new(
+                        LogicScriptStatementBody::IfStatement(LogicScriptIfStatement {
+                            conditions: if_statement.conditions.clone(),
+                            if_keyword: if_statement.if_keyword.clone(),
+                            else_keyword: if_statement.else_keyword.clone(),
+                            then_statements: then_statements
+                                .into_iter()
+                                .map(|(_, statement)| statement)
+                                .collect(),
+                            else_statements: else_statements
+                                .into_iter()
+                                .map(|(_, statement)| statement)
+                                .collect(),
+                        }),
+                        self.label_map
+                            .get_label_for_node_id(node_id)
+                            .map(|l| l.to_string()),
+                    )
                 }
-                _ => statement,
+                _ => generated_statement,
             };
 
             stack.push_front((node_id, statement));
@@ -308,7 +386,14 @@ impl LogicScriptStatementGraph {
 
         Ok(stack
             .into_iter()
-            .map(|(_node_id, statement)| statement)
+            .map(|(node_id, statement)| {
+                LogicScriptStatement::new(
+                    statement.body,
+                    self.label_map
+                        .get_label_for_node_id(node_id)
+                        .map(|l| l.to_string()),
+                )
+            })
             .collect())
     }
 
@@ -316,14 +401,16 @@ impl LogicScriptStatementGraph {
         &self,
         node_id: NodeIndex,
     ) -> Result<LogicScriptStatement<ParsedLogicArgument>, LogicScriptCodeGenerationError> {
-        let Some(statement) = self.graph.node_weight(node_id) else {
+        let Some(node) = self.graph.node_weight(node_id) else {
             return Err(LogicScriptCodeGenerationError::StatementGraphNodeNotFound(
                 node_id,
             ));
         };
 
-        match statement {
-            LogicScriptStatement::CommandCall(command_call) => {
+        let statement = node.statement();
+
+        let generated_statement = match &node.statement().body {
+            LogicScriptStatementBody::CommandCall(command_call) => {
                 if command_call.command_name == "goto" {
                     let Some(target_node_id) = self.graph.directed_neighbor_node_id_of_type(
                         node_id,
@@ -341,54 +428,58 @@ impl LogicScriptStatementGraph {
                         ));
                     };
 
-                    let LogicScriptStatement::Label(label) = target_statement else {
+                    let Some(label) = &target_statement.statement().label else {
                         return Err(LogicScriptCodeGenerationError::JumpToUnlabeledStatement(
                             target_node_id,
                             None,
                         ));
                     };
                     let target_argument = ParsedLogicArgument::Identifier(LogicIdentifier {
-                        name: label.label.clone(),
+                        name: label.clone(),
                     });
 
-                    Ok(LogicScriptStatement::CommandCall(LogicScriptCommandCall {
-                        command_name: "goto".to_string(),
-                        argument_list: vec![target_argument],
-                    }))
+                    LogicScriptStatement::new(
+                        LogicScriptStatementBody::CommandCall(LogicScriptCommandCall {
+                            command_name: "goto".to_string(),
+                            argument_list: vec![target_argument],
+                        }),
+                        None,
+                    )
                 } else {
-                    Ok(statement.clone())
+                    statement.clone()
                 }
             }
-            LogicScriptStatement::IfStatement(if_statement) => {
-                Ok(LogicScriptStatement::IfStatement(LogicScriptIfStatement {
+            LogicScriptStatementBody::IfStatement(if_statement) => LogicScriptStatement::new(
+                LogicScriptStatementBody::IfStatement(LogicScriptIfStatement {
                     conditions: if_statement.conditions.clone(),
                     if_keyword: if_statement.if_keyword.clone(),
                     else_keyword: if_statement.else_keyword.clone(),
                     then_statements: vec![],
                     else_statements: vec![],
-                }))
-            }
-            _ => Ok(statement.clone()),
-        }
+                }),
+                self.label_map
+                    .get_label_for_node_id(node_id)
+                    .map(|l| l.to_string()),
+            ),
+            _ => statement.clone(),
+        };
+
+        Ok(generated_statement)
     }
 }
 
-impl
-    Optimizable<
-        StableDiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>,
-    > for LogicScriptStatementGraph
+impl Optimizable<StableDiGraph<LogicScriptStatementGraphNode, LogicScriptStatementGraphEdge>>
+    for LogicScriptStatementGraph
 {
     fn get_graph(
         &self,
-    ) -> &StableDiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>
-    {
+    ) -> &StableDiGraph<LogicScriptStatementGraphNode, LogicScriptStatementGraphEdge> {
         &self.graph
     }
 
     fn get_graph_mut(
         &mut self,
-    ) -> &mut StableDiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>
-    {
+    ) -> &mut StableDiGraph<LogicScriptStatementGraphNode, LogicScriptStatementGraphEdge> {
         &mut self.graph
     }
 
@@ -401,16 +492,13 @@ impl
     ) -> Vec<
         Box<
             dyn OptimizationPass<
-                StableDiGraph<
-                    LogicScriptStatement<ParsedLogicArgument>,
-                    LogicScriptStatementGraphEdge,
-                >,
+                StableDiGraph<LogicScriptStatementGraphNode, LogicScriptStatementGraphEdge>,
             >,
         >,
     > {
         vec![
             Box::new(RemoveUnusedLabelsPass::new(&self)),
-            Box::new(remove_redundant_jumps),
+            Box::new(RemoveRedundantJumpsPass::new(&self)),
             Box::new(remove_empty_then_with_else),
             Box::new(transform_post_dominating_else_to_next),
         ]
@@ -437,23 +525,19 @@ impl RemoveUnusedLabelsPass {
 }
 
 impl
-    OptimizationVisitor<
-        StableDiGraph<LogicScriptStatement<ParsedLogicArgument>, LogicScriptStatementGraphEdge>,
-    > for RemoveUnusedLabelsPass
+    OptimizationVisitor<StableDiGraph<LogicScriptStatementGraphNode, LogicScriptStatementGraphEdge>>
+    for RemoveUnusedLabelsPass
 {
     fn visit(
         &mut self,
-        graph: &mut StableDiGraph<
-            LogicScriptStatement<ParsedLogicArgument>,
-            LogicScriptStatementGraphEdge,
-        >,
+        graph: &mut StableDiGraph<LogicScriptStatementGraphNode, LogicScriptStatementGraphEdge>,
         node_id: NodeIndex,
     ) -> OptimizationResult {
-        let Some(LogicScriptStatement::Label(label)) = graph.node_weight(node_id) else {
+        let Some(label) = graph.node_weight(node_id).and_then(|n| n.label()) else {
             return OptimizationResult::Unchanged;
         };
 
-        if self.used_labels.contains(&label.label) {
+        if self.used_labels.contains(label) {
             return OptimizationResult::Unchanged;
         }
 
@@ -494,72 +578,68 @@ impl
     }
 }
 
-pub fn remove_redundant_jumps(
-    graph: &mut StableDiGraph<
-        LogicScriptStatement<ParsedLogicArgument>,
-        LogicScriptStatementGraphEdge,
-    >,
-    node_id: NodeIndex,
-) -> OptimizationResult {
-    let Some(statement) = graph.node_weight(node_id) else {
-        return OptimizationResult::Unchanged;
-    };
+pub struct RemoveRedundantJumpsPass {
+    domination_analysis: DominationAnalysis,
+}
 
-    let Some(target_label) = statement.get_goto_target_label() else {
-        return OptimizationResult::Unchanged;
-    };
+impl RemoveRedundantJumpsPass {
+    pub fn new(statement_graph: &LogicScriptStatementGraph) -> Self {
+        let domination_analysis =
+            DominationAnalysis::from_graph(&statement_graph.graph, statement_graph.root_id);
 
-    let Some(next_id) = graph
-        .directed_neighbor_node_id_of_type(
+        Self {
+            domination_analysis,
+        }
+    }
+}
+
+impl
+    OptimizationVisitor<StableDiGraph<LogicScriptStatementGraphNode, LogicScriptStatementGraphEdge>>
+    for RemoveRedundantJumpsPass
+{
+    fn visit(
+        &mut self,
+        graph: &mut StableDiGraph<LogicScriptStatementGraphNode, LogicScriptStatementGraphEdge>,
+        node_id: NodeIndex,
+    ) -> OptimizationResult {
+        let Some(target_id) = graph.directed_neighbor_node_id_of_type(
             node_id,
             Direction::Outgoing,
-            LogicScriptStatementGraphEdge::Next,
-        )
-        .or_else(|| {
-            graph.directed_neighbor_node_id_of_type(
-                node_id,
-                Direction::Outgoing,
-                LogicScriptStatementGraphEdge::BlockExit,
-            )
-        })
-    else {
-        return OptimizationResult::Unchanged;
-    };
+            LogicScriptStatementGraphEdge::GotoTarget,
+        ) else {
+            return OptimizationResult::Unchanged;
+        };
 
-    let Some(next_statement) = graph.node_weight(next_id) else {
-        return OptimizationResult::Unchanged;
-    };
+        let prev_edges = graph.incoming_edge_data(node_id);
 
-    let is_redundant_jump = match next_statement {
-        LogicScriptStatement::Label(label) => label.label == *target_label,
-        _ => next_statement.get_goto_target_label() == Some(target_label),
-    };
+        let is_redundant_jump = prev_edges
+            .iter()
+            .all(|(_, prev_id, _)| self.domination_analysis.post_dominates(target_id, *prev_id));
 
-    let prev_edges = graph.incoming_edge_data(node_id);
-
-    if is_redundant_jump {
-        for (edge_id, source_id, weight) in prev_edges {
-            if !graph.contains_edge(source_id, next_id) {
-                graph.add_edge(source_id, next_id, weight);
+        if is_redundant_jump {
+            for (edge_id, source_id, weight) in prev_edges {
+                if !graph.contains_edge(source_id, target_id) {
+                    graph.add_edge(source_id, target_id, weight);
+                }
+                graph.remove_edge(edge_id);
             }
-            graph.remove_edge(edge_id);
-        }
 
-        graph.remove_node(node_id);
-        OptimizationResult::Changed
-    } else {
-        OptimizationResult::Unchanged
+            graph.remove_node(node_id);
+            OptimizationResult::Changed
+        } else {
+            OptimizationResult::Unchanged
+        }
     }
 }
 
 pub fn transform_post_dominating_else_to_next(
-    graph: &mut StableDiGraph<
-        LogicScriptStatement<ParsedLogicArgument>,
-        LogicScriptStatementGraphEdge,
-    >,
+    graph: &mut StableDiGraph<LogicScriptStatementGraphNode, LogicScriptStatementGraphEdge>,
     node_id: NodeIndex,
 ) -> OptimizationResult {
-    let Some(LogicScriptStatement::IfStatement(_)) = graph.node_weight_mut(node_id) else {
+    let Some(LogicScriptStatementBody::IfStatement(_)) = graph
+        .node_weight_mut(node_id)
+        .map(|n| &mut n.statement.body)
+    else {
         return OptimizationResult::Unchanged;
     };
 
@@ -595,13 +675,13 @@ pub fn transform_post_dominating_else_to_next(
 }
 
 pub fn remove_empty_then_with_else(
-    graph: &mut StableDiGraph<
-        LogicScriptStatement<ParsedLogicArgument>,
-        LogicScriptStatementGraphEdge,
-    >,
+    graph: &mut StableDiGraph<LogicScriptStatementGraphNode, LogicScriptStatementGraphEdge>,
     node_id: NodeIndex,
 ) -> OptimizationResult {
-    let Some(LogicScriptStatement::IfStatement(statement)) = graph.node_weight_mut(node_id) else {
+    let Some(LogicScriptStatementBody::IfStatement(statement)) = graph
+        .node_weight_mut(node_id)
+        .map(|n| &mut n.statement.body)
+    else {
         return OptimizationResult::Unchanged;
     };
 
@@ -660,19 +740,22 @@ impl LogicScriptStatementGraph {
 mod tests {
     use crate::{
         logic::{
-            analysis::optimization::DirectedNeighborEdgeUtils,
+            analysis::optimization::{DirectedNeighborEdgeUtils, OptimizationPass},
             asm::expressions::{LogicIdentifier, ParsedLogicArgument},
             logic_script::{
                 codegen::{
                     context::LogicScriptCodeGenerationContext,
+                    node_label_map::NodeLabelMap,
                     program_generator::LogicScriptProgramGenerator,
                     statement_graph::{
                         LogicScriptStatementGraph, LogicScriptStatementGraphEdge,
-                        remove_redundant_jumps,
+                        LogicScriptStatementGraphNode, RemoveRedundantJumpsPass,
                     },
                 },
                 identifiers::IdentifierMap,
-                statements::{LogicScriptCommandCall, LogicScriptLabel, LogicScriptStatement},
+                statements::{
+                    LogicScriptCommandCall, LogicScriptStatement, LogicScriptStatementBody,
+                },
             },
         },
         project::Project,
@@ -696,7 +779,7 @@ mod tests {
 
         let generator = LogicScriptProgramGenerator::new(&context);
         let statements = generator.generate_statements()?;
-        let statement_graph =
+        let mut statement_graph =
             LogicScriptStatementGraph::try_from_statements(&statements, IdentifierMap::builtins())?;
 
         let generated_statements = statement_graph.to_statements()?;
@@ -725,26 +808,40 @@ mod tests {
 
     #[test]
     fn test_remove_redundant_jumps() {
-        let mut graph = StableDiGraph::<
-            LogicScriptStatement<ParsedLogicArgument>,
-            LogicScriptStatementGraphEdge,
-        >::new();
-        let first_statement_id =
-            graph.add_node(LogicScriptStatement::CommandCall(LogicScriptCommandCall {
-                command_name: "increment".to_string(),
-                argument_list: vec![ParsedLogicArgument::Identifier(LogicIdentifier {
-                    name: "v1".to_string(),
-                })],
-            }));
-        let goto_id = graph.add_node(LogicScriptStatement::CommandCall(LogicScriptCommandCall {
-            command_name: "goto".to_string(),
-            argument_list: vec![ParsedLogicArgument::Identifier(LogicIdentifier {
-                name: "JumpTarget".to_string(),
-            })],
-        }));
-        let target_statement_id = graph.add_node(LogicScriptStatement::Label(LogicScriptLabel {
-            label: "JumpTarget".to_string(),
-        }));
+        let mut graph = StableDiGraph::new();
+        let first_statement_id = graph.add_node(LogicScriptStatementGraphNode::from(
+            LogicScriptStatement::new(
+                LogicScriptStatementBody::CommandCall(LogicScriptCommandCall {
+                    command_name: "increment".to_string(),
+                    argument_list: vec![ParsedLogicArgument::Identifier(LogicIdentifier {
+                        name: "v1".to_string(),
+                    })],
+                }),
+                None,
+            ),
+        ));
+        let goto_id = graph.add_node(LogicScriptStatementGraphNode::from(
+            LogicScriptStatement::new(
+                LogicScriptStatementBody::CommandCall(LogicScriptCommandCall {
+                    command_name: "goto".to_string(),
+                    argument_list: vec![ParsedLogicArgument::Identifier(LogicIdentifier {
+                        name: "JumpTarget".to_string(),
+                    })],
+                }),
+                None,
+            ),
+        ));
+        let target_statement_id = graph.add_node(LogicScriptStatementGraphNode::from(
+            LogicScriptStatement::new(
+                LogicScriptStatementBody::CommandCall(LogicScriptCommandCall {
+                    command_name: "increment".to_string(),
+                    argument_list: vec![ParsedLogicArgument::Identifier(LogicIdentifier {
+                        name: "v2".to_string(),
+                    })],
+                }),
+                Some("JumpTarget".to_string()),
+            ),
+        ));
         graph.add_edge(
             first_statement_id,
             goto_id,
@@ -753,18 +850,26 @@ mod tests {
         graph.add_edge(
             goto_id,
             target_statement_id,
-            LogicScriptStatementGraphEdge::Next,
+            LogicScriptStatementGraphEdge::GotoTarget,
         );
+        let mut statement_graph = LogicScriptStatementGraph {
+            label_map: NodeLabelMap::new(&graph, first_statement_id),
+            graph,
+            root_id: first_statement_id,
+            identifiers: IdentifierMap::builtins(),
+        };
+        let mut pass = RemoveRedundantJumpsPass::new(&statement_graph);
 
         assert!(
-            remove_redundant_jumps(&mut graph, goto_id).is_changed(),
+            pass.run(&mut statement_graph.graph, statement_graph.root_id)
+                .is_changed(),
             "Optimization did not remove a node"
         );
-        assert_eq!(2, graph.node_count());
-        assert_eq!(1, graph.edge_count());
+        assert_eq!(2, statement_graph.graph.node_count());
+        assert_eq!(1, statement_graph.graph.edge_count());
         assert_eq!(
             Some(target_statement_id),
-            graph.directed_neighbor_node_id_of_type(
+            statement_graph.graph.directed_neighbor_node_id_of_type(
                 first_statement_id,
                 Direction::Outgoing,
                 LogicScriptStatementGraphEdge::Next

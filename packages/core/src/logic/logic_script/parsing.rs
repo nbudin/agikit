@@ -23,10 +23,11 @@ use crate::logic::{
         operators::{LogicScriptArithmeticOperator, LogicScriptUnaryAssignmentOperator},
         statements::{
             KeywordType, LogicScriptArithmeticAssignmentStatement, LogicScriptCommandCall,
-            LogicScriptComment, LogicScriptIfStatement, LogicScriptKeyword, LogicScriptLabel,
+            LogicScriptComment, LogicScriptIfStatement, LogicScriptKeyword,
             LogicScriptLeftIndirectAssignmentStatement,
             LogicScriptRightIndirectAssignmentStatement, LogicScriptStatement,
-            LogicScriptUnaryOperationStatement, LogicScriptValueAssignmentStatement,
+            LogicScriptStatementBody, LogicScriptUnaryOperationStatement,
+            LogicScriptValueAssignmentStatement,
         },
     },
 };
@@ -133,11 +134,9 @@ peg::parser! {
         rule keyword() -> WithLocation<LogicScriptKeyword>
             = if_token() / else_token()
 
-        rule label() -> WithLocation<LogicScriptLabel>
+        rule label() -> WithLocation<String>
             = start:position!() identifier:identifier() ":" end:position!() {
-                LogicScriptLabel {
-                    label: identifier.value.name
-                }.with_location(location_range(start, end))
+                identifier.value.name.with_location(location_range(start, end))
             }
 
         rule decimal_digit() -> char
@@ -503,19 +502,23 @@ peg::parser! {
                 }.with_location(location_range(start, end))
             }
 
+        rule statement_body() -> LogicScriptStatementBody<WithLocation<ParsedLogicArgument>>
+            = comment:comment() { LogicScriptStatementBody::Comment(comment.value) }
+            / directive:message_directive() { LogicScriptStatementBody::Directive(directive.value) }
+            / directive:include_directive() { LogicScriptStatementBody::Directive(directive.value) }
+            / directive:define_directive() { LogicScriptStatementBody::Directive(directive.value) }
+            / command_call:command_call() { LogicScriptStatementBody::CommandCall(command_call.value) }
+            / if_statement:if_statement() { LogicScriptStatementBody::IfStatement(if_statement.value) }
+            / unary_op:unary_operation_statement() { LogicScriptStatementBody::UnaryOperation(unary_op.value) }
+            / value_assignment:value_assignment_statement() { LogicScriptStatementBody::ValueAssignment(value_assignment.value) }
+            / arithmetic_assignment:arithmetic_assignment_statement() { LogicScriptStatementBody::ArithmeticAssignment(arithmetic_assignment.value) }
+            / left_indirect:left_indirect_assignment_statement() { LogicScriptStatementBody::LeftIndirectAssignment(left_indirect.value) }
+            / right_indirect:right_indirect_assignment_statement() { LogicScriptStatementBody::RightIndirectAssignment(right_indirect.value) }
+
         rule statement() -> LogicScriptStatement<WithLocation<ParsedLogicArgument>>
-            = label:label() { LogicScriptStatement::Label(label.value) }
-            / comment:comment() { LogicScriptStatement::Comment(comment.value) }
-            / directive:message_directive() { LogicScriptStatement::Directive(directive.value) }
-            / directive:include_directive() { LogicScriptStatement::Directive(directive.value) }
-            / directive:define_directive() { LogicScriptStatement::Directive(directive.value) }
-            / command_call:command_call() { LogicScriptStatement::CommandCall(command_call.value) }
-            / if_statement:if_statement() { LogicScriptStatement::IfStatement(if_statement.value) }
-            / unary_op:unary_operation_statement() { LogicScriptStatement::UnaryOperation(unary_op.value) }
-            / value_assignment:value_assignment_statement() { LogicScriptStatement::ValueAssignment(value_assignment.value) }
-            / arithmetic_assignment:arithmetic_assignment_statement() { LogicScriptStatement::ArithmeticAssignment(arithmetic_assignment.value) }
-            / left_indirect:left_indirect_assignment_statement() { LogicScriptStatement::LeftIndirectAssignment(left_indirect.value) }
-            / right_indirect:right_indirect_assignment_statement() { LogicScriptStatement::RightIndirectAssignment(right_indirect.value) }
+            = label:label()? white_space()* body:statement_body() {
+                LogicScriptStatement::new(body, label.map(|l| l.value))
+            }
 
         rule statement_list() -> Vec<Box<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>>
             = statements:(statement() ++ (white_space()*)) {
@@ -541,7 +544,7 @@ mod tests {
                 locations::WithLocation,
                 operators::LogicScriptArithmeticOperator,
                 parsing::{LogicScriptProgram, logic_script_parser},
-                statements::LogicScriptStatement,
+                statements::{LogicScriptStatement, LogicScriptStatementBody},
             },
         },
         resources::file_provider::FileProvider,
@@ -554,7 +557,23 @@ mod tests {
         let result = logic_script_parser::program(script).expect("Failed to parse script");
 
         assert_eq!(result.len(), 1, "Expected one statement");
-        if let LogicScriptStatement::CommandCall(call) = &*result[0] {
+        if let LogicScriptStatementBody::CommandCall(call) = &result.get(0).unwrap().body {
+            assert_eq!(call.command_name, "command");
+            assert_eq!(call.argument_list.len(), 2);
+        } else {
+            panic!("Expected a command call statement");
+        }
+    }
+
+    #[test]
+    fn test_parse_labeled_command_call() {
+        let script = "Label1:\ncommand(arg1, arg2);";
+        let result = logic_script_parser::program(script).expect("Failed to parse script");
+
+        assert_eq!(result.len(), 1, "Expected one statement");
+        let statement = result.get(0).unwrap();
+        assert_eq!(Some("Label1".to_string()), statement.label);
+        if let LogicScriptStatementBody::CommandCall(call) = &statement.body {
             assert_eq!(call.command_name, "command");
             assert_eq!(call.argument_list.len(), 2);
         } else {
@@ -583,7 +602,7 @@ mod tests {
         let result = logic_script_parser::program(script).expect("Failed to parse script");
 
         assert_eq!(result.len(), 1, "Expected one statement");
-        if let LogicScriptStatement::IfStatement(if_statement) = &*result[0] {
+        if let LogicScriptStatementBody::IfStatement(if_statement) = &result.get(0).unwrap().body {
             assert!(matches!(
                 if_statement.conditions,
                 LogicBooleanExpression::OrExpression(_)
@@ -599,7 +618,11 @@ mod tests {
         let expect_correct_results = |result: LogicScriptProgram<
             Box<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>,
         >| {
-            if let LogicScriptStatement::ArithmeticAssignment(assignment) = &*result[0] {
+            let first_statement = result.get(0).unwrap();
+
+            if let LogicScriptStatementBody::ArithmeticAssignment(assignment) =
+                &first_statement.body
+            {
                 assert!(matches!(
                     assignment.operator,
                     LogicScriptArithmeticOperator::Add
@@ -633,8 +656,8 @@ mod tests {
     #[test]
     fn smoke_test() {
         let script = uriquest_dir()
-            .read_file_utf8("0.agilogic")
-            .expect("Failed to read 0.agilogic file");
+            .read_file_utf8("src/logic/0.agilogic")
+            .expect("Failed to read src/logic/0.agilogic file");
         let result = logic_script_parser::program(&script).expect("Failed to parse script");
 
         assert!(!result.is_empty(), "Parsed script should not be empty");

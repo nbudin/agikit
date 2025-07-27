@@ -16,12 +16,12 @@ use crate::logic::{
         codegen::{
             codegen::GenerateLogicScript, command_to_statement::CommandToStatement,
             context::LogicScriptCodeGenerationContext, errors::LogicScriptCodeGenerationError,
-            statement_graph::LogicScriptStatementGraph,
+            node_label_map::LabeledNode, statement_graph::LogicScriptStatementGraph,
         },
         identifiers::IdentifierMap,
         statements::{
             KeywordType, LogicScriptCommandCall, LogicScriptIfStatement, LogicScriptKeyword,
-            LogicScriptLabel, LogicScriptStatement,
+            LogicScriptStatement, LogicScriptStatementBody,
         },
     },
 };
@@ -88,12 +88,15 @@ impl<'a> LogicScriptProgramGenerator<'a> {
     }
 
     fn generate_goto(&self, label: String) -> LogicScriptStatement<ParsedLogicArgument> {
-        LogicScriptStatement::CommandCall(LogicScriptCommandCall {
-            command_name: "goto".to_string(),
-            argument_list: vec![ParsedLogicArgument::Identifier(LogicIdentifier {
-                name: label,
-            })],
-        })
+        LogicScriptStatement::new(
+            LogicScriptStatementBody::CommandCall(LogicScriptCommandCall {
+                command_name: "goto".to_string(),
+                argument_list: vec![ParsedLogicArgument::Identifier(LogicIdentifier {
+                    name: label,
+                })],
+            }),
+            None,
+        )
     }
 
     fn find_basic_block_label(
@@ -131,16 +134,19 @@ impl<'a> LogicScriptProgramGenerator<'a> {
             .ok_or_else(|| LogicScriptCodeGenerationError::BlockNotFound(block_id))?;
         let mut statements = Vec::new();
 
-        if let Some(label) = self.find_basic_block_label(block_id)? {
-            statements.push(LogicScriptStatement::Label(LogicScriptLabel { label }));
-        }
+        let label = self.find_basic_block_label(block_id)?;
 
         if let BasicBlock::SinglePath(block) = block {
             statements.extend(
                 block
                     .commands
                     .iter()
-                    .map(|command| command.command.to_statement(&self.context))
+                    .map(|command| {
+                        Ok::<_, LogicScriptCodeGenerationError>(LogicScriptStatement::new(
+                            command.command.to_statement_body(&self.context)?,
+                            label.clone(),
+                        ))
+                    })
                     .collect::<Result<Vec<_>, _>>()?,
             );
         }
@@ -321,8 +327,9 @@ impl<'a> LogicScriptProgramGenerator<'a> {
         Ok(self
             .generate_command_statements(block_id)?
             .into_iter()
-            .chain(std::iter::once(LogicScriptStatement::IfStatement(
-                if_statement,
+            .chain(std::iter::once(LogicScriptStatement::new(
+                LogicScriptStatementBody::IfStatement(if_statement),
+                self.find_basic_block_label(block_id)?,
             )))
             .chain(subsequent_code.into_iter())
             .collect::<Vec<_>>())

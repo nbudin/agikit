@@ -9,7 +9,7 @@ use crate::logic::{
         statements::{
             LogicScriptArithmeticAssignmentStatement, LogicScriptCommandCall,
             LogicScriptLeftIndirectAssignmentStatement,
-            LogicScriptRightIndirectAssignmentStatement, LogicScriptStatement,
+            LogicScriptRightIndirectAssignmentStatement, LogicScriptStatementBody,
             LogicScriptUnaryOperationStatement, LogicScriptValueAssignmentStatement,
         },
     },
@@ -31,7 +31,7 @@ trait CommandStatementTransformer {
         command: &LogicCommand,
         args: &[ParsedLogicArgument],
         context: &LogicScriptCodeGenerationContext,
-    ) -> Result<LogicScriptStatement<ParsedLogicArgument>, LogicScriptCodeGenerationError>;
+    ) -> Result<LogicScriptStatementBody<ParsedLogicArgument>, LogicScriptCodeGenerationError>;
 
     fn command_name_matches(&self, command: &LogicCommand) -> bool {
         self.command_names()
@@ -88,8 +88,8 @@ impl CommandStatementTransformer for IncrementDecrementTransformer {
         command: &LogicCommand,
         args: &[ParsedLogicArgument],
         _context: &LogicScriptCodeGenerationContext,
-    ) -> Result<LogicScriptStatement<ParsedLogicArgument>, LogicScriptCodeGenerationError> {
-        Ok(LogicScriptStatement::UnaryOperation(
+    ) -> Result<LogicScriptStatementBody<ParsedLogicArgument>, LogicScriptCodeGenerationError> {
+        Ok(LogicScriptStatementBody::UnaryOperation(
             LogicScriptUnaryOperationStatement {
                 identifier: self.get_identifier(&args[0])?,
                 operation: if command.agi_command.name == "increment" {
@@ -118,8 +118,8 @@ impl CommandStatementTransformer for AssignTransformer {
         _command: &LogicCommand,
         args: &[ParsedLogicArgument],
         _context: &LogicScriptCodeGenerationContext,
-    ) -> Result<LogicScriptStatement<ParsedLogicArgument>, LogicScriptCodeGenerationError> {
-        Ok(LogicScriptStatement::ValueAssignment(
+    ) -> Result<LogicScriptStatementBody<ParsedLogicArgument>, LogicScriptCodeGenerationError> {
+        Ok(LogicScriptStatementBody::ValueAssignment(
             LogicScriptValueAssignmentStatement {
                 assignee: self.get_identifier(&args[0])?,
                 value: args[1].clone(),
@@ -146,7 +146,7 @@ impl CommandStatementTransformer for ArithmeticAssignmentTransformer {
         command: &LogicCommand,
         args: &[ParsedLogicArgument],
         _context: &LogicScriptCodeGenerationContext,
-    ) -> Result<LogicScriptStatement<ParsedLogicArgument>, LogicScriptCodeGenerationError> {
+    ) -> Result<LogicScriptStatementBody<ParsedLogicArgument>, LogicScriptCodeGenerationError> {
         let operator = match command.agi_command.name.as_str() {
             "addn" | "addv" => LogicScriptArithmeticOperator::Add,
             "subn" | "subv" => LogicScriptArithmeticOperator::Subtract,
@@ -160,7 +160,7 @@ impl CommandStatementTransformer for ArithmeticAssignmentTransformer {
             }
         };
 
-        Ok(LogicScriptStatement::ArithmeticAssignment(
+        Ok(LogicScriptStatementBody::ArithmeticAssignment(
             LogicScriptArithmeticAssignmentStatement {
                 assignee: self.get_identifier(&args[0])?,
                 value: args[1].clone(),
@@ -186,8 +186,8 @@ impl CommandStatementTransformer for LeftIndirectAssignmentTransformer {
         _command: &LogicCommand,
         args: &[ParsedLogicArgument],
         _context: &LogicScriptCodeGenerationContext,
-    ) -> Result<LogicScriptStatement<ParsedLogicArgument>, LogicScriptCodeGenerationError> {
-        Ok(LogicScriptStatement::LeftIndirectAssignment(
+    ) -> Result<LogicScriptStatementBody<ParsedLogicArgument>, LogicScriptCodeGenerationError> {
+        Ok(LogicScriptStatementBody::LeftIndirectAssignment(
             LogicScriptLeftIndirectAssignmentStatement {
                 assignee_pointer: self.get_identifier(&args[0])?,
                 value: args[1].clone(),
@@ -215,8 +215,8 @@ impl CommandStatementTransformer for RightIndirectAssignmentTransformer {
         _command: &LogicCommand,
         args: &[ParsedLogicArgument],
         _context: &LogicScriptCodeGenerationContext,
-    ) -> Result<LogicScriptStatement<ParsedLogicArgument>, LogicScriptCodeGenerationError> {
-        Ok(LogicScriptStatement::RightIndirectAssignment(
+    ) -> Result<LogicScriptStatementBody<ParsedLogicArgument>, LogicScriptCodeGenerationError> {
+        Ok(LogicScriptStatementBody::RightIndirectAssignment(
             LogicScriptRightIndirectAssignmentStatement {
                 assignee: self.get_identifier(&args[0])?,
                 value_pointer: self.get_identifier(&args[1])?,
@@ -234,17 +234,17 @@ const TRANSFORMERS: &[&dyn CommandStatementTransformer] = &[
 ];
 
 pub trait CommandToStatement {
-    fn to_statement(
+    fn to_statement_body(
         &self,
         context: &LogicScriptCodeGenerationContext,
-    ) -> Result<LogicScriptStatement<ParsedLogicArgument>, LogicScriptCodeGenerationError>;
+    ) -> Result<LogicScriptStatementBody<ParsedLogicArgument>, LogicScriptCodeGenerationError>;
 }
 
 impl CommandToStatement for LogicCommand {
-    fn to_statement(
+    fn to_statement_body(
         &self,
         context: &LogicScriptCodeGenerationContext,
-    ) -> Result<LogicScriptStatement<ParsedLogicArgument>, LogicScriptCodeGenerationError> {
+    ) -> Result<LogicScriptStatementBody<ParsedLogicArgument>, LogicScriptCodeGenerationError> {
         let command_name = &self.agi_command.name;
         let args = self
             .args()
@@ -259,10 +259,12 @@ impl CommandToStatement for LogicCommand {
         if let Some(transformer) = transformer {
             transformer.transform(self, &args, context)
         } else {
-            Ok(LogicScriptStatement::CommandCall(LogicScriptCommandCall {
-                command_name: command_name.clone(),
-                argument_list: args,
-            }))
+            Ok(LogicScriptStatementBody::CommandCall(
+                LogicScriptCommandCall {
+                    command_name: command_name.clone(),
+                    argument_list: args,
+                },
+            ))
         }
     }
 }
