@@ -14,7 +14,7 @@ use petgraph::{
 use crate::logic::logic_script::codegen::context::LogicScriptCodeGenerationContext;
 use crate::logic::{
     analysis::{
-        dominator_tree::{DominationAnalysis, DominatorTree},
+        dominator_tree::DominationAnalysis,
         optimization::{
             DirectedNeighborEdgeUtils, Optimizable, OptimizationPass, OptimizationResult,
             OptimizationVisitor, RemoveNodePreservingEdges,
@@ -227,7 +227,7 @@ impl LogicScriptStatementGraph {
         let no_else_filter = EdgeFiltered::from_fn(&traversal_filter, |edge| {
             *edge.weight() != LogicScriptStatementGraphEdge::IfElse
         });
-        let dominator_tree = DominatorTree::from_graph(&traversal_filter, self.root_id);
+        let domination_analysis = DominationAnalysis::from_graph(&traversal_filter, self.root_id);
         let mut dfs_post_order = DfsPostOrder::new(&traversal_filter, self.root_id);
 
         while let Some(node_id) = dfs_post_order.next(&traversal_filter) {
@@ -265,7 +265,7 @@ impl LogicScriptStatementGraph {
                                 None,
                             )
                         {
-                            dominator_tree.dominates(node_id, subclause_node_id)
+                            domination_analysis.dominates(node_id, subclause_node_id)
                         } else {
                             false
                         }
@@ -285,7 +285,7 @@ impl LogicScriptStatementGraph {
                                 None,
                             )
                         {
-                            dominator_tree.dominates(node_id, subclause_node_id)
+                            domination_analysis.dominates(node_id, subclause_node_id)
                         } else {
                             false
                         }
@@ -294,7 +294,12 @@ impl LogicScriptStatementGraph {
                         Option<NodeIndex>,
                         Box<LogicScriptStatement<ParsedLogicArgument>>,
                     )>| {
-                        if let Some((Some(last_statement_id), _)) = subclause_statements.last() {
+                        if let Some((Some(last_statement_id), _)) = subclause_statements.last()
+                            && self
+                                .graph
+                                .node_weight(*last_statement_id)
+                                .is_none_or(|node| node.get_goto_target_label().is_none())
+                        {
                             let exit_ids = self
                                 .graph
                                 .neighbors_directed(*last_statement_id, Direction::Outgoing)
@@ -302,16 +307,15 @@ impl LogicScriptStatementGraph {
 
                             let dominates_exit = exit_ids
                                 .iter()
-                                .all(|next_id| dominator_tree.dominates(node_id, *next_id));
+                                .all(|next_id| domination_analysis.dominates(node_id, *next_id));
+                            let exit_post_dominates = exit_ids.iter().all(|next_id| {
+                                domination_analysis.post_dominates(*next_id, node_id)
+                            });
 
-                            if !dominates_exit {
+                            if !dominates_exit && !exit_post_dominates {
                                 let target_id = *exit_ids.first().unwrap();
                                 let target_label =
                                     self.label_map.get_or_insert_label_for_node_id(target_id);
-
-                                eprintln!(
-                                    "node_id: {node_id:?} exit_ids: {exit_ids:?} target_label: {target_label:?}"
-                                );
 
                                 subclause_statements.push((
                                     None,

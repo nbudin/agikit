@@ -140,13 +140,20 @@ impl LogicScriptStatement<ParsedLogicArgument> {
         use crate::logic::logic_script::codegen::codegen::GenerateLogicScript;
 
         let label = match &self.body {
-            LogicScriptStatementBody::IfStatement(if_statement) => format!(
-                "if ({})",
-                if_statement
-                    .conditions
-                    .generate_logic_script(&context, ())
-                    .unwrap()
-            ),
+            LogicScriptStatementBody::IfStatement(if_statement) => {
+                let header = format!(
+                    "if ({})",
+                    if_statement
+                        .conditions
+                        .generate_logic_script(&context, ())
+                        .unwrap()
+                );
+
+                match &self.label {
+                    Some(label) => format!("{}: {}", label, header),
+                    None => header,
+                }
+            }
             _ => self
                 .generate_logic_script(&context, 0)
                 .unwrap()
