@@ -4,6 +4,7 @@ pub mod compression;
 pub mod data_encoding;
 pub mod logic;
 pub mod object_list;
+pub mod picture;
 pub mod project;
 pub mod resources;
 pub mod views;

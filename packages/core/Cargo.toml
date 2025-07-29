@@ -23,6 +23,7 @@ logic_command_macros = { path = "../logic_command_macros" }
 petgraph = "0.8.2"
 similar-asserts = "1.7.0"
 anyhow = "1.0.98"
+num_enum = "0.7.4"
 
 [features]
 default = ["js", "dot"]

@@ -4,6 +4,7 @@ use crate::{
     compression::lzw::DecompressionError,
     data_encoding::ReadHeterogeneousData,
     logic::decode::DisassemblyError,
+    picture::decode::PictureDecodingError,
     resources::{ResourceNumber, ResourceType, resource_collection::RESOURCE_SIGNATURE},
 };
 
@@ -21,6 +22,7 @@ pub enum DecodingError {
     },
     DecompressionError(DecompressionError),
     DisassemblyError(DisassemblyError),
+    PictureDecodingError(PictureDecodingError),
 }
 
 impl std::error::Error for DecodingError {}
@@ -40,6 +42,12 @@ impl From<DecompressionError> for DecodingError {
 impl From<DisassemblyError> for DecodingError {
     fn from(error: DisassemblyError) -> Self {
         DecodingError::DisassemblyError(error)
+    }
+}
+
+impl From<PictureDecodingError> for DecodingError {
+    fn from(error: PictureDecodingError) -> Self {
+        DecodingError::PictureDecodingError(error)
     }
 }
 
@@ -65,6 +73,7 @@ impl Display for DecodingError {
             )),
             DecodingError::DecompressionError(error) => error.fmt(f),
             DecodingError::DisassemblyError(error) => error.fmt(f),
+            DecodingError::PictureDecodingError(error) => error.fmt(f),
         }
     }
 }

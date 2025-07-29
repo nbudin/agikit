@@ -493,10 +493,10 @@ impl Optimizable<StableDiGraph<LogicScriptStatementGraphNode, LogicScriptStateme
         >,
     > {
         vec![
-            Box::new(RemoveUnusedLabelsPass::new(&self)),
+            // Box::new(RemoveUnusedLabelsPass::new(&self)),
             Box::new(RemoveRedundantJumpsPass::new(&self)),
-            Box::new(remove_empty_then_with_else),
-            Box::new(transform_post_dominating_else_to_next),
+            // Box::new(remove_empty_then_with_else),
+            // Box::new(transform_post_dominating_else_to_next),
         ]
     }
 }

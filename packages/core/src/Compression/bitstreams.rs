@@ -1,3 +1,5 @@
+use crate::resources::decode::DecodingError;
+
 pub trait ReadBitstream {
     fn bit_offset(&self) -> usize;
     fn read_code(&mut self, bit_length: usize) -> Result<u32, std::io::Error>;
@@ -13,6 +15,17 @@ pub trait ReadBitstream {
         self.seek_bits(-(bit_length as isize))?;
         Ok(code)
     }
+}
+
+pub trait DecodeBitstream<'opt> {
+    type Options: 'opt;
+
+    fn decode_bitstream<'a, Data: ReadBitstream>(
+        data: &'a mut Data,
+        options: Self::Options,
+    ) -> Result<Self, DecodingError>
+    where
+        Self: Sized;
 }
 
 pub trait WriteBitstream {
