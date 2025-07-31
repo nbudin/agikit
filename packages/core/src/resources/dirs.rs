@@ -196,7 +196,7 @@ mod tests {
     use super::*;
     use crate::{
         resources::ResourceType,
-        test_data::{uriquest_dir, v_the_graphical_adventure_dir},
+        test_data::{kq4demo_dir, uriquest_dir},
     };
 
     #[test]
@@ -209,10 +209,10 @@ mod tests {
 
     #[test]
     fn test_resource_dirs_read_v3() {
-        let file_provider = v_the_graphical_adventure_dir();
+        let file_provider = kq4demo_dir();
         let resource_dirs = ResourceDirs::read(ResourceDirDecodeOptions::AGI3 {
             file_provider,
-            game_id: "V".to_string(),
+            game_id: "DM".to_string(),
         })
         .unwrap();
         assert!(resource_dirs.dirs.contains_key(&ResourceType::LOGIC));

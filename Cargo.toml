@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [workspace]
-members = ["packages/core", "packages/logic_command_macros"]
+members = ["packages/core", "packages/logic_command_macros", "packages/picture_pen_macros"]
 
 [dependencies]

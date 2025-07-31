@@ -418,8 +418,9 @@ mod tests {
         let logic_data = collection
             .read_resource_data(ResourceType::LOGIC, 0)
             .expect("Failed to read logic resource 0");
-        let logic_program = LogicProgram::decode_from_bytes(&logic_data, &AGIVersion::new(2, 917))
-            .expect("Failed to decode logic program");
+        let logic_program =
+            LogicProgram::decode_from_bytes(&logic_data.data, &AGIVersion::new(2, 917))
+                .expect("Failed to decode logic program");
         let word_list =
             WordList::decode_from_bytes(&uriquest_dir().read_file_bytes("WORDS.TOK").unwrap(), ())
                 .unwrap();

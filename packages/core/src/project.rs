@@ -1,9 +1,11 @@
 use std::{
+    io::Cursor,
     path::{Path, PathBuf},
     str::FromStr,
     sync::{Arc, LazyLock},
 };
 
+use bitstream_io::{BigEndian, BitReader};
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
@@ -12,14 +14,18 @@ use web_sys::js_sys::Uint8Array;
 use crate::{
     agi_version::{AGIMajorVersion, AGIVersion},
     buffer::Buffer,
+    compression::bitstreams::DecodeBitstream,
     logic::LogicProgram,
     object_list::ObjectList,
+    picture::Picture,
     resources::{
         ResourceType,
         decode::{Decode, DecodingError},
         dirs::{ResourceDirDecodeOptions, ResourceDirs},
         file_provider::{FileProvider, ReadSeek},
-        resource_collection::{ResourceCollection, ResourceCollectionVersionData},
+        resource_collection::{
+            ResourceCollection, ResourceCollectionVersionData, ResourceReadResult,
+        },
     },
     word_list::WordList,
 };
@@ -241,14 +247,21 @@ impl Project {
         &self,
         resource_type: ResourceType,
         resource_number: u16,
-    ) -> Result<Vec<u8>, DecodingError> {
+    ) -> Result<ResourceReadResult, DecodingError> {
         self.resource_collection
             .read_resource_data(resource_type, resource_number)
     }
 
     pub fn decode_logic(&self, resource_number: u16) -> Result<LogicProgram, DecodingError> {
-        let data = self.read_resource_data(ResourceType::LOGIC, resource_number)?;
-        LogicProgram::decode_from_bytes(&data, &self.config.agi_version)
+        let resource = self.read_resource_data(ResourceType::LOGIC, resource_number)?;
+        LogicProgram::decode_from_bytes(&resource.data, &self.config.agi_version)
+    }
+
+    pub fn decode_picture(&self, resource_number: u16) -> Result<Picture, DecodingError> {
+        let resource = self.read_resource_data(ResourceType::PIC, resource_number)?;
+        let mut cursor = Cursor::new(resource.data);
+        let mut reader = BitReader::endian(&mut cursor, BigEndian);
+        Picture::decode_bitstream(&mut reader, resource.is_compressed_pic)
     }
 
     pub fn decode_object_list(&self) -> Result<ObjectList, DecodingError> {

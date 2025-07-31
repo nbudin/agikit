@@ -13,12 +13,17 @@ use crate::{
     },
 };
 
+pub struct ResourceReadResult {
+    pub data: Vec<u8>,
+    pub is_compressed_pic: bool,
+}
+
 pub const RESOURCE_SIGNATURE: u16 = 0x1234;
 
 pub fn read_v2_resource<P: FileProvider>(
     file_provider: &P,
     dir_entry: &DirEntry,
-) -> Result<Vec<u8>, DecodingError> {
+) -> Result<ResourceReadResult, DecodingError> {
     let filename = format!("VOL.{}", dir_entry.volume_number);
     let mut file = file_provider.open_file(filename.as_str())?;
     file.seek(SeekFrom::Start(dir_entry.offset as u64))?;
@@ -39,21 +44,24 @@ pub fn read_v2_resource<P: FileProvider>(
     let length = file.read_u16_le()?;
     let mut data = vec![0; length as usize];
     file.read_exact(&mut data)?;
-    Ok(data)
+    Ok(ResourceReadResult {
+        data,
+        is_compressed_pic: false,
+    })
 }
 
 #[bitfield(u8)]
 pub struct AGIV3ResourceVolNumberWithPicFlag {
     #[bits(7)]
     pub volume_number: u8,
-    pub is_pic: bool,
+    pub is_compressed_pic: bool,
 }
 
 pub fn read_v3_resource<P: FileProvider>(
     file_provider: &P,
     dir_entry: &DirEntry,
     game_id: &str,
-) -> Result<Vec<u8>, DecodingError> {
+) -> Result<ResourceReadResult, DecodingError> {
     let filename = format!("{}VOL.{}", game_id, dir_entry.volume_number);
     let mut file = file_provider.open_file(filename.as_str())?;
     file.seek(SeekFrom::Start(dir_entry.offset as u64))?;
@@ -78,10 +86,20 @@ pub fn read_v3_resource<P: FileProvider>(
     let mut data = vec![0; compressed_length as usize];
     file.read_exact(&mut data)?;
 
-    if resource_vol_number_with_pic_flag.is_pic() || uncompressed_length == compressed_length {
-        Ok(data)
+    if resource_vol_number_with_pic_flag.is_compressed_pic()
+        || uncompressed_length == compressed_length
+    {
+        Ok(ResourceReadResult {
+            data,
+            is_compressed_pic: resource_vol_number_with_pic_flag.is_compressed_pic(),
+        })
     } else {
-        agi_lzw_decompress(&data).map_err(|e| e.into())
+        agi_lzw_decompress(&data)
+            .map(|data| ResourceReadResult {
+                data,
+                is_compressed_pic: false,
+            })
+            .map_err(|e| e.into())
     }
 }
 
@@ -113,7 +131,7 @@ impl<P: FileProvider> ResourceCollection<P> {
         &self,
         resource_type: ResourceType,
         resource_number: ResourceNumber,
-    ) -> Result<Vec<u8>, DecodingError> {
+    ) -> Result<ResourceReadResult, DecodingError> {
         let Some(entry) = self.dirs.get_entry(resource_type, resource_number) else {
             return Err(DecodingError::ResourceNotFound {
                 resource_type,
@@ -133,7 +151,7 @@ impl<P: FileProvider> ResourceCollection<P> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_data::{uriquest_resources, v_the_graphical_adventure_resources};
+    use crate::test_data::{kq4demo_resources, uriquest_resources};
 
     #[test]
     fn test_resource_collection_read_v2() {
@@ -142,17 +160,23 @@ mod tests {
         let logic0 = collection
             .read_resource_data(ResourceType::LOGIC, 0)
             .expect("Failed to read logic resource 0");
-        assert!(!logic0.is_empty(), "Logic resource 0 should not be empty");
+        assert!(
+            !logic0.data.is_empty(),
+            "Logic resource 0 should not be empty"
+        );
     }
 
     #[test]
     fn test_resource_collection_read_v3() {
-        let collection = v_the_graphical_adventure_resources();
+        let collection = kq4demo_resources();
 
         let logic0 = collection
             .read_resource_data(ResourceType::LOGIC, 0)
             .expect("Failed to read logic resource 0");
-        assert!(!logic0.is_empty(), "Logic resource 0 should not be empty");
+        assert!(
+            !logic0.data.is_empty(),
+            "Logic resource 0 should not be empty"
+        );
     }
 }
 
@@ -195,7 +219,7 @@ pub mod js {
     ) -> Result<JSReadResourceResult, JsValue> {
         let data = read_v2_resource(&Path::new(&base_path).to_path_buf(), &dir_entry)
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
-        let data_buffer = Buffer::from(data);
+        let data_buffer = Buffer::from(data.data);
         Ok(JSReadResourceResult {
             resource_type: dir_entry.resource_type,
             number: dir_entry.resource_number,
@@ -211,7 +235,7 @@ pub mod js {
     ) -> Result<JSReadResourceResult, JsValue> {
         let data = read_v3_resource(&Path::new(&base_path).to_path_buf(), &dir_entry, &game_id)
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
-        let data_buffer = Buffer::from(data);
+        let data_buffer = Buffer::from(data.data);
         Ok(JSReadResourceResult {
             resource_type: dir_entry.resource_type,
             number: dir_entry.resource_number,

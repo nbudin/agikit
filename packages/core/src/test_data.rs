@@ -51,21 +51,31 @@ pub fn uriquest() -> Project {
     )
 }
 
-pub fn v_the_graphical_adventure_dir<'a>() -> &'a Dir<'static> {
-    TEST_DATA_DIR.get_dir("VTheGraphicalAdventureDemo").unwrap()
+pub fn kq4demo_dir<'a>() -> &'a Dir<'static> {
+    TEST_DATA_DIR.get_dir("kq4demo").unwrap()
 }
 
-pub fn v_the_graphical_adventure_resources() -> ResourceCollection<Dir<'static>> {
-    let file_provider = v_the_graphical_adventure_dir();
+pub fn kq4demo_resources() -> ResourceCollection<Dir<'static>> {
+    let file_provider = kq4demo_dir();
     let dirs = ResourceDirs::read(ResourceDirDecodeOptions::AGI3 {
         file_provider,
-        game_id: "V".to_string(),
+        game_id: "DM".to_string(),
     })
     .unwrap();
 
     ResourceCollection::new(
-        ResourceCollectionVersionData::AGI3("V".to_string()),
+        ResourceCollectionVersionData::AGI3("DM".to_string()),
         file_provider.clone(),
         dirs,
+    )
+}
+
+pub fn kq4demo() -> Project {
+    Project::new(
+        kq4demo_dir(),
+        Some(ProjectConfig::new(
+            AGIVersion::new(3, 2102),
+            "DM".to_string(),
+        )),
     )
 }

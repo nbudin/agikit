@@ -34,8 +34,9 @@ pub struct PictureRelativeLineDisplacement {
     pub y_displacement: u8,
 }
 
-#[wasm_bindgen]
-#[derive(Clone, Debug, Copy, Serialize, Deserialize)]
+#[derive(Clone, Debug, Copy, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+#[serde(rename_all = "camelCase")]
 pub enum PicturePenShape {
     Rectangle = 1,
     Circle = 0,
@@ -67,6 +68,25 @@ pub struct PicturePenSettings {
     pub _unused2: u8,
 }
 
+#[cfg(feature = "js")]
+#[wasm_bindgen]
+impl PicturePenSettings {
+    #[wasm_bindgen(getter, js_name = "size")]
+    pub fn js_size(&self) -> u8 {
+        self.size()
+    }
+
+    #[wasm_bindgen(getter, js_name = "shape")]
+    pub fn js_shape(&self) -> PicturePenShape {
+        self.shape()
+    }
+
+    #[wasm_bindgen(getter, js_name = "splatter")]
+    pub fn js_splatter(&self) -> bool {
+        self.splatter()
+    }
+}
+
 #[wasm_bindgen]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PicturePenPlotPoint {
@@ -75,10 +95,10 @@ pub struct PicturePenPlotPoint {
     pub texture: Option<u8>,
 }
 
-#[wasm_bindgen]
+#[wasm_bindgen(js_name = "PictureCommandOpcodes")]
 #[derive(Clone, Debug, Copy, IntoPrimitive, TryFromPrimitive)]
 #[repr(u8)]
-pub enum PictureCommandOpcodes {
+pub enum PictureCommandOpcode {
     SetPictureColor = 0xf0,
     DisablePictureDraw = 0xf1,
     SetPriorityColor = 0xf2,
@@ -104,8 +124,8 @@ pub struct SetPictureColorPictureCommand {
 #[wasm_bindgen]
 impl SetPictureColorPictureCommand {
     #[wasm_bindgen(getter)]
-    pub fn opcode(&self) -> PictureCommandOpcodes {
-        PictureCommandOpcodes::SetPictureColor
+    pub fn opcode(&self) -> PictureCommandOpcode {
+        PictureCommandOpcode::SetPictureColor
     }
 }
 
@@ -117,8 +137,8 @@ pub struct DisablePictureDrawPictureCommand;
 #[wasm_bindgen]
 impl DisablePictureDrawPictureCommand {
     #[wasm_bindgen(getter)]
-    pub fn opcode(&self) -> PictureCommandOpcodes {
-        PictureCommandOpcodes::DisablePictureDraw
+    pub fn opcode(&self) -> PictureCommandOpcode {
+        PictureCommandOpcode::DisablePictureDraw
     }
 }
 
@@ -133,8 +153,8 @@ pub struct SetPriorityColorPictureCommand {
 #[wasm_bindgen]
 impl SetPriorityColorPictureCommand {
     #[wasm_bindgen(getter)]
-    pub fn opcode(&self) -> PictureCommandOpcodes {
-        PictureCommandOpcodes::SetPriorityColor
+    pub fn opcode(&self) -> PictureCommandOpcode {
+        PictureCommandOpcode::SetPriorityColor
     }
 }
 
@@ -146,8 +166,8 @@ pub struct DisablePriorityDrawPictureCommand;
 #[wasm_bindgen]
 impl DisablePriorityDrawPictureCommand {
     #[wasm_bindgen(getter)]
-    pub fn opcode(&self) -> PictureCommandOpcodes {
-        PictureCommandOpcodes::DisablePriorityDraw
+    pub fn opcode(&self) -> PictureCommandOpcode {
+        PictureCommandOpcode::DisablePriorityDraw
     }
 }
 
@@ -164,8 +184,8 @@ pub struct DrawYCornerPictureCommand {
 #[wasm_bindgen]
 impl DrawYCornerPictureCommand {
     #[wasm_bindgen(getter)]
-    pub fn opcode(&self) -> PictureCommandOpcodes {
-        PictureCommandOpcodes::DrawYCorner
+    pub fn opcode(&self) -> PictureCommandOpcode {
+        PictureCommandOpcode::DrawYCorner
     }
 }
 
@@ -182,8 +202,8 @@ pub struct DrawXCornerPictureCommand {
 #[wasm_bindgen]
 impl DrawXCornerPictureCommand {
     #[wasm_bindgen(getter)]
-    pub fn opcode(&self) -> PictureCommandOpcodes {
-        PictureCommandOpcodes::DrawXCorner
+    pub fn opcode(&self) -> PictureCommandOpcode {
+        PictureCommandOpcode::DrawXCorner
     }
 }
 
@@ -198,8 +218,8 @@ pub struct AbsoluteLinePictureCommand {
 #[wasm_bindgen]
 impl AbsoluteLinePictureCommand {
     #[wasm_bindgen(getter)]
-    pub fn opcode(&self) -> PictureCommandOpcodes {
-        PictureCommandOpcodes::AbsoluteLine
+    pub fn opcode(&self) -> PictureCommandOpcode {
+        PictureCommandOpcode::AbsoluteLine
     }
 }
 
@@ -247,8 +267,8 @@ pub struct JsRelativeLinePoint {
 #[wasm_bindgen]
 impl RelativeLinePictureCommand {
     #[wasm_bindgen(getter)]
-    pub fn opcode(&self) -> PictureCommandOpcodes {
-        PictureCommandOpcodes::RelativeLine
+    pub fn opcode(&self) -> PictureCommandOpcode {
+        PictureCommandOpcode::RelativeLine
     }
 
     #[cfg(feature = "js")]
@@ -275,8 +295,8 @@ pub struct FillPictureCommand {
 #[wasm_bindgen]
 impl FillPictureCommand {
     #[wasm_bindgen(getter)]
-    pub fn opcode(&self) -> PictureCommandOpcodes {
-        PictureCommandOpcodes::Fill
+    pub fn opcode(&self) -> PictureCommandOpcode {
+        PictureCommandOpcode::Fill
     }
 }
 
@@ -291,8 +311,8 @@ pub struct ChangePenPictureCommand {
 #[wasm_bindgen]
 impl ChangePenPictureCommand {
     #[wasm_bindgen(getter)]
-    pub fn opcode(&self) -> PictureCommandOpcodes {
-        PictureCommandOpcodes::ChangePen
+    pub fn opcode(&self) -> PictureCommandOpcode {
+        PictureCommandOpcode::ChangePen
     }
 }
 
@@ -307,8 +327,8 @@ pub struct PlotWithPenPictureCommand {
 #[wasm_bindgen]
 impl PlotWithPenPictureCommand {
     #[wasm_bindgen(getter)]
-    pub fn opcode(&self) -> PictureCommandOpcodes {
-        PictureCommandOpcodes::PlotWithPen
+    pub fn opcode(&self) -> PictureCommandOpcode {
+        PictureCommandOpcode::PlotWithPen
     }
 }
 
@@ -338,13 +358,13 @@ pub struct EndPictureCommand;
 #[wasm_bindgen]
 impl EndPictureCommand {
     #[wasm_bindgen(getter)]
-    pub fn opcode(&self) -> PictureCommandOpcodes {
-        PictureCommandOpcodes::End
+    pub fn opcode(&self) -> PictureCommandOpcode {
+        PictureCommandOpcode::End
     }
 }
 
 impl PictureCommand {
-    pub fn opcode(&self) -> PictureCommandOpcodes {
+    pub fn opcode(&self) -> PictureCommandOpcode {
         match self {
             PictureCommand::SetPictureColor(set_picture_color_picture_command) => {
                 set_picture_color_picture_command.opcode()
@@ -383,8 +403,37 @@ impl PictureCommand {
 }
 
 #[wasm_bindgen]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Picture {
     #[wasm_bindgen(getter_with_clone)]
     pub commands: Vec<PictureCommand>,
+}
+
+#[cfg(feature = "js")]
+mod js {
+    use tsify::serde_wasm_bindgen;
+    use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
+    use web_sys::js_sys::Object;
+
+    use crate::picture::Picture;
+
+    #[wasm_bindgen(typescript_custom_section)]
+    const PICTURE_JSON_TYPES: &'static str = r#"
+    export type PictureJSONCommand = Omit<PictureCommand, 'opcode' | 'free'>;
+    export type PictureJSON = {
+        commands: PictureJSONCommand[];
+    };
+    export function readPictureJSON(json: PictureJSON): Picture;
+    export function buildPictureJSON(picture: Picture): PictureJSON;
+    "#;
+
+    #[wasm_bindgen(skip_typescript)]
+    pub fn read_picture_json(input: Object) -> Result<Picture, serde_wasm_bindgen::Error> {
+        serde_wasm_bindgen::from_value(input.into())
+    }
+
+    #[wasm_bindgen(skip_typescript)]
+    pub fn build_picture_json(input: Picture) -> Result<JsValue, serde_wasm_bindgen::Error> {
+        serde_wasm_bindgen::to_value(&input)
+    }
 }

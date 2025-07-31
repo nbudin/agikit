@@ -433,7 +433,7 @@ mod tests {
         let logic_data = collection
             .read_resource_data(ResourceType::LOGIC, 0)
             .expect("Failed to read logic resource 0");
-        let mut cursor = Cursor::new(logic_data);
+        let mut cursor = Cursor::new(logic_data.data);
         let logic_program = LogicProgram::decode(&mut cursor, &AGIVersion::new(2, 917))
             .expect("Failed to decode logic program");
 

@@ -568,8 +568,9 @@ mod tests {
         let logic_data = collection
             .read_resource_data(ResourceType::LOGIC, 0)
             .expect("Failed to read logic resource 0");
-        let logic_program = LogicProgram::decode_from_bytes(&logic_data, &AGIVersion::new(2, 917))
-            .expect("Failed to decode logic program");
+        let logic_program =
+            LogicProgram::decode_from_bytes(&logic_data.data, &AGIVersion::new(2, 917))
+                .expect("Failed to decode logic program");
 
         let ast = LogicAST::from_instructions(&logic_program.instructions)
             .expect("Failed to build AST from instructions");

@@ -1,11 +1,20 @@
-use std::fmt::Display;
+use std::{
+    fmt::Display,
+    io::{Read, Seek, SeekFrom},
+};
 
+use bitstream_io::{BitRead, BitReader, Endianness};
+#[cfg(feature = "js")]
+use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
+
+#[cfg(feature = "js")]
+use crate::buffer::Buffer;
 use crate::{
-    compression::bitstreams::{DecodeBitstream, ReadBitstream},
+    compression::bitstreams::DecodeBitstream,
     picture::{
         AbsoluteLinePictureCommand, ChangePenPictureCommand, DisablePictureDrawPictureCommand,
         DisablePriorityDrawPictureCommand, DrawXCornerPictureCommand, DrawYCornerPictureCommand,
-        EndPictureCommand, FillPictureCommand, Picture, PictureCommand, PictureCommandOpcodes,
+        EndPictureCommand, FillPictureCommand, Picture, PictureCommand, PictureCommandOpcode,
         PictureCoordinate, PictureCornerStep, PictureCornerStepAxis, PicturePenPlotPoint,
         PicturePenSettings, PlotWithPenPictureCommand, RelativeLinePictureCommand,
         RelativeLinePoint, SetPictureColorPictureCommand, SetPriorityColorPictureCommand,
@@ -31,15 +40,15 @@ impl Display for PictureDecodingError {
 impl DecodeBitstream<'_> for PictureCoordinate {
     type Options = ();
 
-    fn decode_bitstream<'a, Data: ReadBitstream>(
-        data: &'a mut Data,
+    fn decode_bitstream<'a, R: Read + Seek, E: Endianness>(
+        data: &'a mut BitReader<R, E>,
         _options: Self::Options,
     ) -> Result<Self, DecodingError>
     where
         Self: Sized,
     {
-        let x = data.read_code(8)? as u8;
-        let y = data.read_code(8)? as u8;
+        let x = data.read::<8, u8>()?;
+        let y = data.read::<8, u8>()?;
 
         Ok(Self { x, y })
     }
@@ -48,8 +57,8 @@ impl DecodeBitstream<'_> for PictureCoordinate {
 impl DecodeBitstream<'_> for Vec<PictureCornerStep> {
     type Options = PictureCornerStepAxis; // starting axis
 
-    fn decode_bitstream<'a, Data: ReadBitstream>(
-        data: &'a mut Data,
+    fn decode_bitstream<'a, R: Read + Seek, E: Endianness>(
+        data: &'a mut BitReader<R, E>,
         start_axis: Self::Options,
     ) -> Result<Self, DecodingError>
     where
@@ -58,9 +67,9 @@ impl DecodeBitstream<'_> for Vec<PictureCornerStep> {
         let mut steps: Vec<PictureCornerStep> = vec![];
         let mut axis = start_axis;
         loop {
-            let current_byte = data.read_code(8)? as u8;
+            let current_byte = data.read::<8, u8>()?;
             if current_byte >= 0xf0 {
-                data.seek_bits(-8)?;
+                data.seek_bits(SeekFrom::Current(-8))?;
                 break;
             }
 
@@ -81,8 +90,8 @@ impl DecodeBitstream<'_> for Vec<PictureCornerStep> {
 impl DecodeBitstream<'_> for AbsoluteLinePictureCommand {
     type Options = ();
 
-    fn decode_bitstream<'a, Data: ReadBitstream>(
-        data: &'a mut Data,
+    fn decode_bitstream<'a, R: Read + Seek, E: Endianness>(
+        data: &'a mut BitReader<R, E>,
         _options: Self::Options,
     ) -> Result<Self, DecodingError>
     where
@@ -91,14 +100,14 @@ impl DecodeBitstream<'_> for AbsoluteLinePictureCommand {
         let mut points: Vec<PictureCoordinate> = vec![];
 
         loop {
-            let current_byte = data.read_code(8)? as u8;
+            let current_byte = data.read::<8, u8>()?;
             if current_byte >= 0xf0 {
-                data.seek_bits(-8)?;
+                data.seek_bits(SeekFrom::Current(-8))?;
                 break;
             }
             points.push(PictureCoordinate {
                 x: current_byte,
-                y: data.read_code(8)? as u8,
+                y: data.read::<8, u8>()?,
             });
         }
 
@@ -109,8 +118,8 @@ impl DecodeBitstream<'_> for AbsoluteLinePictureCommand {
 impl DecodeBitstream<'_> for RelativeLinePictureCommand {
     type Options = ();
 
-    fn decode_bitstream<'a, Data: ReadBitstream>(
-        data: &'a mut Data,
+    fn decode_bitstream<'a, R: Read + Seek, E: Endianness>(
+        data: &'a mut BitReader<R, E>,
         _options: Self::Options,
     ) -> Result<Self, DecodingError>
     where
@@ -120,9 +129,9 @@ impl DecodeBitstream<'_> for RelativeLinePictureCommand {
         let start_position = PictureCoordinate::decode_bitstream(data, ())?;
 
         loop {
-            let current_byte = data.read_code(8)? as u8;
+            let current_byte = data.read::<8, u8>()?;
             if current_byte >= 0xf0 {
-                data.seek_bits(-8)?;
+                data.seek_bits(SeekFrom::Current(-8))?;
                 break;
             }
 
@@ -139,8 +148,8 @@ impl DecodeBitstream<'_> for RelativeLinePictureCommand {
 impl DecodeBitstream<'_> for FillPictureCommand {
     type Options = ();
 
-    fn decode_bitstream<'a, Data: ReadBitstream>(
-        data: &'a mut Data,
+    fn decode_bitstream<'a, R: Read + Seek, E: Endianness>(
+        data: &'a mut BitReader<R, E>,
         _options: Self::Options,
     ) -> Result<Self, DecodingError>
     where
@@ -149,14 +158,14 @@ impl DecodeBitstream<'_> for FillPictureCommand {
         let mut points: Vec<PictureCoordinate> = vec![];
 
         loop {
-            let current_byte = data.read_code(8)? as u8;
+            let current_byte = data.read::<8, u8>()?;
             if current_byte >= 0xf0 {
-                data.seek_bits(-8)?;
+                data.seek_bits(SeekFrom::Current(-8))?;
                 break;
             }
             points.push(PictureCoordinate {
                 x: current_byte,
-                y: data.read_code(8)? as u8,
+                y: data.read::<8, u8>()?,
             });
         }
 
@@ -169,8 +178,8 @@ impl DecodeBitstream<'_> for FillPictureCommand {
 impl DecodeBitstream<'_> for PlotWithPenPictureCommand {
     type Options = bool; // splatter enabled
 
-    fn decode_bitstream<'a, Data: ReadBitstream>(
-        data: &'a mut Data,
+    fn decode_bitstream<'a, R: Read + Seek, E: Endianness>(
+        data: &'a mut BitReader<R, E>,
         splatter_enabled: Self::Options,
     ) -> Result<Self, DecodingError>
     where
@@ -179,9 +188,9 @@ impl DecodeBitstream<'_> for PlotWithPenPictureCommand {
         let mut points: Vec<PicturePenPlotPoint> = vec![];
 
         loop {
-            let current_byte = data.read_code(8)? as u8;
+            let current_byte = data.read::<8, u8>()?;
             if current_byte >= 0xf0 {
-                data.seek_bits(-8)?;
+                data.seek_bits(SeekFrom::Current(-8))?;
                 break;
             }
 
@@ -194,7 +203,7 @@ impl DecodeBitstream<'_> for PlotWithPenPictureCommand {
                 });
             } else {
                 let x = current_byte;
-                let y = data.read_code(8)? as u8;
+                let y = data.read::<8, u8>()?;
                 points.push(PicturePenPlotPoint {
                     position: PictureCoordinate { x, y },
                     texture: None,
@@ -214,40 +223,33 @@ pub struct PictureDecodeState {
 impl<'state> DecodeBitstream<'state> for PictureCommand {
     type Options = &'state mut PictureDecodeState;
 
-    fn decode_bitstream<'a, Data: ReadBitstream>(
-        data: &'a mut Data,
+    fn decode_bitstream<'a, R: Read + Seek, E: Endianness>(
+        data: &'a mut BitReader<R, E>,
         state: Self::Options,
     ) -> Result<Self, DecodingError> {
-        let opcode_byte = data.read_code(8)? as u8;
-        let opcode = PictureCommandOpcodes::try_from(opcode_byte)
+        let opcode_byte = data.read::<8, u8>()?;
+        let opcode = PictureCommandOpcode::try_from(opcode_byte)
             .map_err(|_| PictureDecodingError::UnknownOpcode(opcode_byte))?;
+        let color_bits = if state.compress_color_numbers { 4 } else { 8 };
 
         let command = match opcode {
-            PictureCommandOpcodes::SetPictureColor => {
+            PictureCommandOpcode::SetPictureColor => {
                 PictureCommand::SetPictureColor(SetPictureColorPictureCommand {
-                    color_number: data.read_code(if state.compress_color_numbers {
-                        4
-                    } else {
-                        8
-                    })? as u8,
+                    color_number: data.read_var(color_bits)?,
                 })
             }
-            PictureCommandOpcodes::DisablePictureDraw => {
+            PictureCommandOpcode::DisablePictureDraw => {
                 PictureCommand::DisablePictureDraw(DisablePictureDrawPictureCommand)
             }
-            PictureCommandOpcodes::SetPriorityColor => {
+            PictureCommandOpcode::SetPriorityColor => {
                 PictureCommand::SetPriorityColor(SetPriorityColorPictureCommand {
-                    color_number: data.read_code(if state.compress_color_numbers {
-                        4
-                    } else {
-                        8
-                    })? as u8,
+                    color_number: data.read_var(color_bits)?,
                 })
             }
-            PictureCommandOpcodes::DisablePriorityDraw => {
+            PictureCommandOpcode::DisablePriorityDraw => {
                 PictureCommand::DisablePriorityDraw(DisablePriorityDrawPictureCommand)
             }
-            PictureCommandOpcodes::DrawYCorner => {
+            PictureCommandOpcode::DrawYCorner => {
                 let start_position = PictureCoordinate::decode_bitstream(data, ())?;
                 let steps =
                     Vec::<PictureCornerStep>::decode_bitstream(data, PictureCornerStepAxis::Y)?;
@@ -257,7 +259,7 @@ impl<'state> DecodeBitstream<'state> for PictureCommand {
                     steps,
                 })
             }
-            PictureCommandOpcodes::DrawXCorner => {
+            PictureCommandOpcode::DrawXCorner => {
                 let start_position = PictureCoordinate::decode_bitstream(data, ())?;
                 let steps =
                     Vec::<PictureCornerStep>::decode_bitstream(data, PictureCornerStepAxis::X)?;
@@ -267,23 +269,23 @@ impl<'state> DecodeBitstream<'state> for PictureCommand {
                     steps,
                 })
             }
-            PictureCommandOpcodes::AbsoluteLine => PictureCommand::AbsoluteLine(
+            PictureCommandOpcode::AbsoluteLine => PictureCommand::AbsoluteLine(
                 AbsoluteLinePictureCommand::decode_bitstream(data, ())?,
             ),
-            PictureCommandOpcodes::RelativeLine => PictureCommand::RelativeLine(
+            PictureCommandOpcode::RelativeLine => PictureCommand::RelativeLine(
                 RelativeLinePictureCommand::decode_bitstream(data, ())?,
             ),
-            PictureCommandOpcodes::Fill => {
+            PictureCommandOpcode::Fill => {
                 PictureCommand::Fill(FillPictureCommand::decode_bitstream(data, ())?)
             }
-            PictureCommandOpcodes::ChangePen => {
-                let settings = PicturePenSettings::from_bits(data.read_code(8)? as u8);
+            PictureCommandOpcode::ChangePen => {
+                let settings = PicturePenSettings::from_bits(data.read::<8, u8>()?);
                 PictureCommand::ChangePen(ChangePenPictureCommand { settings })
             }
-            PictureCommandOpcodes::PlotWithPen => PictureCommand::PlotWithPen(
+            PictureCommandOpcode::PlotWithPen => PictureCommand::PlotWithPen(
                 PlotWithPenPictureCommand::decode_bitstream(data, state.splatter_enabled)?,
             ),
-            PictureCommandOpcodes::End => PictureCommand::End(EndPictureCommand),
+            PictureCommandOpcode::End => PictureCommand::End(EndPictureCommand),
         };
 
         Ok(command)
@@ -293,8 +295,8 @@ impl<'state> DecodeBitstream<'state> for PictureCommand {
 impl DecodeBitstream<'_> for Picture {
     type Options = bool; // compress_color_numbers
 
-    fn decode_bitstream<'a, Data: ReadBitstream>(
-        data: &'a mut Data,
+    fn decode_bitstream<'a, R: Read + Seek, E: Endianness>(
+        data: &'a mut BitReader<R, E>,
         compress_color_numbers: Self::Options,
     ) -> Result<Self, DecodingError>
     where
@@ -325,4 +327,23 @@ impl DecodeBitstream<'_> for Picture {
 
         Ok(Picture { commands })
     }
+}
+
+#[cfg(feature = "js")]
+#[wasm_bindgen(js_name = "readPictureResource")]
+pub fn read_picture_resource(
+    data: Buffer,
+    #[wasm_bindgen(js_name = "compressColorNumbers")] compress_color_numbers: bool,
+) -> Result<Picture, JsValue> {
+    use std::io::Cursor;
+
+    use bitstream_io::BigEndian;
+
+    let data_vec = Vec::from(data);
+    let mut cursor = Cursor::new(data_vec);
+    Picture::decode_bitstream(
+        &mut BitReader::endian(&mut cursor, BigEndian),
+        compress_color_numbers,
+    )
+    .map_err(|e| JsValue::from_str(format!("{}", e).as_str()))
 }

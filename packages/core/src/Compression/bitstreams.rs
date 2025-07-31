@@ -1,45 +1,26 @@
-use crate::resources::decode::DecodingError;
+use std::io::{Read, Seek};
 
-pub trait ReadBitstream {
-    fn bit_offset(&self) -> usize;
-    fn read_code(&mut self, bit_length: usize) -> Result<u32, std::io::Error>;
-    fn seek_bits(&mut self, bits: isize) -> Result<(), std::io::Error>;
-    fn done(&self) -> bool;
+use bitstream_io::{BitReader, BitWrite, Endianness};
 
-    fn byte_offset(&self) -> usize {
-        self.bit_offset() / 8
-    }
-
-    fn peek_code(&mut self, bit_length: usize) -> Result<u32, std::io::Error> {
-        let code = self.read_code(bit_length)?;
-        self.seek_bits(-(bit_length as isize))?;
-        Ok(code)
-    }
-}
+use crate::resources::{decode::DecodingError, encode::EncodingError};
 
 pub trait DecodeBitstream<'opt> {
     type Options: 'opt;
 
-    fn decode_bitstream<'a, Data: ReadBitstream>(
-        data: &'a mut Data,
+    fn decode_bitstream<'a, R: Read + Seek, E: Endianness>(
+        data: &'a mut BitReader<R, E>,
         options: Self::Options,
     ) -> Result<Self, DecodingError>
     where
         Self: Sized;
 }
 
-pub trait WriteBitstream {
-    fn current_byte_offset(&self) -> usize;
-    fn current_byte(&self) -> u8;
-    fn get_data(&self) -> &[u8];
-    fn write_code(&mut self, code: u32, bit_length: usize);
-    fn flush_current_byte(&mut self);
+pub trait EncodeBitstream<'opt> {
+    type Options: 'opt;
 
-    fn finish(&mut self) -> Vec<u8> {
-        if self.current_byte_offset() > 0 {
-            self.flush_current_byte();
-        }
-
-        self.get_data().to_vec()
-    }
+    fn encode_bitstream<Out: BitWrite>(
+        &self,
+        out: &mut Out,
+        options: Self::Options,
+    ) -> Result<(), EncodingError>;
 }

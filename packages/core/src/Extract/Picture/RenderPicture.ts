@@ -1,6 +1,6 @@
 import { ColorPalette } from 'agikit_core';
 import { max } from 'lodash';
-import { PictureCoordinate, PicturePenSettings, Picture } from '../../Types/Picture';
+import { PictureCoordinate, PicturePenSettings, Picture } from 'agikit_core';
 
 export type RenderedPicture = {
   visualBuffer: Uint8Array;
