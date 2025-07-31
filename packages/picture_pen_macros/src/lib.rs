@@ -10,7 +10,10 @@ struct Origin {
 #[proc_macro]
 pub fn picture_pen_mask(input: TokenStream) -> TokenStream {
     let mask_definition = parse_macro_input!(input as LitStr).value();
-    let lines: Vec<&str> = mask_definition.lines().collect();
+    let lines: Vec<&str> = mask_definition
+        .lines()
+        .filter(|line| line.trim().len() > 0)
+        .collect();
     let height = lines.len();
     let width = lines
         .iter()

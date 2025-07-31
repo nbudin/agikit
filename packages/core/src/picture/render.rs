@@ -2,9 +2,12 @@ use std::collections::VecDeque;
 
 use picture_pen_macros::picture_pen_mask;
 
-use crate::picture::{
-    Picture, PictureCommand, PictureCoordinate, PictureCornerStep, PictureCornerStepAxis,
-    PicturePenSettings, PicturePenShape,
+use crate::{
+    color_palettes::ColorPalette,
+    picture::{
+        Picture, PictureCommand, PictureCoordinate, PictureCornerStep, PictureCornerStepAxis,
+        PicturePenSettings, PicturePenShape,
+    },
 };
 
 pub struct PicturePenMask {
@@ -275,7 +278,7 @@ impl<Pixel: Clone> PixelBuffer<Pixel> {
             } else {
                 width as f64 / width.abs() as f64
             };
-            while x < to.x as f64 {
+            while x as u8 != to.x {
                 self.set_pixel(
                     &PictureCoordinate {
                         x: direction_biased_round(x, add_x) as u8,
@@ -292,7 +295,7 @@ impl<Pixel: Clone> PixelBuffer<Pixel> {
             } else {
                 height as f64 / height.abs() as f64
             };
-            while y < to.y as f64 {
+            while y as u8 != to.y {
                 self.set_pixel(
                     &PictureCoordinate {
                         x: direction_biased_round(x, add_x) as u8,
@@ -355,6 +358,16 @@ impl<Pixel: Clone> PixelBuffer<Pixel> {
             };
             self.set_pixel(&pixel_pos, &color);
         }
+    }
+}
+
+impl<Pixel: Clone + Into<usize>> PixelBuffer<Pixel> {
+    pub fn to_rgba_data(&self, color_palette: &ColorPalette) -> Vec<u8> {
+        self.buffer
+            .iter()
+            .cloned()
+            .flat_map(|pixel| color_palette.colors[pixel.into()])
+            .collect()
     }
 }
 
@@ -658,5 +671,142 @@ impl Picture {
         };
         self.render_to(&mut rendered_picture, None, None, DEFAULT_PEN_SETTINGS);
         rendered_picture
+    }
+}
+
+#[cfg(feature = "js")]
+mod js {
+    use std::collections::HashMap;
+
+    use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
+    use web_sys::js_sys::Uint8Array;
+
+    use crate::{
+        color_palettes::ColorPalette,
+        picture::{
+            Picture, PicturePenSettings,
+            render::{PixelBuffer, RenderedPicture},
+        },
+    };
+
+    #[wasm_bindgen(js_name = "RenderedPicture")]
+    #[derive(Clone)]
+    pub struct JsRenderedPicture {
+        #[wasm_bindgen(js_name = "visualBuffer", getter_with_clone)]
+        pub visual_buffer: Uint8Array,
+        #[wasm_bindgen(js_name = "priorityBuffer", getter_with_clone)]
+        pub priority_buffer: Uint8Array,
+    }
+
+    impl JsRenderedPicture {
+        pub fn to_rendered_picture(
+            &self,
+            color_palette: &ColorPalette,
+        ) -> Result<RenderedPicture, JsValue> {
+            let inverted_palette = color_palette
+                .colors
+                .iter()
+                .enumerate()
+                .map(|(color_number, color)| (color as &[u8], color_number))
+                .collect::<HashMap<_, _>>();
+
+            let color_buffer_to_pixel_buffer = |color_buffer: &Uint8Array| {
+                color_buffer
+                    .to_vec()
+                    .as_slice()
+                    .chunks(4)
+                    .map(|pixel| {
+                        inverted_palette
+                            .get(pixel)
+                            .ok_or_else(|| {
+                                JsValue::from_str(
+                                    format!("Color {:?} is not in palette", pixel).as_str(),
+                                )
+                            })
+                            .map(|color_number| *color_number as u8)
+                    })
+                    .collect::<Result<Vec<_>, _>>()
+            };
+            let visual_buffer = color_buffer_to_pixel_buffer(&self.visual_buffer)?;
+            let priority_buffer = color_buffer_to_pixel_buffer(&self.priority_buffer)?;
+
+            Ok(RenderedPicture {
+                visual_buffer: PixelBuffer {
+                    buffer: visual_buffer,
+                    width: 160,
+                    height: 168,
+                },
+                priority_buffer: PixelBuffer {
+                    buffer: priority_buffer,
+                    width: 160,
+                    height: 168,
+                },
+            })
+        }
+    }
+
+    #[wasm_bindgen]
+    pub struct JsRenderPictureStartingFromOptions {
+        #[wasm_bindgen(js_name = "rendered_picture", getter_with_clone)]
+        pub rendered_picture: JsRenderedPicture,
+        #[wasm_bindgen(js_name = "pictureColor")]
+        pub picture_color: Option<u8>,
+        #[wasm_bindgen(js_name = "priorityColor")]
+        pub priority_color: Option<u8>,
+        pub pen: PicturePenSettings,
+    }
+
+    #[wasm_bindgen(js_name = "renderPicture")]
+    pub fn render_picture(
+        picture: &Picture,
+        palette: &ColorPalette,
+        #[wasm_bindgen(js_name = "startingFrom")] starting_from: Option<
+            JsRenderPictureStartingFromOptions,
+        >,
+    ) -> Result<JsRenderedPicture, JsValue> {
+        let rendered = match starting_from {
+            Some(starting_from) => {
+                let mut starting_rendered = starting_from
+                    .rendered_picture
+                    .to_rendered_picture(palette)?;
+                picture.render_to(
+                    &mut starting_rendered,
+                    starting_from.picture_color,
+                    starting_from.priority_color,
+                    starting_from.pen,
+                );
+                starting_rendered
+            }
+            None => picture.render(),
+        };
+
+        let visual_buffer =
+            Uint8Array::new_with_length((rendered.visual_buffer.buffer.len() * 4) as u32);
+        let priority_buffer =
+            Uint8Array::new_with_length((rendered.priority_buffer.buffer.len() * 4) as u32);
+        visual_buffer.copy_from(&rendered.visual_buffer.to_rgba_data(palette));
+        priority_buffer.copy_from(&rendered.priority_buffer.to_rgba_data(palette));
+
+        Ok(JsRenderedPicture {
+            visual_buffer,
+            priority_buffer,
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::picture::render::RECTANGLE_MASKS;
+
+    #[test]
+    pub fn test_pen_mask_parsing() {
+        let rectangle1 = &RECTANGLE_MASKS[1];
+        assert_eq!(2, rectangle1.width);
+        assert_eq!(3, rectangle1.height);
+        assert_eq!(1, rectangle1.origin.x);
+        assert_eq!(1, rectangle1.origin.y);
+        for pixel in rectangle1.mask.iter() {
+            assert_eq!(true, *pixel);
+        }
     }
 }

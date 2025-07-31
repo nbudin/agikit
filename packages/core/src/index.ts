@@ -24,7 +24,6 @@ export * from './Build/WriteResources';
 export * from './Extract/DetectGame';
 export * from './Extract/GameExtractor';
 export * from './Extract/Logic/CodeGeneration';
-export * from './Extract/Picture/RenderPicture';
 export * from './Extract/ReadResources';
 export * from './Extract/Sound/ReadSound';
 export * from './Logger';
