@@ -1,5 +1,6 @@
 use std::io::Cursor;
 
+use serde::{Deserialize, Serialize};
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 use web_sys::js_sys::Uint8Array;
 
@@ -7,7 +8,7 @@ use crate::{buffer::Buffer, color_palettes::ColorPalette, resources::decode::Dec
 
 use super::cel::{ViewCel, ViewCelData, ViewCelHandle, ViewCelPixelsIterator, render_view_cel};
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct ViewLoop {
     #[wasm_bindgen(js_name = "loopNumber")]
@@ -16,7 +17,7 @@ pub struct ViewLoop {
     pub cels: Vec<ViewCel>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct AGIView {
     #[wasm_bindgen(getter_with_clone)]

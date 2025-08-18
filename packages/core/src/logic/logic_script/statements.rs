@@ -4,7 +4,8 @@ use strum_macros::AsRefStr;
 use crate::logic::logic_script::codegen::context::LogicScriptCodeGenerationContext;
 use crate::logic::{
     asm::expressions::{
-        LogicArgument, LogicBooleanExpression, LogicIdentifier, ParsedLogicArgument,
+        AsParsedLogicArgument, LogicArgument, LogicBooleanExpression, LogicIdentifier,
+        ParsedLogicArgument,
     },
     logic_script::{
         codegen::node_label_map::LabeledNode,
@@ -88,7 +89,75 @@ pub enum LogicScriptStatementBody<Arg: LogicArgument> {
     RightIndirectAssignment(LogicScriptRightIndirectAssignmentStatement),
 }
 
-impl LogicScriptStatementBody<ParsedLogicArgument> {
+impl<Arg: LogicArgument + AsParsedLogicArgument> LogicScriptStatementBody<Arg> {
+    pub fn to_parsed(&self) -> LogicScriptStatementBody<ParsedLogicArgument> {
+        match self {
+            LogicScriptStatementBody::CommandCall(body) => {
+                LogicScriptStatementBody::CommandCall(LogicScriptCommandCall {
+                    command_name: body.command_name.clone(),
+                    argument_list: body
+                        .argument_list
+                        .iter()
+                        .map(AsParsedLogicArgument::as_parsed)
+                        .cloned()
+                        .collect(),
+                })
+            }
+            LogicScriptStatementBody::IfStatement(body) => {
+                LogicScriptStatementBody::IfStatement(LogicScriptIfStatement {
+                    conditions: body.conditions.to_parsed(),
+                    then_statements: body
+                        .then_statements
+                        .iter()
+                        .map(|s| Box::new(s.to_parsed()))
+                        .collect(),
+                    else_statements: body
+                        .else_statements
+                        .iter()
+                        .map(|s| Box::new(s.to_parsed()))
+                        .collect(),
+                    if_keyword: body.if_keyword.clone(),
+                    else_keyword: body.else_keyword.clone(),
+                })
+            }
+            LogicScriptStatementBody::ValueAssignment(body) => {
+                LogicScriptStatementBody::ValueAssignment(LogicScriptValueAssignmentStatement {
+                    assignee: body.assignee.clone(),
+                    value: body.value.as_parsed().clone(),
+                })
+            }
+            LogicScriptStatementBody::ArithmeticAssignment(body) => {
+                LogicScriptStatementBody::ArithmeticAssignment(
+                    LogicScriptArithmeticAssignmentStatement {
+                        operator: body.operator.clone(),
+                        assignee: body.assignee.clone(),
+                        value: body.value.as_parsed().clone(),
+                    },
+                )
+            }
+            LogicScriptStatementBody::LeftIndirectAssignment(body) => {
+                LogicScriptStatementBody::LeftIndirectAssignment(
+                    LogicScriptLeftIndirectAssignmentStatement {
+                        assignee_pointer: body.assignee_pointer.clone(),
+                        value: body.value.as_parsed().clone(),
+                    },
+                )
+            }
+            LogicScriptStatementBody::Comment(body) => {
+                LogicScriptStatementBody::Comment(body.clone())
+            }
+            LogicScriptStatementBody::UnaryOperation(body) => {
+                LogicScriptStatementBody::UnaryOperation(body.clone())
+            }
+            LogicScriptStatementBody::Directive(body) => {
+                LogicScriptStatementBody::Directive(body.clone())
+            }
+            LogicScriptStatementBody::RightIndirectAssignment(body) => {
+                LogicScriptStatementBody::RightIndirectAssignment(body.clone())
+            }
+        }
+    }
+
     pub fn get_goto_target_label(&self) -> Option<&String> {
         let LogicScriptStatementBody::CommandCall(statement) = self else {
             return None;
@@ -98,7 +167,11 @@ impl LogicScriptStatementBody<ParsedLogicArgument> {
             return None;
         }
 
-        let Some(ParsedLogicArgument::Identifier(target)) = statement.argument_list.first() else {
+        let Some(ParsedLogicArgument::Identifier(target)) = statement
+            .argument_list
+            .first()
+            .map(AsParsedLogicArgument::as_parsed)
+        else {
             return None;
         };
 
@@ -118,6 +191,15 @@ impl<Arg: LogicArgument> LogicScriptStatement<Arg> {
     }
 }
 
+impl<Arg: LogicArgument + AsParsedLogicArgument> LogicScriptStatement<Arg> {
+    pub fn to_parsed(&self) -> LogicScriptStatement<ParsedLogicArgument> {
+        LogicScriptStatement {
+            body: self.body.to_parsed(),
+            label: self.label.clone(),
+        }
+    }
+}
+
 impl<Arg: LogicArgument> LabeledNode for LogicScriptStatement<Arg> {
     fn label(&self) -> Option<&str> {
         self.label.as_deref()
@@ -128,14 +210,14 @@ impl<Arg: LogicArgument> LabeledNode for LogicScriptStatement<Arg> {
     }
 }
 
-impl LogicScriptStatement<ParsedLogicArgument> {
+impl<Arg: LogicArgument + AsParsedLogicArgument> LogicScriptStatement<Arg> {
     pub fn get_goto_target_label(&self) -> Option<&String> {
         self.body.get_goto_target_label()
     }
 }
 
 #[cfg(feature = "dot")]
-impl LogicScriptStatement<ParsedLogicArgument> {
+impl<Arg: LogicArgument + AsParsedLogicArgument + Clone> LogicScriptStatement<Arg> {
     pub fn dot_node_label(&self, context: &LogicScriptCodeGenerationContext) -> String {
         use crate::logic::logic_script::codegen::codegen::GenerateLogicScript;
 

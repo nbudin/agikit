@@ -1,26 +1,20 @@
 import fs from 'fs';
 import path from 'path';
-import { Project } from 'agikit_core';
+import { Project, writeV2ResourceFiles, writeV3ResourceFiles } from 'agikit_core';
 import {
   LogicScriptSyntaxError,
   SyntaxErrorWithFilePath,
   ObjectList,
-  Resource,
   ResourceType,
   WordList,
   parseWordList,
-  writeV2ResourceFiles,
-  encodeResourceVolumes,
   encodeV2Resource,
   buildPicture,
   readPictureJSON,
   Logger,
   ConsoleLogger,
-  writeV3ResourceFiles,
   encodeV3Resource,
   agiLzwCompress,
-  LogicResource,
-  PicResource,
   Picture,
   buildObjectList,
   buildWordsTok,

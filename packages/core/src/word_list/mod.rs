@@ -21,7 +21,7 @@ pub struct WordListEntry {
 }
 
 impl WordListEntry {
-    fn iter_words(&self) -> impl Iterator<Item = &str> {
+    pub fn iter_words(&self) -> impl Iterator<Item = &str> {
         std::iter::once(self.canonical_word.as_str()).chain(
             self.words
                 .iter()

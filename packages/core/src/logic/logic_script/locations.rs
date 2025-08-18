@@ -1,8 +1,8 @@
-use std::ops::Range;
+use std::{borrow::Borrow, ops::Range};
 
 use crate::logic::asm::{
     codegen::{AsmCodeGenerationContext, AsmCodeGenerationError},
-    expressions::{LogicArgument, ParsedLogicArgument},
+    expressions::{AsParsedLogicArgument, LogicArgument, ParsedLogicArgument},
 };
 
 #[derive(Debug, Clone, Eq, Ord)]
@@ -40,8 +40,8 @@ impl<T> WithLocation<T> {
     }
 }
 
-impl<T> AsRef<T> for WithLocation<T> {
-    fn as_ref(&self) -> &T {
+impl<T> Borrow<T> for WithLocation<T> {
+    fn borrow(&self) -> &T {
         &self.value
     }
 }
@@ -56,6 +56,12 @@ impl<T: LogicArgument> LogicArgument for WithLocation<T> {
         context: &AsmCodeGenerationContext,
     ) -> Result<ParsedLogicArgument, AsmCodeGenerationError> {
         self.value.try_parse(context)
+    }
+}
+
+impl<T: AsParsedLogicArgument> AsParsedLogicArgument for WithLocation<T> {
+    fn as_parsed(&self) -> &ParsedLogicArgument {
+        self.value.as_parsed()
     }
 }
 

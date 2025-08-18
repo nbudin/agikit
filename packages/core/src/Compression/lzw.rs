@@ -49,6 +49,17 @@ impl From<std::io::Error> for CompressionError {
     }
 }
 
+impl Display for CompressionError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CompressionError::KeyNotFound(items) => {
+                f.write_fmt(format_args!("Key not found: {:?}", items))
+            }
+            CompressionError::IoError(error) => f.write_fmt(format_args!("IO error: {:?}", error)),
+        }
+    }
+}
+
 pub struct CompressionDictionary {
     mapping: HashMap<Vec<u8>, u32>,
     size: u32,

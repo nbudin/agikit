@@ -13,6 +13,11 @@ use crate::logic::analysis::{
     node_reference::{NodeReference, ReferenceGraph},
 };
 
+pub enum ImmediatePostDominator<Ix: IndexType = DefaultIx> {
+    Node(NodeIndex<Ix>),
+    VirtualRoot,
+}
+
 pub struct DominationAnalysis<Ix: IndexType = DefaultIx> {
     dominator_tree: DominatorTree<Ix>,
     reverse_cfg: InvertedGraph<Ix>,
@@ -82,7 +87,10 @@ impl<Ix: IndexType> DominationAnalysis<Ix> {
             .immediately_dominates(reverse_a, reverse_b)
     }
 
-    pub fn immediate_post_dominator(&self, node_index: NodeIndex<Ix>) -> Option<NodeIndex<Ix>> {
+    pub fn immediate_post_dominator(
+        &self,
+        node_index: NodeIndex<Ix>,
+    ) -> Option<ImmediatePostDominator<Ix>> {
         let Some(reverse_node_index) = self
             .reverse_cfg
             .reference_node_id_for_source_node_id(node_index)
@@ -91,9 +99,18 @@ impl<Ix: IndexType> DominationAnalysis<Ix> {
         };
         self.post_dominator_tree
             .immediate_dominator(reverse_node_index)
-            .and_then(|reverse_index| {
-                self.reverse_cfg
-                    .source_node_id_for_reference_node_id(reverse_index)
+            .map(|reverse_index| {
+                let reverse_node = self
+                    .reverse_cfg
+                    .reverse_graph
+                    .node_weight(reverse_index)
+                    .unwrap();
+                match reverse_node {
+                    InvertedGraphNode::NodeReference(node_reference) => {
+                        ImmediatePostDominator::Node(node_reference.id())
+                    }
+                    InvertedGraphNode::VirtualRoot => ImmediatePostDominator::VirtualRoot,
+                }
             })
     }
 

@@ -5,6 +5,7 @@ use crate::{
     project::{Project, ProjectConfig},
     resources::{
         dirs::{ResourceDirDecodeOptions, ResourceDirs},
+        file_provider::FileProvider,
         resource_collection::{ResourceCollection, ResourceCollectionVersionData},
     },
 };
@@ -41,9 +42,9 @@ pub fn uriquest_resources() -> ResourceCollection<Dir<'static>> {
     )
 }
 
-pub fn uriquest() -> Project {
+pub fn uriquest<'a>() -> Project<Box<dyn FileProvider>> {
     Project::new(
-        uriquest_dir(),
+        Box::new(uriquest_dir()),
         Some(ProjectConfig::new(
             AGIVersion::new(2, 917),
             "URIQUEST".to_string(),
@@ -70,9 +71,9 @@ pub fn kq4demo_resources() -> ResourceCollection<Dir<'static>> {
     )
 }
 
-pub fn kq4demo() -> Project {
+pub fn kq4demo<'a>() -> Project<Box<dyn FileProvider>> {
     Project::new(
-        kq4demo_dir(),
+        Box::new(kq4demo_dir()),
         Some(ProjectConfig::new(
             AGIVersion::new(3, 2102),
             "DM".to_string(),

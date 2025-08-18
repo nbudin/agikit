@@ -1,25 +1,30 @@
 use bitfield_struct::bitfield;
+use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::color_palettes::ColorPalette;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde_as]
+#[serde(transparent)]
 pub struct NonMirroredViewCelData {
+    #[serde_as(as = "Base64")]
     pub data: Vec<u8>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MirroredViewCelData {
     pub loop_number: u8,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ViewCelData {
     NonMirrored(NonMirroredViewCelData),
     Mirrored(MirroredViewCelData),
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct ViewCel {
     #[wasm_bindgen(js_name = "celNumber")]

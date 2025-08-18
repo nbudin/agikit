@@ -6,6 +6,7 @@ use crate::{
     logic::decode::DisassemblyError,
     picture::decode::PictureDecodingError,
     resources::{ResourceNumber, ResourceType, resource_collection::RESOURCE_SIGNATURE},
+    word_list::words_txt::WordListSyntaxError,
 };
 
 #[derive(Debug)]
@@ -23,6 +24,8 @@ pub enum DecodingError {
     DecompressionError(DecompressionError),
     DisassemblyError(DisassemblyError),
     PictureDecodingError(PictureDecodingError),
+    SerdeJsonError(serde_json::Error),
+    WordListSyntaxError(WordListSyntaxError),
 }
 
 impl std::error::Error for DecodingError {}
@@ -51,6 +54,18 @@ impl From<PictureDecodingError> for DecodingError {
     }
 }
 
+impl From<serde_json::Error> for DecodingError {
+    fn from(error: serde_json::Error) -> Self {
+        DecodingError::SerdeJsonError(error)
+    }
+}
+
+impl From<WordListSyntaxError> for DecodingError {
+    fn from(value: WordListSyntaxError) -> Self {
+        DecodingError::WordListSyntaxError(value)
+    }
+}
+
 impl Display for DecodingError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -74,6 +89,8 @@ impl Display for DecodingError {
             DecodingError::DecompressionError(error) => error.fmt(f),
             DecodingError::DisassemblyError(error) => error.fmt(f),
             DecodingError::PictureDecodingError(error) => error.fmt(f),
+            DecodingError::SerdeJsonError(error) => error.fmt(f),
+            DecodingError::WordListSyntaxError(error) => error.fmt(f),
         }
     }
 }

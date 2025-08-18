@@ -1,8 +1,40 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::word_list::{WordList, WordListEntry};
+
+#[derive(Debug, Clone)]
+#[wasm_bindgen]
+pub struct WordListSyntaxError {
+    pub line: usize,
+    pub column: usize,
+    pub offset: usize,
+    #[wasm_bindgen(getter_with_clone)]
+    pub message: String,
+}
+
+#[wasm_bindgen]
+impl WordListSyntaxError {
+    #[wasm_bindgen(constructor)]
+    pub fn new(message: String, line: usize, column: usize, offset: usize) -> WordListSyntaxError {
+        WordListSyntaxError {
+            line,
+            column,
+            offset,
+            message,
+        }
+    }
+}
+
+impl Display for WordListSyntaxError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!(
+            "Parse error at {}:{}: {}",
+            self.line, self.column, self.message
+        ))
+    }
+}
 
 peg::parser! {
     grammar words_txt_parser() for str {
@@ -143,15 +175,6 @@ pub fn export_words(word_list: &WordList) -> String {
         })
         .collect::<Vec<_>>()
         .join("\n")
-}
-
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(typescript_type = "WordListSyntaxError")]
-    pub type WordListSyntaxError;
-
-    #[wasm_bindgen(constructor)]
-    pub fn new(message: String, line: usize, column: usize, offset: usize) -> WordListSyntaxError;
 }
 
 #[wasm_bindgen(js_name = parseWordList)]

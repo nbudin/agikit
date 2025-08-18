@@ -12,7 +12,10 @@ use crate::{
         LogicCommand, LogicCondition, LogicConditionClause, LogicGoto, LogicInstruction,
         LogicMessages, LogicOr, LogicProgram, LogicTest,
     },
-    resources::encode::{Encode, EncodingError},
+    resources::{
+        ResourceType,
+        encode::{Encode, EncodeResource, EncodingError},
+    },
     xor_encryption::{AGI_ENCRYPTION_KEY, XorCursor},
 };
 
@@ -381,6 +384,12 @@ impl Encode<'_> for LogicProgram {
         self.messages.encode(&mut out, encrypt_messages)?;
 
         Ok(())
+    }
+}
+
+impl EncodeResource<'_> for LogicProgram {
+    fn resource_type(&self) -> ResourceType {
+        ResourceType::LOGIC
     }
 }
 

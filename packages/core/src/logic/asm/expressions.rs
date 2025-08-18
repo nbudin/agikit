@@ -23,6 +23,10 @@ pub trait LogicArgument {
     ) -> Result<ParsedLogicArgument, AsmCodeGenerationError>;
 }
 
+pub trait AsParsedLogicArgument {
+    fn as_parsed(&self) -> &ParsedLogicArgument;
+}
+
 #[derive(Debug, Clone)]
 pub struct AsmLogicArgument {
     pub value: u16,
@@ -129,6 +133,12 @@ impl LogicArgument for ParsedLogicArgument {
     }
 }
 
+impl AsParsedLogicArgument for ParsedLogicArgument {
+    fn as_parsed(&self) -> &ParsedLogicArgument {
+        &self
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct LogicAndExpression<Arg: LogicArgument> {
     pub clauses: Vec<LogicBooleanExpression<Arg>>,
@@ -184,6 +194,48 @@ pub enum LogicBooleanExpression<Arg: LogicArgument> {
     NotExpression(LogicNotExpression<Arg>),
     TestCall(LogicTestCall<Arg>),
     Identifier(LogicIdentifier),
+}
+
+impl<Arg: LogicArgument + AsParsedLogicArgument> LogicBooleanExpression<Arg> {
+    pub fn to_parsed(&self) -> LogicBooleanExpression<ParsedLogicArgument> {
+        match self {
+            LogicBooleanExpression::BinaryOperation(expr) => {
+                LogicBooleanExpression::BinaryOperation(LogicBooleanBinaryOperation {
+                    left: expr.left.as_parsed().clone(),
+                    operator: expr.operator.clone(),
+                    right: expr.right.as_parsed().clone(),
+                })
+            }
+            LogicBooleanExpression::AndExpression(expr) => {
+                LogicBooleanExpression::AndExpression(LogicAndExpression {
+                    clauses: expr.clauses.iter().map(|c| c.to_parsed()).collect(),
+                })
+            }
+            LogicBooleanExpression::OrExpression(expr) => {
+                LogicBooleanExpression::OrExpression(LogicOrExpression {
+                    clauses: expr.clauses.iter().map(|c| c.to_parsed()).collect(),
+                })
+            }
+            LogicBooleanExpression::NotExpression(expr) => {
+                LogicBooleanExpression::NotExpression(LogicNotExpression {
+                    expression: Box::new(expr.expression.to_parsed()),
+                })
+            }
+            LogicBooleanExpression::TestCall(expr) => {
+                LogicBooleanExpression::TestCall(LogicTestCall {
+                    test_name: expr.test_name.clone(),
+                    argument_list: expr
+                        .argument_list
+                        .iter()
+                        .map(|arg| arg.as_parsed().clone())
+                        .collect(),
+                })
+            }
+            LogicBooleanExpression::Identifier(expr) => {
+                LogicBooleanExpression::Identifier(expr.clone())
+            }
+        }
+    }
 }
 
 impl LogicBooleanExpression<ParsedLogicArgument> {

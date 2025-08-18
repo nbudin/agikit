@@ -1,13 +1,12 @@
 use serde::{Deserialize, Serialize};
 use strum_macros::{AsRefStr, EnumString};
-use wasm_bindgen::prelude::wasm_bindgen;
-
-use crate::resources::{decode::Decode, encode::Encode};
+use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
 pub mod decode;
 pub mod dirs;
 pub mod encode;
 pub mod file_provider;
+pub mod pack;
 pub mod resource_collection;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumString, AsRefStr, Serialize, Deserialize, Hash)]
@@ -16,6 +15,24 @@ pub enum ResourceType {
     PIC,
     VIEW,
     SOUND,
+}
+
+impl Into<JsValue> for ResourceType {
+    fn into(self) -> JsValue {
+        JsValue::from_str(self.as_ref())
+    }
+}
+
+impl TryFrom<JsValue> for ResourceType {
+    type Error = strum::ParseError;
+
+    fn try_from(value: JsValue) -> Result<Self, Self::Error> {
+        let Some(str_value) = value.as_string() else {
+            return Err(strum::ParseError::VariantNotFound);
+        };
+
+        ResourceType::try_from(str_value.as_str())
+    }
 }
 
 pub type ResourceNumber = u16;
@@ -31,8 +48,3 @@ export enum ResourceType {
 
 export type ResourceNumber = number;
 "#;
-
-pub trait Resource<'dec, 'enc, T: Encode<'enc> + Decode<'dec>> {
-    fn resource_type(&self) -> ResourceType;
-    fn resource_number(&self) -> ResourceNumber;
-}

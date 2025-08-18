@@ -3,7 +3,10 @@ use std::collections::HashMap;
 use crate::{
     compression::rle::ViewRLEEncoder,
     data_encoding::WriteHeterogeneousData,
-    resources::encode::{Encode, EncodingError},
+    resources::{
+        ResourceType,
+        encode::{Encode, EncodeResource, EncodingError},
+    },
     views::cel::ViewCelPixelsIterator,
 };
 
@@ -210,6 +213,12 @@ impl Encode<'_> for AGIView {
         }
 
         Ok(())
+    }
+}
+
+impl EncodeResource<'_> for AGIView {
+    fn resource_type(&self) -> ResourceType {
+        ResourceType::VIEW
     }
 }
 

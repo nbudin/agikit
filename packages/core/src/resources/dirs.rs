@@ -6,10 +6,11 @@ use std::{
 use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::{
-    data_encoding::ReadHeterogeneousData,
+    data_encoding::{ReadHeterogeneousData, WriteHeterogeneousData},
     resources::{
         ResourceNumber, ResourceType,
         decode::{Decode, DecodingError},
+        encode::EncodingError,
         file_provider::FileProvider,
     },
 };
@@ -109,6 +110,18 @@ pub enum ResourceDirDecodeOptions<P: FileProvider> {
 }
 
 impl ResourceDirs {
+    pub fn from_dir_entries<I: IntoIterator<Item = DirEntry>>(entries: I) -> Self {
+        let mut dirs: HashMap<ResourceType, HashMap<ResourceNumber, DirEntry>> = HashMap::new();
+        for entry in entries {
+            let type_dir = dirs
+                .entry(entry.resource_type)
+                .or_insert_with(|| HashMap::new());
+            type_dir.insert(entry.resource_number, entry);
+        }
+
+        Self { dirs }
+    }
+
     pub fn get_entry(
         &self,
         resource_type: ResourceType,
@@ -189,10 +202,71 @@ impl ResourceDirs {
 
         Ok(Self { dirs })
     }
+
+    pub fn encode_v2_dir<Out: WriteHeterogeneousData>(
+        &self,
+        mut out: Out,
+        resource_type: ResourceType,
+    ) -> Result<(), EncodingError> {
+        let dir = self.dirs.get(&resource_type);
+        let max_resource_number = dir.and_then(|d| d.keys().max()).copied().unwrap_or(0);
+        for resource_number in 0..=max_resource_number {
+            let entry = dir.and_then(|d| d.get(&resource_number));
+            match entry {
+                Some(entry) => {
+                    out.write_u8(
+                        (((entry.volume_number as u32) << 4) + ((entry.offset & 0xf0000) >> 16))
+                            as u8,
+                    )?;
+                    out.write_u8(((entry.offset & 0xff00) >> 8) as u8)?;
+                    out.write_u8((entry.offset & 0xff) as u8)?;
+                }
+                None => {
+                    out.write_u8(0xff)?;
+                    out.write_u8(0xff)?;
+                    out.write_u8(0xff)?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn encode_v3_dir<Out: WriteHeterogeneousData>(
+        &self,
+        mut out: Out,
+    ) -> Result<(), EncodingError> {
+        let blocks = [
+            ResourceType::LOGIC,
+            ResourceType::PIC,
+            ResourceType::VIEW,
+            ResourceType::SOUND,
+        ]
+        .into_iter()
+        .map(|resource_type| {
+            let mut block_data: Vec<u8> = vec![];
+            self.encode_v2_dir(&mut Cursor::new(&mut block_data), resource_type)
+                .map(|_| block_data)
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+
+        let mut offset: usize = 8;
+        for block in blocks.iter() {
+            out.write_u16_le(offset as u16)?;
+            offset += block.len();
+        }
+        for block in blocks {
+            out.write(&block)?;
+        }
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use similar_asserts::assert_eq;
+
     use super::*;
     use crate::{
         resources::ResourceType,
@@ -200,15 +274,29 @@ mod tests {
     };
 
     #[test]
-    fn test_resource_dirs_read_v2() {
+    fn smoke_test_resource_dirs_v2() {
         let file_provider = uriquest_dir();
         let resource_dirs =
             ResourceDirs::read(ResourceDirDecodeOptions::AGI2 { file_provider }).unwrap();
         assert!(resource_dirs.dirs.contains_key(&ResourceType::LOGIC));
+
+        let check_resource_type_dir = |resource_type, filename| {
+            let mut reencoded: Vec<u8> = vec![];
+            resource_dirs
+                .encode_v2_dir(&mut Cursor::new(&mut reencoded), resource_type)
+                .unwrap();
+            let original = file_provider.read_file_bytes(filename).unwrap();
+            assert_eq!(original, reencoded, "{} does not match", filename);
+        };
+
+        check_resource_type_dir(ResourceType::LOGIC, "LOGDIR");
+        check_resource_type_dir(ResourceType::PIC, "PICDIR");
+        check_resource_type_dir(ResourceType::VIEW, "VIEWDIR");
+        check_resource_type_dir(ResourceType::SOUND, "SNDDIR");
     }
 
     #[test]
-    fn test_resource_dirs_read_v3() {
+    fn smoke_test_resource_dirs_v3() {
         let file_provider = kq4demo_dir();
         let resource_dirs = ResourceDirs::read(ResourceDirDecodeOptions::AGI3 {
             file_provider,
@@ -216,22 +304,31 @@ mod tests {
         })
         .unwrap();
         assert!(resource_dirs.dirs.contains_key(&ResourceType::LOGIC));
+
+        let mut reencoded: Vec<u8> = vec![];
+        resource_dirs
+            .encode_v3_dir(&mut Cursor::new(&mut reencoded))
+            .unwrap();
+        let original = file_provider.read_file_bytes("DMDIR").unwrap();
+        assert_eq!(original, reencoded);
     }
 }
 
 #[cfg(feature = "js")]
 pub mod js {
-    use std::{collections::HashMap, fs::File, io::Cursor, str::FromStr};
+    use std::{collections::HashMap, fs::File, io::Cursor, path::PathBuf, str::FromStr};
 
-    use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
+    use wasm_bindgen::{JsValue, convert::TryFromJsValue, prelude::wasm_bindgen};
     use web_sys::js_sys::Uint8Array;
 
     use crate::{
+        agi_version::AGIVersion,
         buffer::Buffer,
+        project::{Project, ProjectConfig},
         resources::{
             ResourceNumber, ResourceType,
             decode::{Decode, DecodingError},
-            dirs::DirEntry,
+            dirs::{DirEntry, ResourceDirDecodeOptions, ResourceDirs},
         },
     };
 
@@ -283,6 +380,25 @@ export class DirEntry {
         entries
     }
 
+    fn js_optional_array_to_resource_dir_hashmap(
+        resources: &[JsValue],
+    ) -> Result<HashMap<ResourceNumber, DirEntry>, <DirEntry as TryFromJsValue>::Error> {
+        resources
+            .iter()
+            .cloned()
+            .filter_map(|resource| {
+                if resource.is_null() || resource.is_undefined() {
+                    None
+                } else {
+                    Some(
+                        DirEntry::try_from_js_value(resource)
+                            .map(|dir_entry| (dir_entry.resource_number, dir_entry)),
+                    )
+                }
+            })
+            .collect::<Result<HashMap<_, _>, _>>()
+    }
+
     #[wasm_bindgen(js_name = "readDirData", skip_typescript)]
     pub fn js_read_dir_data(
         #[wasm_bindgen(js_name = "dirData")] dir_data: Buffer,
@@ -319,4 +435,166 @@ export function readDirData(dirData: Buffer, resourceType: ResourceType): (DirEn
     const READ_V2_DIR_APPEND_CONTENT: &'static str = r#"
 export function readV2Dir(path: string, resourceType: ResourceType): (DirEntry | undefined)[];
 "#;
+
+    #[wasm_bindgen(skip_typescript, js_name = "ResourceDir")]
+    pub struct JsResourceDir {
+        #[wasm_bindgen(js_name = "LOGIC", getter_with_clone)]
+        pub logic: Vec<JsValue>,
+        #[wasm_bindgen(js_name = "PIC", getter_with_clone)]
+        pub pic: Vec<JsValue>,
+        #[wasm_bindgen(js_name = "VIEW", getter_with_clone)]
+        pub view: Vec<JsValue>,
+        #[wasm_bindgen(js_name = "SOUND", getter_with_clone)]
+        pub sound: Vec<JsValue>,
+    }
+
+    impl TryFrom<JsResourceDir> for ResourceDirs {
+        type Error = <DirEntry as TryFromJsValue>::Error;
+        fn try_from(js_dirs: JsResourceDir) -> Result<Self, Self::Error> {
+            Ok(ResourceDirs::from_dir_entries(
+                js_optional_array_to_resource_dir_hashmap(&js_dirs.logic)?
+                    .values()
+                    .chain(js_optional_array_to_resource_dir_hashmap(&js_dirs.pic)?.values())
+                    .chain(js_optional_array_to_resource_dir_hashmap(&js_dirs.view)?.values())
+                    .chain(js_optional_array_to_resource_dir_hashmap(&js_dirs.sound)?.values())
+                    .cloned(),
+            ))
+        }
+    }
+
+    impl From<ResourceDirs> for JsResourceDir {
+        fn from(dirs: ResourceDirs) -> Self {
+            JsResourceDir {
+                logic: resource_dir_hashmap_to_js_optional_array(
+                    dirs.dirs
+                        .get(&ResourceType::LOGIC)
+                        .cloned()
+                        .unwrap_or_default(),
+                ),
+                pic: resource_dir_hashmap_to_js_optional_array(
+                    dirs.dirs
+                        .get(&ResourceType::PIC)
+                        .cloned()
+                        .unwrap_or_default(),
+                ),
+                view: resource_dir_hashmap_to_js_optional_array(
+                    dirs.dirs
+                        .get(&ResourceType::VIEW)
+                        .cloned()
+                        .unwrap_or_default(),
+                ),
+                sound: resource_dir_hashmap_to_js_optional_array(
+                    dirs.dirs
+                        .get(&ResourceType::SOUND)
+                        .cloned()
+                        .unwrap_or_default(),
+                ),
+            }
+        }
+    }
+
+    #[wasm_bindgen(js_name = "readV2ResourceDirs", skip_typescript)]
+    pub fn js_read_v2_resource_dirs(game_path: &str) -> Result<JsResourceDir, JsValue> {
+        let path = PathBuf::from(game_path);
+        let dirs = ResourceDirs::read(ResourceDirDecodeOptions::AGI2 {
+            file_provider: path,
+        })
+        .map_err(|err| JsValue::from_str(format!("{}", err).as_str()))?;
+
+        Ok(dirs.into())
+    }
+
+    #[wasm_bindgen(js_name = "readV3ResourceDirs", skip_typescript)]
+    pub fn js_read_v3_resource_dirs(
+        game_path: &str,
+        game_id: &str,
+    ) -> Result<JsResourceDir, JsValue> {
+        let path = PathBuf::from(game_path);
+        let dirs = ResourceDirs::read(ResourceDirDecodeOptions::AGI3 {
+            file_provider: path,
+            game_id: game_id.to_string(),
+        })
+        .map_err(|err| JsValue::from_str(format!("{}", err).as_str()))?;
+
+        Ok(dirs.into())
+    }
+
+    #[wasm_bindgen(typescript_custom_section)]
+    const READ_RESOURCE_DIRS_APPEND_CONTENT: &'static str = r#"
+export type ResourceDir = Record<ResourceType, (DirEntry | undefined)[]>;
+export function readV2ResourceDirs(gamePath: string): ResourceDir;
+export function readV3ResourceDir(gamePath: string, gameId: string): ResourceDir;
+"#;
+
+    #[wasm_bindgen(skip_typescript)]
+    pub fn js_write_v2_dir(entries: Vec<JsValue>) -> Result<Buffer, JsValue> {
+        let dir_entries: Vec<DirEntry> = entries
+            .into_iter()
+            .filter_map(|uncast_entry| {
+                if uncast_entry.is_null() || uncast_entry.is_undefined() {
+                    None
+                } else {
+                    Some(DirEntry::try_from_js_value(uncast_entry))
+                }
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        let resource_type = dir_entries.first().unwrap().resource_type;
+
+        let resource_dir = ResourceDirs::from_dir_entries(dir_entries);
+        let mut buf: Vec<u8> = vec![];
+        resource_dir
+            .encode_v2_dir(&mut Cursor::new(&mut buf), resource_type)
+            .map_err(|err| JsValue::from_str(format!("{}", err).as_str()))?;
+        Ok(Buffer::from(buf))
+    }
+
+    #[wasm_bindgen(typescript_custom_section)]
+    const WRITE_RESOURCE_DIRS_APPEND_CONTENT: &'static str = r#"
+export function writeV2Dir(entries: (DirEntry | undefined)[]): Buffer;
+    "#;
+
+    #[wasm_bindgen(js_name = "writeV2DirFiles")]
+    pub fn js_write_v2_dir_files(
+        output_path: String,
+        resource_dir: JsResourceDir,
+        _logger: JsValue,
+    ) -> Result<(), JsValue> {
+        let project = Project::new(
+            PathBuf::from_str(&output_path).unwrap(),
+            Some(ProjectConfig {
+                agi_version: AGIVersion::default_v2(),
+                game_id: "AGI".to_string(),
+            }),
+        );
+        let collection_mutex = project.resource_collection();
+        let mut resource_collection = collection_mutex.lock().unwrap();
+        resource_collection.dirs = resource_dir.try_into()?;
+
+        project
+            .write_v2_dir_files()
+            .map_err(|err| JsValue::from_str(format!("{}", err).as_str()))
+    }
+
+    #[wasm_bindgen(js_name = "writeV3DirFile")]
+    pub fn js_write_v3_dir_file(
+        output_path: String,
+        game_id: String,
+        resource_dir: JsResourceDir,
+        _logger: JsValue,
+    ) -> Result<(), JsValue> {
+        let project = Project::new(
+            PathBuf::from_str(&output_path).unwrap(),
+            Some(ProjectConfig {
+                agi_version: AGIVersion::new(3, 2149),
+                game_id,
+            }),
+        );
+        let collection_mutex = project.resource_collection();
+        let mut resource_collection = collection_mutex.lock().unwrap();
+        resource_collection.dirs = resource_dir.try_into()?;
+
+        project
+            .write_v3_dir_file()
+            .map_err(|err| JsValue::from_str(format!("{}", err).as_str()))
+    }
 }

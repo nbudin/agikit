@@ -6,8 +6,8 @@ use crate::{
         asm::{
             LogicLabel,
             expressions::{
-                AsmLogicArgument, LogicArgument, LogicBooleanExpression, LogicIdentifier,
-                ParsedLogicArgument,
+                AsParsedLogicArgument, AsmLogicArgument, LogicArgument, LogicBooleanExpression,
+                LogicIdentifier, ParsedLogicArgument,
             },
             literals::{LogicLiteral, LogicLiteralValue, StringLiteral},
             operators::LogicBooleanBinaryOperator,
@@ -119,13 +119,13 @@ impl GenerateLogicAsm for LogicIdentifier {
     }
 }
 
-impl GenerateLogicAsm for ParsedLogicArgument {
+impl<Arg: AsParsedLogicArgument> GenerateLogicAsm for Arg {
     fn generate_asm(
         &self,
         context: &AsmCodeGenerationContext,
         labels: &HashMap<u16, &LogicLabel>,
     ) -> Result<String, AsmCodeGenerationError> {
-        match self {
+        match self.as_parsed() {
             ParsedLogicArgument::Literal(literal) => literal.generate_asm(context, labels),
             ParsedLogicArgument::Identifier(identifier) => identifier.generate_asm(context, labels),
         }

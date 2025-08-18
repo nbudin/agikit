@@ -1,4 +1,5 @@
 pub mod codegen;
+pub mod compile;
 pub mod directives;
 pub mod identifiers;
 pub mod literals;

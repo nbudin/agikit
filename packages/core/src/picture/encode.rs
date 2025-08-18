@@ -1,4 +1,4 @@
-use bitstream_io::BitWrite;
+use bitstream_io::{BigEndian, BitWrite, BitWriter};
 #[cfg(feature = "js")]
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
@@ -6,12 +6,16 @@ use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 use crate::buffer::Buffer;
 use crate::{
     compression::bitstreams::EncodeBitstream,
+    data_encoding::WriteHeterogeneousData,
     picture::{
         AbsoluteLinePictureCommand, FillPictureCommand, Picture, PictureCommand,
         PictureCommandOpcode, PictureCoordinate, PictureCornerStep, PlotWithPenPictureCommand,
         RelativeLinePictureCommand,
     },
-    resources::encode::EncodingError,
+    resources::{
+        ResourceType,
+        encode::{Encode, EncodeResource, EncodingError},
+    },
 };
 
 impl EncodeBitstream<'_> for PictureCoordinate {
@@ -172,6 +176,25 @@ impl EncodeBitstream<'_> for Picture {
         out.write::<8, u8>(PictureCommandOpcode::End.into())?;
 
         Ok(())
+    }
+}
+
+impl Encode<'_> for Picture {
+    type Options = bool;
+
+    fn encode<Out: WriteHeterogeneousData>(
+        &self,
+        out: Out,
+        options: bool,
+    ) -> Result<(), EncodingError> {
+        let mut out_bitstream = BitWriter::endian(out, BigEndian);
+        self.encode_bitstream(&mut out_bitstream, options)
+    }
+}
+
+impl EncodeResource<'_> for Picture {
+    fn resource_type(&self) -> ResourceType {
+        ResourceType::PIC
     }
 }
 

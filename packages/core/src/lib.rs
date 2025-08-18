@@ -7,6 +7,7 @@ pub mod object_list;
 pub mod picture;
 pub mod project;
 pub mod resources;
+pub mod sound;
 pub mod views;
 pub mod word_list;
 pub mod xor_encryption;
