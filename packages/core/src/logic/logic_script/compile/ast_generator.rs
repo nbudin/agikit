@@ -41,6 +41,7 @@ use crate::{
     word_list::WordList,
 };
 
+#[derive(Debug, Clone)]
 pub enum ASTGenerationError {
     BooleanOperationCannotHaveTwoLiteralOperands,
     InvalidValueForArgType {
@@ -72,8 +73,6 @@ pub struct LogicScriptASTGenerator {
     ast_graph: StableDiGraph<LogicASTNode, LogicASTEdge>,
     ast_node_id_by_statement_node_id: HashMap<NodeIndex, NodeIndex>,
     identifiers: IdentifierMap,
-    word_list: WordList,
-    object_list: ObjectList,
     inverted_word_list: HashMap<String, u16>,
     object_numbers_by_name: HashMap<String, usize>,
     label_map: NodeLabelMap,
@@ -115,8 +114,6 @@ impl LogicScriptASTGenerator {
             statement_graph,
             ast_graph: StableDiGraph::new(),
             ast_node_id_by_statement_node_id: HashMap::new(),
-            word_list,
-            object_list,
             inverted_word_list,
             object_numbers_by_name,
             unresolved_gotos: vec![],

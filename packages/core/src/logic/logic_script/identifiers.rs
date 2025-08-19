@@ -82,6 +82,7 @@ impl IdentifierMapping {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum DefineError {
     TryFromIntError(TryFromIntError),
     UnknownIdentifier { name: String },

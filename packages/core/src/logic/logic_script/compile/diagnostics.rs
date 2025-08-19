@@ -10,17 +10,19 @@ use crate::{
     },
 };
 
+#[derive(Debug, Clone)]
 pub enum LogicScriptDiagnosticType {
     UnknownCommandName,
     WrongNumberOfArguments,
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum LogicScriptDiagnosticSeverity {
     Warning,
     Error,
 }
 
+#[derive(Debug, Clone)]
 pub struct LogicScriptDiagnostic {
     pub severity: LogicScriptDiagnosticSeverity,
     pub diagnostic_type: LogicScriptDiagnosticType,

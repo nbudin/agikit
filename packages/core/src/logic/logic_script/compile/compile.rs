@@ -26,6 +26,10 @@ use crate::{
                 ast_generator::LogicScriptASTGenerator,
                 diagnostics::LogicScriptDiagnostic,
                 errors::CompilationError,
+                post_compilation_passes::{
+                    PostCompilationPass, RemoveRedundantGotoInstructionsPass,
+                    make_conditionals_self_contained, remove_unreachable_instructions,
+                },
                 preprocess::{parse_logic_script_raw, preprocess_logic_script},
                 primitive_statements::LogicScriptPrimitiveStatement,
             },
@@ -96,10 +100,21 @@ impl LogicCompiler {
             self.compile_block(block_id)?;
         }
 
-        let instructions = self.stitch_blocks(self.basic_block_graph.root_block_id)?;
-        // TODO post compilation passes
+        let mut instructions = self.stitch_blocks(self.basic_block_graph.root_block_id)?;
+        for mut pass in self.post_compilation_passes() {
+            pass.run_until_done(&mut instructions);
+        }
 
         Ok((instructions, self.labels.values().cloned().collect()))
+    }
+
+    pub fn post_compilation_passes(&self) -> Vec<Box<dyn PostCompilationPass>> {
+        vec![
+            Box::new(remove_unreachable_instructions),
+            Box::new(RemoveRedundantGotoInstructionsPass::new()),
+            // TODO add an option to disable this pass
+            Box::new(make_conditionals_self_contained),
+        ]
     }
 
     fn store_instruction(
@@ -404,4 +419,29 @@ pub fn compile_logic_script<FP: FileProvider>(
         },
         vec![],
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        logic::logic_script::compile::compile::compile_logic_script,
+        resources::file_provider::FileProvider, test_data::uriquest,
+    };
+
+    #[test]
+    fn smoke_test() {
+        let uriquest = uriquest();
+        compile_logic_script(
+            uriquest
+                .read_file_utf8("src/logic/0.agilogic")
+                .unwrap()
+                .as_str(),
+            "src/logic/0.agilogic",
+            &uriquest.decode_word_list().unwrap(),
+            &uriquest.decode_object_list().unwrap(),
+            &uriquest.config.agi_version,
+            &uriquest,
+        )
+        .unwrap();
+    }
 }

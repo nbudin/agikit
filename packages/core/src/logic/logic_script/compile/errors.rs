@@ -7,6 +7,7 @@ use crate::logic::logic_script::{
     identifiers::DefineError,
 };
 
+#[derive(Debug)]
 pub enum CompilationError {
     ASTGenerationError(ASTGenerationError),
     BlockHasNotBeenCompiled(NodeIndex),
