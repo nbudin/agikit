@@ -17,8 +17,8 @@ use crate::logic::{
         literals::LogicScriptStringLiteral,
         operators::{LogicScriptArithmeticOperator, LogicScriptUnaryAssignmentOperator},
         statements::{
-            LogicScriptCommandCall, LogicScriptComment, LogicScriptIfStatement,
-            LogicScriptStatement, LogicScriptStatementBody,
+            LogicScriptCommandCall, LogicScriptIfStatement, LogicScriptStatement,
+            LogicScriptStatementBody,
         },
     },
 };
@@ -40,7 +40,6 @@ fn arg_represents_variable<Arg: AsParsedLogicArgument>(
 pub enum LogicScriptPrimitiveStatementBody {
     CommandCall(LogicScriptCommandCall<ParsedLogicArgument>),
     IfStatement(LogicScriptIfStatement<ParsedLogicArgument, LogicScriptPrimitiveStatement>),
-    Comment(LogicScriptComment),
     MessageDirective {
         number: LogicNumberLiteral,
         message: LogicScriptStringLiteral,
@@ -206,9 +205,6 @@ impl LogicScriptPrimitiveStatement {
                         .collect(),
                 })
             }
-            LogicScriptStatementBody::Comment(body) => {
-                LogicScriptPrimitiveStatementBody::Comment(body.clone())
-            }
             LogicScriptStatementBody::Directive(body) => match &body.directive {
                 Directive::Message { number, message } => {
                     LogicScriptPrimitiveStatementBody::MessageDirective {
@@ -218,6 +214,7 @@ impl LogicScriptPrimitiveStatement {
                 }
                 _ => return None,
             },
+            LogicScriptStatementBody::Comment(_) => return None,
         };
 
         Some(LogicScriptPrimitiveStatement {
@@ -230,9 +227,6 @@ impl LogicScriptPrimitiveStatement {
         let body: LogicScriptStatementBody<ParsedLogicArgument> = match &self.body {
             LogicScriptPrimitiveStatementBody::CommandCall(body) => {
                 LogicScriptStatementBody::CommandCall(body.clone())
-            }
-            LogicScriptPrimitiveStatementBody::Comment(body) => {
-                LogicScriptStatementBody::Comment(body.clone())
             }
             LogicScriptPrimitiveStatementBody::IfStatement(body) => {
                 LogicScriptStatementBody::IfStatement(LogicScriptIfStatement {
