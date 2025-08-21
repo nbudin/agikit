@@ -14,7 +14,8 @@ use crate::logic::{
     analysis::{
         ast::{LogicAST, LogicASTNode, LogicCommandNode},
         optimization::{
-            DirectedNeighborEdgeUtils, Optimizable, OptimizationResult, RemoveNodePreservingEdges,
+            DirectedNeighborEdgeUtils, Optimizable, OptimizationPass, OptimizationResult,
+            RemoveNodePreservingEdges,
         },
     },
     logic_script::codegen::{errors::LogicScriptCodeGenerationError, node_label_map::LabeledNode},
@@ -207,11 +208,7 @@ impl Optimizable<StableDiGraph<BasicBlock, BasicBlockEdgeType>> for BasicBlockGr
 
     fn optimization_passes(
         &self,
-    ) -> Vec<
-        Box<
-            dyn super::optimization::OptimizationPass<StableDiGraph<BasicBlock, BasicBlockEdgeType>>,
-        >,
-    > {
+    ) -> Vec<Box<dyn OptimizationPass<StableDiGraph<BasicBlock, BasicBlockEdgeType>>>> {
         vec![
             Box::new(remove_empty_block),
             Box::new(concatenate_linear_blocks),

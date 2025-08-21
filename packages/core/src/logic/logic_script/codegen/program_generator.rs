@@ -47,19 +47,10 @@ impl<'a> LogicScriptProgramGenerator<'a> {
         let statements = self.generate_statements()?;
         let mut statement_graph =
             LogicScriptStatementGraph::try_from_statements(&statements, IdentifierMap::builtins())?;
+
         statement_graph.optimize();
 
         let optimized_statements = statement_graph.to_statements()?;
-        #[cfg(test)]
-        crate::test_utils::write_and_edit(
-            ".dot",
-            &statement_graph.to_dot(context),
-            // &LogicScriptStatementGraph::try_from_statements(
-            //     &optimized_statements,
-            //     IdentifierMap::builtins(),
-            // )?
-            // .to_dot(context),
-        );
         let program_section = optimized_statements.generate_logic_script(context, 0)?;
 
         Ok(format!(

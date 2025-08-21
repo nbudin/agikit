@@ -487,6 +487,13 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
             for inward_edge in graph.edges_directed(node, Direction::Incoming) {
                 let predecessor_index = inward_edge.source();
                 let node_dfs_num = self.spanning_tree_node_info[&node].dfs_num;
+                if self
+                    .spanning_tree_node_info
+                    .get(&predecessor_index)
+                    .is_none()
+                {
+                    panic!("No node for {:?}", predecessor_index);
+                }
                 let predecessor_dfs_num = self.spanning_tree_node_info[&predecessor_index].dfs_num;
 
                 let candidate = if predecessor_dfs_num < node_dfs_num {

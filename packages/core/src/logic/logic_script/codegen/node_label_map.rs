@@ -81,9 +81,9 @@ impl<Ix: Eq + Copy + Hash> NodeLabelMap<Ix> {
 
     pub fn get_or_insert_label_for_node_id(
         &mut self,
-        block_id: NodeIndex<Ix>,
+        node_id: NodeIndex<Ix>,
     ) -> GetOrInsertLabelResult {
-        let entry = self.labels_by_node_id.entry(block_id);
+        let entry = self.labels_by_node_id.entry(node_id);
 
         match entry {
             Entry::Occupied(entry) => GetOrInsertLabelResult::GotExisting(entry.get().to_string()),
@@ -96,10 +96,21 @@ impl<Ix: Eq + Copy + Hash> NodeLabelMap<Ix> {
                     }
                 };
 
-                self.node_id_by_label.insert(label.clone(), block_id);
+                self.node_id_by_label.insert(label.clone(), node_id);
                 entry.insert(label.clone());
                 GetOrInsertLabelResult::Inserted(label)
             }
+        }
+    }
+
+    pub fn remove_label_for_node_id(&mut self, node_id: NodeIndex<Ix>) {
+        let entry = self.labels_by_node_id.entry(node_id);
+        match entry {
+            Entry::Occupied(entry) => {
+                let (_, label) = entry.remove_entry();
+                self.node_id_by_label.remove_entry(&label);
+            }
+            Entry::Vacant(_) => {}
         }
     }
 }

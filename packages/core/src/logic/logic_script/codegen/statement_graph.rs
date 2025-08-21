@@ -485,10 +485,37 @@ impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug + 'static>
             Box::new(transform_post_dominating_else_to_next),
         ]
     }
+
+    fn run_optimization_passes_once(
+        &mut self,
+        _passes: &mut [Box<
+            dyn OptimizationPass<
+                StableDiGraph<LogicScriptStatement<Arg>, LogicScriptStatementGraphEdge>,
+            >,
+        >],
+    ) -> OptimizationResult {
+        let mut remove_unused_labels = RemoveUnusedLabelsPass::new(&self);
+        let mut remove_redundant_jumps = RemoveRedundantJumpsPass::new(&self);
+
+        let mut result = remove_unused_labels.run(&mut self.graph, self.root_id);
+        for node_id in remove_unused_labels.removed_label_node_ids {
+            self.label_map.remove_label_for_node_id(node_id);
+        }
+
+        result = result.or(&remove_redundant_jumps.run(&mut self.graph, self.root_id));
+        result = result.or(&remove_empty_then_with_else(&mut self.graph, self.root_id));
+        result = result.or(&transform_post_dominating_else_to_next(
+            &mut self.graph,
+            self.root_id,
+        ));
+
+        result
+    }
 }
 
 pub struct RemoveUnusedLabelsPass {
     used_labels: HashSet<String>,
+    removed_label_node_ids: Vec<NodeIndex>,
 }
 
 impl RemoveUnusedLabelsPass {
@@ -503,7 +530,10 @@ impl RemoveUnusedLabelsPass {
             })
             .collect();
 
-        Self { used_labels }
+        Self {
+            used_labels,
+            removed_label_node_ids: vec![],
+        }
     }
 }
 
@@ -516,7 +546,11 @@ impl<N: LogicScriptStatementGraphNode>
         graph: &mut StableDiGraph<N, LogicScriptStatementGraphEdge>,
         node_id: NodeIndex,
     ) -> OptimizationResult {
-        let Some(label) = graph.node_weight(node_id).and_then(|n| n.label()) else {
+        let Some(node) = graph.node_weight_mut(node_id) else {
+            return OptimizationResult::Unchanged;
+        };
+
+        let Some(label) = node.label() else {
             return OptimizationResult::Unchanged;
         };
 
@@ -524,39 +558,8 @@ impl<N: LogicScriptStatementGraphNode>
             return OptimizationResult::Unchanged;
         }
 
-        let Some(next_id) = graph
-            .directed_neighbor_node_id_of_type(
-                node_id,
-                Direction::Outgoing,
-                LogicScriptStatementGraphEdge::Next,
-            )
-            .or_else(|| {
-                graph.directed_neighbor_node_id_of_type(
-                    node_id,
-                    Direction::Outgoing,
-                    LogicScriptStatementGraphEdge::BlockExit,
-                )
-            })
-            .or_else(|| {
-                graph.directed_neighbor_node_id_of_type(
-                    node_id,
-                    Direction::Outgoing,
-                    LogicScriptStatementGraphEdge::GotoTarget,
-                )
-            })
-        else {
-            return OptimizationResult::Unchanged;
-        };
-
-        let incoming_edges = graph.incoming_edge_data(node_id);
-        for (edge_id, source_id, weight) in incoming_edges {
-            if !graph.contains_edge(source_id, next_id) {
-                graph.add_edge(source_id, next_id, weight);
-            }
-            graph.remove_edge(edge_id);
-        }
-
-        graph.remove_node(node_id);
+        node.set_label(None);
+        self.removed_label_node_ids.push(node_id);
         OptimizationResult::Changed
     }
 }
