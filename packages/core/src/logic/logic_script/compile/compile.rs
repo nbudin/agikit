@@ -21,7 +21,7 @@ use crate::{
         asm::LogicLabel,
         commands::AGICommand,
         logic_script::{
-            codegen::{node_label_map::NodeLabelMap, statement_graph::LogicScriptStatementGraph},
+            codegen::statement_graph::LogicScriptStatementGraph,
             compile::{
                 ast_generator::LogicScriptASTGenerator,
                 diagnostics::LogicScriptDiagnostic,
@@ -59,7 +59,6 @@ enum CompiledBlock {
 
 pub struct LogicCompiler {
     basic_block_graph: BasicBlockGraph,
-    label_map: NodeLabelMap,
     labels: HashMap<u16, LogicLabel>,
     agi_version: AGIVersion,
     domination_analysis: DominationAnalysis,
@@ -69,16 +68,11 @@ pub struct LogicCompiler {
 }
 
 impl LogicCompiler {
-    pub fn new(
-        basic_block_graph: BasicBlockGraph,
-        label_map: NodeLabelMap,
-        agi_version: &AGIVersion,
-    ) -> Self {
+    pub fn new(basic_block_graph: BasicBlockGraph, agi_version: &AGIVersion) -> Self {
         let domination_analysis =
             DominationAnalysis::from_graph(&basic_block_graph.graph, basic_block_graph.root_id());
         Self {
             basic_block_graph,
-            label_map,
             labels: HashMap::new(),
             agi_version: agi_version.clone(),
             domination_analysis,
@@ -393,7 +387,7 @@ pub fn compile_logic_script<FP: FileProvider>(
         identifier_map,
     )?;
     statement_graph.optimize();
-    let (primitive_statements, identifiers) =
+    let (primitive_statements, identifiers, directives) =
         LogicScriptPrimitiveStatement::simplify_statement_graph(statement_graph)?;
     let primitive_statement_graph = LogicScriptStatementGraph::try_from_statements(
         primitive_statements.as_slice(),
@@ -403,14 +397,14 @@ pub fn compile_logic_script<FP: FileProvider>(
     let ast_generator = LogicScriptASTGenerator::new(
         primitive_statement_graph,
         identifiers,
+        directives,
         word_list.clone(),
         object_list.clone(),
         agi_version.clone(),
     );
-    let (ast, label_map, messages) = ast_generator.generate()?;
+    let (ast, _label_map, messages) = ast_generator.generate()?;
     let basic_block_graph = BasicBlockGraph::from_ast(&ast);
-    let (instructions, _labels) =
-        LogicCompiler::new(basic_block_graph, label_map, agi_version).compile()?;
+    let (instructions, _labels) = LogicCompiler::new(basic_block_graph, agi_version).compile()?;
 
     Ok((
         LogicProgram {
@@ -425,13 +419,14 @@ pub fn compile_logic_script<FP: FileProvider>(
 mod tests {
     use crate::{
         logic::logic_script::compile::compile::compile_logic_script,
-        resources::file_provider::FileProvider, test_data::uriquest,
+        resources::{encode::Encode, file_provider::FileProvider},
+        test_data::uriquest,
     };
 
     #[test]
     fn smoke_test() {
         let uriquest = uriquest();
-        compile_logic_script(
+        let (compiled, _diagnostics) = compile_logic_script(
             uriquest
                 .read_file_utf8("src/logic/0.agilogic")
                 .unwrap()
@@ -443,5 +438,7 @@ mod tests {
             &uriquest,
         )
         .unwrap();
+
+        compiled.encode_to_vec(false).unwrap();
     }
 }

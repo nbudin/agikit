@@ -34,6 +34,7 @@ use crate::{
                     LogicScriptPrimitiveStatement, LogicScriptPrimitiveStatementBody,
                 },
             },
+            directives::Directive,
             identifiers::{IdentifierMap, IdentifierMapping},
         },
     },
@@ -88,6 +89,7 @@ impl LogicScriptASTGenerator {
     pub fn new(
         statement_graph: LogicScriptStatementGraph<LogicScriptPrimitiveStatement>,
         identifiers: IdentifierMap,
+        directives: Vec<Directive>,
         word_list: WordList,
         object_list: ObjectList,
         agi_version: AGIVersion,
@@ -132,12 +134,13 @@ impl LogicScriptASTGenerator {
         while let Some(node_id) = dfs.next(&generator.statement_graph.graph) {
             generator.add_node_address(node_id, address);
             address += 10;
-
-            if let Some(node) = generator.statement_graph.graph.node_weight(node_id)
-                && let LogicScriptPrimitiveStatementBody::MessageDirective { number, message } =
-                    &node.body
-            {
-                generator.add_message(number.value as usize, message.value());
+        }
+        for directive in directives {
+            match directive {
+                Directive::Message { number, message } => {
+                    generator.add_message(number.value as usize, message.value())
+                }
+                _ => {}
             }
         }
 
@@ -406,7 +409,6 @@ impl LogicScriptASTGenerator {
                     metadata,
                 }))
             }
-            LogicScriptPrimitiveStatementBody::MessageDirective { .. } => None,
         };
 
         Ok(node.map(|node| self.add_ast_node(node, statement_node_id)))
@@ -417,68 +419,65 @@ impl LogicScriptASTGenerator {
     ) -> Result<(LogicAST, NodeLabelMap, LogicMessages), ASTGenerationError> {
         let agi_version = self.agi_version.clone();
         let graph = self.statement_graph.graph.clone();
+
+        // pass 1: generate AST nodes
+        let mut dfs = Dfs::new(&graph, self.statement_graph.root_id);
+        while let Some(statement_node_id) = dfs.next(&graph) {
+            self.generate_ast_for_statement(statement_node_id, &agi_version)?;
+        }
+
+        // pass 2: connect nodes
         let result =
             petgraph::visit::depth_first_search(&graph, [self.statement_graph.root_id], |event| {
                 let mut handle_event = || match event {
-                    DfsEvent::Discover(statement_node_id, _time) => self
-                        .generate_ast_for_statement(statement_node_id, &agi_version)
-                        .map(|_| ()),
                     DfsEvent::TreeEdge(from_statement_id, to_statement_id) => {
                         let from_ast_node_id = self
                             .ast_node_id_by_statement_node_id
                             .get(&from_statement_id)
-                            .map(|n| Ok(Some(*n)))
-                            .unwrap_or_else(|| {
-                                self.generate_ast_for_statement(from_statement_id, &agi_version)
-                            })?;
+                            .copied()
+                            .unwrap();
                         let to_ast_node_id = self
                             .ast_node_id_by_statement_node_id
                             .get(&to_statement_id)
-                            .map(|n| Ok(Some(*n)))
-                            .unwrap_or_else(|| {
-                                self.generate_ast_for_statement(to_statement_id, &agi_version)
-                            })?;
+                            .copied()
+                            .unwrap();
 
-                        if let (Some(from_ast_node_id), Some(to_ast_node_id)) =
-                            (from_ast_node_id, to_ast_node_id)
+                        for edge in self
+                            .statement_graph
+                            .graph
+                            .edges_connecting(from_statement_id, to_statement_id)
                         {
-                            for edge in self
-                                .statement_graph
-                                .graph
-                                .edges_connecting(from_statement_id, to_statement_id)
-                            {
-                                match edge.weight() {
-                                    LogicScriptStatementGraphEdge::Next => {
-                                        self.ast_graph.add_edge(
-                                            from_ast_node_id,
-                                            to_ast_node_id,
-                                            LogicASTEdge::CommandToNext,
-                                        );
-                                    }
-                                    LogicScriptStatementGraphEdge::GotoTarget => {
-                                        // This will be handled in the resolve gotos pass after this
-                                    }
-                                    LogicScriptStatementGraphEdge::IfThen => {
-                                        self.ast_graph.add_edge(
-                                            from_ast_node_id,
-                                            to_ast_node_id,
-                                            LogicASTEdge::IfThen,
-                                        );
-                                    }
-                                    LogicScriptStatementGraphEdge::IfElse => {
-                                        self.ast_graph.add_edge(
-                                            from_ast_node_id,
-                                            to_ast_node_id,
-                                            LogicASTEdge::IfElse,
-                                        );
-                                    }
-                                    LogicScriptStatementGraphEdge::BlockExit => {
-                                        self.ast_graph.add_edge(
-                                            from_ast_node_id,
-                                            to_ast_node_id,
-                                            LogicASTEdge::CommandToNext,
-                                        );
-                                    }
+                            match edge.weight() {
+                                LogicScriptStatementGraphEdge::Next => {
+                                    self.ast_graph.add_edge(
+                                        from_ast_node_id,
+                                        to_ast_node_id,
+                                        LogicASTEdge::CommandToNext,
+                                    );
+                                }
+                                LogicScriptStatementGraphEdge::GotoTarget => {
+                                    // This will be handled in the resolve gotos pass after this
+                                }
+                                LogicScriptStatementGraphEdge::IfThen => {
+                                    self.ast_graph.add_edge(
+                                        from_ast_node_id,
+                                        to_ast_node_id,
+                                        LogicASTEdge::IfThen,
+                                    );
+                                }
+                                LogicScriptStatementGraphEdge::IfElse => {
+                                    self.ast_graph.add_edge(
+                                        from_ast_node_id,
+                                        to_ast_node_id,
+                                        LogicASTEdge::IfElse,
+                                    );
+                                }
+                                LogicScriptStatementGraphEdge::BlockExit => {
+                                    self.ast_graph.add_edge(
+                                        from_ast_node_id,
+                                        to_ast_node_id,
+                                        LogicASTEdge::CommandToNext,
+                                    );
                                 }
                             }
                         }
@@ -498,6 +497,7 @@ impl LogicScriptASTGenerator {
             return Err(error);
         }
 
+        // pass 3: resolve gotos
         for unresolved_goto in self.unresolved_gotos {
             let Some(target_statement_id) = self
                 .label_map

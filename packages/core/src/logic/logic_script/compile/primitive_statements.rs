@@ -1,10 +1,7 @@
 use std::fmt::Debug;
 
 use crate::logic::{
-    asm::{
-        expressions::{AsParsedLogicArgument, LogicArgument, ParsedLogicArgument},
-        literals::LogicNumberLiteral,
-    },
+    asm::expressions::{AsParsedLogicArgument, LogicArgument, ParsedLogicArgument},
     logic_script::{
         codegen::{
             context::LogicScriptCodeGenerationContext,
@@ -12,9 +9,8 @@ use crate::logic::{
             node_label_map::LabeledNode,
             statement_graph::{LogicScriptStatementGraph, LogicScriptStatementGraphNode},
         },
-        directives::{Directive, DirectiveType, LogicScriptDirective, LogicScriptDirectiveKeyword},
+        directives::Directive,
         identifiers::{IdentifierMap, IdentifierMapping},
-        literals::LogicScriptStringLiteral,
         operators::{LogicScriptArithmeticOperator, LogicScriptUnaryAssignmentOperator},
         statements::{
             LogicScriptCommandCall, LogicScriptIfStatement, LogicScriptStatement,
@@ -40,10 +36,6 @@ fn arg_represents_variable<Arg: AsParsedLogicArgument>(
 pub enum LogicScriptPrimitiveStatementBody {
     CommandCall(LogicScriptCommandCall<ParsedLogicArgument>),
     IfStatement(LogicScriptIfStatement<ParsedLogicArgument, LogicScriptPrimitiveStatement>),
-    MessageDirective {
-        number: LogicNumberLiteral,
-        message: LogicScriptStringLiteral,
-    },
 }
 
 impl LogicScriptPrimitiveStatementBody {
@@ -77,8 +69,15 @@ pub struct LogicScriptPrimitiveStatement {
 impl LogicScriptPrimitiveStatement {
     pub fn simplify_statement_graph<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug>(
         mut statement_graph: LogicScriptStatementGraph<LogicScriptStatement<Arg>>,
-    ) -> Result<(Vec<Self>, IdentifierMap), LogicScriptCodeGenerationError> {
+    ) -> Result<(Vec<Self>, IdentifierMap, Vec<Directive>), LogicScriptCodeGenerationError> {
         let statements = statement_graph.to_statements()?;
+        let directives = statements
+            .iter()
+            .filter_map(|stmt| match &stmt.body {
+                LogicScriptStatementBody::Directive(directive) => Some(directive.directive.clone()),
+                _ => None,
+            })
+            .collect();
         Ok((
             statements
                 .into_iter()
@@ -87,6 +86,7 @@ impl LogicScriptPrimitiveStatement {
                 })
                 .collect(),
             statement_graph.identifiers,
+            directives,
         ))
     }
 
@@ -205,16 +205,9 @@ impl LogicScriptPrimitiveStatement {
                         .collect(),
                 })
             }
-            LogicScriptStatementBody::Directive(body) => match &body.directive {
-                Directive::Message { number, message } => {
-                    LogicScriptPrimitiveStatementBody::MessageDirective {
-                        number: number.clone(),
-                        message: message.clone(),
-                    }
-                }
-                _ => return None,
-            },
-            LogicScriptStatementBody::Comment(_) => return None,
+            LogicScriptStatementBody::Directive(_) | LogicScriptStatementBody::Comment(_) => {
+                return None;
+            }
         };
 
         Some(LogicScriptPrimitiveStatement {
@@ -243,17 +236,6 @@ impl LogicScriptPrimitiveStatement {
                         .collect(),
                     if_keyword: body.if_keyword.clone(),
                     else_keyword: body.else_keyword.clone(),
-                })
-            }
-            LogicScriptPrimitiveStatementBody::MessageDirective { number, message } => {
-                LogicScriptStatementBody::Directive(LogicScriptDirective {
-                    directive: Directive::Message {
-                        number: number.clone(),
-                        message: message.clone(),
-                    },
-                    keyword: LogicScriptDirectiveKeyword {
-                        keyword: DirectiveType::Message,
-                    },
                 })
             }
         };

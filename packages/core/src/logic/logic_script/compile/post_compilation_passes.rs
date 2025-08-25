@@ -74,6 +74,7 @@ impl RemoveRedundantGotoInstructionsPass {
 
 impl PostCompilationPass for RemoveRedundantGotoInstructionsPass {
     fn run_once(&mut self, instructions: &mut Vec<LogicInstruction>) -> PostCompilationPassResult {
+        self.address_remappings.clear();
         for (index, instruction) in instructions.iter().enumerate() {
             let LogicInstruction::Goto(instruction) = instruction else {
                 continue;
