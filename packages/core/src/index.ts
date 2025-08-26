@@ -16,17 +16,3 @@ export const testCommands = getTestCommands();
 export const agiCommandsByName = getAGICommandsByName();
 export const testCommandsByName = getTestCommandsByName();
 export const DefaultProjectConfig = getDefaultProjectConfig();
-
-export * from './Build/BuildLogic';
-export * from './Build/ProjectBuilder';
-export * from './Build/WriteResources';
-export * from './Extract/GameExtractor';
-export * from './Extract/Logic/CodeGeneration';
-export * from './Logger';
-export * from './Scripting/LogicDiagnostics';
-export * from './Scripting/LogicScriptGenerator';
-export * from './Scripting/LogicScriptIdentifierMapping';
-export * from './Scripting/LogicScriptParser';
-export * from './Scripting/LogicScriptParserTypes';
-export { SyntaxError as LogicScriptSyntaxError } from './Scripting/LogicScriptParser.generated';
-export * from './Scripting/LogicScriptParserTypes';
