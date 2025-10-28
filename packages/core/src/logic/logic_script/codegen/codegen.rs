@@ -14,7 +14,7 @@ use crate::logic::{
             LogicScriptLeftIndirectAssignmentStatement,
             LogicScriptRightIndirectAssignmentStatement, LogicScriptStatement,
             LogicScriptStatementBody, LogicScriptUnaryOperationStatement,
-            LogicScriptValueAssignmentStatement,
+            LogicScriptValueAssignmentStatement, StatementWithOrWithoutLocation,
         },
     },
 };
@@ -323,7 +323,7 @@ impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
                 &command_call.generate_logic_script(context, ())?,
             )),
             LogicScriptStatementBody::IfStatement(if_statement) => {
-                let generate_lines = |statements: &[Box<LogicScriptStatement<Arg>>]| -> Result<Vec<String>, LogicScriptCodeGenerationError> {
+                let generate_lines = |statements: &[StatementWithOrWithoutLocation<Arg>]| -> Result<Vec<String>, LogicScriptCodeGenerationError> {
                   let mut branch_lines: Vec<String> = statements
                     .iter()
                     .map(|stmt| (*stmt).as_ref().clone())

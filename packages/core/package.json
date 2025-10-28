@@ -2,16 +2,15 @@
   "name": "@agikit/core",
   "version": "0.8.2",
   "homepage": "https://github.com/nbudin/agikit",
-  "main": "./dist/index.js",
+  "main": "./dist/src/index.js",
   "author": {
     "name": "Nat Budin",
     "email": "natbudin@gmail.com",
     "url": "https://github.com/nbudin"
   },
   "scripts": {
-    "build": "wasm-pack build --target nodejs && tsc --build",
-    "prepare": "wasm-pack build --target nodejs && tsc --build",
-    "generate-parsers": "ts-node src/Scripting/generateParsers.ts",
+    "build": "wasm-pack build --target nodejs --out-dir dist/pkg && tsc --build",
+    "prepare": "wasm-pack build --target nodejs --out-dir dist/pkg && tsc --build",
     "test": "cargo test && jest"
   },
   "dependencies": {

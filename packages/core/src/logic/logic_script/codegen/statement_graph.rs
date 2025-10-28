@@ -32,7 +32,7 @@ use crate::logic::{
         identifiers::IdentifierMap,
         statements::{
             LogicScriptCommandCall, LogicScriptIfStatement, LogicScriptStatement,
-            LogicScriptStatementBody,
+            LogicScriptStatementBody, StatementWithOrWithoutLocation,
         },
     },
 };
@@ -49,7 +49,7 @@ pub trait LogicScriptStatementGraphNode: Clone + Debug + LabeledNode {
 impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug> LogicScriptStatementGraphNode
     for LogicScriptStatement<Arg>
 {
-    type SubclauseStatement = Box<Self>;
+    type SubclauseStatement = StatementWithOrWithoutLocation<Arg>;
 
     fn get_goto_target_label(&self) -> Option<&str> {
         LogicScriptStatement::get_goto_target_label(&self).map(|l| l.as_str())
@@ -347,11 +347,19 @@ impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug>
                             else_keyword: if_statement.else_keyword.clone(),
                             then_statements: then_statements
                                 .into_iter()
-                                .map(|(_, statement)| statement)
+                                .map(|(_, statement)| {
+                                    StatementWithOrWithoutLocation::WithoutLocation(
+                                        statement.as_ref().clone(),
+                                    )
+                                })
                                 .collect(),
                             else_statements: else_statements
                                 .into_iter()
-                                .map(|(_, statement)| statement)
+                                .map(|(_, statement)| {
+                                    StatementWithOrWithoutLocation::WithoutLocation(
+                                        statement.as_ref().clone(),
+                                    )
+                                })
                                 .collect(),
                         }),
                         self.label_map

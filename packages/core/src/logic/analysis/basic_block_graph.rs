@@ -125,7 +125,7 @@ impl BasicBlockGraph {
     pub fn control_flow_for_block(
         &self,
         block_id: NodeIndex,
-    ) -> Result<BasicBlockControlFlow, LogicScriptCodeGenerationError> {
+    ) -> Result<BasicBlockControlFlow<'_>, LogicScriptCodeGenerationError> {
         let block = self.graph.node_weight(block_id);
 
         match block {
@@ -217,11 +217,52 @@ impl Optimizable<StableDiGraph<BasicBlock, BasicBlockEdgeType>> for BasicBlockGr
 }
 
 #[cfg(feature = "dot")]
+impl BasicBlock {
+    pub fn node_attrs(&self, asm_context: &AsmCodeGenerationContext, node_id: NodeIndex) -> String {
+        use crate::logic::asm::{codegen::GenerateLogicAsm, expressions::LogicBooleanExpression};
+
+        let (shape, node_desc) = match self {
+            BasicBlock::SinglePath(block) => (
+                "box",
+                block
+                    .commands
+                    .iter()
+                    .map(|c| c.command.generate_asm(asm_context, &HashMap::new()))
+                    .collect::<Result<Vec<_>, _>>()
+                    .expect("Error generating asm")
+                    .join("\n"),
+            ),
+            BasicBlock::Conditional(block) => (
+                "diamond",
+                format!(
+                    "if ({})",
+                    LogicBooleanExpression::from_clauses(&block.conditions, asm_context)
+                        .expect("Error generating conditions")
+                        .generate_asm(asm_context, &HashMap::new())
+                        .expect("Error generating asm"),
+                ),
+            ),
+        };
+
+        let label = format!(
+            "{}\n{}",
+            self.label()
+                .map(|l| l.to_owned())
+                .unwrap_or_else(|| format!("Node {}", node_id.index())),
+            node_desc
+        );
+        format!(
+            "shape = {}, label = {}",
+            shape,
+            serde_json::to_string(&label).unwrap()
+        )
+    }
+}
+
+#[cfg(feature = "dot")]
 impl BasicBlockGraph {
     pub fn to_dot(&self, asm_context: &AsmCodeGenerationContext) -> String {
         use petgraph::dot::{Config, Dot};
-
-        use crate::logic::asm::expressions::LogicBooleanExpression;
 
         format!(
             "{:?}",
@@ -235,47 +276,7 @@ impl BasicBlockGraph {
                 }
                 .to_string(),
                 &|_graph_ref, (node_id, node_weight)| {
-                    use crate::logic::asm::codegen::GenerateLogicAsm;
-
-                    let (shape, node_desc) = match node_weight {
-                        BasicBlock::SinglePath(block) => (
-                            "box",
-                            block
-                                .commands
-                                .iter()
-                                .map(|c| c.command.generate_asm(asm_context, &HashMap::new()))
-                                .collect::<Result<Vec<_>, _>>()
-                                .expect("Error generating asm")
-                                .join("\n"),
-                        ),
-                        BasicBlock::Conditional(block) => (
-                            "diamond",
-                            format!(
-                                "if ({})",
-                                LogicBooleanExpression::from_clauses(
-                                    &block.conditions,
-                                    asm_context
-                                )
-                                .expect("Error generating conditions")
-                                .generate_asm(asm_context, &HashMap::new())
-                                .expect("Error generating asm"),
-                            ),
-                        ),
-                    };
-
-                    let label = format!(
-                        "{}\n{}",
-                        node_weight
-                            .label()
-                            .map(|l| l.to_owned())
-                            .unwrap_or_else(|| format!("Node {}", node_id.index())),
-                        node_desc
-                    );
-                    format!(
-                        "shape = {}, label = {}",
-                        shape,
-                        serde_json::to_string(&label).unwrap()
-                    )
+                    node_weight.node_attrs(asm_context, node_id)
                 },
             )
         )

@@ -6,10 +6,10 @@ import {
   getDefaultProjectConfig,
   getTestCommands,
   getTestCommandsByName,
-} from 'agikit_core';
+} from '../pkg/agikit_core';
 
 export const EGAPalette: ColorPalette = egaPalette();
-export * from 'agikit_core';
+export * from '../pkg/agikit_core';
 
 export const agiCommands = getAGICommands();
 export const testCommands = getTestCommands();

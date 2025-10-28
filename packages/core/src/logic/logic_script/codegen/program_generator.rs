@@ -21,7 +21,7 @@ use crate::logic::{
         identifiers::IdentifierMap,
         statements::{
             KeywordType, LogicScriptCommandCall, LogicScriptIfStatement, LogicScriptKeyword,
-            LogicScriptStatement, LogicScriptStatementBody,
+            LogicScriptStatement, LogicScriptStatementBody, StatementWithOrWithoutLocation,
         },
     },
 };
@@ -260,8 +260,14 @@ impl<'a> LogicScriptProgramGenerator<'a> {
             else_keyword: else_id.map(|_| LogicScriptKeyword {
                 keyword: KeywordType::Else,
             }),
-            then_statements: then_statements.into_iter().map(Box::new).collect(),
-            else_statements: else_statements.into_iter().map(Box::new).collect(),
+            then_statements: then_statements
+                .into_iter()
+                .map(StatementWithOrWithoutLocation::WithoutLocation)
+                .collect(),
+            else_statements: else_statements
+                .into_iter()
+                .map(StatementWithOrWithoutLocation::WithoutLocation)
+                .collect(),
         };
 
         let mut subsequent_code = vec![];
@@ -281,7 +287,7 @@ impl<'a> LogicScriptProgramGenerator<'a> {
                     &if_statement
                         .else_statements
                         .iter()
-                        .map(|stmt| stmt.as_ref().clone())
+                        .map(|stmt| stmt.statement().clone())
                         .collect::<Vec<_>>(),
                 );
                 if_statement.else_statements.clear();

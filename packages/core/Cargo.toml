@@ -26,6 +26,7 @@ anyhow = "1.0.98"
 num_enum = "0.7.4"
 bitstream-io = "4.5.0"
 serde_with = { version = "3.14.0", features = ["base64"] }
+log = "0.4.28"
 
 [dev-dependencies]
 image = "0.25.6"

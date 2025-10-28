@@ -1,9 +1,14 @@
-use std::{collections::HashMap, path::PathBuf, str::FromStr, sync::Arc};
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+    str::FromStr,
+    sync::Arc,
+};
 
 use super::Project;
 use crate::{
     agi_version::AGIVersion,
-    project::ProjectConfig,
+    project::{ProjectConfig, extract::ExtractConfig},
     resources::{
         file_provider::FileProvider,
         pack::{
@@ -16,13 +21,13 @@ use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 use web_sys::js_sys::Array;
 
 #[wasm_bindgen(js_name = "Project")]
-pub struct JsProject(Project<Arc<dyn FileProvider>>);
+pub struct JsProject(Project<PathBuf>);
 
-#[wasm_bindgen]
+#[wasm_bindgen(js_class = "Project")]
 impl JsProject {
     #[wasm_bindgen(constructor)]
     pub fn new(base_path: String, config: Option<ProjectConfig>) -> Self {
-        let file_provider = Arc::new(PathBuf::from_str(&base_path).unwrap());
+        let file_provider = PathBuf::from_str(&base_path).unwrap();
         Self(Project::new(file_provider, config))
     }
 
@@ -31,37 +36,47 @@ impl JsProject {
         self.0.config.clone()
     }
 
-    #[wasm_bindgen(getter, js_name = "basePath")]
+    #[wasm_bindgen(setter)]
+    pub fn set_config(&mut self, config: ProjectConfig) {
+        self.0.config = config;
+    }
+
+    #[wasm_bindgen(getter = "basePath")]
     pub fn base_path(&self) -> String {
         self.0.base_path()
     }
 
-    #[wasm_bindgen(getter, js_name = "projectConfigPath")]
+    #[wasm_bindgen(setter = "basePath")]
+    pub fn set_base_path(&mut self, base_path: &str) {
+        self.0.file_provider = Arc::new(Path::new(base_path).to_path_buf());
+    }
+
+    #[wasm_bindgen(getter = "projectConfigPath")]
     pub fn project_config_path(&self) -> String {
         self.0.project_config_path()
     }
 
-    #[wasm_bindgen(getter, js_name = "sourcePath")]
+    #[wasm_bindgen(getter = "sourcePath")]
     pub fn source_path(&self) -> String {
         self.0.source_path()
     }
 
-    #[wasm_bindgen(getter, js_name = "destinationPath")]
+    #[wasm_bindgen(getter = "destinationPath")]
     pub fn destination_path(&self) -> String {
         self.0.destination_path()
     }
 
-    #[wasm_bindgen(getter, js_name = "wordListSourcePath")]
+    #[wasm_bindgen(getter = "wordListSourcePath")]
     pub fn word_list_source_path(&self) -> String {
         self.0.word_list_source_path()
     }
 
-    #[wasm_bindgen(getter, js_name = "objectListSourcePath")]
+    #[wasm_bindgen(getter = "objectListSourcePath")]
     pub fn object_list_source_path(&self) -> String {
         self.0.object_list_source_path()
     }
 
-    #[wasm_bindgen(getter, js_name = "explicitVolumeConfigPath")]
+    #[wasm_bindgen(getter = "explicitVolumeConfigPath")]
     pub fn explicit_volume_config_path(&self) -> String {
         self.0.explicit_volume_config_path()
     }
@@ -72,11 +87,30 @@ impl JsProject {
             .read_explicit_volume_config()
             .map_err(|err| JsValue::from_str(format!("{}", err).as_str()))
     }
+
+    pub fn extract(
+        &self,
+        output_path: &str,
+        options: Option<ExtractConfig>,
+    ) -> Result<(), JsValue> {
+        let mut output_project =
+            Project::new(Path::new(output_path).to_path_buf(), Some(self.config()));
+
+        self.0
+            .extract(&mut output_project, options)
+            .map_err(|err| JsValue::from_str(format!("{}", err).as_str()))
+    }
+
+    pub fn build(&self) -> Result<(), JsValue> {
+        self.0
+            .build()
+            .map_err(|err| JsValue::from_str(format!("{}", err).as_str()))
+    }
 }
 
 #[wasm_bindgen(js_name = "detectGame")]
 pub fn detect_game(path: String) -> JsProject {
-    let file_provider = Arc::new(PathBuf::from_str(&path).unwrap()) as Arc<dyn FileProvider>;
+    let file_provider = PathBuf::from_str(&path).unwrap();
     JsProject(
         Project::detect(file_provider.clone()).unwrap_or_else(|| Project::new(file_provider, None)),
     )
@@ -121,7 +155,6 @@ fn volume_collection_from_js_resource_arrays(
 pub fn write_v2_resource_files(
     output_path: String,
     resource_volumes: Vec<JsValue>,
-    _logger: JsValue,
 ) -> Result<(), JsValue> {
     let project = Project::new(
         PathBuf::from_str(&output_path).unwrap(),
@@ -154,7 +187,6 @@ pub fn write_v3_resource_files(
     output_path: String,
     game_id: String,
     resource_volumes: Vec<JsValue>,
-    _logger: JsValue,
 ) -> Result<(), JsValue> {
     let project = Project::new(
         PathBuf::from_str(&output_path).unwrap(),

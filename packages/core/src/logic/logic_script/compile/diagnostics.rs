@@ -1,12 +1,13 @@
+use std::fmt::Display;
+
+use strum_macros::Display;
+
 use crate::{
     agi_version::AGIVersion,
     logic::{
-        asm::expressions::ParsedLogicArgument,
+        asm::expressions::LogicArgument,
         commands::AGICommand,
-        logic_script::{
-            locations::WithLocation,
-            statements::{LogicScriptStatement, LogicScriptStatementBody},
-        },
+        logic_script::statements::{LogicScriptStatementBody, StatementWithOrWithoutLocation},
     },
 };
 
@@ -16,26 +17,40 @@ pub enum LogicScriptDiagnosticType {
     WrongNumberOfArguments,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Display)]
 pub enum LogicScriptDiagnosticSeverity {
     Warning,
     Error,
 }
 
 #[derive(Debug, Clone)]
-pub struct LogicScriptDiagnostic {
+pub struct LogicScriptDiagnostic<Arg: LogicArgument> {
     pub severity: LogicScriptDiagnosticSeverity,
     pub diagnostic_type: LogicScriptDiagnosticType,
-    pub statement: LogicScriptStatement<WithLocation<ParsedLogicArgument>>,
+    pub statement: StatementWithOrWithoutLocation<Arg>,
     pub message: String,
 }
 
-impl LogicScriptDiagnostic {
+impl<Arg: LogicArgument> Display for LogicScriptDiagnostic<Arg> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!(
+            "[{}] {}: {}",
+            self.severity,
+            self.statement
+                .location()
+                .map(|location| location.start.to_string())
+                .unwrap_or_else(|| "unknown location".to_string()),
+            self.message,
+        ))
+    }
+}
+
+impl<Arg: LogicArgument + Clone> LogicScriptDiagnostic<Arg> {
     pub fn for_statement<'a>(
-        statement: &'a LogicScriptStatement<WithLocation<ParsedLogicArgument>>,
+        statement: &'a StatementWithOrWithoutLocation<Arg>,
         agi_version: &'a AGIVersion,
-    ) -> Box<dyn Iterator<Item = LogicScriptDiagnostic> + 'a> {
-        match &statement.body {
+    ) -> Box<dyn Iterator<Item = LogicScriptDiagnostic<Arg>> + 'a> {
+        match &statement.statement().body {
             LogicScriptStatementBody::CommandCall(body) => {
                 let command = AGICommand::by_name(&body.command_name, agi_version);
                 match command {
@@ -53,7 +68,7 @@ impl LogicScriptDiagnostic {
                             }))
                         } else {
                             Box::new(std::iter::empty())
-                                as Box<dyn Iterator<Item = LogicScriptDiagnostic>>
+                                as Box<dyn Iterator<Item = LogicScriptDiagnostic<Arg>>>
                         }
                     }
                     None => {
@@ -64,10 +79,10 @@ impl LogicScriptDiagnostic {
                                 statement: statement.clone(),
                                 message: format!("Unknown command name: {}", body.command_name),
                             }))
-                                as Box<dyn Iterator<Item = LogicScriptDiagnostic>>
+                                as Box<dyn Iterator<Item = LogicScriptDiagnostic<Arg>>>
                         } else {
                             Box::new(std::iter::empty())
-                                as Box<dyn Iterator<Item = LogicScriptDiagnostic>>
+                                as Box<dyn Iterator<Item = LogicScriptDiagnostic<Arg>>>
                         }
                     }
                 }

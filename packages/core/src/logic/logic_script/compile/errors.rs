@@ -1,10 +1,14 @@
 use peg::{error::ParseError, str::LineCol};
 use petgraph::graph::NodeIndex;
 
-use crate::logic::logic_script::{
-    codegen::errors::LogicScriptCodeGenerationError,
-    compile::{ast_generator::ASTGenerationError, diagnostics::LogicScriptDiagnostic},
-    identifiers::DefineError,
+use crate::logic::{
+    asm::expressions::ParsedLogicArgument,
+    logic_script::{
+        codegen::errors::LogicScriptCodeGenerationError,
+        compile::{ast_generator::ASTGenerationError, diagnostics::LogicScriptDiagnostic},
+        identifiers::DefineError,
+        locations::WithLocation,
+    },
 };
 
 #[derive(Debug)]
@@ -16,7 +20,7 @@ pub enum CompilationError {
     ConflictingInstructionForAddress(u16),
     LogicScriptCodeGenerationError(LogicScriptCodeGenerationError),
     DefineError(DefineError),
-    FailedDiagnostics(Vec<LogicScriptDiagnostic>),
+    FailedDiagnostics(Vec<LogicScriptDiagnostic<WithLocation<ParsedLogicArgument>>>),
     ParseError(ParseError<LineCol>),
     IoError(std::io::Error),
 }

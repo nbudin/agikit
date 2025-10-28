@@ -18,7 +18,7 @@ use crate::{
             dominator_tree::{DominationAnalysis, ImmediatePostDominator},
             optimization::{DirectedNeighborEdgeUtils, Optimizable},
         },
-        asm::LogicLabel,
+        asm::{LogicLabel, expressions::ParsedLogicArgument},
         commands::AGICommand,
         logic_script::{
             codegen::statement_graph::LogicScriptStatementGraph,
@@ -373,7 +373,13 @@ pub fn compile_logic_script<FP: FileProvider>(
     object_list: &ObjectList,
     agi_version: &AGIVersion,
     file_provider: &FP,
-) -> Result<(LogicProgram, Vec<LogicScriptDiagnostic>), CompilationError> {
+) -> Result<
+    (
+        LogicProgram,
+        Vec<LogicScriptDiagnostic<ParsedLogicArgument>>,
+    ),
+    CompilationError,
+> {
     let raw_program = parse_logic_script_raw(source_code, agi_version)?;
     let (preprocessed_program, identifier_map) = preprocess_logic_script(
         raw_program.as_slice(),
@@ -382,8 +388,12 @@ pub fn compile_logic_script<FP: FileProvider>(
         file_provider,
     )?;
 
+    let preprocessed_program_statements = preprocessed_program
+        .iter()
+        .map(|stmt| stmt.value.clone())
+        .collect::<Vec<_>>();
     let mut statement_graph = LogicScriptStatementGraph::try_from_statements(
-        preprocessed_program.as_slice(),
+        preprocessed_program_statements.as_slice(),
         identifier_map,
     )?;
     statement_graph.optimize();

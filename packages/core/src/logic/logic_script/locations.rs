@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, ops::Range};
+use std::{borrow::Borrow, fmt::Display, ops::Range};
 
 use crate::logic::asm::{
     codegen::{AsmCodeGenerationContext, AsmCodeGenerationError},
@@ -22,13 +22,27 @@ impl PartialOrd for ScriptLocation {
     }
 }
 
+impl Display for ScriptLocation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("offset {}", self.offset))
+    }
+}
+
+impl Default for ScriptLocation {
+    fn default() -> Self {
+        Self {
+            offset: Default::default(),
+        }
+    }
+}
+
 pub type ScriptLocationRange = Range<ScriptLocation>;
 
 pub fn location_range(start: usize, end: usize) -> ScriptLocationRange {
     ScriptLocation { offset: start }..ScriptLocation { offset: end }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WithLocation<T> {
     pub value: T,
     pub location: ScriptLocationRange,

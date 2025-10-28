@@ -1,11 +1,9 @@
-import { Logger } from '@agikit/core';
+import type { Logger } from '@agikit/core';
 import ansiColors, { bgRedBright, black, bgYellowBright, bgGreenBright } from 'ansi-colors';
 import colorSupport from 'color-support';
 
-export class CLILogger extends Logger {
+export class CLILogger implements Logger {
   constructor() {
-    super();
-
     const result = colorSupport();
     ansiColors.enabled = result && result.hasBasic;
   }

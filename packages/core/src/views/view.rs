@@ -27,7 +27,7 @@ pub struct AGIView {
 }
 
 impl AGIView {
-    pub fn get_cel(&self, loop_number: u8, cel_number: u8) -> Option<ViewCelHandle> {
+    pub fn get_cel(&self, loop_number: u8, cel_number: u8) -> Option<ViewCelHandle<'_>> {
         let cel = self
             .loops
             .get(loop_number as usize)

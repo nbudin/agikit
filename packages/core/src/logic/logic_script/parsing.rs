@@ -27,7 +27,7 @@ use crate::logic::{
             LogicScriptLeftIndirectAssignmentStatement,
             LogicScriptRightIndirectAssignmentStatement, LogicScriptStatement,
             LogicScriptStatementBody, LogicScriptUnaryOperationStatement,
-            LogicScriptValueAssignmentStatement,
+            LogicScriptValueAssignmentStatement, StatementWithOrWithoutLocation,
         },
     },
 };
@@ -67,7 +67,7 @@ enum SingleBooleanClause {
 }
 
 struct ElseClause {
-    statements: Vec<Box<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>>,
+    statements: Vec<WithLocation<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>>,
     else_keyword: WithLocation<LogicScriptKeyword>,
 }
 
@@ -344,15 +344,15 @@ peg::parser! {
             }
 
 
-        rule if_statement() -> WithLocation<LogicScriptIfStatement<WithLocation<ParsedLogicArgument>, Box<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>>>
+        rule if_statement() -> WithLocation<LogicScriptIfStatement<WithLocation<ParsedLogicArgument>>>
             = start:position!() if_keyword:if_token() wsc()* conditions:parenthesized_boolean_expression() wsc()* "{" wsc()* then_statements:statement_list() wsc()* "}" else_clause:else_clause()? end:position!() {
                 LogicScriptIfStatement {
                     conditions: conditions.value,
                     if_keyword: if_keyword.value,
-                    then_statements,
+                    then_statements: then_statements.into_iter().map(StatementWithOrWithoutLocation::WithLocation).collect(),
                     else_keyword: else_clause.as_ref().map(|clause| clause.else_keyword.value.clone()),
                     else_statements: else_clause
-                        .map(|clause| clause.statements)
+                        .map(|clause| clause.statements.into_iter().map(StatementWithOrWithoutLocation::WithLocation).collect())
                         .unwrap_or_default(),
                 }.with_location(location_range(start, end))
             }
@@ -515,17 +515,17 @@ peg::parser! {
             / left_indirect:left_indirect_assignment_statement() { LogicScriptStatementBody::LeftIndirectAssignment(left_indirect.value) }
             / right_indirect:right_indirect_assignment_statement() { LogicScriptStatementBody::RightIndirectAssignment(right_indirect.value) }
 
-        rule statement() -> LogicScriptStatement<WithLocation<ParsedLogicArgument>>
-            = label:label()? white_space()* body:statement_body() {
-                LogicScriptStatement::new(body, label.map(|l| l.value))
+        rule statement() -> WithLocation<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>
+            = start:position!() label:label()? white_space()* body:statement_body() end:position!() {
+                LogicScriptStatement::new(body, label.map(|l| l.value)).with_location(location_range(start, end))
             }
 
-        rule statement_list() -> Vec<Box<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>>
+        rule statement_list() -> Vec<WithLocation<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>>
             = statements:(statement() ++ (white_space()*)) {
-                statements.into_iter().map(Box::new).collect()
+                statements.into_iter().collect()
             }
 
-        pub rule program() -> LogicScriptProgram<Box<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>>
+        pub rule program() -> LogicScriptProgram<WithLocation<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>>
             = white_space()* statements:statement_list() white_space()* {
                 statements
             }
@@ -557,7 +557,7 @@ mod tests {
         let result = logic_script_parser::program(script).expect("Failed to parse script");
 
         assert_eq!(result.len(), 1, "Expected one statement");
-        if let LogicScriptStatementBody::CommandCall(call) = &result.get(0).unwrap().body {
+        if let LogicScriptStatementBody::CommandCall(call) = &result.get(0).unwrap().value.body {
             assert_eq!(call.command_name, "command");
             assert_eq!(call.argument_list.len(), 2);
         } else {
@@ -572,8 +572,8 @@ mod tests {
 
         assert_eq!(result.len(), 1, "Expected one statement");
         let statement = result.get(0).unwrap();
-        assert_eq!(Some("Label1".to_string()), statement.label);
-        if let LogicScriptStatementBody::CommandCall(call) = &statement.body {
+        assert_eq!(Some("Label1".to_string()), statement.value.label);
+        if let LogicScriptStatementBody::CommandCall(call) = &statement.value.body {
             assert_eq!(call.command_name, "command");
             assert_eq!(call.argument_list.len(), 2);
         } else {
@@ -602,7 +602,9 @@ mod tests {
         let result = logic_script_parser::program(script).expect("Failed to parse script");
 
         assert_eq!(result.len(), 1, "Expected one statement");
-        if let LogicScriptStatementBody::IfStatement(if_statement) = &result.get(0).unwrap().body {
+        if let LogicScriptStatementBody::IfStatement(if_statement) =
+            &result.get(0).unwrap().value.body
+        {
             assert!(matches!(
                 if_statement.conditions,
                 LogicBooleanExpression::OrExpression(_)
@@ -616,12 +618,12 @@ mod tests {
     #[test]
     fn test_long_arithmetic_assignments() {
         let expect_correct_results = |result: LogicScriptProgram<
-            Box<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>,
+            WithLocation<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>,
         >| {
             let first_statement = result.get(0).unwrap();
 
             if let LogicScriptStatementBody::ArithmeticAssignment(assignment) =
-                &first_statement.body
+                &first_statement.value.body
             {
                 assert!(matches!(
                     assignment.operator,

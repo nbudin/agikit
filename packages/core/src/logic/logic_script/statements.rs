@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use strum_macros::AsRefStr;
 
 #[cfg(feature = "dot")]
@@ -10,6 +12,7 @@ use crate::logic::{
     logic_script::{
         codegen::node_label_map::LabeledNode,
         directives::LogicScriptDirective,
+        locations::{Locatable, ScriptLocationRange, WithLocation},
         operators::{LogicScriptArithmeticOperator, LogicScriptUnaryAssignmentOperator},
     },
 };
@@ -20,11 +23,11 @@ pub struct LogicScriptCommandCall<Arg: LogicArgument> {
     pub argument_list: Vec<Arg>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct LogicScriptIfStatement<Arg: LogicArgument, StatementType> {
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct LogicScriptIfStatement<Arg: LogicArgument> {
     pub conditions: LogicBooleanExpression<Arg>,
-    pub then_statements: Vec<StatementType>,
-    pub else_statements: Vec<StatementType>,
+    pub then_statements: Vec<StatementWithOrWithoutLocation<Arg>>,
+    pub else_statements: Vec<StatementWithOrWithoutLocation<Arg>>,
     pub if_keyword: LogicScriptKeyword,
     pub else_keyword: Option<LogicScriptKeyword>,
 }
@@ -76,10 +79,75 @@ pub struct LogicScriptKeyword {
     pub keyword: KeywordType,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum StatementWithOrWithoutLocation<Arg: LogicArgument> {
+    WithLocation(WithLocation<LogicScriptStatement<Arg>>),
+    WithoutLocation(LogicScriptStatement<Arg>),
+}
+
+impl<Arg: LogicArgument> AsRef<LogicScriptStatement<Arg>> for StatementWithOrWithoutLocation<Arg> {
+    fn as_ref(&self) -> &LogicScriptStatement<Arg> {
+        self.statement()
+    }
+}
+
+impl<Arg: LogicArgument> StatementWithOrWithoutLocation<Arg> {
+    pub fn to_parsed(&self) -> StatementWithOrWithoutLocation<ParsedLogicArgument>
+    where
+        Arg: AsParsedLogicArgument,
+    {
+        match self {
+            StatementWithOrWithoutLocation::WithLocation(stmt_with_location) => {
+                StatementWithOrWithoutLocation::WithLocation(
+                    stmt_with_location
+                        .value
+                        .to_parsed()
+                        .with_location(stmt_with_location.location.clone()),
+                )
+            }
+            StatementWithOrWithoutLocation::WithoutLocation(stmt) => {
+                StatementWithOrWithoutLocation::WithoutLocation(stmt.to_parsed())
+            }
+        }
+    }
+
+    pub fn statement(&self) -> &LogicScriptStatement<Arg> {
+        match self {
+            StatementWithOrWithoutLocation::WithLocation(stmt_with_location) => {
+                &stmt_with_location.value
+            }
+            StatementWithOrWithoutLocation::WithoutLocation(stmt) => stmt,
+        }
+    }
+
+    pub fn location(&self) -> Option<&ScriptLocationRange> {
+        match self {
+            StatementWithOrWithoutLocation::WithLocation(stmt_with_location) => {
+                Some(&stmt_with_location.location)
+            }
+            StatementWithOrWithoutLocation::WithoutLocation(_) => None,
+        }
+    }
+
+    pub fn with_default_location(&self) -> WithLocation<LogicScriptStatement<Arg>>
+    where
+        Arg: Clone,
+    {
+        match self {
+            StatementWithOrWithoutLocation::WithLocation(with_location) => with_location.clone(),
+            StatementWithOrWithoutLocation::WithoutLocation(logic_script_statement) => {
+                logic_script_statement
+                    .clone()
+                    .with_location(ScriptLocationRange::default())
+            }
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, AsRefStr)]
 pub enum LogicScriptStatementBody<Arg: LogicArgument> {
     CommandCall(LogicScriptCommandCall<Arg>),
-    IfStatement(LogicScriptIfStatement<Arg, Box<LogicScriptStatement<Arg>>>),
+    IfStatement(LogicScriptIfStatement<Arg>),
     Comment(LogicScriptComment),
     UnaryOperation(LogicScriptUnaryOperationStatement),
     Directive(LogicScriptDirective),
@@ -106,16 +174,8 @@ impl<Arg: LogicArgument + AsParsedLogicArgument> LogicScriptStatementBody<Arg> {
             LogicScriptStatementBody::IfStatement(body) => {
                 LogicScriptStatementBody::IfStatement(LogicScriptIfStatement {
                     conditions: body.conditions.to_parsed(),
-                    then_statements: body
-                        .then_statements
-                        .iter()
-                        .map(|s| Box::new(s.to_parsed()))
-                        .collect(),
-                    else_statements: body
-                        .else_statements
-                        .iter()
-                        .map(|s| Box::new(s.to_parsed()))
-                        .collect(),
+                    then_statements: body.then_statements.iter().map(|s| s.to_parsed()).collect(),
+                    else_statements: body.else_statements.iter().map(|s| s.to_parsed()).collect(),
                     if_keyword: body.if_keyword.clone(),
                     else_keyword: body.else_keyword.clone(),
                 })
@@ -191,15 +251,6 @@ impl<Arg: LogicArgument> LogicScriptStatement<Arg> {
     }
 }
 
-impl<Arg: LogicArgument + AsParsedLogicArgument> LogicScriptStatement<Arg> {
-    pub fn to_parsed(&self) -> LogicScriptStatement<ParsedLogicArgument> {
-        LogicScriptStatement {
-            body: self.body.to_parsed(),
-            label: self.label.clone(),
-        }
-    }
-}
-
 impl<Arg: LogicArgument> LabeledNode for LogicScriptStatement<Arg> {
     fn label(&self) -> Option<&str> {
         self.label.as_deref()
@@ -211,6 +262,13 @@ impl<Arg: LogicArgument> LabeledNode for LogicScriptStatement<Arg> {
 }
 
 impl<Arg: LogicArgument + AsParsedLogicArgument> LogicScriptStatement<Arg> {
+    pub fn to_parsed(&self) -> LogicScriptStatement<ParsedLogicArgument> {
+        LogicScriptStatement {
+            body: self.body.to_parsed(),
+            label: self.label.clone(),
+        }
+    }
+
     pub fn get_goto_target_label(&self) -> Option<&String> {
         self.body.get_goto_target_label()
     }

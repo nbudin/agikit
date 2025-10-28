@@ -1,4 +1,10 @@
-use std::{path::PathBuf, str::FromStr};
+use std::{
+    fmt::{Debug, Display},
+    path::PathBuf,
+    str::FromStr,
+};
+
+use log::{info, warn};
 
 use crate::{
     agi_version::{AGIMajorVersion, AGIVersion},
@@ -23,6 +29,18 @@ pub enum BuildError {
     EncodingError(EncodingError),
     IoError(std::io::Error),
     PackingError(PackingError),
+}
+
+impl Display for BuildError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BuildError::CompilationError(error) => error.fmt(f),
+            BuildError::DecodingError(error) => std::fmt::Display::fmt(error, f),
+            BuildError::EncodingError(error) => std::fmt::Display::fmt(error, f),
+            BuildError::IoError(error) => std::fmt::Display::fmt(error, f),
+            BuildError::PackingError(error) => std::fmt::Display::fmt(error, f),
+        }
+    }
 }
 
 impl From<DecodingError> for BuildError {
@@ -88,17 +106,21 @@ impl ProjectBuildResourceInput {
                 resource_type,
                 resource_number,
                 path,
-            } => Ok(EncodedResource {
-                data: file_provider.read_file_bytes(path.as_str())?,
-                resource_number: *resource_number,
-                resource_type: *resource_type,
-            }),
+            } => {
+                info!("Reading {}", path);
+                Ok(EncodedResource {
+                    data: file_provider.read_file_bytes(path.as_str())?,
+                    resource_number: *resource_number,
+                    resource_type: *resource_type,
+                })
+            }
             ProjectBuildResourceInput::LogicScript {
                 resource_number,
                 path,
             } => {
+                info!("Compiling {}", path);
                 let source_code = file_provider.read_file_utf8(path.as_str())?;
-                let (program, _diagnostics) = compile_logic_script(
+                let (program, diagnostics) = compile_logic_script(
                     source_code.as_str(),
                     &path,
                     &context.word_list,
@@ -106,6 +128,10 @@ impl ProjectBuildResourceInput {
                     &context.agi_version,
                     file_provider,
                 )?;
+                for diagnostic in diagnostics {
+                    warn!("{}", diagnostic);
+                }
+
                 Ok(EncodedResource {
                     resource_type: ResourceType::LOGIC,
                     resource_number: *resource_number,
@@ -117,6 +143,7 @@ impl ProjectBuildResourceInput {
                 resource_number,
                 path,
             } => {
+                info!("Compiling {}", path);
                 let picture: Picture = serde_json::from_reader(file_provider.open_file(&path)?)
                     .map_err(DecodingError::SerdeJsonError)?;
                 Ok(EncodedResource {
@@ -236,8 +263,11 @@ impl<FP: FileProvider + WritableFileProvider + 'static> Project<FP> {
             ResourceDirs::from_dir_entries(volumes.build_dir_entries());
         output_project.write_dir_files()?;
         output_project.write_volumes(&volumes)?;
-        output_project.write_object(&context.object_list)?;
+
+        info!("Writing WORDS.TOK");
         output_project.write_words_tok(&context.word_list)?;
+        info!("Writing OBJECT");
+        output_project.write_object(&context.object_list)?;
 
         Ok(())
     }

@@ -493,7 +493,7 @@ pub mod js {
     }
 
     impl OwnedCodeGenerationContext {
-        pub fn to_asm_code_generation_context(&self) -> AsmCodeGenerationContext {
+        pub fn to_asm_code_generation_context(&self) -> AsmCodeGenerationContext<'_> {
             super::AsmCodeGenerationContext {
                 logic: &self.logic,
                 word_list: &self.word_list,

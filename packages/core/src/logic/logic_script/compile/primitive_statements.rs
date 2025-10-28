@@ -1,7 +1,9 @@
 use std::fmt::Debug;
 
 use crate::logic::{
-    asm::expressions::{AsParsedLogicArgument, LogicArgument, ParsedLogicArgument},
+    asm::expressions::{
+        AsParsedLogicArgument, LogicArgument, LogicBooleanExpression, ParsedLogicArgument,
+    },
     logic_script::{
         codegen::{
             context::LogicScriptCodeGenerationContext,
@@ -13,8 +15,8 @@ use crate::logic::{
         identifiers::{IdentifierMap, IdentifierMapping},
         operators::{LogicScriptArithmeticOperator, LogicScriptUnaryAssignmentOperator},
         statements::{
-            LogicScriptCommandCall, LogicScriptIfStatement, LogicScriptStatement,
-            LogicScriptStatementBody,
+            LogicScriptCommandCall, LogicScriptIfStatement, LogicScriptKeyword,
+            LogicScriptStatement, LogicScriptStatementBody, StatementWithOrWithoutLocation,
         },
     },
 };
@@ -33,9 +35,18 @@ fn arg_represents_variable<Arg: AsParsedLogicArgument>(
 }
 
 #[derive(Debug, Clone)]
+pub struct LogicScriptPrimitiveIfStatement<Arg: LogicArgument> {
+    pub conditions: LogicBooleanExpression<Arg>,
+    pub then_statements: Vec<LogicScriptPrimitiveStatement>,
+    pub else_statements: Vec<LogicScriptPrimitiveStatement>,
+    pub if_keyword: LogicScriptKeyword,
+    pub else_keyword: Option<LogicScriptKeyword>,
+}
+
+#[derive(Debug, Clone)]
 pub enum LogicScriptPrimitiveStatementBody {
     CommandCall(LogicScriptCommandCall<ParsedLogicArgument>),
-    IfStatement(LogicScriptIfStatement<ParsedLogicArgument, LogicScriptPrimitiveStatement>),
+    IfStatement(LogicScriptPrimitiveIfStatement<ParsedLogicArgument>),
 }
 
 impl LogicScriptPrimitiveStatementBody {
@@ -169,16 +180,16 @@ impl LogicScriptPrimitiveStatement {
                 })
             }
             LogicScriptStatementBody::IfStatement(body) => {
-                LogicScriptPrimitiveStatementBody::IfStatement(LogicScriptIfStatement {
-                    conditions: body.conditions.to_parsed(),
+                LogicScriptPrimitiveStatementBody::IfStatement(LogicScriptPrimitiveIfStatement {
                     if_keyword: body.if_keyword.clone(),
                     else_keyword: body.else_keyword.clone(),
+                    conditions: body.conditions.to_parsed(),
                     then_statements: body
                         .then_statements
                         .iter()
                         .filter_map(|stmt| {
                             LogicScriptPrimitiveStatement::try_from_statement(
-                                &stmt,
+                                stmt.statement(),
                                 statement_graph,
                             )
                         })
@@ -188,7 +199,7 @@ impl LogicScriptPrimitiveStatement {
                         .iter()
                         .filter_map(|stmt| {
                             LogicScriptPrimitiveStatement::try_from_statement(
-                                &stmt,
+                                stmt.statement(),
                                 statement_graph,
                             )
                         })
@@ -227,12 +238,12 @@ impl LogicScriptPrimitiveStatement {
                     then_statements: body
                         .then_statements
                         .iter()
-                        .map(|s| Box::new(s.to_statement()))
+                        .map(|s| StatementWithOrWithoutLocation::WithoutLocation(s.to_statement()))
                         .collect(),
                     else_statements: body
                         .else_statements
                         .iter()
-                        .map(|s| Box::new(s.to_statement()))
+                        .map(|s| StatementWithOrWithoutLocation::WithoutLocation(s.to_statement()))
                         .collect(),
                     if_keyword: body.if_keyword.clone(),
                     else_keyword: body.else_keyword.clone(),

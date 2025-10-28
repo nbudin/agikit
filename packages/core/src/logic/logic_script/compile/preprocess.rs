@@ -11,46 +11,50 @@ use crate::{
             },
             directives::Directive,
             identifiers::IdentifierMap,
-            locations::WithLocation,
+            locations::{Locatable, WithLocation},
             parsing::logic_script_parser,
-            statements::{LogicScriptIfStatement, LogicScriptStatement, LogicScriptStatementBody},
+            statements::{
+                LogicScriptIfStatement, LogicScriptStatement, LogicScriptStatementBody,
+                StatementWithOrWithoutLocation,
+            },
         },
     },
     resources::file_provider::FileProvider,
 };
 
 fn preprocess_statement<FP: FileProvider>(
-    statement: &LogicScriptStatement<WithLocation<ParsedLogicArgument>>,
+    statement: &WithLocation<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>,
     script_path: &str,
     identifier_map: &mut IdentifierMap,
     agi_version: &AGIVersion,
     file_provider: &FP,
 ) -> Result<
-    Box<dyn Iterator<Item = LogicScriptStatement<WithLocation<ParsedLogicArgument>>>>,
+    Box<dyn Iterator<Item = WithLocation<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>>>,
     CompilationError,
 > {
-    let mut preprocess_substatements =
-        |substatements: &[LogicScriptStatement<WithLocation<ParsedLogicArgument>>]| {
-            Ok::<_, CompilationError>(
-                substatements
-                    .iter()
-                    .map(|stmt| {
-                        preprocess_statement(
-                            stmt,
-                            script_path,
-                            identifier_map,
-                            agi_version,
-                            file_provider,
-                        )
-                    })
-                    .collect::<Result<Vec<_>, CompilationError>>()?
-                    .into_iter()
-                    .flatten()
-                    .collect::<Vec<_>>(),
-            )
-        };
+    let mut preprocess_substatements = |substatements: &[WithLocation<
+        LogicScriptStatement<WithLocation<ParsedLogicArgument>>,
+    >]| {
+        Ok::<_, CompilationError>(
+            substatements
+                .iter()
+                .map(|stmt| {
+                    preprocess_statement(
+                        stmt,
+                        script_path,
+                        identifier_map,
+                        agi_version,
+                        file_provider,
+                    )
+                })
+                .collect::<Result<Vec<_>, CompilationError>>()?
+                .into_iter()
+                .flatten()
+                .collect::<Vec<_>>(),
+        )
+    };
 
-    match &statement.body {
+    match &statement.value.body {
         LogicScriptStatementBody::Directive(body) => match &body.directive {
             Directive::Define { identifier, value } => {
                 identifier_map.define(identifier.name.clone(), value)?;
@@ -72,36 +76,37 @@ fn preprocess_statement<FP: FileProvider>(
             _ => {}
         },
         LogicScriptStatementBody::IfStatement(body) => {
-            return Ok(Box::new(std::iter::once(LogicScriptStatement {
-                body: LogicScriptStatementBody::IfStatement(LogicScriptIfStatement {
-                    conditions: body.conditions.clone(),
-                    then_statements: preprocess_substatements(
-                        body.then_statements
-                            .iter()
-                            .cloned()
-                            .map(|stmt| *stmt)
-                            .collect::<Vec<_>>()
-                            .as_slice(),
-                    )?
-                    .into_iter()
-                    .map(Box::new)
-                    .collect(),
-                    else_statements: preprocess_substatements(
-                        body.else_statements
-                            .iter()
-                            .cloned()
-                            .map(|stmt| *stmt)
-                            .collect::<Vec<_>>()
-                            .as_slice(),
-                    )?
-                    .into_iter()
-                    .map(Box::new)
-                    .collect(),
-                    if_keyword: body.if_keyword.clone(),
-                    else_keyword: body.else_keyword.clone(),
-                }),
-                label: statement.label.clone(),
-            })));
+            return Ok(Box::new(std::iter::once(
+                LogicScriptStatement {
+                    body: LogicScriptStatementBody::IfStatement(LogicScriptIfStatement {
+                        conditions: body.conditions.clone(),
+                        then_statements: preprocess_substatements(
+                            body.then_statements
+                                .iter()
+                                .map(|stmt| stmt.with_default_location())
+                                .collect::<Vec<_>>()
+                                .as_slice(),
+                        )?
+                        .into_iter()
+                        .map(StatementWithOrWithoutLocation::WithLocation)
+                        .collect(),
+                        else_statements: preprocess_substatements(
+                            body.else_statements
+                                .iter()
+                                .map(|stmt| stmt.with_default_location())
+                                .collect::<Vec<_>>()
+                                .as_slice(),
+                        )?
+                        .into_iter()
+                        .map(StatementWithOrWithoutLocation::WithLocation)
+                        .collect(),
+                        if_keyword: body.if_keyword.clone(),
+                        else_keyword: body.else_keyword.clone(),
+                    }),
+                    label: statement.value.label.clone(),
+                }
+                .with_location(statement.location.clone()),
+            )));
         }
         _ => {}
     }
@@ -110,13 +115,13 @@ fn preprocess_statement<FP: FileProvider>(
 }
 
 pub fn preprocess_logic_script<FP: FileProvider>(
-    raw_program: &[LogicScriptStatement<WithLocation<ParsedLogicArgument>>],
+    raw_program: &[WithLocation<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>],
     script_path: &str,
     agi_version: &AGIVersion,
     file_provider: &FP,
 ) -> Result<
     (
-        Vec<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>,
+        Vec<WithLocation<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>>,
         IdentifierMap,
     ),
     CompilationError,
@@ -145,21 +150,28 @@ pub fn preprocess_logic_script<FP: FileProvider>(
 pub fn parse_logic_script_raw(
     source_code: &str,
     agi_version: &AGIVersion,
-) -> Result<Vec<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>, CompilationError> {
+) -> Result<
+    Vec<WithLocation<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>>,
+    CompilationError,
+> {
     let raw_program = logic_script_parser::program(source_code)?;
-    let raw_program = raw_program
-        .into_iter()
-        .map(|stmt| *stmt)
-        .collect::<Vec<_>>();
+    let raw_program = raw_program.into_iter().collect::<Vec<_>>();
     let diagnostics = raw_program
         .iter()
-        .flat_map(|stmt| LogicScriptDiagnostic::for_statement(stmt, agi_version))
+        .flat_map(|stmt| {
+            LogicScriptDiagnostic::for_statement(
+                &StatementWithOrWithoutLocation::WithLocation(stmt.clone()),
+                agi_version,
+            )
+            .collect::<Vec<_>>()
+        })
         .collect::<Vec<_>>();
 
-    if diagnostics
-        .iter()
-        .any(|d| d.severity == LogicScriptDiagnosticSeverity::Error)
-    {
+    if diagnostics.iter().any(
+        |d: &LogicScriptDiagnostic<WithLocation<ParsedLogicArgument>>| {
+            d.severity == LogicScriptDiagnosticSeverity::Error
+        },
+    ) {
         return Err(CompilationError::FailedDiagnostics(diagnostics));
     }
 

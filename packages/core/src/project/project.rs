@@ -6,6 +6,7 @@ use std::{
 };
 
 use bitstream_io::{BigEndian, BitReader};
+use log::info;
 
 use crate::{
     agi_version::{AGIMajorVersion, AGIVersion},
@@ -28,6 +29,8 @@ use crate::{
             ResourceCollection, ResourceCollectionVersionData, ResourceReadResult,
         },
     },
+    sound::ibm_pcjr::sound::IBMPCjrSound,
+    views::AGIView,
     word_list::WordList,
 };
 
@@ -205,6 +208,19 @@ impl<FP: FileProvider> Project<FP> {
         Picture::decode_bitstream(&mut reader, resource.is_compressed_pic)
     }
 
+    pub fn decode_view(&self, resource_number: u16) -> Result<AGIView, DecodingError> {
+        let resource = self.read_resource_data(ResourceType::VIEW, resource_number)?;
+        AGIView::decode_from_bytes(&resource.data, ())
+    }
+
+    pub fn decode_ibmpcjr_sound(
+        &self,
+        resource_number: u16,
+    ) -> Result<IBMPCjrSound, DecodingError> {
+        let resource = self.read_resource_data(ResourceType::SOUND, resource_number)?;
+        IBMPCjrSound::decode_from_bytes(&resource.data, ())
+    }
+
     pub fn decode_object_list(&self) -> Result<ObjectList, DecodingError> {
         let mut data = self.file_provider.open_file("OBJECT")?;
         ObjectList::decode(&mut data, ())
@@ -224,6 +240,7 @@ impl<FP: FileProvider + WritableFileProvider> Project<FP> {
             ("SNDDIR", ResourceType::SOUND),
             ("VIEWDIR", ResourceType::VIEW),
         ] {
+            info!("Writing {}", filename);
             let out = self.file_provider.create_file(
                 PathBuf::from_str(&self.destination_path())
                     .unwrap()
@@ -297,6 +314,7 @@ impl<FP: FileProvider + WritableFileProvider> Project<FP> {
         volumes: &EncodedResourceVolumeCollection,
     ) -> Result<(), EncodingError> {
         for (volume_number, volume) in volumes.volumes.iter() {
+            info!("Writing VOL.{}", volume_number);
             let out = self.file_provider.create_file(
                 PathBuf::from_str(&self.destination_path())
                     .unwrap()
