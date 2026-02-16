@@ -14,7 +14,7 @@ use petgraph::{
 use crate::logic::logic_script::codegen::context::LogicScriptCodeGenerationContext;
 use crate::logic::{
     analysis::{
-        dominator_tree::DominationAnalysis,
+        dominator_tree::{DominationAnalysis, DominatorTree},
         optimization::{
             DirectedNeighborEdgeUtils, Optimizable, OptimizationPass, OptimizationResult,
             OptimizationVisitor, RemoveNodePreservingEdges,
@@ -275,69 +275,15 @@ impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug>
                             false
                         }
                     };
-                    let mut append_goto_if_needed = |subclause_statements: &mut Vec<(
-                        Option<NodeIndex>,
-                        Box<LogicScriptStatement<ParsedLogicArgument>>,
-                    )>| {
-                        if let Some((Some(last_statement_id), _)) = subclause_statements.last()
-                            && self
-                                .graph
-                                .node_weight(*last_statement_id)
-                                .is_none_or(|node| node.get_goto_target_label().is_none())
-                        {
-                            let exit_ids = self
-                                .graph
-                                .neighbors_directed(*last_statement_id, Direction::Outgoing)
-                                .collect::<Vec<_>>();
-
-                            let dominates_exit = exit_ids
-                                .iter()
-                                .all(|next_id| domination_analysis.dominates(node_id, *next_id));
-                            let exit_post_dominates = exit_ids.iter().all(|next_id| {
-                                domination_analysis.post_dominates(*next_id, node_id)
-                            });
-
-                            if !dominates_exit && !exit_post_dominates {
-                                let target_id = *exit_ids.first().unwrap();
-                                let target_label =
-                                    self.label_map.get_or_insert_label_for_node_id(target_id);
-
-                                subclause_statements.push((
-                                    None,
-                                    Box::new(LogicScriptStatement::new(
-                                        LogicScriptStatementBody::CommandCall(
-                                            LogicScriptCommandCall {
-                                                command_name: "goto".to_string(),
-                                                argument_list: vec![
-                                                    ParsedLogicArgument::Identifier(
-                                                        LogicIdentifier {
-                                                            name: target_label.label().to_string(),
-                                                        },
-                                                    ),
-                                                ],
-                                            },
-                                        ),
-                                        None,
-                                    )),
-                                ));
-                            }
-                        }
-                    };
-
                     for (subclause_node_id, subclause_statement) in stack.into_iter() {
                         if is_then_statement(subclause_node_id) {
-                            then_statements
-                                .push((Some(subclause_node_id), Box::new(subclause_statement)));
+                            then_statements.push(Box::new(subclause_statement));
                         } else if is_else_statement(subclause_node_id) {
-                            else_statements
-                                .push((Some(subclause_node_id), Box::new(subclause_statement)));
+                            else_statements.push(Box::new(subclause_statement));
                         } else {
                             other_statements.push_back((subclause_node_id, subclause_statement));
                         }
                     }
-
-                    append_goto_if_needed(&mut then_statements);
-                    append_goto_if_needed(&mut else_statements);
 
                     stack = other_statements;
                     LogicScriptStatement::new(
@@ -347,7 +293,7 @@ impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug>
                             else_keyword: if_statement.else_keyword.clone(),
                             then_statements: then_statements
                                 .into_iter()
-                                .map(|(_, statement)| {
+                                .map(|statement| {
                                     StatementWithOrWithoutLocation::WithoutLocation(
                                         statement.as_ref().clone(),
                                     )
@@ -355,7 +301,7 @@ impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug>
                                 .collect(),
                             else_statements: else_statements
                                 .into_iter()
-                                .map(|(_, statement)| {
+                                .map(|statement| {
                                     StatementWithOrWithoutLocation::WithoutLocation(
                                         statement.as_ref().clone(),
                                     )
@@ -375,14 +321,7 @@ impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug>
 
         Ok(stack
             .into_iter()
-            .map(|(node_id, statement)| {
-                LogicScriptStatement::new(
-                    statement.body,
-                    self.label_map
-                        .get_label_for_node_id(node_id)
-                        .map(|l| l.to_string()),
-                )
-            })
+            .map(|(_node_id, statement)| statement)
             .collect())
     }
 

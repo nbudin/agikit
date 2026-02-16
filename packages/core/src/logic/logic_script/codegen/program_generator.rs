@@ -45,6 +45,15 @@ impl<'a> LogicScriptProgramGenerator<'a> {
     ) -> Result<String, LogicScriptCodeGenerationError> {
         let context = self.context;
         let statements = self.generate_statements()?;
+
+        // Debug: write initial statements before optimization
+        if false {  // Set to true to enable debugging
+            eprintln!("=== INITIAL STATEMENTS (before optimization) ===");
+            for (i, stmt) in statements.iter().enumerate() {
+                eprintln!("{}: {:?}", i, stmt);
+            }
+        }
+
         let mut statement_graph =
             LogicScriptStatementGraph::try_from_statements(&statements, IdentifierMap::builtins())?;
 
@@ -132,10 +141,11 @@ impl<'a> LogicScriptProgramGenerator<'a> {
                 block
                     .commands
                     .iter()
-                    .map(|command| {
+                    .enumerate()
+                    .map(|(i, command)| {
                         Ok::<_, LogicScriptCodeGenerationError>(LogicScriptStatement::new(
                             command.command.to_statement_body(&self.context)?,
-                            label.clone(),
+                            if i == 0 { label.clone() } else { None },
                         ))
                     })
                     .collect::<Result<Vec<_>, _>>()?,
