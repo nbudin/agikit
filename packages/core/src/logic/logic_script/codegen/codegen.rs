@@ -305,11 +305,7 @@ impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
         indent: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         let indent_line = |line: &str| -> String {
-            if line.trim().len() > 0 {
-                format!("{}{}", " ".repeat(indent), line)
-            } else {
-                line.trim_matches(' ').to_string()
-            }
+            format!("{}{}", " ".repeat(indent), line)
         };
 
         match self {
@@ -398,11 +394,23 @@ impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
         indent: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         let label_content = match &self.label {
-            Some(label) => format!(
-                "\n{}{}:\n",
-                " ".repeat((indent.saturating_sub(2)).max(0)),
-                label,
-            ),
+            Some(label) => {
+                // When a label precedes an if statement, add an extra blank line
+                // between the label and the if body, matching the original output
+                // where labels were separate statements and the join newline created
+                // a blank line before the if statement.
+                let trailing = if matches!(self.body, LogicScriptStatementBody::IfStatement(_)) {
+                    "\n\n"
+                } else {
+                    "\n"
+                };
+                format!(
+                    "\n{}{}:{}",
+                    " ".repeat((indent.saturating_sub(2)).max(0)),
+                    label,
+                    trailing,
+                )
+            }
             None => "".to_string(),
         };
 
@@ -428,17 +436,16 @@ impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
         self.iter()
             .map(|statement| {
                 let mut script = statement.generate_logic_script(context, options)?;
-                if (matches!(statement.body, LogicScriptStatementBody::IfStatement(_))
-                    && matches!(
+                let has_label = statement.label.is_some();
+                if !has_label
+                    && matches!(statement.body, LogicScriptStatementBody::IfStatement(_))
+                    && prev_statement.is_some()
+                    && !matches!(
                         prev_statement.map(|s| &s.body),
                         Some(
-                            LogicScriptStatementBody::IfStatement(_)
-                                | LogicScriptStatementBody::CommandCall(_)
+                            LogicScriptStatementBody::Comment(_)
+                                | LogicScriptStatementBody::Directive(_)
                         )
-                    ))
-                    || matches!(
-                        prev_statement.map(|s| &s.body),
-                        Some(LogicScriptStatementBody::IfStatement(_))
                     )
                 {
                     script = format!("\n{}", script);

@@ -295,4 +295,11 @@ impl LogicScriptStatementGraphNode for LogicScriptPrimitiveStatement {
             _ => None,
         }
     }
+
+    fn has_else_keyword(&self) -> bool {
+        match &self.body {
+            LogicScriptPrimitiveStatementBody::IfStatement(body) => body.else_keyword.is_some(),
+            _ => false,
+        }
+    }
 }

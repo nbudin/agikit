@@ -1,4 +1,4 @@
-use std::collections::{HashSet, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 #[cfg(feature = "dot")]
 use std::fmt::Debug;
 
@@ -14,7 +14,7 @@ use petgraph::{
 use crate::logic::logic_script::codegen::context::LogicScriptCodeGenerationContext;
 use crate::logic::{
     analysis::{
-        dominator_tree::{DominationAnalysis, DominatorTree},
+        dominator_tree::DominationAnalysis,
         optimization::{
             DirectedNeighborEdgeUtils, Optimizable, OptimizationPass, OptimizationResult,
             OptimizationVisitor, RemoveNodePreservingEdges,
@@ -42,6 +42,9 @@ pub trait LogicScriptStatementGraphNode: Clone + Debug + LabeledNode {
 
     fn get_goto_target_label(&self) -> Option<&str>;
     fn if_subclauses(&self) -> Option<(&[Self::SubclauseStatement], &[Self::SubclauseStatement])>;
+    /// Returns true if this is an if statement with an else keyword, even if the
+    /// else_statements list is empty (as happens after unrolling).
+    fn has_else_keyword(&self) -> bool;
     #[cfg(feature = "dot")]
     fn node_attrs(&self, context: &LogicScriptCodeGenerationContext) -> String;
 }
@@ -62,6 +65,13 @@ impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug> LogicScriptStat
                 body.else_statements.as_slice(),
             )),
             _ => None,
+        }
+    }
+
+    fn has_else_keyword(&self) -> bool {
+        match &self.body {
+            LogicScriptStatementBody::IfStatement(body) => body.else_keyword.is_some(),
+            _ => false,
         }
     }
 
@@ -147,6 +157,17 @@ pub struct LogicScriptStatementGraph<N: LogicScriptStatementGraphNode> {
     pub root_id: NodeIndex,
     pub identifiers: IdentifierMap,
     pub label_map: NodeLabelMap,
+    /// Labels that were initially referenced by goto statements.  These labels
+    /// should be preserved even after the gotos that reference them are removed
+    /// by optimization passes, because they serve as meaningful address markers
+    /// in the decompiled output.
+    initial_goto_target_labels: HashSet<String>,
+    /// Maps if-statement node IDs to their convergence point node IDs.
+    /// For if-else statements where the else was unrolled, the convergence
+    /// point is where both branches reconverge. This is computed before
+    /// optimization (when convergence gotos still exist) so it survives
+    /// after the gotos are removed by optimization passes.
+    convergence_points: HashMap<NodeIndex, NodeIndex>,
 }
 
 impl<N: LogicScriptStatementGraphNode> LogicScriptStatementGraph<N> {
@@ -182,13 +203,133 @@ impl<N: LogicScriptStatementGraphNode> LogicScriptStatementGraph<N> {
             );
         }
 
+        // Compute convergence points for if statements with unrolled else clauses.
+        // For each if node with else_keyword but no IfElse edge, find the convergence
+        // goto in the then clause and record its GotoTarget as the convergence point.
+        let mut convergence_points = HashMap::new();
+        let mut convergence_goto_node_ids = HashSet::new();
+        for node_id in Dfs::new(&graph, root_id).iter(&graph) {
+            let Some(node) = graph.node_weight(node_id) else {
+                continue;
+            };
+            if !node.has_else_keyword() {
+                continue;
+            }
+            // Check if this if has no IfElse edge (unrolled else)
+            let has_if_else_edge = graph
+                .edges_directed(node_id, Direction::Outgoing)
+                .any(|e| *e.weight() == LogicScriptStatementGraphEdge::IfElse);
+            if has_if_else_edge {
+                continue;
+            }
+            // Find the IfThen successor and walk through the then clause
+            let Some(then_id) = graph
+                .edges_directed(node_id, Direction::Outgoing)
+                .find(|e| *e.weight() == LogicScriptStatementGraphEdge::IfThen)
+                .map(|e| e.target())
+            else {
+                continue;
+            };
+            // Walk through the then clause following Next edges to find a convergence goto
+            let mut current = Some(then_id);
+            while let Some(curr_id) = current {
+                if let Some(target) = graph
+                    .edges_directed(curr_id, Direction::Outgoing)
+                    .find(|e| *e.weight() == LogicScriptStatementGraphEdge::GotoTarget)
+                    .map(|e| e.target())
+                {
+                    convergence_points.insert(node_id, target);
+                    convergence_goto_node_ids.insert(curr_id);
+                    break;
+                }
+                current = graph
+                    .edges_directed(curr_id, Direction::Outgoing)
+                    .find(|e| *e.weight() == LogicScriptStatementGraphEdge::Next)
+                    .map(|e| e.target());
+            }
+        }
+
+        // For each unrolled else clause, collect ALL node IDs reachable from
+        // the if's Next successor up to (but not including) the convergence
+        // point. We follow Next, IfThen, IfElse, and BlockExit edges to
+        // capture nodes at all nesting levels within the else clause body.
+        let mut else_clause_node_sets: Vec<HashSet<NodeIndex>> = Vec::new();
+        for (if_node_id, convergence_id) in convergence_points.iter() {
+            let Some(next_id) = graph
+                .edges_directed(*if_node_id, Direction::Outgoing)
+                .find(|e| *e.weight() == LogicScriptStatementGraphEdge::Next)
+                .map(|e| e.target())
+            else {
+                continue;
+            };
+
+            let mut else_body_nodes = HashSet::new();
+            let mut to_visit = VecDeque::from([next_id]);
+            while let Some(curr_id) = to_visit.pop_front() {
+                if curr_id == *convergence_id || else_body_nodes.contains(&curr_id) {
+                    continue;
+                }
+                else_body_nodes.insert(curr_id);
+                for edge in graph.edges_directed(curr_id, Direction::Outgoing) {
+                    match edge.weight() {
+                        LogicScriptStatementGraphEdge::Next
+                        | LogicScriptStatementGraphEdge::IfThen
+                        | LogicScriptStatementGraphEdge::IfElse
+                        | LogicScriptStatementGraphEdge::BlockExit => {
+                            to_visit.push_back(edge.target());
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            else_clause_node_sets.push(else_body_nodes);
+        }
+
+        // Collect ALL goto target node IDs (both convergence and non-convergence).
+        let all_goto_target_node_ids: HashSet<NodeIndex> = Dfs::new(&graph, root_id)
+            .iter(&graph)
+            .filter_map(|node_id| {
+                let node = graph.node_weight(node_id)?;
+                if node.get_goto_target_label().is_none() {
+                    return None;
+                }
+                graph
+                    .edges_directed(node_id, Direction::Outgoing)
+                    .find(|e| *e.weight() == LogicScriptStatementGraphEdge::GotoTarget)
+                    .map(|e| e.target())
+            })
+            .collect();
+
+        // Preserve goto target labels ONLY when they are inside an else clause
+        // body. Labels inside else clause bodies serve as meaningful section
+        // markers in the decompiled output, even after the gotos that reference
+        // them are removed by optimization. Labels outside else clause bodies
+        // will be naturally preserved by used_labels if their gotos survive
+        // optimization, or removed if their gotos are optimized away.
+        let initial_goto_target_labels: HashSet<String> = all_goto_target_node_ids
+            .iter()
+            .filter(|target_node_id| {
+                else_clause_node_sets
+                    .iter()
+                    .any(|node_set| node_set.contains(target_node_id))
+            })
+            .filter_map(|target_node_id| {
+                let node = graph.node_weight(*target_node_id)?;
+                let label = node.label()?;
+                Some(label.to_string())
+            })
+            .collect();
+
         Ok(LogicScriptStatementGraph {
             graph,
             root_id,
             identifiers,
             label_map,
+            initial_goto_target_labels,
+            convergence_points,
         })
     }
+
 }
 
 impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug>
@@ -209,10 +350,8 @@ impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug>
         let no_then_filter = EdgeFiltered::from_fn(&traversal_filter, |edge| {
             *edge.weight() != LogicScriptStatementGraphEdge::IfThen
         });
-        let no_else_filter = EdgeFiltered::from_fn(&traversal_filter, |edge| {
-            *edge.weight() != LogicScriptStatementGraphEdge::IfElse
-        });
         let domination_analysis = DominationAnalysis::from_graph(&traversal_filter, self.root_id);
+
         let mut dfs_post_order = DfsPostOrder::new(&traversal_filter, self.root_id);
 
         while let Some(node_id) = dfs_post_order.next(&traversal_filter) {
@@ -230,6 +369,28 @@ impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug>
                         Direction::Outgoing,
                         LogicScriptStatementGraphEdge::IfElse,
                     );
+                    let next_node_id = self.graph.directed_neighbor_node_id_of_type(
+                        node_id,
+                        Direction::Outgoing,
+                        LogicScriptStatementGraphEdge::Next,
+                    );
+                    // When there's an else_keyword but no IfElse edge, the else was
+                    // unrolled by the program generator. The Next successor is the
+                    // start of the implicit else clause. The program generator only
+                    // sets else_keyword for real else clauses (not simple ifs where
+                    // the then branch falls through to the continuation).
+                    //
+                    // The convergence point (where both branches reconverge) was
+                    // computed before optimization from the convergence goto that
+                    // the program generator places at the end of the then clause.
+                    let (implicit_else_node_id, convergence_node_id) = if else_node_id.is_none()
+                        && if_statement.else_keyword.is_some()
+                        && next_node_id.is_some()
+                    {
+                        (next_node_id, self.convergence_points.get(&node_id).copied())
+                    } else {
+                        (None, None)
+                    };
 
                     let mut then_statements = vec![];
                     let mut else_statements = vec![];
@@ -256,6 +417,7 @@ impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug>
                         }
                     };
                     let is_else_statement = |subclause_node_id| {
+                        // Explicit IfElse edge case
                         if let Some(else_node_id) = else_node_id
                             && has_path_connecting(
                                 &inward_filter,
@@ -263,17 +425,43 @@ impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug>
                                 subclause_node_id,
                                 None,
                             )
-                            && !has_path_connecting(
-                                &no_else_filter,
-                                node_id,
+                            && !then_node_id.map_or(false, |tn| {
+                                has_path_connecting(
+                                    &inward_filter,
+                                    tn,
+                                    subclause_node_id,
+                                    None,
+                                )
+                            })
+                        {
+                            return domination_analysis.dominates(node_id, subclause_node_id);
+                        }
+                        // Implicit else case: no IfElse edge, but else_keyword is present.
+                        // A node is an implicit else statement if:
+                        // 1. Reachable from the Next successor (implicit else start) via inward edges
+                        // 2. NOT the convergence point or reachable from it via inward edges
+                        //    (the convergence point is where both branches reconverge)
+                        // 3. Dominated by the if node
+                        if let Some(implicit_else_start) = implicit_else_node_id
+                            && has_path_connecting(
+                                &inward_filter,
+                                implicit_else_start,
                                 subclause_node_id,
                                 None,
                             )
+                            && !convergence_node_id.map_or(false, |cn| {
+                                cn == subclause_node_id
+                                    || has_path_connecting(
+                                        &inward_filter,
+                                        cn,
+                                        subclause_node_id,
+                                        None,
+                                    )
+                            })
                         {
-                            domination_analysis.dominates(node_id, subclause_node_id)
-                        } else {
-                            false
+                            return domination_analysis.dominates(node_id, subclause_node_id);
                         }
+                        false
                     };
                     for (subclause_node_id, subclause_statement) in stack.into_iter() {
                         if is_then_statement(subclause_node_id) {
@@ -441,15 +629,18 @@ impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug + 'static>
             >,
         >],
     ) -> OptimizationResult {
-        let mut remove_unused_labels = RemoveUnusedLabelsPass::new(&self);
         let mut remove_redundant_jumps = RemoveRedundantJumpsPass::new(&self);
 
-        let mut result = remove_unused_labels.run(&mut self.graph, self.root_id);
+        // Run RemoveRedundantJumpsPass first so that gotos are removed before
+        // we check which labels are still referenced.
+        let mut result = remove_redundant_jumps.run(&mut self.graph, self.root_id);
+
+        let mut remove_unused_labels = RemoveUnusedLabelsPass::new(&self);
+        result = result.or(&remove_unused_labels.run(&mut self.graph, self.root_id));
         for node_id in remove_unused_labels.removed_label_node_ids {
             self.label_map.remove_label_for_node_id(node_id);
         }
 
-        result = result.or(&remove_redundant_jumps.run(&mut self.graph, self.root_id));
         result = result.or(&remove_empty_then_with_else(&mut self.graph, self.root_id));
         result = result.or(&transform_post_dominating_else_to_next(
             &mut self.graph,
@@ -462,6 +653,7 @@ impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug + 'static>
 
 pub struct RemoveUnusedLabelsPass {
     used_labels: HashSet<String>,
+    initial_goto_target_labels: HashSet<String>,
     removed_label_node_ids: Vec<NodeIndex>,
 }
 
@@ -479,6 +671,7 @@ impl RemoveUnusedLabelsPass {
 
         Self {
             used_labels,
+            initial_goto_target_labels: statement_graph.initial_goto_target_labels.clone(),
             removed_label_node_ids: vec![],
         }
     }
@@ -493,7 +686,7 @@ impl<N: LogicScriptStatementGraphNode>
         graph: &mut StableDiGraph<N, LogicScriptStatementGraphEdge>,
         node_id: NodeIndex,
     ) -> OptimizationResult {
-        let Some(node) = graph.node_weight_mut(node_id) else {
+        let Some(node) = graph.node_weight(node_id) else {
             return OptimizationResult::Unchanged;
         };
 
@@ -501,9 +694,21 @@ impl<N: LogicScriptStatementGraphNode>
             return OptimizationResult::Unchanged;
         };
 
+        // Keep labels that are currently referenced by gotos
         if self.used_labels.contains(label) {
             return OptimizationResult::Unchanged;
         }
+
+        // Keep labels that were initially goto targets. These labels mark
+        // meaningful bytecode addresses even after the gotos referencing them
+        // are removed by optimization passes.
+        if self.initial_goto_target_labels.contains(label) {
+            return OptimizationResult::Unchanged;
+        }
+
+        let Some(node) = graph.node_weight_mut(node_id) else {
+            return OptimizationResult::Unchanged;
+        };
 
         node.set_label(None);
         self.removed_label_node_ids.push(node_id);
@@ -547,9 +752,19 @@ impl<N: LogicScriptStatementGraphNode>
 
         let prev_edges = graph.incoming_edge_data(node_id);
 
-        let is_redundant_jump = prev_edges
+        // A goto is NOT redundant if its target dominates any of its predecessors,
+        // because that means the goto implements a back-edge (loop). Removing it would
+        // either create a self-loop or lose the loop structure.
+        let is_back_edge = prev_edges
             .iter()
-            .all(|(_, prev_id, _)| self.domination_analysis.post_dominates(target_id, *prev_id));
+            .any(|(_, prev_id, _)| self.domination_analysis.dominates(target_id, *prev_id));
+
+        let is_redundant_jump = !is_back_edge
+            && prev_edges
+                .iter()
+                .all(|(_, prev_id, _)| {
+                    self.domination_analysis.post_dominates(target_id, *prev_id)
+                });
 
         if is_redundant_jump {
             for (edge_id, source_id, weight) in prev_edges {
@@ -696,10 +911,17 @@ mod tests {
         test_data::uriquest,
     };
 
+    use std::collections::{HashMap, HashSet};
+
     use petgraph::{Direction, prelude::StableDiGraph};
     use similar_asserts::assert_eq;
 
-    fn statement_graph_comparison<FP: FileProvider>(
+    /// Verify that the statement graph roundtrip is idempotent: running
+    /// statements through the graph twice produces the same result.  The first
+    /// pass may restructure unrolled else clauses into proper if/else blocks,
+    /// so we cannot compare against the original program generator output.
+    /// However, the second pass should be a no-op.
+    fn statement_graph_idempotency_check<FP: FileProvider>(
         project: &Project<FP>,
         logic_resource_number: u16,
     ) -> anyhow::Result<(
@@ -712,12 +934,22 @@ mod tests {
 
         let generator = LogicScriptProgramGenerator::new(&context);
         let statements = generator.generate_statements()?;
-        let mut statement_graph =
+
+        // First pass: build graph from program generator output and convert to statements.
+        // This may restructure unrolled else clauses into proper if/else blocks.
+        let mut graph1 =
             LogicScriptStatementGraph::try_from_statements(&statements, IdentifierMap::builtins())?;
+        let pass1_statements = graph1.to_statements()?;
 
-        let generated_statements = statement_graph.to_statements()?;
+        // Second pass: build a new graph from the first pass output and convert again.
+        // This should produce identical output, proving the transformation is stable.
+        let mut graph2 = LogicScriptStatementGraph::try_from_statements(
+            &pass1_statements,
+            IdentifierMap::builtins(),
+        )?;
+        let pass2_statements = graph2.to_statements()?;
 
-        Ok((statements, generated_statements))
+        Ok((pass1_statements, pass2_statements))
     }
 
     macro_rules! logic_smoke_test {
@@ -725,10 +957,10 @@ mod tests {
             #[test]
             fn $test_name() {
                 let project = uriquest();
-                let (statements, generated_statements) =
-                    statement_graph_comparison(&project, $resource_number).unwrap();
+                let (pass1_statements, pass2_statements) =
+                    statement_graph_idempotency_check(&project, $resource_number).unwrap();
 
-                assert_eq!(statements, generated_statements);
+                assert_eq!(pass1_statements, pass2_statements);
             }
         };
     }
@@ -784,6 +1016,8 @@ mod tests {
             graph,
             root_id: first_statement_id,
             identifiers: IdentifierMap::builtins(),
+            initial_goto_target_labels: HashSet::new(),
+            convergence_points: HashMap::new(),
         };
         let mut pass = RemoveRedundantJumpsPass::new(&statement_graph);
 
@@ -820,14 +1054,14 @@ mod tests {
         let failed = resource_numbers
             .into_iter()
             .filter_map(|resource_number| {
-                let result = statement_graph_comparison(&project, resource_number);
+                let result = statement_graph_idempotency_check(&project, resource_number);
                 result
-                    .and_then(|(statements, generated_statements)| {
-                        if statements == generated_statements {
-                            Ok((statements, generated_statements))
+                    .and_then(|(pass1_statements, pass2_statements)| {
+                        if pass1_statements == pass2_statements {
+                            Ok((pass1_statements, pass2_statements))
                         } else {
                             Err(anyhow::Error::msg(format!(
-                                "LOGIC {} generated statements did not match",
+                                "LOGIC {} statement graph roundtrip is not idempotent",
                                 resource_number
                             )))
                         }

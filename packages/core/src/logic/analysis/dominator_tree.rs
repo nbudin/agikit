@@ -5,7 +5,7 @@ use petgraph::{
     csr::{DefaultIx, IndexType},
     graph::NodeIndex,
     prelude::{EdgeIndex, StableDiGraph, StableGraph},
-    visit::{Dfs, EdgeRef, GraphBase, IntoEdgesDirected, IntoNeighbors, NodeCount, Visitable},
+    visit::{Dfs, EdgeRef, GraphBase, IntoEdgesDirected, IntoNeighbors, NodeCount, VisitMap, Visitable},
 };
 
 use crate::logic::analysis::{
@@ -363,14 +363,17 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
     {
         let mut nodes_in_dfs_order = Vec::with_capacity(graph.node_count());
         let mut spanning_tree_node_info = HashMap::with_capacity(graph.node_count());
-        let mut dfs = Dfs::new(graph, start);
 
-        while let Some(node_index) = dfs.next(graph) {
-            let parent = graph
-                .edges_directed(node_index, Direction::Incoming)
-                .next()
-                .map(|edge| edge.source());
+        // Manual DFS that tracks the actual DFS tree parent for each discovered node.
+        // The previous implementation incorrectly used the first incoming edge's source
+        // as the parent, which could yield a wrong parent when a node has multiple
+        // predecessors (e.g., back-edges from loops).
+        let mut visited = graph.visit_map();
+        visited.visit(start);
+        // Stack items are (node_to_visit, dfs_tree_parent)
+        let mut stack: Vec<(NodeIndex<Ix>, Option<NodeIndex<Ix>>)> = vec![(start, None)];
 
+        while let Some((node_index, parent)) = stack.pop() {
             spanning_tree_node_info.insert(
                 node_index,
                 SpanningTreeNodeInfo {
@@ -383,6 +386,14 @@ impl<Ix: IndexType> SemiNCASpanningTree<Ix> {
                 },
             );
             nodes_in_dfs_order.push(node_index);
+
+            // Push neighbors in reverse order so we visit them in forward order
+            let neighbors: Vec<_> = graph.neighbors(node_index).collect();
+            for &neighbor in neighbors.iter().rev() {
+                if visited.visit(neighbor) {
+                    stack.push((neighbor, Some(node_index)));
+                }
+            }
         }
 
         let mut semi_nca_tree = SemiNCASpanningTree {

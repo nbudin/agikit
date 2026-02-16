@@ -46,14 +46,6 @@ impl<'a> LogicScriptProgramGenerator<'a> {
         let context = self.context;
         let statements = self.generate_statements()?;
 
-        // Debug: write initial statements before optimization
-        if false {  // Set to true to enable debugging
-            eprintln!("=== INITIAL STATEMENTS (before optimization) ===");
-            for (i, stmt) in statements.iter().enumerate() {
-                eprintln!("{}: {:?}", i, stmt);
-            }
-        }
-
         let mut statement_graph =
             LogicScriptStatementGraph::try_from_statements(&statements, IdentifierMap::builtins())?;
 
@@ -282,6 +274,7 @@ impl<'a> LogicScriptProgramGenerator<'a> {
 
         let mut subsequent_code = vec![];
         if let Some(else_id) = else_id {
+            let then_exits_to_else = then_queue.iter().any(|id| *id == else_id);
             if self
                 .context
                 .domination_analysis
@@ -301,7 +294,54 @@ impl<'a> LogicScriptProgramGenerator<'a> {
                         .collect::<Vec<_>>(),
                 );
                 if_statement.else_statements.clear();
-                then_queue.clear();
+
+                if then_exits_to_else {
+                    // The then branch exits directly to the else start. This is
+                    // a simple if (no real else clause) -- the "else" was just
+                    // the fall-through continuation. Clear the else_keyword so
+                    // the statement graph won't try to reconstruct an else clause.
+                    if_statement.else_keyword = None;
+                    then_queue.clear();
+                } else if !then_queue.is_empty() {
+                    // Real else was unrolled. Add a convergence goto at the end
+                    // of the then clause to mark where the then branch exits to
+                    // (past the else content). This allows the statement graph
+                    // to detect the boundary between unrolled else content and
+                    // post-if continuation code.
+                    let convergence_block_id = then_queue[0];
+                    if let Some(convergence_label) =
+                        self.find_basic_block_label(convergence_block_id)?
+                    {
+                        // Only add the convergence goto if the then clause
+                        // doesn't already end with a goto to the same target.
+                        let already_has_goto = if_statement
+                            .then_statements
+                            .last()
+                            .and_then(|s| s.statement().get_goto_target_label())
+                            .map_or(false, |l| *l == convergence_label);
+
+                        if !already_has_goto {
+                            if_statement.then_statements.push(
+                                StatementWithOrWithoutLocation::WithoutLocation(
+                                    self.generate_goto(convergence_label),
+                                ),
+                            );
+                        }
+                        then_queue.clear();
+                    } else {
+                        // Can't mark the convergence point (no label on the
+                        // convergence block). Revert the unrolling so the else
+                        // clause stays intact with proper IfElse edges in the
+                        // statement graph.
+                        if_statement.else_statements = subsequent_code
+                            .drain(..)
+                            .map(StatementWithOrWithoutLocation::WithoutLocation)
+                            .collect();
+                        then_queue.clear();
+                    }
+                } else {
+                    then_queue.clear();
+                }
             }
         }
 
