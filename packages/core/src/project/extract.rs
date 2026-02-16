@@ -85,14 +85,31 @@ impl Display for ExtractError {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[wasm_bindgen]
 pub struct ResourceToExtract {
+    #[wasm_bindgen(js_name = "resourceType")]
     pub resource_type: ResourceType,
+    #[wasm_bindgen(js_name = "resourceNumber")]
     pub resource_number: u8,
 }
 
 #[wasm_bindgen]
+impl ResourceToExtract {
+    #[wasm_bindgen(constructor)]
+    pub fn new(
+        #[wasm_bindgen(js_name = "resourceType")] resource_type: ResourceType,
+        #[wasm_bindgen(js_name = "resourceNumber")] resource_number: u8,
+    ) -> Self {
+        Self {
+            resource_type,
+            resource_number,
+        }
+    }
+}
+
+#[wasm_bindgen]
 pub struct ExtractConfig {
+    #[wasm_bindgen(js_name = "decompilerDebug")]
     pub decompiler_debug: bool,
-    #[wasm_bindgen(getter_with_clone)]
+    #[wasm_bindgen(getter_with_clone, js_name = "onlyResources")]
     pub only_resources: Option<Vec<ResourceToExtract>>,
 }
 
@@ -101,6 +118,20 @@ impl Default for ExtractConfig {
         Self {
             decompiler_debug: false,
             only_resources: None,
+        }
+    }
+}
+
+#[wasm_bindgen]
+impl ExtractConfig {
+    #[wasm_bindgen(constructor)]
+    pub fn new(
+        #[wasm_bindgen(js_name = "decompilerDebug")] decompiler_debug: bool,
+        #[wasm_bindgen(js_name = "onlyResources")] only_resources: Option<Vec<ResourceToExtract>>,
+    ) -> Self {
+        Self {
+            decompiler_debug,
+            only_resources,
         }
     }
 }

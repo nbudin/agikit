@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node-script
 
-import { ResourceToExtract, ResourceType } from '@agikit/core';
+import { ExtractConfig, ResourceToExtract, ResourceType } from '@agikit/core';
 import parseArgs, { ParsedArgs } from 'minimist';
 import { buildProject } from './Commands/build';
 import { extractGame } from './Commands/extract';
@@ -15,10 +15,10 @@ function parseResourcesToExtract(
   }
 
   if (Array.isArray(arg)) {
-    return arg.map((number) => ({ resourceType, resourceNumber: Number.parseInt(number, 10) }));
+    return arg.map((number) => new ResourceToExtract(resourceType, Number.parseInt(number, 10)));
   }
 
-  return [{ resourceType, resourceNumber: Number.parseInt(arg, 10) }];
+  return [new ResourceToExtract(resourceType, Number.parseInt(arg, 10))];
 }
 
 const commandRunners: { [cmd: string]: (args: ParsedArgs) => void } = {
@@ -42,10 +42,12 @@ const commandRunners: { [cmd: string]: (args: ParsedArgs) => void } = {
         ...parseResourcesToExtract(ResourceType.SOUND, args.s),
       ];
 
-      extractGame(args._[1], args._[2], undefined, {
-        decompilerDebug: args.d,
-        onlyResources: only.length > 0 ? only : undefined,
-      });
+      extractGame(
+        args._[1],
+        args._[2],
+        undefined,
+        new ExtractConfig(args.d, only.length > 0 ? only : undefined),
+      );
     }
   },
   formatLogic: (args: ParsedArgs) => {

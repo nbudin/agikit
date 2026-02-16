@@ -24,7 +24,7 @@ pub type ResourceNumber = u16;
 
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"
-export enum ResourceType {
+export const enum ResourceType {
   LOGIC = 'LOGIC',
   PIC = 'PIC',
   VIEW = 'VIEW',

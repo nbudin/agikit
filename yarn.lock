@@ -20,6 +20,7 @@ __metadata:
     minimist: "npm:^1.2.5"
     prettier: "npm:^2.5.1"
     shebang-trim: "npm:^1.1.0"
+    tsx: "npm:^4.20.6"
     typescript: "npm:^4.5.5"
   bin:
     agikit: dist/cli.js
@@ -9498,6 +9499,22 @@ __metadata:
   bin:
     tsx: dist/cli.mjs
   checksum: 10/4dde315aeda70b9cadfecbc8d05b1625f5831018b9cb2db25cbbd03c5f5ee9c59cdc6652a0fd8492176b50944a5af1d5af352b944d024f4a719f58d6f2ac3a7f
+  languageName: node
+  linkType: hard
+
+"tsx@npm:^4.20.6":
+  version: 4.20.6
+  resolution: "tsx@npm:4.20.6"
+  dependencies:
+    esbuild: "npm:~0.25.0"
+    fsevents: "npm:~2.3.3"
+    get-tsconfig: "npm:^4.7.5"
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    tsx: dist/cli.mjs
+  checksum: 10/16396df25c474d7526f7adf9cd0c1f0b71a8c42f70bb93c2399c561eae3998abc015e8fe36a1e149fd289472919fb02816c5b46d72cf9f4335932419ecf2de8b
   languageName: node
   linkType: hard
 

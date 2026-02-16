@@ -41,6 +41,7 @@
     "jest": "^27.5.1",
     "prettier": "^2.5.1",
     "shebang-trim": "^1.1.0",
+    "tsx": "^4.20.6",
     "typescript": "^4.5.5"
   },
   "gitHead": "26eba522edf0c98cfd2a646ded8f4a4ab8e812fc"
