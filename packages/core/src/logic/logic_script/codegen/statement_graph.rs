@@ -11,7 +11,7 @@ use petgraph::{
 };
 
 #[cfg(feature = "dot")]
-use crate::logic::logic_script::codegen::context::LogicScriptCodeGenerationContext;
+use crate::logic::asm::codegen::AsmCodeGenerationContext;
 use crate::logic::{
     analysis::{
         dominator_tree::DominationAnalysis,
@@ -46,7 +46,7 @@ pub trait LogicScriptStatementGraphNode: Clone + Debug + LabeledNode {
     /// else_statements list is empty (as happens after unrolling).
     fn has_else_keyword(&self) -> bool;
     #[cfg(feature = "dot")]
-    fn node_attrs(&self, context: &LogicScriptCodeGenerationContext) -> String;
+    fn node_attrs(&self, context: &AsmCodeGenerationContext) -> String;
 }
 
 impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug> LogicScriptStatementGraphNode
@@ -76,7 +76,7 @@ impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug> LogicScriptStat
     }
 
     #[cfg(feature = "dot")]
-    fn node_attrs(&self, context: &LogicScriptCodeGenerationContext) -> String {
+    fn node_attrs(&self, context: &AsmCodeGenerationContext) -> String {
         self.dot_node_attrs(context)
     }
 }
@@ -329,7 +329,6 @@ impl<N: LogicScriptStatementGraphNode> LogicScriptStatementGraph<N> {
             convergence_points,
         })
     }
-
 }
 
 impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug>
@@ -426,12 +425,7 @@ impl<Arg: LogicArgument + AsParsedLogicArgument + Clone + Debug>
                                 None,
                             )
                             && !then_node_id.map_or(false, |tn| {
-                                has_path_connecting(
-                                    &inward_filter,
-                                    tn,
-                                    subclause_node_id,
-                                    None,
-                                )
+                                has_path_connecting(&inward_filter, tn, subclause_node_id, None)
                             })
                         {
                             return domination_analysis.dominates(node_id, subclause_node_id);
@@ -760,11 +754,9 @@ impl<N: LogicScriptStatementGraphNode>
             .any(|(_, prev_id, _)| self.domination_analysis.dominates(target_id, *prev_id));
 
         let is_redundant_jump = !is_back_edge
-            && prev_edges
-                .iter()
-                .all(|(_, prev_id, _)| {
-                    self.domination_analysis.post_dominates(target_id, *prev_id)
-                });
+            && prev_edges.iter().all(|(_, prev_id, _)| {
+                self.domination_analysis.post_dominates(target_id, *prev_id)
+            });
 
         if is_redundant_jump {
             for (edge_id, source_id, weight) in prev_edges {
@@ -869,7 +861,7 @@ pub fn remove_empty_then_with_else<Arg: LogicArgument + AsParsedLogicArgument + 
 
 #[cfg(feature = "dot")]
 impl<N: LogicScriptStatementGraphNode> LogicScriptStatementGraph<N> {
-    pub fn to_dot(&self, context: &LogicScriptCodeGenerationContext) -> String {
+    pub fn to_dot(&self, context: &AsmCodeGenerationContext) -> String {
         use petgraph::dot::{Config, Dot};
 
         format!(

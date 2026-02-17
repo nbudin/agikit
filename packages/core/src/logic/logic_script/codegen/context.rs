@@ -35,7 +35,7 @@ impl<'a> LogicScriptCodeGenerationContext<'a> {
         let mut basic_block_graph = BasicBlockGraph::from_ast(&ast);
         basic_block_graph.optimize();
         let asm_context = AsmCodeGenerationContext {
-            logic: program,
+            messages: &program.messages,
             word_list: word_list,
         };
         Ok(Self::from_basic_block_graph(basic_block_graph, asm_context))

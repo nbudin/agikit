@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 use petgraph::{
     graph::NodeIndex,
@@ -62,6 +62,53 @@ pub enum ASTGenerationError {
     UnknownObjectName(String),
     UnknownTestCommand(String),
     UnknownWord(String),
+}
+
+impl Display for ASTGenerationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ASTGenerationError::BooleanOperationCannotHaveTwoLiteralOperands => {
+                f.write_str("Boolean operation cannot have two literal operands")
+            }
+            ASTGenerationError::InvalidValueForArgType { value, arg_type } => f.write_fmt(
+                format_args!("Invalid value: {} for {}", value, arg_type.as_ref()),
+            ),
+            ASTGenerationError::StatementAddressNotFound(node_index) => f.write_fmt(format_args!(
+                "Statement address not found for {:?}",
+                node_index
+            )),
+            ASTGenerationError::StatementNodeNotFound(node_index) => f.write_fmt(format_args!(
+                "Statement node not found for {:?}",
+                node_index
+            )),
+            ASTGenerationError::StringLiteralInBooleanOperation => {
+                f.write_str("String literal in boolean operation")
+            }
+            ASTGenerationError::TypeMismatch { expected, got } => f.write_fmt(format_args!(
+                "Expected {}, got {}",
+                expected.as_ref(),
+                got.as_ref()
+            )),
+            ASTGenerationError::UnknownCommand(cmd_name) => {
+                f.write_fmt(format_args!("Unknown command: {}", cmd_name))
+            }
+            ASTGenerationError::UnknownIdentifier(identifier) => {
+                f.write_fmt(format_args!("Unknown identifier: {}", identifier))
+            }
+            ASTGenerationError::UnknownLabel(label) => {
+                f.write_fmt(format_args!("Unknown label: {}", label))
+            }
+            ASTGenerationError::UnknownObjectName(obj_name) => {
+                f.write_fmt(format_args!("Unknown object name: {}", obj_name))
+            }
+            ASTGenerationError::UnknownTestCommand(test_cmd) => {
+                f.write_fmt(format_args!("Unknown test command: {}", test_cmd))
+            }
+            ASTGenerationError::UnknownWord(word) => {
+                f.write_fmt(format_args!("Unknown word: {}", word))
+            }
+        }
+    }
 }
 
 struct UnresolvedGoto {

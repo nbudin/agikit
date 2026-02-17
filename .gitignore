@@ -34,6 +34,8 @@ qtagistudio-*
 
 *debug*.dot
 
+.claude
+
 # Added by cargo
 
 /target

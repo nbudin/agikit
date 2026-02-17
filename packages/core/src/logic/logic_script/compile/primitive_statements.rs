@@ -1,12 +1,13 @@
 use std::fmt::Debug;
 
+#[cfg(feature = "dot")]
+use crate::logic::asm::codegen::AsmCodeGenerationContext;
 use crate::logic::{
     asm::expressions::{
         AsParsedLogicArgument, LogicArgument, LogicBooleanExpression, ParsedLogicArgument,
     },
     logic_script::{
         codegen::{
-            context::LogicScriptCodeGenerationContext,
             errors::LogicScriptCodeGenerationError,
             node_label_map::LabeledNode,
             statement_graph::{LogicScriptStatementGraph, LogicScriptStatementGraphNode},
@@ -282,7 +283,7 @@ impl LogicScriptStatementGraphNode for LogicScriptPrimitiveStatement {
     }
 
     #[cfg(feature = "dot")]
-    fn node_attrs(&self, context: &LogicScriptCodeGenerationContext) -> String {
+    fn node_attrs(&self, context: &AsmCodeGenerationContext) -> String {
         self.to_statement().node_attrs(context)
     }
 

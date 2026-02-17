@@ -437,7 +437,7 @@ mod tests {
             .write_fmt(format_args!(
                 "{}",
                 ast.to_dot(&AsmCodeGenerationContext {
-                    logic: &logic_program,
+                    messages: &logic_program.messages,
                     word_list: &word_list
                 })
             ))

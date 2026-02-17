@@ -18,7 +18,7 @@ use crate::{
 };
 
 pub struct AsmCodeGenerationContext<'a> {
-    pub logic: &'a LogicProgram,
+    pub messages: &'a HashMap<u8, String>,
     pub word_list: &'a WordList,
 }
 
@@ -190,7 +190,9 @@ impl<Arg: LogicArgument + GenerateLogicAsm> GenerateLogicAsm for LogicBooleanExp
     ) -> Result<String, AsmCodeGenerationError> {
         let generate_sub_expression_asm =
             |sub_expression: &LogicBooleanExpression<Arg>| match sub_expression {
-                LogicBooleanExpression::TestCall(_) | LogicBooleanExpression::NotExpression(_) => {
+                LogicBooleanExpression::TestCall(_)
+                | LogicBooleanExpression::NotExpression(_)
+                | LogicBooleanExpression::Identifier(_) => {
                     sub_expression.generate_asm(context, labels)
                 }
 
@@ -374,7 +376,10 @@ pub fn generate_logic_asm(
         .iter()
         .map(|label| (label.address, label))
         .collect();
-    let context = AsmCodeGenerationContext { logic, word_list };
+    let context = AsmCodeGenerationContext {
+        messages: &logic.messages,
+        word_list,
+    };
 
     let asm_code = logic
         .instructions
@@ -495,7 +500,7 @@ pub mod js {
     impl OwnedCodeGenerationContext {
         pub fn to_asm_code_generation_context(&self) -> AsmCodeGenerationContext<'_> {
             super::AsmCodeGenerationContext {
-                logic: &self.logic,
+                messages: &self.logic.messages,
                 word_list: &self.word_list,
             }
         }

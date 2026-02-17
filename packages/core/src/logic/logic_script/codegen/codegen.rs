@@ -1,11 +1,13 @@
 use std::collections::HashMap;
 
 use crate::logic::{
-    asm::{codegen::GenerateLogicAsm, expressions::LogicArgument, literals::LogicNumberLiteral},
+    asm::{
+        codegen::{AsmCodeGenerationContext, GenerateLogicAsm},
+        expressions::LogicArgument,
+        literals::LogicNumberLiteral,
+    },
     logic_script::{
-        codegen::{
-            context::LogicScriptCodeGenerationContext, errors::LogicScriptCodeGenerationError,
-        },
+        codegen::errors::LogicScriptCodeGenerationError,
         directives::{Directive, LogicScriptDefineValue},
         literals::{LogicScriptLiteral, LogicScriptLiteralValue, LogicScriptStringLiteral},
         operators::{LogicScriptArithmeticOperator, LogicScriptUnaryAssignmentOperator},
@@ -24,7 +26,7 @@ pub trait GenerateLogicScript {
 
     fn generate_logic_script(
         &self,
-        context: &LogicScriptCodeGenerationContext<'_>,
+        asm_context: &AsmCodeGenerationContext<'_>,
         options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError>;
 }
@@ -34,10 +36,10 @@ impl<T: GenerateLogicAsm> GenerateLogicScript for T {
 
     fn generate_logic_script(
         &self,
-        context: &LogicScriptCodeGenerationContext<'_>,
+        asm_context: &AsmCodeGenerationContext<'_>,
         _options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
-        self.generate_asm(&context.asm_context, &HashMap::new())
+        self.generate_asm(asm_context, &HashMap::new())
             .map_err(LogicScriptCodeGenerationError::AsmCodeGenerationError)
     }
 }
@@ -47,7 +49,7 @@ impl GenerateLogicScript for LogicNumberLiteral {
 
     fn generate_logic_script(
         &self,
-        _context: &LogicScriptCodeGenerationContext<'_>,
+        _context: &AsmCodeGenerationContext<'_>,
         _options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         Ok(format!("{}", self.value))
@@ -59,7 +61,7 @@ impl GenerateLogicScript for LogicScriptStringLiteral {
 
     fn generate_logic_script(
         &self,
-        _context: &LogicScriptCodeGenerationContext<'_>,
+        _context: &AsmCodeGenerationContext<'_>,
         _options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         Ok(serde_json::to_string(&self.value())?)
@@ -71,7 +73,7 @@ impl GenerateLogicScript for LogicScriptLiteral {
 
     fn generate_logic_script(
         &self,
-        context: &LogicScriptCodeGenerationContext<'_>,
+        context: &AsmCodeGenerationContext<'_>,
         _options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         match self.value {
@@ -88,10 +90,10 @@ impl GenerateLogicScript for LogicScriptComment {
 
     fn generate_logic_script(
         &self,
-        _context: &LogicScriptCodeGenerationContext<'_>,
+        _context: &AsmCodeGenerationContext<'_>,
         _options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
-        Ok(format!("//{}\n", self.comment))
+        Ok(format!("//{}", self.comment))
     }
 }
 
@@ -100,7 +102,7 @@ impl GenerateLogicScript for LogicScriptDefineValue {
 
     fn generate_logic_script(
         &self,
-        context: &LogicScriptCodeGenerationContext<'_>,
+        context: &AsmCodeGenerationContext<'_>,
         _options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         match self {
@@ -117,7 +119,7 @@ impl GenerateLogicScript for Directive {
 
     fn generate_logic_script(
         &self,
-        context: &LogicScriptCodeGenerationContext<'_>,
+        context: &AsmCodeGenerationContext<'_>,
         _options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         match self {
@@ -144,14 +146,14 @@ impl<Arg: LogicArgument> GenerateLogicScript for Vec<Arg> {
 
     fn generate_logic_script(
         &self,
-        context: &LogicScriptCodeGenerationContext<'_>,
+        asm_context: &AsmCodeGenerationContext<'_>,
         _options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         self.iter()
             .map(|arg| {
-                arg.try_parse(&context.asm_context)
+                arg.try_parse(asm_context)
                     .map_err(LogicScriptCodeGenerationError::AsmCodeGenerationError)
-                    .and_then(|parsed| parsed.generate_logic_script(context, ()))
+                    .and_then(|parsed| parsed.generate_logic_script(asm_context, ()))
             })
             .collect::<Result<Vec<_>, _>>()
             .map(|args| args.join(", "))
@@ -163,7 +165,7 @@ impl<Arg: LogicArgument> GenerateLogicScript for LogicScriptCommandCall<Arg> {
 
     fn generate_logic_script(
         &self,
-        context: &LogicScriptCodeGenerationContext<'_>,
+        context: &AsmCodeGenerationContext<'_>,
         options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         Ok(format!(
@@ -179,7 +181,7 @@ impl GenerateLogicScript for LogicScriptUnaryAssignmentOperator {
 
     fn generate_logic_script(
         &self,
-        _context: &LogicScriptCodeGenerationContext<'_>,
+        _context: &AsmCodeGenerationContext<'_>,
         _options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         match self {
@@ -194,7 +196,7 @@ impl GenerateLogicScript for LogicScriptUnaryOperationStatement {
 
     fn generate_logic_script(
         &self,
-        context: &LogicScriptCodeGenerationContext<'_>,
+        context: &AsmCodeGenerationContext<'_>,
         options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         Ok(format!(
@@ -212,7 +214,7 @@ impl<Arg: LogicArgument + GenerateLogicAsm> GenerateLogicScript
 
     fn generate_logic_script(
         &self,
-        context: &LogicScriptCodeGenerationContext<'_>,
+        context: &AsmCodeGenerationContext<'_>,
         options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         Ok(format!(
@@ -228,7 +230,7 @@ impl GenerateLogicScript for LogicScriptArithmeticOperator {
 
     fn generate_logic_script(
         &self,
-        _context: &LogicScriptCodeGenerationContext<'_>,
+        _context: &AsmCodeGenerationContext<'_>,
         _options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         match self {
@@ -247,7 +249,7 @@ impl<Arg: LogicArgument + GenerateLogicAsm> GenerateLogicScript
 
     fn generate_logic_script(
         &self,
-        context: &LogicScriptCodeGenerationContext<'_>,
+        context: &AsmCodeGenerationContext<'_>,
         options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         Ok(format!(
@@ -266,7 +268,7 @@ impl<Arg: LogicArgument + GenerateLogicAsm> GenerateLogicScript
 
     fn generate_logic_script(
         &self,
-        context: &LogicScriptCodeGenerationContext<'_>,
+        context: &AsmCodeGenerationContext<'_>,
         options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         Ok(format!(
@@ -283,7 +285,7 @@ impl GenerateLogicScript for LogicScriptRightIndirectAssignmentStatement {
 
     fn generate_logic_script(
         &self,
-        context: &LogicScriptCodeGenerationContext<'_>,
+        context: &AsmCodeGenerationContext<'_>,
         options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         Ok(format!(
@@ -301,12 +303,10 @@ impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
 
     fn generate_logic_script(
         &self,
-        context: &LogicScriptCodeGenerationContext<'_>,
+        context: &AsmCodeGenerationContext<'_>,
         indent: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
-        let indent_line = |line: &str| -> String {
-            format!("{}{}", " ".repeat(indent), line)
-        };
+        let indent_line = |line: &str| -> String { format!("{}{}", " ".repeat(indent), line) };
 
         match self {
             LogicScriptStatementBody::Comment(comment) => {
@@ -390,7 +390,7 @@ impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
 
     fn generate_logic_script(
         &self,
-        context: &LogicScriptCodeGenerationContext<'_>,
+        context: &AsmCodeGenerationContext<'_>,
         indent: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         let label_content = match &self.label {
@@ -429,7 +429,7 @@ impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
 
     fn generate_logic_script(
         &self,
-        context: &LogicScriptCodeGenerationContext<'_>,
+        context: &AsmCodeGenerationContext<'_>,
         options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         let mut prev_statement: Option<&LogicScriptStatement<Arg>> = None;
@@ -444,7 +444,7 @@ impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
             // - before labeled statements
             // - after comments or directives
             // - before the first statement
-            let should_add_blank = !has_label
+            let should_add_blank_before_if = !has_label
                 && matches!(statement.body, LogicScriptStatementBody::IfStatement(_))
                 && prev_statement.is_some()
                 && !matches!(
@@ -455,14 +455,29 @@ impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
                     )
                 );
 
-            if should_add_blank {
+            // Add blank line(s) before comments that follow non-comment/non-directive statements
+            let should_add_blank_before_comment = matches!(statement.body, LogicScriptStatementBody::Comment(_))
+                && prev_statement.is_some()
+                && !matches!(
+                    prev_statement.map(|s| &s.body),
+                    Some(
+                        LogicScriptStatementBody::Comment(_)
+                            | LogicScriptStatementBody::Directive(_)
+                    )
+                );
+
+            if should_add_blank_before_if {
                 result.push(String::new()); // Add a blank line (no indentation)
+            } else if should_add_blank_before_comment {
+                // Add TWO blank lines before comments that follow code
+                result.push(String::new());
+                result.push(String::new());
             }
 
             result.push(script);
             prev_statement = Some(statement);
         }
 
-        Ok(result.join("\n"))
+        Ok(format!("{}\n", result.join("\n")))
     }
 }

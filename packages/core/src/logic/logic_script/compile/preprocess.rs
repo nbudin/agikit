@@ -177,3 +177,100 @@ pub fn parse_logic_script_raw(
 
     Ok(raw_program)
 }
+
+#[cfg(feature = "js")]
+mod js {
+    use std::{collections::HashMap, path::Path};
+
+    use wasm_bindgen::prelude::wasm_bindgen;
+
+    use crate::{
+        agi_version::AGIVersion,
+        logic::{
+            asm::{codegen::AsmCodeGenerationContext, expressions::ParsedLogicArgument},
+            logic_script::{
+                codegen::{codegen::GenerateLogicScript, errors::LogicScriptCodeGenerationError},
+                compile::preprocess::{parse_logic_script_raw, preprocess_logic_script},
+                identifiers::IdentifierMap,
+                locations::WithLocation,
+                parsing::LogicScriptProgram,
+                statements::LogicScriptStatement,
+            },
+        },
+        project::Project,
+        word_list::WordList,
+    };
+
+    #[wasm_bindgen(js_name = "LogicScriptProgram")]
+    pub struct JsLogicScriptProgram {
+        program: LogicScriptProgram<
+            WithLocation<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>,
+        >,
+    }
+
+    #[wasm_bindgen(js_name = "parseLogicScriptRaw")]
+    pub fn js_parse_logic_script_raw(
+        input: &str,
+        script_path: &str,
+    ) -> Result<JsLogicScriptProgram, String> {
+        let agi_version = Project::detect(Path::new(script_path).to_path_buf())
+            .map(|project| project.config.agi_version)
+            .unwrap_or_else(|| AGIVersion::default_v2());
+
+        parse_logic_script_raw(input, &agi_version)
+            .map(|program| JsLogicScriptProgram { program })
+            .map_err(|err| format!("{}", err))
+    }
+
+    #[wasm_bindgen(js_name = "PreprocessResult")]
+    pub struct JsPreprocessResult {
+        statements: Vec<WithLocation<LogicScriptStatement<WithLocation<ParsedLogicArgument>>>>,
+        #[allow(unused)]
+        identifier_map: IdentifierMap,
+    }
+
+    impl JsPreprocessResult {
+        pub fn generate_logic_script(&self) -> Result<String, LogicScriptCodeGenerationError> {
+            let messages = HashMap::new();
+            let word_list = WordList::new();
+            let context = AsmCodeGenerationContext {
+                messages: &messages,
+                word_list: &word_list,
+            };
+
+            Ok(self
+                .statements
+                .iter()
+                .map(|statement_with_location| {
+                    statement_with_location
+                        .value
+                        .generate_logic_script(&context, 0)
+                })
+                .collect::<Result<Vec<String>, _>>()?
+                .join("\n"))
+        }
+    }
+
+    #[wasm_bindgen(js_name = "preprocessLogicScript")]
+    pub fn js_preprocess_logic_script(
+        raw_program: JsLogicScriptProgram,
+        script_path: &str,
+    ) -> Result<JsPreprocessResult, String> {
+        let file_provider = Path::new(script_path).to_path_buf();
+        let agi_version = Project::detect(Path::new(script_path).to_path_buf())
+            .map(|project| project.config.agi_version)
+            .unwrap_or_else(|| AGIVersion::default_v2());
+
+        preprocess_logic_script(
+            &raw_program.program,
+            script_path,
+            &agi_version,
+            &file_provider,
+        )
+        .map(|(statements, identifier_map)| JsPreprocessResult {
+            statements,
+            identifier_map,
+        })
+        .map_err(|err| format!("{}", err))
+    }
+}

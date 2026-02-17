@@ -1,7 +1,8 @@
 #!/usr/bin/env ts-node-script
 
-import { ExtractConfig, ResourceToExtract, ResourceType } from '@agikit/core';
+import { ExtractConfig, ResourceToExtract, ResourceType, setLogger } from '@agikit/core';
 import parseArgs, { ParsedArgs } from 'minimist';
+import { CLILogger } from './CLILogger';
 import { buildProject } from './Commands/build';
 import { extractGame } from './Commands/extract';
 import { formatLogicScript } from './Commands/formatLogic';
@@ -59,6 +60,7 @@ const commandRunners: { [cmd: string]: (args: ParsedArgs) => void } = {
   },
 };
 
+setLogger(new CLILogger());
 const args = parseArgs(process.argv.slice(2), { boolean: 'd' });
 const command = args._[0];
 

@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use peg::{error::ParseError, str::LineCol};
 use petgraph::graph::NodeIndex;
 
@@ -23,6 +25,36 @@ pub enum CompilationError {
     FailedDiagnostics(Vec<LogicScriptDiagnostic<WithLocation<ParsedLogicArgument>>>),
     ParseError(ParseError<LineCol>),
     IoError(std::io::Error),
+}
+
+impl Display for CompilationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CompilationError::ASTGenerationError(err) => err.fmt(f),
+            CompilationError::BlockHasNotBeenCompiled(node_index) => f.write_fmt(format_args!(
+                "Block at {:?} has not been compiled",
+                node_index
+            )),
+            CompilationError::CannotFindAddressForEmptyBlock(node_index) => f.write_fmt(
+                format_args!("Cannot find address for empty block at {:?}", node_index),
+            ),
+            CompilationError::CannotFindNextBlockAfterIf(node_index) => f.write_fmt(format_args!(
+                "Cannot find next block after if statement at {:?}",
+                node_index
+            )),
+            CompilationError::ConflictingInstructionForAddress(addr) => {
+                f.write_fmt(format_args!("Conflicting instruction for address {}", addr))
+            }
+            CompilationError::LogicScriptCodeGenerationError(err) => err.fmt(f),
+            CompilationError::DefineError(err) => err.fmt(f),
+            CompilationError::FailedDiagnostics(diagnostics) => diagnostics
+                .iter()
+                .map(|diag| f.write_fmt(format_args!("{}", diag)))
+                .collect(),
+            CompilationError::ParseError(err) => err.fmt(f),
+            CompilationError::IoError(err) => f.write_fmt(format_args!("IO Error: {}", err)),
+        }
+    }
 }
 
 impl From<DefineError> for CompilationError {

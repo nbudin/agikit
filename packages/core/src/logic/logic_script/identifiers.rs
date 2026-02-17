@@ -1,5 +1,6 @@
 use std::{
     collections::{HashMap, hash_map::Entry},
+    fmt::Display,
     num::TryFromIntError,
 };
 
@@ -87,6 +88,20 @@ pub enum DefineError {
     TryFromIntError(TryFromIntError),
     UnknownIdentifier { name: String },
     IdentifierAlreadyDefined { name: String },
+}
+
+impl Display for DefineError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DefineError::TryFromIntError(try_from_int_error) => try_from_int_error.fmt(f),
+            DefineError::UnknownIdentifier { name } => {
+                f.write_fmt(format_args!("Unknown identifier: {}", name))
+            }
+            DefineError::IdentifierAlreadyDefined { name } => {
+                f.write_fmt(format_args!("Identifier {} already defined", name))
+            }
+        }
+    }
 }
 
 impl From<TryFromIntError> for DefineError {

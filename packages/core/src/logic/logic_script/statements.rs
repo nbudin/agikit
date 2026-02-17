@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use strum_macros::AsRefStr;
 
 #[cfg(feature = "dot")]
-use crate::logic::logic_script::codegen::context::LogicScriptCodeGenerationContext;
+use crate::logic::asm::codegen::AsmCodeGenerationContext;
 use crate::logic::{
     asm::expressions::{
         AsParsedLogicArgument, LogicArgument, LogicBooleanExpression, LogicIdentifier,
@@ -276,7 +276,7 @@ impl<Arg: LogicArgument + AsParsedLogicArgument> LogicScriptStatement<Arg> {
 
 #[cfg(feature = "dot")]
 impl<Arg: LogicArgument + AsParsedLogicArgument + Clone> LogicScriptStatement<Arg> {
-    pub fn dot_node_label(&self, context: &LogicScriptCodeGenerationContext) -> String {
+    pub fn dot_node_label(&self, context: &AsmCodeGenerationContext) -> String {
         use crate::logic::logic_script::codegen::codegen::GenerateLogicScript;
 
         let label = match &self.body {
@@ -285,7 +285,7 @@ impl<Arg: LogicArgument + AsParsedLogicArgument + Clone> LogicScriptStatement<Ar
                     "if ({})",
                     if_statement
                         .conditions
-                        .generate_logic_script(&context, ())
+                        .generate_logic_script(context, ())
                         .unwrap()
                 );
 
@@ -295,7 +295,7 @@ impl<Arg: LogicArgument + AsParsedLogicArgument + Clone> LogicScriptStatement<Ar
                 }
             }
             _ => self
-                .generate_logic_script(&context, 0)
+                .generate_logic_script(context, 0)
                 .unwrap()
                 .trim()
                 .to_string(),
@@ -324,7 +324,7 @@ impl<Arg: LogicArgument + AsParsedLogicArgument + Clone> LogicScriptStatement<Ar
         }
     }
 
-    pub fn dot_node_attrs(&self, context: &LogicScriptCodeGenerationContext) -> String {
+    pub fn dot_node_attrs(&self, context: &AsmCodeGenerationContext) -> String {
         let label = self.dot_node_label(context);
         let shape = self.dot_node_shape();
 

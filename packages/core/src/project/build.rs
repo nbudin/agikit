@@ -1,8 +1,4 @@
-use std::{
-    fmt::{Debug, Display},
-    path::PathBuf,
-    str::FromStr,
-};
+use std::{fmt::Display, path::PathBuf, str::FromStr};
 
 use log::{info, warn};
 
@@ -34,7 +30,7 @@ pub enum BuildError {
 impl Display for BuildError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            BuildError::CompilationError(error) => error.fmt(f),
+            BuildError::CompilationError(error) => std::fmt::Display::fmt(error, f),
             BuildError::DecodingError(error) => std::fmt::Display::fmt(error, f),
             BuildError::EncodingError(error) => std::fmt::Display::fmt(error, f),
             BuildError::IoError(error) => std::fmt::Display::fmt(error, f),

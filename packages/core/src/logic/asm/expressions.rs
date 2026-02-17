@@ -67,7 +67,7 @@ impl LogicArgument for AsmLogicArgument {
                 name: format!("c{}", self.value),
             })),
             AGICommandArgType::Message => {
-                let message = context.logic.messages.get(&(self.value as u8 - 1));
+                let message = context.messages.get(&(self.value as u8 - 1));
                 match message {
                     Some(msg) => Ok(ParsedLogicArgument::Literal(LogicLiteral {
                         value: LogicLiteralValue::from_string(msg.clone()),

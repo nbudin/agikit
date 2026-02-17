@@ -52,7 +52,8 @@ impl<'a> LogicScriptProgramGenerator<'a> {
         statement_graph.optimize();
 
         let optimized_statements = statement_graph.to_statements()?;
-        let program_section = optimized_statements.generate_logic_script(context, 0)?;
+        let program_section =
+            optimized_statements.generate_logic_script(&context.asm_context, 0)?;
 
         Ok(format!(
             "{}\n\n\n{}\n",

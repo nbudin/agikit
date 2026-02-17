@@ -1,4 +1,4 @@
-import type { Logger } from '@agikit/core';
+import { Logger } from '@agikit/core';
 import ansiColors, { bgRedBright, black, bgYellowBright, bgGreenBright } from 'ansi-colors';
 import colorSupport from 'color-support';
 
