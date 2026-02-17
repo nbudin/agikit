@@ -433,27 +433,36 @@ impl<Arg: LogicArgument + GenerateLogicAsm + Clone> GenerateLogicScript
         options: Self::Options,
     ) -> Result<String, LogicScriptCodeGenerationError> {
         let mut prev_statement: Option<&LogicScriptStatement<Arg>> = None;
-        self.iter()
-            .map(|statement| {
-                let mut script = statement.generate_logic_script(context, options)?;
-                let has_label = statement.label.is_some();
-                if !has_label
-                    && matches!(statement.body, LogicScriptStatementBody::IfStatement(_))
-                    && prev_statement.is_some()
-                    && !matches!(
-                        prev_statement.map(|s| &s.body),
-                        Some(
-                            LogicScriptStatementBody::Comment(_)
-                                | LogicScriptStatementBody::Directive(_)
-                        )
+        let mut result = Vec::new();
+
+        for statement in self.iter() {
+            let script = statement.generate_logic_script(context, options)?;
+            let has_label = statement.label.is_some();
+
+            // Add blank line before unlabeled if statements (for readability)
+            // BUT: Don't add blank lines:
+            // - before labeled statements
+            // - after comments or directives
+            // - before the first statement
+            let should_add_blank = !has_label
+                && matches!(statement.body, LogicScriptStatementBody::IfStatement(_))
+                && prev_statement.is_some()
+                && !matches!(
+                    prev_statement.map(|s| &s.body),
+                    Some(
+                        LogicScriptStatementBody::Comment(_)
+                            | LogicScriptStatementBody::Directive(_)
                     )
-                {
-                    script = format!("\n{}", script);
-                }
-                prev_statement = Some(statement);
-                Ok(script)
-            })
-            .collect::<Result<Vec<_>, _>>()
-            .map(|lines| lines.join("\n"))
+                );
+
+            if should_add_blank {
+                result.push(String::new()); // Add a blank line (no indentation)
+            }
+
+            result.push(script);
+            prev_statement = Some(statement);
+        }
+
+        Ok(result.join("\n"))
     }
 }

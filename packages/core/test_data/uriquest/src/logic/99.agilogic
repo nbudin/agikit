@@ -94,7 +94,7 @@ if (said(w1003, w1015)) {
     print("Invalid object number!");
   } else {
     get.room.v(v255, v254);
-
+  
     if (v254 == 255) {
       print("Object %v255 is in your inventory.");
     } else {
@@ -125,7 +125,6 @@ if (f35) {
   get.priority(o0, v255);
   display(24, 15, "Rm %v0|3 Pri %v255|2 x:%v253|3 y:%v254|3");
 }
-
 return();
 
 
