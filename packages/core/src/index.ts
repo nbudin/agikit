@@ -3,6 +3,7 @@ import {
   egaPalette,
   getAGICommands,
   getAGICommandsByName,
+  getDefaultPenSettings,
   getDefaultProjectConfig,
   getTestCommands,
   getTestCommandsByName,
@@ -16,3 +17,4 @@ export const testCommands = getTestCommands();
 export const agiCommandsByName = getAGICommandsByName();
 export const testCommandsByName = getTestCommandsByName();
 export const DefaultProjectConfig = getDefaultProjectConfig();
+export const DEFAULT_PEN_SETTINGS = getDefaultPenSettings();

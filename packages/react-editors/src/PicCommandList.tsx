@@ -6,13 +6,8 @@ import { PicEditorControlContext } from './PicEditorControlContext';
 
 export function PicCommandList({ pictureResource }: { pictureResource: EditingPictureResource }) {
   const { confirm, deleteCommand } = useContext(PicEditorControlContext);
-  const {
-    setAllCommandsEnabled,
-    setCommandEnabled,
-    jumpRelative,
-    jumpTo,
-    currentCommandId,
-  } = useContext(CommandListNavigationContext);
+  const { setAllCommandsEnabled, setCommandEnabled, jumpRelative, jumpTo, currentCommandId } =
+    useContext(CommandListNavigationContext);
   const commandElements = useRef(new Map<string, HTMLLIElement>());
 
   const firstCommand = useMemo(() => pictureResource.commands[0], [pictureResource.commands]);
@@ -107,7 +102,7 @@ export function PicCommandList({ pictureResource }: { pictureResource: EditingPi
                   checked={command.enabled}
                   onChange={(event) => setCommandEnabled(command.uuid, event.target.checked)}
                 />
-                <div style={{ flexGrow: 1 }}>{describeCommand(command)}</div>
+                <div style={{ flexGrow: 1 }}>{describeCommand(command.command)}</div>
                 <button
                   type="button"
                   onClick={async () => {

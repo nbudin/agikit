@@ -25,6 +25,8 @@ const config = {
     extensions: ['.ts', '.js', '.tsx', '.jsx'],
     fallback: {
       buffer: require.resolve('buffer/'),
+      path: require.resolve('path-browserify/'),
+      util: require.resolve('util/'),
     },
   },
   module: {

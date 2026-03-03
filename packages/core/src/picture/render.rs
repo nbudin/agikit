@@ -1,6 +1,8 @@
 use std::collections::VecDeque;
 
 use picture_pen_macros::picture_pen_mask;
+#[cfg(feature = "js")]
+use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::{
     color_palettes::ColorPalette,
@@ -229,6 +231,12 @@ pub static DEFAULT_PEN_SETTINGS: PicturePenSettings = PicturePenSettings::new()
     .with_shape(PicturePenShape::Rectangle)
     .with_size(0)
     .with_splatter(false);
+
+#[cfg(feature = "js")]
+#[wasm_bindgen(js_name = "getDefaultPenSettings")]
+pub fn get_default_pen_settings() -> PicturePenSettings {
+    return DEFAULT_PEN_SETTINGS;
+}
 
 pub struct PixelBuffer<Pixel: Clone> {
     pub width: usize,
@@ -745,15 +753,33 @@ mod js {
         }
     }
 
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = "RenderPictureStartingFromOptions")]
     pub struct JsRenderPictureStartingFromOptions {
-        #[wasm_bindgen(js_name = "rendered_picture", getter_with_clone)]
+        #[wasm_bindgen(js_name = "renderedPicture", getter_with_clone)]
         pub rendered_picture: JsRenderedPicture,
         #[wasm_bindgen(js_name = "pictureColor")]
         pub picture_color: Option<u8>,
         #[wasm_bindgen(js_name = "priorityColor")]
         pub priority_color: Option<u8>,
         pub pen: PicturePenSettings,
+    }
+
+    #[wasm_bindgen(js_class = "RenderPictureStartingFromOptions")]
+    impl JsRenderPictureStartingFromOptions {
+        #[wasm_bindgen(constructor)]
+        pub fn new(
+            #[wasm_bindgen(js_name = "renderedPicture")] rendered_picture: JsRenderedPicture,
+            #[wasm_bindgen(js_name = "pictureColor")] picture_color: Option<u8>,
+            #[wasm_bindgen(js_name = "priorityColor")] priority_color: Option<u8>,
+            pen: PicturePenSettings,
+        ) -> JsRenderPictureStartingFromOptions {
+            JsRenderPictureStartingFromOptions {
+                rendered_picture,
+                picture_color,
+                priority_color,
+                pen,
+            }
+        }
     }
 
     #[wasm_bindgen(js_name = "renderPicture")]

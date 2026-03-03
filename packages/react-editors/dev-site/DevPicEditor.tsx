@@ -35,7 +35,10 @@ const DevPicEditor = () => {
           if (afterCommandId == null) {
             return {
               ...prevResource,
-              commands: [...commands.map(preparePicCommandForEditing), ...prevResource.commands],
+              commands: [
+                ...commands.map((cmd) => preparePicCommandForEditing(cmd.command)),
+                ...prevResource.commands,
+              ],
             };
           }
 
@@ -47,7 +50,7 @@ const DevPicEditor = () => {
             newCommands.splice(
               afterCommandIndex + 1,
               0,
-              ...commands.map(preparePicCommandForEditing),
+              ...commands.map((cmd) => preparePicCommandForEditing(cmd.command)),
             );
             return { ...prevResource, commands: newCommands };
           }

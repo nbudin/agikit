@@ -6,14 +6,25 @@ import { PicCommandList } from './PicCommandList';
 import { PictureTool, PICTURE_TOOLS } from './PicEditorTools';
 import PicEditorTools from './PicEditorTools';
 import {
+  AbsoluteLinePictureCommand,
   ChangePenPictureCommand,
   DisablePictureDrawPictureCommand,
   DisablePriorityDrawPictureCommand,
+  DrawXCornerPictureCommand,
+  DrawYCornerPictureCommand,
   EGAPalette,
+  FillPictureCommand,
   PictureCommand,
   PictureCoordinate,
+  PictureCornerStep,
+  PictureCornerStepAxis,
+  PicturePenPlotPoint,
   PicturePenSettings,
+  PlotWithPenPictureCommand,
+  RelativeLinePictureCommand,
+  RelativeLinePoint,
   renderPicture,
+  RenderPictureStartingFromOptions,
   SetPictureColorPictureCommand,
   SetPriorityColorPictureCommand,
 } from '@agikit/core';
@@ -23,14 +34,13 @@ import { describeCommand } from './describeCommand';
 import { PicEditorControlContext } from './PicEditorControlContext';
 import { CursorPosition } from './DrawingCanvas';
 
-type CommandInProgress = Exclude<
-  PictureCommand,
-  | SetPictureColorPictureCommand
-  | SetPriorityColorPictureCommand
-  | DisablePictureDrawPictureCommand
-  | DisablePriorityDrawPictureCommand
-  | ChangePenPictureCommand
->;
+type CommandInProgress =
+  | AbsoluteLinePictureCommand
+  | RelativeLinePictureCommand
+  | DrawXCornerPictureCommand
+  | DrawYCornerPictureCommand
+  | FillPictureCommand
+  | PlotWithPenPictureCommand;
 
 function getInitialCommandForSelectedTool(
   selectedTool: PictureTool,
@@ -38,45 +48,29 @@ function getInitialCommandForSelectedTool(
   position: CursorPosition,
 ): CommandInProgress {
   if (selectedTool.name === 'absoluteLine') {
-    return {
-      type: 'AbsoluteLine',
-      opcode: 246,
-      points: [position],
-    };
+    return new AbsoluteLinePictureCommand([new PictureCoordinate(position.x, position.y)]);
   }
 
   if (selectedTool.name === 'relativeLine') {
-    return {
-      type: 'RelativeLine',
-      opcode: 247,
-      startPosition: position,
-      relativePoints: [],
-    };
+    return new RelativeLinePictureCommand(new PictureCoordinate(position.x, position.y));
   }
 
   if (selectedTool.name === 'corner') {
-    return {
-      type: 'DrawXCorner', // might change this to DrawYCorner on second click
-      opcode: 245,
-      startPosition: position,
-      steps: [],
-    };
+    // might change this to DrawYCorner on second click
+    return new DrawXCornerPictureCommand(new PictureCoordinate(position.x, position.y));
   }
 
   if (selectedTool.name === 'fill') {
-    return {
-      type: 'Fill',
-      opcode: 248,
-      startPositions: [position],
-    };
+    return new FillPictureCommand([new PictureCoordinate(position.x, position.y)]);
   }
 
   if (selectedTool.name === 'pen') {
-    return {
-      type: 'PlotWithPen',
-      opcode: 250,
-      points: [{ position, texture: penSettings.splatter ? generateRandomTexture() : undefined }],
-    };
+    return new PlotWithPenPictureCommand([
+      new PicturePenPlotPoint(
+        new PictureCoordinate(position.x, position.y),
+        penSettings.splatter ? generateRandomTexture() : undefined,
+      ),
+    ]);
   }
 
   assertNever(selectedTool);
@@ -92,38 +86,36 @@ function addToCommandInProgress(
   position: CursorPosition,
 ): CommandInProgress {
   if (commandInProgress.type === 'AbsoluteLine') {
-    return {
-      ...commandInProgress,
-      points: [...commandInProgress.points, position],
-    };
+    return new AbsoluteLinePictureCommand([
+      ...commandInProgress.points,
+      new PictureCoordinate(position.x, position.y),
+    ]);
   }
 
   if (commandInProgress.type === 'RelativeLine') {
     const lastPosition = commandInProgress.relativePoints.reduce(
-      (pos, relativePoint) => ({
-        x: pos.x + relativePoint.x,
-        y: pos.y + relativePoint.y,
-      }),
+      (pos, relativePoint) =>
+        new RelativeLinePoint(pos.x + relativePoint.x, pos.y + relativePoint.y),
       commandInProgress.startPosition,
     );
 
     const rawX = position.x - lastPosition.x;
     const rawY = position.y - lastPosition.y;
-    const relativePoint: PictureCoordinate = {
-      x: clamp(rawX, -6, 7),
-      y: clamp(rawY, -7, 7),
-    };
-    return {
-      ...commandInProgress,
-      relativePoints: [...commandInProgress.relativePoints, relativePoint],
-    };
+    const relativePoint = new PictureCoordinate(clamp(rawX, -6, 7), clamp(rawY, -7, 7));
+    return new RelativeLinePictureCommand(commandInProgress.startPosition, [
+      ...commandInProgress.relativePoints,
+      relativePoint,
+    ]);
   }
 
   if (commandInProgress.type === 'DrawXCorner' || commandInProgress.type === 'DrawYCorner') {
-    const lastPosition = commandInProgress.steps.reduce(
-      (pos, step) => ({ ...pos, [step.axis]: step.position }),
-      commandInProgress.startPosition,
-    );
+    const lastPosition = commandInProgress.steps.reduce((pos, step) => {
+      if (step.axis === PictureCornerStepAxis.X) {
+        return new PictureCoordinate(step.position, pos.y);
+      } else {
+        return new PictureCoordinate(pos.x, step.position);
+      }
+    }, commandInProgress.startPosition);
 
     if (commandInProgress.steps.length === 0) {
       // first step could be X or Y
@@ -132,45 +124,49 @@ function addToCommandInProgress(
       const diffY = position.y - lastPosition.y;
 
       if (Math.abs(diffX) > Math.abs(diffY)) {
-        return {
-          ...commandInProgress,
-          type: 'DrawXCorner',
-          opcode: 245,
-          steps: [{ axis: 'x', position: position.x }],
-        };
+        return new DrawXCornerPictureCommand(commandInProgress.startPosition, [
+          new PictureCornerStep(PictureCornerStepAxis.X, position.x),
+        ]);
       } else {
-        return {
-          ...commandInProgress,
-          type: 'DrawYCorner',
-          opcode: 244,
-          steps: [{ axis: 'y', position: position.y }],
-        };
+        return new DrawYCornerPictureCommand(commandInProgress.startPosition, [
+          new PictureCornerStep(PictureCornerStepAxis.Y, position.y),
+        ]);
       }
     }
 
-    const axis =
-      commandInProgress.steps[commandInProgress.steps.length - 1]!.axis === 'x' ? 'y' : 'x';
-    return {
-      ...commandInProgress,
-      steps: [...commandInProgress.steps, { axis, position: position[axis] }],
-    };
+    const [axis, newPosition] =
+      commandInProgress.steps[commandInProgress.steps.length - 1]!.axis === PictureCornerStepAxis.X
+        ? [PictureCornerStepAxis.Y, position.y]
+        : [PictureCornerStepAxis.X, position.x];
+
+    if (commandInProgress.type === 'DrawXCorner') {
+      return new DrawXCornerPictureCommand(commandInProgress.startPosition, [
+        ...commandInProgress.steps,
+        new PictureCornerStep(axis, newPosition),
+      ]);
+    } else {
+      return new DrawYCornerPictureCommand(commandInProgress.startPosition, [
+        ...commandInProgress.steps,
+        new PictureCornerStep(axis, newPosition),
+      ]);
+    }
   }
 
   if (commandInProgress.type === 'Fill') {
-    return {
-      ...commandInProgress,
-      startPositions: [...commandInProgress.startPositions, position],
-    };
+    return new FillPictureCommand([
+      ...commandInProgress.startPositions,
+      new PictureCoordinate(position.x, position.y),
+    ]);
   }
 
   if (commandInProgress.type === 'PlotWithPen') {
-    return {
-      ...commandInProgress,
-      points: [
-        ...commandInProgress.points,
-        { position, texture: penSettings.splatter ? Math.floor(Math.random() * 120) : undefined },
-      ],
-    };
+    return new PlotWithPenPictureCommand([
+      ...commandInProgress.points,
+      new PicturePenPlotPoint(
+        new PictureCoordinate(position.x, position.y),
+        penSettings.splatter ? Math.floor(Math.random() * 120) : undefined,
+      ),
+    ]);
   }
 
   assertNever(commandInProgress);
@@ -181,11 +177,7 @@ export function PicEditor({ pictureResource }: { pictureResource: EditingPicture
   const [selectedTool, setSelectedTool] = useState<PictureTool>(PICTURE_TOOLS[0]);
   const [visualColor, setVisualColor] = useState<number | undefined>();
   const [priorityColor, setPriorityColor] = useState<number | undefined>();
-  const [penSettings, setPenSettings] = useState<PicturePenSettings>({
-    shape: 'rectangle',
-    size: 0,
-    splatter: false,
-  });
+  const [penSettings, setPenSettings] = useState(new PicturePenSettings(0, 'rectangle', false));
   const [visualCursorPosition, setVisualCursorPosition] = useState<CursorPosition | undefined>();
   const [priorityCursorPosition, setPriorityCursorPosition] = useState<
     CursorPosition | undefined
@@ -196,7 +188,9 @@ export function PicEditor({ pictureResource }: { pictureResource: EditingPicture
       renderPicture(
         {
           ...pictureResource,
-          commands: pictureResource.commands.filter((command) => command.enabled),
+          commands: pictureResource.commands
+            .filter((command) => command.enabled)
+            .map((command) => command.command),
         },
         EGAPalette,
       ),
@@ -226,7 +220,12 @@ export function PicEditor({ pictureResource }: { pictureResource: EditingPicture
           commands: [commandInProgressWithPreview],
         },
         EGAPalette,
-        { renderedPicture, pictureColor: visualColor, priorityColor, pen: penSettings },
+        new RenderPictureStartingFromOptions(
+          renderedPicture,
+          visualColor,
+          priorityColor,
+          penSettings,
+        ),
       );
     } else {
       return renderedPicture;
@@ -248,12 +247,8 @@ export function PicEditor({ pictureResource }: { pictureResource: EditingPicture
   );
 
   const navigationContextValue = useCommandListNavigation(pictureResource.commands);
-  const {
-    currentCommandColors,
-    currentCommandPenSettings,
-    currentCommandId,
-    jumpRelative,
-  } = navigationContextValue;
+  const { currentCommandColors, currentCommandPenSettings, currentCommandId, jumpRelative } =
+    navigationContextValue;
 
   const cursorDownInCanvas = (position: CursorPosition) => {
     if (commandInProgress) {
@@ -271,31 +266,17 @@ export function PicEditor({ pictureResource }: { pictureResource: EditingPicture
     const commandsToInsert: PictureCommand[] = [commandInProgress];
     if (currentCommandColors.visual !== visualColor) {
       if (visualColor == null) {
-        commandsToInsert.unshift({
-          type: 'DisablePictureDraw',
-          opcode: 241,
-        });
+        commandsToInsert.unshift(new DisablePictureDrawPictureCommand());
       } else {
-        commandsToInsert.unshift({
-          type: 'SetPictureColor',
-          opcode: 240,
-          colorNumber: visualColor,
-        });
+        commandsToInsert.unshift(new SetPictureColorPictureCommand(visualColor));
       }
     }
 
     if (currentCommandColors.priority !== priorityColor) {
       if (priorityColor == null) {
-        commandsToInsert.unshift({
-          type: 'DisablePriorityDraw',
-          opcode: 243,
-        });
+        commandsToInsert.unshift(new DisablePriorityDrawPictureCommand());
       } else {
-        commandsToInsert.unshift({
-          type: 'SetPriorityColor',
-          opcode: 242,
-          colorNumber: priorityColor,
-        });
+        commandsToInsert.unshift(new SetPriorityColorPictureCommand(priorityColor));
       }
     }
 
@@ -304,11 +285,7 @@ export function PicEditor({ pictureResource }: { pictureResource: EditingPicture
       currentCommandPenSettings.size !== penSettings.size ||
       currentCommandPenSettings.splatter !== penSettings.splatter
     ) {
-      commandsToInsert.unshift({
-        type: 'ChangePen',
-        opcode: 249,
-        settings: penSettings,
-      });
+      commandsToInsert.unshift(new ChangePenPictureCommand(penSettings));
     }
 
     addCommands(commandsToInsert.map(preparePicCommandForEditing), currentCommandId);
@@ -368,13 +345,15 @@ export function PicEditor({ pictureResource }: { pictureResource: EditingPicture
   useEffect(() => {
     setCommandInProgress((prevCommandInProgress) => {
       if (prevCommandInProgress && prevCommandInProgress.type === 'PlotWithPen') {
-        return {
-          ...prevCommandInProgress,
-          points: prevCommandInProgress.points.map((point) => ({
-            ...point,
-            texture: penSettings.splatter ? point.texture ?? generateRandomTexture() : undefined,
-          })),
-        };
+        return new PlotWithPenPictureCommand(
+          prevCommandInProgress.points.map(
+            (point) =>
+              new PicturePenPlotPoint(
+                point.position,
+                penSettings.splatter ? point.texture ?? generateRandomTexture() : undefined,
+              ),
+          ),
+        );
       }
 
       return prevCommandInProgress;

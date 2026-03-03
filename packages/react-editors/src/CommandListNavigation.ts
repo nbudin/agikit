@@ -116,20 +116,22 @@ export function useCommandListNavigation(
     for (let command of reversedCommandsThroughCurrent) {
       if (
         !visualCommand &&
-        (command.type === 'SetPictureColor' || command.type === 'DisablePictureDraw')
+        (command.command.type === 'SetPictureColor' ||
+          command.command.type === 'DisablePictureDraw')
       ) {
-        visualCommand = command;
+        visualCommand = command.command;
       }
 
       if (
         !priorityCommand &&
-        (command.type === 'SetPriorityColor' || command.type === 'DisablePriorityDraw')
+        (command.command.type === 'SetPriorityColor' ||
+          command.command.type === 'DisablePriorityDraw')
       ) {
-        priorityCommand = command;
+        priorityCommand = command.command;
       }
 
-      if (!changePenCommand && command.type === 'ChangePen') {
-        changePenCommand = command;
+      if (!changePenCommand && command.command.type === 'ChangePen') {
+        changePenCommand = command.command;
       }
 
       if (visualCommand && priorityCommand && changePenCommand) {

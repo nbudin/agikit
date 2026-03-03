@@ -2,12 +2,13 @@ import { PictureCommand, Picture } from '@agikit/core';
 import assertNever from 'assert-never';
 import { v4 as uuidv4 } from 'uuid';
 
-export type EditingPictureCommand = PictureCommand & {
+export type EditingPictureCommand = {
+  command: PictureCommand;
   uuid: string;
   enabled: boolean;
 };
 
-export type EditingPictureResource = Omit<Picture, 'commands'> & {
+export type EditingPictureResource = {
   commands: EditingPictureCommand[];
 };
 
@@ -28,7 +29,7 @@ export function preparePicCommandForEditing(
   command: PictureCommand,
 ): EditingPictureResource['commands'][number] {
   return {
-    ...command,
+    command,
     uuid: uuidv4(),
     enabled: true,
   };

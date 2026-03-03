@@ -1,6 +1,7 @@
 use bitfield_struct::bitfield;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
+use strum_macros::AsRefStr;
 use tsify::Tsify;
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -233,6 +234,12 @@ pub struct SignedDisplacementValue {
 }
 
 impl SignedDisplacementValue {
+    pub fn from_value(value: i8) -> SignedDisplacementValue {
+        SignedDisplacementValue::new()
+            .with_displacement(value.unsigned_abs())
+            .with_negative(value < 0)
+    }
+
     pub fn value(&self) -> i8 {
         (self.displacement() as i8) * (if self.negative() { -1 } else { 1 })
     }
@@ -262,6 +269,15 @@ pub struct RelativeLinePictureCommand {
 pub struct JsRelativeLinePoint {
     pub x: i8,
     pub y: i8,
+}
+
+#[cfg(feature = "js")]
+#[wasm_bindgen(js_class = "RelativeLinePoint")]
+impl JsRelativeLinePoint {
+    #[wasm_bindgen(constructor)]
+    pub fn new(x: i8, y: i8) -> JsRelativeLinePoint {
+        JsRelativeLinePoint { x, y }
+    }
 }
 
 #[wasm_bindgen]
@@ -332,7 +348,7 @@ impl PlotWithPenPictureCommand {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Tsify)]
+#[derive(Clone, Debug, Serialize, Deserialize, Tsify, AsRefStr)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 #[serde(tag = "type")]
 pub enum PictureCommand {
@@ -415,7 +431,14 @@ mod js {
     use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
     use web_sys::js_sys::Object;
 
-    use crate::picture::Picture;
+    use crate::picture::{
+        AbsoluteLinePictureCommand, ChangePenPictureCommand, DisablePictureDrawPictureCommand,
+        DisablePriorityDrawPictureCommand, DrawXCornerPictureCommand, DrawYCornerPictureCommand,
+        FillPictureCommand, JsRelativeLinePoint, Picture, PictureCoordinate, PictureCornerStep,
+        PictureCornerStepAxis, PicturePenPlotPoint, PicturePenSettings, PicturePenShape,
+        PlotWithPenPictureCommand, RelativeLinePictureCommand, RelativeLinePoint,
+        SetPictureColorPictureCommand, SetPriorityColorPictureCommand, SignedDisplacementValue,
+    };
 
     #[wasm_bindgen(typescript_custom_section)]
     const PICTURE_JSON_TYPES: &'static str = r#"
@@ -435,5 +458,210 @@ mod js {
     #[wasm_bindgen(skip_typescript)]
     pub fn build_picture_json(input: Picture) -> Result<JsValue, serde_wasm_bindgen::Error> {
         serde_wasm_bindgen::to_value(&input)
+    }
+
+    #[wasm_bindgen]
+    impl PictureCoordinate {
+        #[wasm_bindgen(constructor)]
+        pub fn new(x: u8, y: u8) -> PictureCoordinate {
+            PictureCoordinate { x, y }
+        }
+    }
+
+    #[wasm_bindgen]
+    impl PictureCornerStep {
+        #[wasm_bindgen(constructor)]
+        pub fn new(axis: PictureCornerStepAxis, position: u8) -> PictureCornerStep {
+            PictureCornerStep { axis, position }
+        }
+    }
+
+    #[wasm_bindgen]
+    impl PicturePenPlotPoint {
+        #[wasm_bindgen(constructor)]
+        pub fn new(position: PictureCoordinate, texture: Option<u8>) -> PicturePenPlotPoint {
+            PicturePenPlotPoint { position, texture }
+        }
+    }
+
+    #[wasm_bindgen]
+    impl PicturePenSettings {
+        #[wasm_bindgen(constructor)]
+        pub fn js_new(size: u8, shape: PicturePenShape, splatter: bool) -> PicturePenSettings {
+            PicturePenSettings::new()
+                .with_size(size)
+                .with_shape(shape)
+                .with_splatter(splatter)
+        }
+    }
+
+    #[wasm_bindgen]
+    impl AbsoluteLinePictureCommand {
+        #[wasm_bindgen(constructor)]
+        pub fn new(points: Vec<PictureCoordinate>) -> AbsoluteLinePictureCommand {
+            AbsoluteLinePictureCommand { points }
+        }
+
+        #[wasm_bindgen(js_name = "type", getter, unchecked_return_type = "'AbsoluteLine'")]
+        pub fn enum_type(&self) -> String {
+            "AbsoluteLine".to_string()
+        }
+    }
+
+    #[wasm_bindgen]
+    impl RelativeLinePictureCommand {
+        #[wasm_bindgen(constructor)]
+        pub fn new(
+            start_position: PictureCoordinate,
+            relative_points: Option<Vec<JsRelativeLinePoint>>,
+        ) -> RelativeLinePictureCommand {
+            let relative_points = relative_points
+                .unwrap_or_default()
+                .into_iter()
+                .map(|p| {
+                    RelativeLinePoint::new()
+                        .with_x_displacement(SignedDisplacementValue::from_value(p.x))
+                        .with_y_displacement(SignedDisplacementValue::from_value(p.y))
+                })
+                .collect();
+            RelativeLinePictureCommand {
+                start_position,
+                relative_points,
+            }
+        }
+
+        #[wasm_bindgen(js_name = "type", getter, unchecked_return_type = "'RelativeLine'")]
+        pub fn enum_type(&self) -> String {
+            "RelativeLine".to_string()
+        }
+    }
+
+    #[wasm_bindgen]
+    impl DrawXCornerPictureCommand {
+        #[wasm_bindgen(constructor)]
+        pub fn new(
+            start_position: PictureCoordinate,
+            steps: Option<Vec<PictureCornerStep>>,
+        ) -> DrawXCornerPictureCommand {
+            DrawXCornerPictureCommand {
+                start_position,
+                steps: steps.unwrap_or_default(),
+            }
+        }
+
+        #[wasm_bindgen(js_name = "type", getter, unchecked_return_type = "'DrawXCorner'")]
+        pub fn enum_type(&self) -> String {
+            "DrawXCorner".to_string()
+        }
+    }
+
+    #[wasm_bindgen]
+    impl DrawYCornerPictureCommand {
+        #[wasm_bindgen(constructor)]
+        pub fn new(
+            start_position: PictureCoordinate,
+            steps: Option<Vec<PictureCornerStep>>,
+        ) -> DrawYCornerPictureCommand {
+            DrawYCornerPictureCommand {
+                start_position,
+                steps: steps.unwrap_or_default(),
+            }
+        }
+
+        #[wasm_bindgen(js_name = "type", getter, unchecked_return_type = "'DrawYCorner'")]
+        pub fn enum_type(&self) -> String {
+            "DrawYCorner".to_string()
+        }
+    }
+
+    #[wasm_bindgen]
+    impl FillPictureCommand {
+        #[wasm_bindgen(constructor)]
+        pub fn new(start_positions: Vec<PictureCoordinate>) -> FillPictureCommand {
+            FillPictureCommand { start_positions }
+        }
+
+        #[wasm_bindgen(js_name = "type", getter, unchecked_return_type = "'Fill'")]
+        pub fn enum_type(&self) -> String {
+            "Fill".to_string()
+        }
+    }
+
+    #[wasm_bindgen]
+    impl PlotWithPenPictureCommand {
+        #[wasm_bindgen(constructor)]
+        pub fn new(points: Vec<PicturePenPlotPoint>) -> PlotWithPenPictureCommand {
+            PlotWithPenPictureCommand { points }
+        }
+
+        #[wasm_bindgen(js_name = "type", getter, unchecked_return_type = "'PlotWithPen'")]
+        pub fn enum_type(&self) -> String {
+            "PlotWithPen".to_string()
+        }
+    }
+
+    #[wasm_bindgen]
+    impl DisablePictureDrawPictureCommand {
+        #[wasm_bindgen(constructor)]
+        pub fn new() -> DisablePictureDrawPictureCommand {
+            DisablePictureDrawPictureCommand
+        }
+
+        #[wasm_bindgen(js_name = "type", getter, unchecked_return_type = "'DisablePictureDraw'")]
+        pub fn enum_type(&self) -> String {
+            "DisablePictureDraw".to_string()
+        }
+    }
+
+    #[wasm_bindgen]
+    impl SetPictureColorPictureCommand {
+        #[wasm_bindgen(constructor)]
+        pub fn new(color_number: u8) -> SetPictureColorPictureCommand {
+            SetPictureColorPictureCommand { color_number }
+        }
+
+        #[wasm_bindgen(js_name = "type", getter, unchecked_return_type = "'SetPictureColor'")]
+        pub fn enum_type(&self) -> String {
+            "SetPictureColor".to_string()
+        }
+    }
+
+    #[wasm_bindgen]
+    impl DisablePriorityDrawPictureCommand {
+        #[wasm_bindgen(constructor)]
+        pub fn new() -> DisablePriorityDrawPictureCommand {
+            DisablePriorityDrawPictureCommand
+        }
+
+        #[wasm_bindgen(js_name = "type", getter, unchecked_return_type = "'DisablePriorityDraw'")]
+        pub fn enum_type(&self) -> String {
+            "DisablePriorityDraw".to_string()
+        }
+    }
+
+    #[wasm_bindgen]
+    impl SetPriorityColorPictureCommand {
+        #[wasm_bindgen(constructor)]
+        pub fn new(color_number: u8) -> SetPriorityColorPictureCommand {
+            SetPriorityColorPictureCommand { color_number }
+        }
+
+        #[wasm_bindgen(js_name = "type", getter, unchecked_return_type = "'SetPriorityColor'")]
+        pub fn enum_type(&self) -> String {
+            "SetPriorityColor".to_string()
+        }
+    }
+
+    #[wasm_bindgen]
+    impl ChangePenPictureCommand {
+        #[wasm_bindgen(constructor)]
+        pub fn new(settings: PicturePenSettings) -> ChangePenPictureCommand {
+            ChangePenPictureCommand { settings }
+        }
+
+        #[wasm_bindgen(js_name = "type", getter, unchecked_return_type = "'ChangePen'")]
+        pub fn enum_type(&self) -> String {
+            "ChangePen".to_string()
+        }
     }
 }
