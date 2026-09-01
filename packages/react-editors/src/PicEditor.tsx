@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { assertNever } from 'assert-never';
 import { PicCanvas } from './PicCanvas';
 import { EditingPictureResource, preparePicCommandForEditing } from './EditingPictureTypes';
@@ -14,6 +14,7 @@ import {
   DrawYCornerPictureCommand,
   EGAPalette,
   FillPictureCommand,
+  Picture,
   PictureCommand,
   PictureCoordinate,
   PictureCornerStep,
@@ -186,12 +187,11 @@ export function PicEditor({ pictureResource }: { pictureResource: EditingPicture
   const renderedPicture = useMemo(
     () =>
       renderPicture(
-        {
-          ...pictureResource,
-          commands: pictureResource.commands
+        new Picture(
+          pictureResource.commands
             .filter((command) => command.enabled)
-            .map((command) => command.command),
-        },
+            .map((command) => command.command.toPictureCommand()),
+        ),
         EGAPalette,
       ),
     [pictureResource],
@@ -215,10 +215,7 @@ export function PicEditor({ pictureResource }: { pictureResource: EditingPicture
   const renderedPictureWithCommandInProgress = useMemo(() => {
     if (commandInProgressWithPreview) {
       return renderPicture(
-        {
-          ...pictureResource,
-          commands: [commandInProgressWithPreview],
-        },
+        new Picture([commandInProgressWithPreview.toPictureCommand()]),
         EGAPalette,
         new RenderPictureStartingFromOptions(
           renderedPicture,

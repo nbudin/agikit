@@ -9,6 +9,7 @@ import '../styles/common.css';
 import '../styles/soundeditor.css';
 import { SoundEditor } from '../src/SoundEditor';
 import { sq2NoiseEffectBase64 } from './dev-example-data-do-not-check-in';
+import { ready } from './ready';
 
 const operationReconTheme = readIBMPCjrSoundResource(
   Buffer.from(operationReconThemeBase64, 'base64'),
@@ -20,6 +21,6 @@ function DevSoundEditor() {
   return <SoundEditor sound={operationReconTheme} />;
 }
 
-window.addEventListener('load', () => {
+ready(() => {
   ReactDOM.render(<DevSoundEditor />, document.getElementById('sound-editor-root'));
 });

@@ -11,6 +11,8 @@ export default function PenSettingsSelector({
 }) {
   const { setButton, setPopover, styles, attributes, open, setOpen } = usePopoverButton();
 
+  console.log(penSettings);
+
   return (
     <>
       <button

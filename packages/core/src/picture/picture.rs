@@ -434,10 +434,11 @@ mod js {
     use crate::picture::{
         AbsoluteLinePictureCommand, ChangePenPictureCommand, DisablePictureDrawPictureCommand,
         DisablePriorityDrawPictureCommand, DrawXCornerPictureCommand, DrawYCornerPictureCommand,
-        FillPictureCommand, JsRelativeLinePoint, Picture, PictureCoordinate, PictureCornerStep,
-        PictureCornerStepAxis, PicturePenPlotPoint, PicturePenSettings, PicturePenShape,
-        PlotWithPenPictureCommand, RelativeLinePictureCommand, RelativeLinePoint,
-        SetPictureColorPictureCommand, SetPriorityColorPictureCommand, SignedDisplacementValue,
+        EndPictureCommand, FillPictureCommand, JsRelativeLinePoint, Picture, PictureCommand,
+        PictureCoordinate, PictureCornerStep, PictureCornerStepAxis, PicturePenPlotPoint,
+        PicturePenSettings, PicturePenShape, PlotWithPenPictureCommand, RelativeLinePictureCommand,
+        RelativeLinePoint, SetPictureColorPictureCommand, SetPriorityColorPictureCommand,
+        SignedDisplacementValue,
     };
 
     #[wasm_bindgen(typescript_custom_section)]
@@ -458,6 +459,14 @@ mod js {
     #[wasm_bindgen(skip_typescript)]
     pub fn build_picture_json(input: Picture) -> Result<JsValue, serde_wasm_bindgen::Error> {
         serde_wasm_bindgen::to_value(&input)
+    }
+
+    #[wasm_bindgen]
+    impl Picture {
+        #[wasm_bindgen(constructor)]
+        pub fn new(commands: Vec<PictureCommand>) -> Picture {
+            Picture { commands }
+        }
     }
 
     #[wasm_bindgen]
@@ -506,6 +515,11 @@ mod js {
         pub fn enum_type(&self) -> String {
             "AbsoluteLine".to_string()
         }
+
+        #[wasm_bindgen(js_name = "toPictureCommand")]
+        pub fn to_picture_command(&self) -> PictureCommand {
+            PictureCommand::AbsoluteLine(self.clone())
+        }
     }
 
     #[wasm_bindgen]
@@ -534,6 +548,11 @@ mod js {
         pub fn enum_type(&self) -> String {
             "RelativeLine".to_string()
         }
+
+        #[wasm_bindgen(js_name = "toPictureCommand")]
+        pub fn to_picture_command(&self) -> PictureCommand {
+            PictureCommand::RelativeLine(self.clone())
+        }
     }
 
     #[wasm_bindgen]
@@ -552,6 +571,11 @@ mod js {
         #[wasm_bindgen(js_name = "type", getter, unchecked_return_type = "'DrawXCorner'")]
         pub fn enum_type(&self) -> String {
             "DrawXCorner".to_string()
+        }
+
+        #[wasm_bindgen(js_name = "toPictureCommand")]
+        pub fn to_picture_command(&self) -> PictureCommand {
+            PictureCommand::DrawXCorner(self.clone())
         }
     }
 
@@ -572,6 +596,11 @@ mod js {
         pub fn enum_type(&self) -> String {
             "DrawYCorner".to_string()
         }
+
+        #[wasm_bindgen(js_name = "toPictureCommand")]
+        pub fn to_picture_command(&self) -> PictureCommand {
+            PictureCommand::DrawYCorner(self.clone())
+        }
     }
 
     #[wasm_bindgen]
@@ -584,6 +613,11 @@ mod js {
         #[wasm_bindgen(js_name = "type", getter, unchecked_return_type = "'Fill'")]
         pub fn enum_type(&self) -> String {
             "Fill".to_string()
+        }
+
+        #[wasm_bindgen(js_name = "toPictureCommand")]
+        pub fn to_picture_command(&self) -> PictureCommand {
+            PictureCommand::Fill(self.clone())
         }
     }
 
@@ -598,6 +632,11 @@ mod js {
         pub fn enum_type(&self) -> String {
             "PlotWithPen".to_string()
         }
+
+        #[wasm_bindgen(js_name = "toPictureCommand")]
+        pub fn to_picture_command(&self) -> PictureCommand {
+            PictureCommand::PlotWithPen(self.clone())
+        }
     }
 
     #[wasm_bindgen]
@@ -607,9 +646,18 @@ mod js {
             DisablePictureDrawPictureCommand
         }
 
-        #[wasm_bindgen(js_name = "type", getter, unchecked_return_type = "'DisablePictureDraw'")]
+        #[wasm_bindgen(
+            js_name = "type",
+            getter,
+            unchecked_return_type = "'DisablePictureDraw'"
+        )]
         pub fn enum_type(&self) -> String {
             "DisablePictureDraw".to_string()
+        }
+
+        #[wasm_bindgen(js_name = "toPictureCommand")]
+        pub fn to_picture_command(&self) -> PictureCommand {
+            PictureCommand::DisablePictureDraw(self.clone())
         }
     }
 
@@ -624,6 +672,11 @@ mod js {
         pub fn enum_type(&self) -> String {
             "SetPictureColor".to_string()
         }
+
+        #[wasm_bindgen(js_name = "toPictureCommand")]
+        pub fn to_picture_command(&self) -> PictureCommand {
+            PictureCommand::SetPictureColor(self.clone())
+        }
     }
 
     #[wasm_bindgen]
@@ -633,9 +686,18 @@ mod js {
             DisablePriorityDrawPictureCommand
         }
 
-        #[wasm_bindgen(js_name = "type", getter, unchecked_return_type = "'DisablePriorityDraw'")]
+        #[wasm_bindgen(
+            js_name = "type",
+            getter,
+            unchecked_return_type = "'DisablePriorityDraw'"
+        )]
         pub fn enum_type(&self) -> String {
             "DisablePriorityDraw".to_string()
+        }
+
+        #[wasm_bindgen(js_name = "toPictureCommand")]
+        pub fn to_picture_command(&self) -> PictureCommand {
+            PictureCommand::DisablePriorityDraw(self.clone())
         }
     }
 
@@ -650,6 +712,11 @@ mod js {
         pub fn enum_type(&self) -> String {
             "SetPriorityColor".to_string()
         }
+
+        #[wasm_bindgen(js_name = "toPictureCommand")]
+        pub fn to_picture_command(&self) -> PictureCommand {
+            PictureCommand::SetPriorityColor(self.clone())
+        }
     }
 
     #[wasm_bindgen]
@@ -662,6 +729,29 @@ mod js {
         #[wasm_bindgen(js_name = "type", getter, unchecked_return_type = "'ChangePen'")]
         pub fn enum_type(&self) -> String {
             "ChangePen".to_string()
+        }
+
+        #[wasm_bindgen(js_name = "toPictureCommand")]
+        pub fn to_picture_command(&self) -> PictureCommand {
+            PictureCommand::ChangePen(self.clone())
+        }
+    }
+
+    #[wasm_bindgen]
+    impl EndPictureCommand {
+        #[wasm_bindgen(constructor)]
+        pub fn new() -> EndPictureCommand {
+            EndPictureCommand
+        }
+
+        #[wasm_bindgen(js_name = "type", getter, unchecked_return_type = "'End'")]
+        pub fn enum_type(&self) -> String {
+            "End".to_string()
+        }
+
+        #[wasm_bindgen(js_name = "toPictureCommand")]
+        pub fn to_picture_command(&self) -> PictureCommand {
+            PictureCommand::End(self.clone())
         }
     }
 }

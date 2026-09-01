@@ -5,6 +5,7 @@
   "author": "Nat Budin <natbudin@gmail.com>",
   "homepage": "https://github.com/nbudin/agikit#readme",
   "license": "MIT",
+  "type": "module",
   "main": "dist/index.js",
   "files": [
     "dist",
@@ -17,7 +18,7 @@
   "scripts": {
     "build": "tsc -b",
     "prepare": "yarn run build",
-    "start": "webpack serve --config webpack.config.js",
+    "start": "vite",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "bugs": {
@@ -49,18 +50,16 @@
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
-    "css-loader": "^5.2.7",
+    "@vitejs/plugin-react": "^4.0.0",
     "eslint": "^7.32.0",
     "eslint-plugin-react-hooks": "^4.3.0",
-    "mini-css-extract-plugin": "^1.6.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "style-loader": "^2.0.0",
-    "ts-loader": "^8.3.0",
+    "rollup": "^4.59.0",
     "typescript": "^4.5.5",
-    "webpack": "^5.68.0",
-    "webpack-cli": "^4.9.2",
-    "webpack-dev-server": "^4.7.4"
+    "vite": "^5.0.0",
+    "vite-plugin-top-level-await": "^1.4.0",
+    "vite-plugin-wasm": "^3.3.0"
   },
   "gitHead": "26eba522edf0c98cfd2a646ded8f4a4ab8e812fc"
 }

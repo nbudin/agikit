@@ -18,6 +18,7 @@ import './dev-site.css';
 import '../styles/common.css';
 import '../styles/piceditor.css';
 import { DefaultProjectConfig } from '@agikit/core';
+import { ready } from './ready';
 
 // @ts-expect-error
 window.Buffer = Buffer;
@@ -86,7 +87,7 @@ const DevPicEditor = () => {
   );
 };
 
-window.addEventListener('load', () => {
+ready(() => {
   console.log('loaded, rendering!');
   ReactDOM.render(<DevPicEditor />, document.getElementById('pic-editor-root'));
 });

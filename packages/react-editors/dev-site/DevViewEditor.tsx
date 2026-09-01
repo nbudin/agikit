@@ -15,6 +15,7 @@ import './dev-site.css';
 import '../styles/common.css';
 import '../styles/vieweditor.css';
 import { applyViewEditorCommands, ViewEditorCommand } from '../src/ViewEditorCommands';
+import { ready } from './ready';
 
 // @ts-expect-error
 window.Buffer = Buffer;
@@ -127,6 +128,6 @@ const DevViewEditor = () => {
   );
 };
 
-window.addEventListener('load', () => {
+ready(() => {
   ReactDOM.render(<DevViewEditor />, document.getElementById('view-editor-root'));
 });
